@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+# bin/compile <build-dir> <cache-dir>
+
+BIN_DIR=$(dirname $0)
+BUILD_DIR=$1
+CACHE_DIR=$2
+LP_DIR=`cd $(dirname $0); cd ..; pwd`
+
+
+cd $BUILD_DIR
+mkdir -p $CACHE_DIR/www
+mv * $CACHE_DIR/www
+mv $CACHE_DIR/www .
+
+echo -n "-----> Bundling Apache..."
+APACHE_URL="https://s3.amazonaws.com/php-lp/apache.tar.gz"
+curl --silent --max-time 60 --location $APACHE_URL | tar xz
+APACHE_VERSION=`cat apache/VERSION`
+echo " done, v$APACHE_VERSION"
+
+echo -n "-----> Bundling PHP..."
+PHP_URL="https://s3.amazonaws.com/php-lp/php.tar.gz"
+curl --silent --max-time 60 --location $PHP_URL | tar xz
+PHP_VERSION=`cat php/VERSION`
+echo " done. v$PHP_VERSION"
+
+cat >>boot.sh <<EOF
+sed -i 's/Listen 80/Listen '\$PORT'/' /app/apache/conf/httpd.conf
+sed -i 's/#ServerName www.example.com:80/ServerName 127.0.0.1/' /app/apache/conf/httpd.conf
+echo "launching apache"
+LD_LIBRARY_PATH=/app/php/ext ./apache/bin/httpd -X
+EOF
+
+chmod +x boot.sh
