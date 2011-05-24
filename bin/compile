@@ -15,6 +15,7 @@ mv $CACHE_DIR/www .
 echo -n "-----> Bundling Apache..."
 APACHE_URL="https://s3.amazonaws.com/php-lp/apache.tar.gz"
 curl --silent --max-time 60 --location $APACHE_URL | tar xz
+cp $LP_DIR/conf/httpd.conf apache/conf
 APACHE_VERSION=`cat apache/VERSION`
 echo " done, v$APACHE_VERSION"
 
