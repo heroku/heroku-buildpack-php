@@ -27,7 +27,7 @@ echo " done. v$PHP_VERSION"
 
 cat >>boot.sh <<EOF
 sed -i 's/Listen 80/Listen '\$PORT'/' /app/apache/conf/httpd.conf
-echo "launching apache"
+echo "Launching apache"
 LD_LIBRARY_PATH=/app/php/ext ./apache/bin/httpd -X
 EOF
 
