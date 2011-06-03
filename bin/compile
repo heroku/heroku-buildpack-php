@@ -22,6 +22,7 @@ echo " done, v$APACHE_VERSION"
 echo -n "-----> Bundling PHP..."
 PHP_URL="https://s3.amazonaws.com/php-lp/php.tar.gz"
 curl --silent --max-time 60 --location $PHP_URL | tar xz
+cp $LP_DIR/conf/php.ini php
 PHP_VERSION=`cat php/VERSION`
 echo " done. v$PHP_VERSION"
 
