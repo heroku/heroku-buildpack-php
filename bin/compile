@@ -6,6 +6,8 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
+# include .files when moving things around
+shopt -s dotglob
 
 cd $BUILD_DIR
 mkdir -p $CACHE_DIR/www
