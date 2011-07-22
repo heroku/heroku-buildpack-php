@@ -30,6 +30,9 @@ echo " done. v$PHP_VERSION"
 
 cat >>boot.sh <<EOF
 sed -i 's/Listen 80/Listen '\$PORT'/' /app/apache/conf/httpd.conf
+for var in \`env|cut -f1 -d=\`; do
+  echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
+done
 export LD_LIBRARY_PATH=/app/php/ext
 echo "Launching apache"
 exec /app/apache/bin/httpd -X
