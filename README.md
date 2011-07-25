@@ -37,7 +37,16 @@ Pre-compiling binaries
     
     # php extensions
     mkdir /app/php/ext
-    cp /usr/lib/libmysqlclient.so.15 /app/php/ext
+    cp /usr/lib/libmysqlclient.so.15 /app/php/ext/
+    
+    # pear
+    apt-get install php5-dev php-pear
+    pear config-set php_dir /app/php
+    pecl install apc
+    mkdir /app/php/include/php/ext/apc
+    cp /usr/lib/php5/20060613/apc.so /app/php/ext/
+    cp /usr/include/php5/ext/apc/apc_serializer.h /app/php/include/php/ext/apc/
+    
     
     # package
     cd /app
