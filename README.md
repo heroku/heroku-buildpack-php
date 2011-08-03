@@ -54,3 +54,9 @@ Pre-compiling binaries
     tar -zcvf apache.tar.gz apache
     echo '5.3.6' > php/VERSION
     tar -zcvf php.tar.gz php
+
+Meta
+----
+
+Created by Pedro Belo.
+Many thanks to Keith Rarick for the help with assorted Unix topics :)
