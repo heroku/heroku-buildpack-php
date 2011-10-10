@@ -1,7 +1,7 @@
-Apache+PHP language pack
+Apache+PHP build pack
 ========================
 
-This is a language pack bundling PHP and Apache for Heroku apps.
+This is a build pack bundling PHP and Apache for Heroku apps.
 
 Configuration
 -------------
