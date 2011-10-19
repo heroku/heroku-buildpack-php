@@ -25,6 +25,11 @@ mkdir -p $CACHE_DIR/www
 mv * $CACHE_DIR/www
 mv $CACHE_DIR/www .
 
+# keep Procfile
+if [ -f www/Procfile ]; then
+  mv www/Procfile .
+fi
+
 # unpack cache
 for DIR in $APACHE_PATH $PHP_PATH ; do
   rm -rf $DIR
