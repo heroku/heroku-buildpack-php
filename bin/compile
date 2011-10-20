@@ -56,6 +56,10 @@ fi
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
 
+# make php available on bin
+mkdir -p bin
+ln -s /app/php/bin/php bin/php
+
 cat >>boot.sh <<EOF
 sed -i 's/Listen 80/Listen '\$PORT'/' /app/apache/conf/httpd.conf
 for var in \`env|cut -f1 -d=\`; do
