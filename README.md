@@ -55,6 +55,13 @@ Pre-compiling binaries
     echo '5.3.6' > php/VERSION
     tar -zcvf php.tar.gz php
 
+
+Hacking
+-------
+
+To change this buildpack, fork it on Github. Push up changes to your fork, then create a test app with --buildpack <your-github-url> and push to it.
+
+
 Meta
 ----
 
