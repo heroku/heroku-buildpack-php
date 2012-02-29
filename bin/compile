@@ -9,6 +9,8 @@ APACHE_VERSION="2.2.19"
 APACHE_PATH="apache"
 PHP_VERSION="5.3.6"
 PHP_PATH="php"
+EXT_PATH="$PHP_PATH/ext"
+REDIS_EXT="$EXT_PATH/redis.so"
 
 BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
@@ -50,6 +52,14 @@ if [ ! -d $PHP_PATH ]; then
   PHP_URL="https://s3.amazonaws.com/php-lp/php-$PHP_VERSION.tar.gz"
   echo "-----> Bundling PHP v$PHP_VERSION"
   curl --silent --max-time 60 --location $PHP_URL | tar xz
+fi
+
+# install redis if needed
+if [ ! -f $REDIS_EXT ]; then
+  mkdir -p $(dirname $REDIS_EXT)
+  REDIS_EXT_URL="https://s3.amazonaws.com/rbrainard-public/redis.so"
+  echo "-----> Bundling Redis extension"
+  curl --silent --max-time 60 --location $REDIS_EXT_URL > $REDIS_EXT
 fi
 
 # update config files
