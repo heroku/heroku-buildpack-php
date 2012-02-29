@@ -9,7 +9,7 @@ APACHE_VERSION="2.2.19"
 APACHE_PATH="apache"
 PHP_VERSION="5.3.6"
 PHP_PATH="php"
-EXT_PATH="$PHP_PATH/ext"
+EXT_PATH="extensions"
 REDIS_EXT="$EXT_PATH/redis.so"
 
 BIN_DIR=$(dirname $0)
