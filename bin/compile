@@ -41,7 +41,7 @@ done
 # install apache if needed
 if [ ! -d $APACHE_PATH ]; then
   APACHE_URL="https://s3.amazonaws.com/php-lp-tmaher/apache-$APACHE_VERSION.tar.gz"
-  echo "-----> Bundling Apache version $APACHE_VERSION"
+  echo "-----> Bundling Apacheeee version $APACHE_VERSION"
   curl --silent --max-time 60 --location $APACHE_URL | tar xz
 fi
 
