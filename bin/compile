@@ -40,15 +40,15 @@ done
 
 # install apache if needed
 if [ ! -d $APACHE_PATH ]; then
-  APACHE_URL="https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz"
-  echo "-----> Bundling Apache v$APACHE_VERSION"
+  APACHE_URL="https://s3.amazonaws.com/php-lp-tmaher/apache-$APACHE_VERSION.tar.gz"
+  echo "-----> Bundling Apache version $APACHE_VERSION"
   curl --silent --max-time 60 --location $APACHE_URL | tar xz
 fi
 
 # install php if needed
 if [ ! -d $PHP_PATH ]; then
-  PHP_URL="https://s3.amazonaws.com/php-lp/php-$PHP_VERSION.tar.gz"
-  echo "-----> Bundling PHP v$PHP_VERSION"
+  PHP_URL="https://s3.amazonaws.com/php-lp-tmaher/php-$PHP_VERSION.tar.gz"
+  echo "-----> Bundling PHP version $PHP_VERSION"
   curl --silent --max-time 60 --location $PHP_URL | tar xz
 fi
 
