@@ -5,9 +5,9 @@
 set -e
 
 # config
-APACHE_VERSION="2.2.19"
+APACHE_VERSION="2.2.22"
 APACHE_PATH="apache"
-PHP_VERSION="5.3.6"
+PHP_VERSION="5.3.10"
 PHP_PATH="php"
 
 BIN_DIR=$(dirname $0)
@@ -19,8 +19,6 @@ LP_DIR=`cd $(dirname $0); cd ..; pwd`
 shopt -s dotglob
 
 cd $BUILD_DIR
-
-echo "-----> OMG BABY"
 
 # move app things to www
 mkdir -p $CACHE_DIR/www
@@ -41,14 +39,14 @@ for DIR in $APACHE_PATH $PHP_PATH ; do
 done
 
 # install apache if needed
-if [ ! -d $APACHE_PATH ]; then
+if [ ! -d $APACHE_PATH ] || [ `cat ${APACHE_PATH}/VERSION` != $APACHE_VERSION ]; then
   APACHE_URL="https://s3.amazonaws.com/php-lp-tmaher/apache-$APACHE_VERSION.tar.gz"
   echo "-----> Bundling Apacheeee version $APACHE_VERSION"
   curl --silent --max-time 60 --location $APACHE_URL | tar xz
 fi
 
 # install php if needed
-if [ ! -d $PHP_PATH ]; then
+if [ ! -d $PHP_PATH ] || [ `cat ${PHP_PATH}/VERSION` != $PHP_VERSION ]; then
   PHP_URL="https://s3.amazonaws.com/php-lp-tmaher/php-$PHP_VERSION.tar.gz"
   echo "-----> Bundling PHP version $PHP_VERSION"
   curl --silent --max-time 60 --location $PHP_URL | tar xz
