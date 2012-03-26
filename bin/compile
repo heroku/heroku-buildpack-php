@@ -31,7 +31,11 @@ if [ -f www/Procfile ]; then
 fi
 
 # unpack cache
-for DIR in $APACHE_PATH $PHP_PATH ; do
+for COMP in APACHE PHP; do
+  DIR=`eval echo '$'${COMP}_PATH`
+  VERSION=`eval echo '$'${COMP}_VERSION`
+  [ `cat $CACHE_DIR/$DIR/VERSION 2>/dev/null` == "$VERSION" ] || continue
+
   rm -rf $DIR
   if [ -d $CACHE_DIR/$DIR ]; then
     cp -r $CACHE_DIR/$DIR $DIR
@@ -40,6 +44,7 @@ done
 
 # install apache if needed
 if [ ! -d $APACHE_PATH ] || [ `cat ${APACHE_PATH}/VERSION` != $APACHE_VERSION ]; then
+  [ -d $APACHE_PATH ] && rm -rf $APACHE_PATH
   APACHE_URL="https://s3.amazonaws.com/php-lp-tmaher/apache-$APACHE_VERSION.tar.gz"
   echo "-----> Bundling Apacheeee version $APACHE_VERSION"
   curl --silent --max-time 60 --location $APACHE_URL | tar xz
@@ -47,6 +52,7 @@ fi
 
 # install php if needed
 if [ ! -d $PHP_PATH ] || [ `cat ${PHP_PATH}/VERSION` != $PHP_VERSION ]; then
+  [ -d $PHP_PATH ] && rm -rf $PHP_PATH
   PHP_URL="https://s3.amazonaws.com/php-lp-tmaher/php-$PHP_VERSION.tar.gz"
   echo "-----> Bundling PHP version $PHP_VERSION"
   curl --silent --max-time 60 --location $PHP_URL | tar xz
