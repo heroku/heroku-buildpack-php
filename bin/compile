@@ -20,6 +20,8 @@ shopt -s dotglob
 
 cd $BUILD_DIR
 
+echo "------> OMG BABY"
+
 # move app things to www
 mkdir -p $CACHE_DIR/www
 mv * $CACHE_DIR/www
