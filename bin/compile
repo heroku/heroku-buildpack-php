@@ -5,9 +5,9 @@
 set -e
 
 # config
-APACHE_VERSION="2.2.19"
+APACHE_VERSION="2.2.22"
 APACHE_PATH="apache"
-PHP_VERSION="5.3.6"
+PHP_VERSION="5.3.10"
 PHP_PATH="php"
 
 BIN_DIR=$(dirname $0)
@@ -30,27 +30,13 @@ if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
-# unpack cache
-for DIR in $APACHE_PATH $PHP_PATH ; do
-  rm -rf $DIR
-  if [ -d $CACHE_DIR/$DIR ]; then
-    cp -r $CACHE_DIR/$DIR $DIR
-  fi
-done
+APACHE_URL="https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz"
+echo "-----> Bundling Apache version $APACHE_VERSION"
+curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
-# install apache if needed
-if [ ! -d $APACHE_PATH ]; then
-  APACHE_URL="https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz"
-  echo "-----> Bundling Apache v$APACHE_VERSION"
-  curl --silent --max-time 60 --location $APACHE_URL | tar xz
-fi
-
-# install php if needed
-if [ ! -d $PHP_PATH ]; then
-  PHP_URL="https://s3.amazonaws.com/php-lp/php-$PHP_VERSION.tar.gz"
-  echo "-----> Bundling PHP v$PHP_VERSION"
-  curl --silent --max-time 60 --location $PHP_URL | tar xz
-fi
+PHP_URL="https://s3.amazonaws.com/php-lp/php-$PHP_VERSION.tar.gz"
+echo "-----> Bundling PHP version $PHP_VERSION"
+curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
@@ -61,7 +47,6 @@ mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
 cat >>boot.sh <<EOF
-sed -i 's/Listen 80/Listen '\$PORT'/' /app/apache/conf/httpd.conf
 for var in \`env|cut -f1 -d=\`; do
   echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
 done
@@ -77,9 +62,5 @@ EOF
 
 chmod +x boot.sh
 
-# repack cache
-mkdir -p $CACHE_DIR
-for DIR in $APACHE_PATH $PHP_PATH ; do
-  rm -rf $CACHE_DIR/$DIR
-  cp -R $DIR $CACHE_DIR/$DIR
-done
+# clean the cache
+rm -rf $CACHE_DIR/*
