@@ -30,11 +30,11 @@ if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
-APACHE_URL="https://s3.amazonaws.com/php-lp-tmaher/apache-$APACHE_VERSION.tar.gz"
+APACHE_URL="https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz"
 echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
-PHP_URL="https://s3.amazonaws.com/php-lp-tmaher/php-$PHP_VERSION.tar.gz"
+PHP_URL="https://s3.amazonaws.com/php-lp/php-$PHP_VERSION.tar.gz"
 echo "-----> Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
@@ -47,7 +47,7 @@ mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
 cat >>boot.sh <<EOF
-sed -i 's/Listen 80/Listen '\$PORT'/' /app/apache/conf/httpd.conf
+# sed -i 's/Listen 80/Listen '\$PORT'/' /app/apache/conf/httpd.conf
 for var in \`env|cut -f1 -d=\`; do
   echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
 done
