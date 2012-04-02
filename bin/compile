@@ -30,11 +30,11 @@ if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
-APACHE_URL="https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz"
+APACHE_URL="https://s3.amazonaws.com/heroku-buildpack-binaries/apache-$APACHE_VERSION.tar.gz"
 echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
-PHP_URL="https://s3.amazonaws.com/php-lp/php-$PHP_VERSION.tar.gz"
+PHP_URL="https://s3.amazonaws.com/heroku-buildpack-binaries/php-$PHP_VERSION.tar.gz"
 echo "-----> Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
@@ -47,6 +47,11 @@ mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
 cat >>boot.sh <<EOF
+echo "Checking for WWWROOT environment variable..."
+if [ -n "\${WWWROOT:+x}" ]; then
+  sed -ie "s%/app/www%/app/www\$WWWROOT%" /app/apache/conf/httpd.conf
+fi
+
 for var in \`env|cut -f1 -d=\`; do
   echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
 done
@@ -56,6 +61,16 @@ tail -F /app/apache/logs/error_log &
 tail -F /app/apache/logs/access_log &
 export LD_LIBRARY_PATH=/app/php/ext
 export PHP_INI_SCAN_DIR=/app/www
+
+# let's check for hook scripts
+if [ -d www/.hooks ]; then
+  for file in www/.hooks/*.sh; do
+    if [ -f \$file ]; then
+      /bin/bash \$file
+    fi
+  done
+fi
+
 echo "Launching apache"
 exec /app/apache/bin/httpd -DNO_DETACH
 EOF
