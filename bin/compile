@@ -47,7 +47,7 @@ mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
 # set a slug_id identifier
-echo $(php/bin/php -r "echo md5(uniqid('', TRUE));") > /app/SLUG_ID
+echo $(php/bin/php -r "echo md5(uniqid('', TRUE));") > SLUG_ID
 
 cat >>boot.sh <<EOF
 echo "Checking for WWWROOT environment variable..."
