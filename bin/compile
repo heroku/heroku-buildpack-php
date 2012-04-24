@@ -46,6 +46,9 @@ cp $LP_DIR/conf/php.ini php
 mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
+# set a slug_id identifier
+echo $(php -r "echo md5(uniqid('', TRUE));") > /app/SLUG_ID
+
 cat >>boot.sh <<EOF
 echo "Checking for WWWROOT environment variable..."
 if [ -n "\${WWWROOT:+x}" ]; then
