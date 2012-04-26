@@ -71,7 +71,7 @@ export PHP_INI_SCAN_DIR=/app/www
 if [ -d www/.hooks ]; then
   for file in www/.hooks/*.sh; do
     if [ -f \$file ]; then
-      source \$file
+      /bin/bash \$file
     fi
   done
 fi
