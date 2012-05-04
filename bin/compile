@@ -5,11 +5,12 @@
 set -e
 
 # config
-RESOURCE_BASE_URL="https://s3.amazonaws.com/heroku-php-buildpack"
 APACHE_VERSION="2.2.22"
 APACHE_PATH="apache"
 PHP_VERSION="5.3.10"
 PHP_PATH="php"
+EXT_PATH="extensions"
+REDIS_EXT="$EXT_PATH/redis.so"
 
 BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
@@ -31,13 +32,19 @@ if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
-APACHE_URL="$RESOUCE_BASE_URL/apache-$APACHE_VERSION.tar.gz"
+APACHE_URL="https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz"
 echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
-PHP_URL="$RESOURCE_BASE_URL/php-$PHP_VERSION.tar.gz"
+PHP_URL="https://s3.amazonaws.com/php-lp/php-$PHP_VERSION.tar.gz"
 echo "-----> Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
+
+
+mkdir -p $(dirname $REDIS_EXT)
+REDIS_EXT_URL="https://s3.amazonaws.com/rbrainard-public/redis.so"
+echo "-----> Bundling Redis extension"
+curl --silent --max-time 60 --location $REDIS_EXT_URL > $REDIS_EXT
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
