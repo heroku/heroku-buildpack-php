@@ -1,0 +1,27 @@
+https://github.com/heroku/heroku-buildpack-nodejs/blob/master/bin/compile
+https://github.com/heroku/heroku-buildpack-java/blob/master/bin/compile
+https://github.com/freeformz/heroku-buildpack-io/blob/master/bin/release
+https://github.com/rbrainard/heroku-buildpack-phing
+https://github.com/mhoofman/wordpress-heroku
+http://www.cleardb.com/blog/entry?id=heroku/add-on/tutorial
+http://betterexplained.com/articles/how-to-optimize-your-site-with-http-caching/
+http://fennb.com/microcaching-speed-your-app-up-250x-with-no-n
+https://github.com/craigkerstiens/heroku-buildpack-static <- who is https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz
+
+# https://nealpoole.com/blog/2011/04/setting-up-php-fastcgi-and-nginx-dont-trust-the-tutorials-check-your-configuration/
+# http://wiki.nginx.org/Pitfalls#Root_inside_Location_Block
+# http://wiki.nginx.org/PHPFcgiExample#Using_a_Unix_Socket
+# https://github.com/mchung/bootstrap/blob/master/slicehost/60-php.sh
+# http://wiki.nginx.org/FcgiExample
+# http://wiki.nginx.org/HttpFcgiModule
+# http://till.klampaeckel.de/blog/archives/51-Ubuntu-nginx+php-cgi-on-a-socket.html
+
+http://wiki.nginx.org/Configuration
+
+great example of php-fpm
+http://interfacelab.com/nginx-php-fpm-apc-awesome/
+
+sudo ./configure --enable-fastcgi --enable-fpm --with-mcrypt --with-zlib --enable-mbstring --disable-pdo --with-pgsql --with-curl --disable-debug --enable-pic --disable-rpath --enable-inline-optimization --with-bz2 --with-xml --with-zlib --enable-sockets --enable-sysvsem --enable-sysvshm --enable-pcntl --enable-mbregex --with-mhash --enable-xslt --enable-memcache --enable-zip --with-pcre-regex
+
+
+http://www.ruby-forum.com/topic/211594

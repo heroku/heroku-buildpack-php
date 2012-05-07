@@ -1,0 +1,53 @@
+#!/usr/bin/env sh
+
+RETVAL=0
+
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
+case "$1" in
+   "")
+      echo "Usage: $0 [-c|--create] [-d|--destroy] your_wordpress_site"
+      RETVAL=1
+      ;;
+   --create|-c)
+      instance_name=$2
+
+      echo "-----> Installing Wordpress on Heroku"
+      git clone git://github.com/mchung/wordpress-on-heroku.git $instance_name | indent
+      cd $instance_name
+
+      echo "-----> Acquiring Heroku dynos"
+      heroku create \
+         --stack cedar \
+         --buildpack git@github.com:mchung/heroku-buildpack-wordpress.git $instance_name | indent
+
+      echo "-----> Engage!"
+      git push heroku master | indent
+      heroku open $instance_name
+      ;;
+
+   --destroy|-d)
+      instance_name=$2
+
+      echo "-----> Uninstalling Wordpress (${instance_name}) :("
+      heroku destroy --app $instance_name
+
+      # echo "-----> Erase your local copy with:"
+      # echo ""
+      # echo "rm -rf $instance_name" | indent
+      # echo ""
+
+      if [ -f ./$instance_name/wp-config.php ]; then
+         echo "-----> Erasing local copy"
+         rm -rf $instance_name | indent
+      fi
+      ;;
+esac
+
+exit $RETVAL
