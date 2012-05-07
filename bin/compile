@@ -52,7 +52,7 @@ if [ -f www/composer.json ]; then
   COMPOSER_URL="http://getcomposer.org/composer.phar"
   curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
   cd www
-  /app/php/bin/php composer.phar install
+  $BUILD_DIR/bin/php composer.phar install
   cd $BUILD_DIR
   rm www/composer.phar
 fi
