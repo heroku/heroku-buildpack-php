@@ -47,11 +47,12 @@ mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
 # check if we have Composer dependencies
-if [ -f $1/composer.json ]; then
+if [ -f $CACHE_DIR/www/composer.json ]; then
   echo "-----> Installing Composer dependencies"
   COMPOSER_URL="http://getcomposer.org/composer.phar"
-  curl --silent --max-time 60 --location "$COMPOSER_URL" > composer.phar
-  /app/php/bin/php composer.phar install
+  curl --silent --max-time 60 --location "$COMPOSER_URL" > $CACHE_DIR/www/composer.phar
+  /app/php/bin/php $CACHE_DIR/www/composer.phar install
+  rm $CACHE_DIR/www/composer.phar
 fi
 
 cat >>boot.sh <<EOF
