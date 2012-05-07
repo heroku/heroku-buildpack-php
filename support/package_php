@@ -36,7 +36,7 @@ curl -L http://us.php.net/get/php-$PHP_VERSION.tar.bz2/from/www.php.net/mirror -
 tar xjvf php.tgz
 
 # build and package nginx for heroku
-vulcan build -v -s php-$PHP_VERSION -o $tempdir/php-$PHP_VERSION-with-fpm-heroku.tar.gz -p /app/vendor/php -c './configure  --prefix=/app/vendor/php --with-mysql --with-pdo-mysql --with-iconv --with-gd --with-curl=/usr/lib --with-config-file-path=/app/vendor/php --with-openssl --enable-fpm --with-zlib --enable-mbstring --disable-debug --enable-inline-optimization --with-bz2 --enable-pcntl --enable-mbregex --with-mhash --enable-zip --with-pcre-regex && make install' 
+vulcan build -v -s php-$PHP_VERSION -o $tempdir/php-$PHP_VERSION-with-fpm-heroku.tar.gz -p /app/vendor/php -c './configure  --prefix=/app/vendor/php --with-mysql --with-pdo-mysql --with-mysqli --with-iconv --with-gd --with-curl=/usr/lib --with-config-file-path=/app/vendor/php --with-openssl --enable-fpm --with-zlib --enable-mbstring --disable-debug --enable-inline-optimization --with-bz2 --enable-pcntl --enable-mbregex --with-mhash --enable-zip --with-pcre-regex --with-gettext=shared && make install && pear config-set php_dir /app/vendor/php && pecl install apc'
 
 # upload to s3
 #$basedir/aws/s3 put $S3_BUCKET php-$PHP_VERSION-with-fpm-heroku.tar.gz $tempdir/php-$PHP_VERSION-with-fpm-heroku.tar.gz
