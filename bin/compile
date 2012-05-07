@@ -56,7 +56,8 @@ echo "-----> Copying config files"
 cp $LP_DIR/conf/php-fpm.conf ${BUILD_DIR}/vendor/php/etc/php-fpm.conf
 cp ${BUILD_DIR}/vendor/php/php/fpm/status.html ${BUILD_DIR}/status.html
 cp $LP_DIR/conf/php.ini ${BUILD_DIR}/vendor/php/php.ini
-erb $LP_DIR/conf/nginx.conf.erb > ${BUILD_DIR}/vendor/nginx/conf/nginx.conf
+cp $LP_DIR/conf/nginx.conf.erb ${BUILD_DIR}/vendor/nginx/conf/nginx.conf.erb
+#erb $LP_DIR/conf/nginx.conf.erb > ${BUILD_DIR}/vendor/nginx/conf/nginx.conf
 
 # setup web script. php-cgi relies on PHP_FCGI_CHILDREN=5 PHP_FCGI_MAX_REQUESTS=1000, set in 'bin/release'
 echo "-----> Installing boot script"
@@ -69,7 +70,7 @@ echo "Booting nginx"
 #cp /app/conf/php-fpm.conf /app/vendor/php/etc/php-fpm.conf
 #cp /app/vendor/php/php/fpm/status.html /app/status.html
 #cp /app/conf/php.ini /app/vendor/php/php.ini
-#erb /app/conf/nginx.conf.erb > /app/vendor/nginx/conf/nginx.conf
+erb /app/vendor/nginx/conf/nginx.conf.erb > /app/vendor/nginx/conf/nginx.conf
 
 touch /app/vendor/nginx/logs/access.log /app/vendor/nginx/logs/error.log
 mkdir -p client_body_temp fastcgi_temp proxy_temp scgi_temp uwsgi_temp
