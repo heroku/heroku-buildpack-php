@@ -1,66 +1,70 @@
-#!/usr/bin/env bash
-# bin/compile <build-dir> <cache-dir>
+#!/bin/bash
+# Usage: bin/compile <build-dir> <cache-dir>
 
-# fail fast
 set -e
+set -o pipefail
 
-# config
-APACHE_VERSION="2.2.22"
-APACHE_PATH="apache"
-PHP_VERSION="5.3.10"
-PHP_PATH="php"
+# START CONFIG
+NGINX_VERSION=1.2.0
+PHP_VERSION=5.4.1
+S3_BUCKET=heroku-buildpack-wordpress
+# END CONFIG
 
-BIN_DIR=$(dirname $0)
+#
+NGINX_URL="https://s3.amazonaws.com/${S3_BUCKET}/nginx-${NGINX_VERSION}-heroku.tar.gz"
+PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/php-${PHP_VERSION}-with-fpm-heroku.tar.gz"
+#
+
+function indent() {
+  c='s/^/       /'
+  case $(uname) in
+    Darwin) sed -l "$c";;
+    *)      sed -u "$c";;
+  esac
+}
+
 BUILD_DIR=$1
 CACHE_DIR=$2
-LP_DIR=`cd $(dirname $0); cd ..; pwd`
+mkdir -p $BUILD_DIR $CACHE_DIR
 
-# include .files when moving things around
-shopt -s dotglob
-
-cd $BUILD_DIR
-
-# move app things to www
-mkdir -p $CACHE_DIR/www
-mv * $CACHE_DIR/www
-mv $CACHE_DIR/www .
-
-# keep Procfile
-if [ -f www/Procfile ]; then
-  mv www/Procfile .
+# Nginx
+echo "-----> Installing Nginx"
+cd ${BUILD_DIR}
+if [ ! -d ./vendor/nginx ]; then
+  echo "-----> Bundling Nginx v${NGINX_VERSION}"
+  mkdir -p ./vendor/nginx && cd ./vendor/nginx
+  curl --silent --max-time 60 --location $NGINX_URL | tar xz
 fi
 
-APACHE_URL="https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz"
-echo "-----> Bundling Apache version $APACHE_VERSION"
-curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
+# PHP
+echo "-----> Installing PHP"
+cd ${BUILD_DIR}
+if [ ! -d ./vendor/php ]; then
+  echo "-----> Bundling PHP v${PHP_VERSION}"
+  mkdir -p ./vendor/php && cd ./vendor/php
+  curl --silent --max-time 60 --location $PHP_URL | tar xz
+fi
 
-PHP_URL="https://s3.amazonaws.com/php-lp/php-$PHP_VERSION.tar.gz"
-echo "-----> Bundling PHP version $PHP_VERSION"
-curl --silent --max-time 60 --location "$PHP_URL" | tar xz
-
-# update config files
-cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
-cp $LP_DIR/conf/php.ini php
-
-# make php available on bin
-mkdir -p bin
-ln -s /app/php/bin/php bin/php
-
+# setup web script. php-cgi relies on PHP_FCGI_CHILDREN=5 PHP_FCGI_MAX_REQUESTS=1000, set in 'bin/release'
+echo "-----> Installing boot script"
+cd $BUILD_DIR
 cat >>boot.sh <<EOF
-for var in \`env|cut -f1 -d=\`; do
-  echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
-done
-touch /app/apache/logs/error_log
-touch /app/apache/logs/access_log
-tail -F /app/apache/logs/error_log &
-tail -F /app/apache/logs/access_log &
-export LD_LIBRARY_PATH=/app/php/ext
-export PHP_INI_SCAN_DIR=/app/www
-echo "Launching apache"
-exec /app/apache/bin/httpd -DNO_DETACH
-EOF
+#!/usr/bin/env bash
 
+echo "Booting nginx"
+
+cp /app/config/php-fpm.conf /app/vendor/php/etc/php-fpm.conf
+cp /app/vendor/php/php/fpm/status.html /app/status.html
+cp /app/config/php.ini /app/vendor/php/php.ini
+erb /app/config/nginx.conf.erb > /app/vendor/nginx/conf/nginx.conf
+
+touch /app/vendor/nginx/logs/access.log /app/vendor/nginx/logs/error.log
+mkdir -p client_body_temp fastcgi_temp proxy_temp scgi_temp uwsgi_temp
+(tail -f -n 0 /app/vendor/nginx/logs/*.log &)
+
+php-fpm
+nginx
+EOF
 chmod +x boot.sh
 
-# clean the cache
-rm -rf $CACHE_DIR/*
+echo "-----> Done with compile"
