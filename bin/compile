@@ -53,10 +53,10 @@ cat >>boot.sh <<EOF
 
 echo "Booting nginx"
 
-cp /app/config/php-fpm.conf /app/vendor/php/etc/php-fpm.conf
+cp /app/conf/php-fpm.conf /app/vendor/php/etc/php-fpm.conf
 cp /app/vendor/php/php/fpm/status.html /app/status.html
-cp /app/config/php.ini /app/vendor/php/php.ini
-erb /app/config/nginx.conf.erb > /app/vendor/nginx/conf/nginx.conf
+cp /app/conf/php.ini /app/vendor/php/php.ini
+erb /app/conf/nginx.conf.erb > /app/vendor/nginx/conf/nginx.conf
 
 touch /app/vendor/nginx/logs/access.log /app/vendor/nginx/logs/error.log
 mkdir -p client_body_temp fastcgi_temp proxy_temp scgi_temp uwsgi_temp
