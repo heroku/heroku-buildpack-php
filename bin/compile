@@ -67,6 +67,7 @@ echo "-----> Copying config files"
 cp $LP_DIR/conf/php-fpm.conf ${BUILD_DIR}/vendor/php/etc/php-fpm.conf
 cp ${BUILD_DIR}/vendor/php/php/fpm/status.html ${BUILD_DIR}/status.html
 cp $LP_DIR/conf/php.ini ${BUILD_DIR}/vendor/php/php.ini
+cp -a $LP_DIR/conf/etc.d ${BUILD_DIR}/vendor/php/
 cp $LP_DIR/conf/nginx.conf.erb ${BUILD_DIR}/vendor/nginx/conf/nginx.conf.erb
 #erb $LP_DIR/conf/nginx.conf.erb > ${BUILD_DIR}/vendor/nginx/conf/nginx.conf
 
