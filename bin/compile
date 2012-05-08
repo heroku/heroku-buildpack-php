@@ -46,8 +46,8 @@ cp $LP_DIR/conf/php.ini php
 mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
-# check if we have Composer dependencies
-if [ -f www/composer.json ]; then
+# check if we have Composer dependencies and vendors are not bundled
+if if [ -f composer.json ] && [ ! -d vendor ]; then
   GIT_DIR_ORIG=$GIT_DIR
   unset GIT_DIR
   echo "-----> Installing Composer dependencies"
