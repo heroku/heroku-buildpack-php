@@ -6,12 +6,14 @@ set -o pipefail
 
 # START CONFIG
 NGINX_VERSION=1.2.0
+MCRYPT_VERSION=2.5.8
 PHP_VERSION=5.4.1
 S3_BUCKET=heroku-buildpack-php-tyler
 # END CONFIG
 
 #
 NGINX_URL="https://s3.amazonaws.com/${S3_BUCKET}/nginx-${NGINX_VERSION}-heroku.tar.gz"
+MCRYPT_URL="https://s3.amazonaws.com/${S3_BUCKET}/libmcrypt.tar.gz"
 PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/php-${PHP_VERSION}-with-fpm-heroku.tar.gz"
 #
 
@@ -40,6 +42,15 @@ if [ ! -d ./vendor/nginx ]; then
   echo "-----> Bundling Nginx v${NGINX_VERSION}"
   mkdir -p ./vendor/nginx && cd ./vendor/nginx
   curl --silent --max-time 60 --location $NGINX_URL | tar xz
+fi
+
+# mcrypt
+echo "-----> Installing mcrypt"
+cd ${BUILD_DIR}
+if [ ! -d ./local/lib ]; then
+  echo "-----> Bundling mcrypt v${MCRYPT_VERSION}"
+  mkdir -p ./local/lib && cd ./local/lib
+  curl --silent --max-time 60 --location $MCRYPT_URL | tar xz
 fi
 
 # PHP
