@@ -49,7 +49,7 @@ ln -s /app/php/bin/php bin/php
 # check if we have Composer dependencies
 if [ -f www/composer.json ]; then
   GIT_DIR_ORIG=$GIT_DIR
-  unset $GIT_DIR
+  unset GIT_DIR
   echo "-----> Installing Composer dependencies"
   COMPOSER_URL="http://getcomposer.org/composer.phar"
   curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
