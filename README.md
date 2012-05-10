@@ -1,60 +1,45 @@
-Apache+PHP build pack
+Nginx+PHP-FPM build pack
 ========================
 
-This is a build pack bundling PHP and Apache for Heroku apps.
+This is a build pack bundling PHP and Nginx for Heroku apps.
+Includes additional extensions: apc, memcache, phpredis, mcrypt.
 
 Configuration
 -------------
 
-The config files are bundled with the LP itself:
+The config files are bundled:
 
-* conf/httpd.conf
+* conf/nginx.conf.erb
+* conf/etc.d/01_apc.ini
+* conf/etc.d/02_memcache.ini
+* conf/etc.d/03_phpredis.ini
 * conf/php.ini
+* conf/php-fpm.conf
 
 
 Pre-compiling binaries
 ----------------------
 
-    # apache
-    mkdir /app
-    wget http://apache.cyberuse.com//httpd/httpd-2.2.19.tar.gz
-    tar xvzf httpd-2.2.19.tar.gz
-    cd httpd-2.2.19
-    ./configure --prefix=/app/apache --enable-rewrite
-    make
-    make install
-    cd ..
-    
-    # php
-    wget http://us2.php.net/get/php-5.3.6.tar.gz/from/us.php.net/mirror 
-    mv mirror php.tar.gz
-    tar xzvf php.tar.gz
-    cd php-5.3.6/
-    ./configure --prefix=/app/php --with-apxs2=/app/apache/bin/apxs --with-mysql --with-pdo-mysql --with-pgsql --with-pdo-pgsql --with-iconv --with-gd --with-curl=/usr/lib --with-config-file-path=/app/php --enable-soap=shared --with-openssl
-    make
-    make install
-    cd ..
-    
-    # php extensions
-    mkdir /app/php/ext
-    cp /usr/lib/libmysqlclient.so.15 /app/php/ext/
-    
-    # pear
-    apt-get install php5-dev php-pear
-    pear config-set php_dir /app/php
-    pecl install apc
-    mkdir /app/php/include/php/ext/apc
-    cp /usr/lib/php5/20060613/apc.so /app/php/ext/
-    cp /usr/include/php5/ext/apc/apc_serializer.h /app/php/include/php/ext/apc/
-    
-    
-    # package
-    cd /app
-    echo '2.2.19' > apache/VERSION
-    tar -zcvf apache.tar.gz apache
-    echo '5.3.6' > php/VERSION
-    tar -zcvf php.tar.gz php
+### Preparation
+Edit `support/set-env.sh` and `bin/compile` to update the version numbers.
+````
+$ export AWS_ID="1BHAJK48DJFMQKZMNV93" # optional if s3 handled manually.
+$ export AWS_SECRET="fj2jjchebsjksmMJCN387RHNjdnddNfi4jjhshh3" # as above
+$ export S3_BUCKET="buildpack-php"
+$ source support/set-env.sh
+````
 
+### Nginx
+First, edit or comment out the last line of `support/package_nginx` to reflect the correct command to upload to s3.
+
+Then, run it:
+````
+$ support/package_nginx
+````
+
+### PHP
+Refer to gist: <https://gist.github.com/2650976> to compile PHP on AWS EC2. Vulcan build machine times out with this upload.
+<script src="https://gist.github.com/2650976.js"> </script>
 
 Hacking
 -------
@@ -65,5 +50,6 @@ To change this buildpack, fork it on Github. Push up changes to your fork, then 
 Meta
 ----
 
-Created by Pedro Belo.
+Updated for Nginx+PHP support with memcache, phpredis, and mcrypt support by Ronald Ip.
+Originally created by Pedro Belo.
 Many thanks to Keith Rarick for the help with assorted Unix topics :)
