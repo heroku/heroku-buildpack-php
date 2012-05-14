@@ -79,9 +79,28 @@ cat >>boot.sh <<EOF
 
 echo "Booting nginx"
 
-#cp /app/conf/php-fpm.conf /app/vendor/php/etc/php-fpm.conf
-#cp /app/vendor/php/php/fpm/status.html /app/status.html
-#cp /app/conf/php.ini /app/vendor/php/php.ini
+# Override config files if provided in app.
+if [ -d /app/conf ]; then
+
+	if [ -d /app/conf/etc.d ]; then
+		cp -f /app/conf/etc.d/* /vendor/php/etc.d/
+	fi
+
+	if [ -r /app/conf/php-fpm.conf ]; then
+		cp -f /app/conf/php-fpm.conf /app/vendor/php/etc/php-fpm.conf
+	fi
+
+	if [ -r /app/conf/php.ini ]; then
+		cp -f /app/conf/php.ini /app/vendor/php/php.ini
+	fi
+
+	if [ -r /app/conf/nginx.conf.erb ]; then
+		cp -f /app/conf/nginx.conf.erb /app/vendor/nginx/conf/nginx.conf.erb
+	fi
+
+fi
+
+# Set correct port variable.
 erb /app/vendor/nginx/conf/nginx.conf.erb > /app/vendor/nginx/conf/nginx.conf
 
 touch /app/vendor/nginx/logs/access.log /app/vendor/nginx/logs/error.log

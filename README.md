@@ -16,6 +16,12 @@ The config files are bundled:
 * conf/php.ini
 * conf/php-fpm.conf
 
+### Overriding Configuration Files in During Deployment
+
+Create a `conf/` directory in the root of the your deployment. Any files with names matching the above will be copied over and overwitten.
+
+This way, you can customise settings specific to your application, especially the document root in `nginx.conf.erb`. (Note the .erb extension.)
+
 
 Pre-compiling binaries
 ----------------------
