@@ -47,15 +47,30 @@ $ support/package_nginx
 Refer to gist: <https://gist.github.com/2650976> to compile PHP on AWS EC2. Vulcan build machine times out with this upload.
 <script src="https://gist.github.com/2650976.js"> </script>
 
+Usage
+-----
+To use this buildpack, on a new Heroku app:
+````
+heroku create -s cedar -b git://github.com/iphoting/heroku-buildpack-php-tyler.git
+````
+
+On an existing app:
+````
+heroku config:add BUILDPACK_URL=git://github.com/iphoting/heroku-buildpack-php-tyler.git
+````
+
+Push deploy your app and you should see Nginx, mcrypt, and PHP being bundled.
+
 Hacking
 -------
 
 To change this buildpack, fork it on Github. Push up changes to your fork, then create a test app with --buildpack <your-github-url> and push to it.
 
 
-Meta
-----
+Credits
+-------
 
-Updated for Nginx+PHP support with memcache, phpredis, and mcrypt support by Ronald Ip.
-Originally created by Pedro Belo.
-Many thanks to Keith Rarick for the help with assorted Unix topics :)
+Updated for Nginx+PHP support with memcache, phpredis, and mcrypt support by Ronald Ip from <https://github.com/heroku/heroku-buildpack-php>.
+
+Credits to original authors.
+
