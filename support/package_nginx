@@ -44,7 +44,11 @@ popd
 # build and package nginx for heroku
 vulcan build -v -s nginx-$NGINX_VERSION -o $tempdir/nginx-$NGINX_VERSION-heroku.tar.gz -p /app/vendor/nginx -c './configure --prefix=/app/vendor/nginx --with-pcre=contrib/pcre-8.21 --with-http_ssl_module --with-http_gzip_static_module && make install' 
 
-echo "+ Binaries available at $tempdir/nginx-$NGINX_VERSION-heroku.tar.gz"
+popd
+
+cp $tempdir/nginx-$NGINX_VERSION-heroku.tar.gz .
+
+echo "+ Binaries available at ./nginx-$NGINX_VERSION-heroku.tar.gz"
 echo "+ Upload this package to Amazon S3."
 
 # upload to s3

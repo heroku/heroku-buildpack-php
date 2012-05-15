@@ -36,7 +36,11 @@ curl -L "http://downloads.sourceforge.net/project/mcrypt/Libmcrypt/${LIBMCRYPT_V
 # build and package libmcrypt for heroku
 vulcan build -v -s libmcrypt-$LIBMCRYPT_VERSION -o $tempdir/libmcrypt-$LIBMCRYPT_VERSION.tar.gz -p /app/local -c './configure --prefix=/app/local --disable-rpath && make install' 
 
-echo "+ Binaries available at $tempdir/libmcrypt-$LIBMCRYPT_VERSION.tar.gz"
+popd
+
+cp $tempdir/libmcrypt-$LIBMCRYPT_VERSION.tar.gz .
+
+echo "+ Binaries available at ./libmcrypt-$LIBMCRYPT_VERSION.tar.gz"
 echo "+ Upload this package to Amazon S3."
 
 # upload to s3
