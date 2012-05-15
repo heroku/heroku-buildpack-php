@@ -50,8 +50,16 @@ $ support/package_libmcrypt
 The binary package will be produced in the current directory. Upload it to Amazon S3.
 
 ### PHP
-Refer to gist: <https://gist.github.com/2650976> to compile PHP on AWS EC2. Vulcan build machine times out with this upload.
-<script src="https://gist.github.com/2650976.js"> </script>
+PHP with mcrypt requires libmcrypt to be installed. Vulcan cannot be used to build in this case.
+
+To pre-compile PHP for Heroku, spin up an Amazon EC2 instance within the US-East Region: `ami-04c9306d`.
+
+The use the following to compile PHP:
+````
+# after logging into EC2 instance, preferably with screen running.
+$ curl -L "https://gist.github.com/raw/2650976/860a0a23aaf42069391717b1dd9fa4f7d4230563/build-php.sh" -o - | sudo bash
+````
+You should review the build script at <https://gist.github.com/2650976>.
 
 Usage
 -----
