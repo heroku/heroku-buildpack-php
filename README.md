@@ -36,12 +36,18 @@ $ source support/set-env.sh
 ````
 
 ### Nginx
-First, edit or comment out the last line of `support/package_nginx` to reflect the correct command to upload to s3.
-
-Then, run it:
+Run:
 ````
 $ support/package_nginx
 ````
+The binary package will be produced in the current directory. Upload it to Amazon S3.
+
+### libmcrypt
+Run:
+````
+$ support/package_libmcrypt
+````
+The binary package will be produced in the current directory. Upload it to Amazon S3.
 
 ### PHP
 Refer to gist: <https://gist.github.com/2650976> to compile PHP on AWS EC2. Vulcan build machine times out with this upload.
