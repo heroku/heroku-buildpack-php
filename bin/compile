@@ -103,9 +103,9 @@ fi
 # Set correct port variable.
 erb /app/vendor/nginx/conf/nginx.conf.erb > /app/vendor/nginx/conf/nginx.conf
 
-touch /app/vendor/nginx/logs/access.log /app/vendor/nginx/logs/error.log
+touch /app/vendor/nginx/logs/access.log /app/vendor/nginx/logs/error.log /app/vendor/php/var/log/php-fpm.log
 mkdir -p client_body_temp fastcgi_temp proxy_temp scgi_temp uwsgi_temp
-(tail -f -n 0 /app/vendor/nginx/logs/*.log &)
+(tail -f -n 0 /app/vendor/nginx/logs/*.log /app/vendor/php/var/log/*.log &)
 
 php-fpm
 nginx
