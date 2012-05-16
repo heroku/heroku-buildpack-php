@@ -11,8 +11,8 @@ http {
   default_type        application/octet-stream;
   sendfile            on;
   keepalive_timeout   65;
-  gzip  on;
-   access_log		off;
+  gzip			on;
+  access_log		off;
 
   server {
     listen            <%= ENV['PORT'] %>;
