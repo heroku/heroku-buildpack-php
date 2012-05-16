@@ -5,7 +5,7 @@ set -e
 set -o pipefail
 
 # START CONFIG
-NGINX_VERSION=1.2.0
+NGINX_VERSION=1.3.0
 LIBMCRYPT_VERSION=2.5.8
 PHP_VERSION=5.4.1
 S3_BUCKET=heroku-buildpack-php-tyler
