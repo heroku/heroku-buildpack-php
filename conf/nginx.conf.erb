@@ -58,6 +58,11 @@ http {
       fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
     }
 
+    location /server-status {
+      stub_status on;
+      access_log   off;
+    }
+
     #location / {
     #  # wordpress fancy rewrites
     #  if (-f $request_filename) {
