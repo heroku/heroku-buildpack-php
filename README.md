@@ -52,14 +52,14 @@ The binary package will be produced in the current directory. Upload it to Amazo
 ### PHP
 PHP with mcrypt requires libmcrypt to be installed. Vulcan cannot be used to build in this case.
 
-To pre-compile PHP for Heroku, spin up an Amazon EC2 instance within the US-East Region: `ami-04c9306d`.
+To pre-compile PHP for Heroku, spin up an Amazon EC2 instance within the US-East Region: `ami-04c9306d`. Refer to `support/ec2-up.sh` for some hints.
 
 The use the following to compile PHP:
 ````
 # after logging into EC2 instance, preferably with screen running.
-$ curl -L "https://gist.github.com/raw/2650976/860a0a23aaf42069391717b1dd9fa4f7d4230563/build-php.sh" -o - | sudo bash
+$ curl -L "https://github.com/iphoting/heroku-buildpack-php-tyler/raw/master/support/ec2-build-php.sh" -o - | sudo bash
 ````
-You should review the build script at <https://gist.github.com/2650976>.
+You should review the build script at <https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/support/ec2-build-php.sh>.
 
 Usage
 -----
