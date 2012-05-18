@@ -8,6 +8,8 @@ export LIBMCRYPT_VERSION="2.5.8"
 export PHP_VERSION="5.4.1"
 export APC_VERSION="3.1.10"
 export PHPREDIS_VERSION="2.2.1"
+export LIBMEMCACHED_VERSION="1.0.7"
+export MEMCACHED_VERSION="2.0.1"
 ## END EDIT
 
 orig_dir=$( pwd )
@@ -54,6 +56,10 @@ echo "+ Fetching libmcrypt libraries..."
 # install mcrypt for portability.
 mkdir -p /app/local
 curl -L "https://s3.amazonaws.com/${S3_BUCKET}/libmcrypt-${LIBMCRYPT_VERSION}.tar.gz" -o - | tar xz -C /app/local
+
+echo "+ Fetching libmemcached libraries..."
+mkdir -p /app/local
+curl -L "https://s3.amazonaws.com/${S3_BUCKET}/libmemcached-${LIBMEMCACHED_VERSION}.tar.gz" -o - | tar xz -C /app/local
 
 echo "+ Fetching PHP sources..."
 #fetch php, extract
@@ -122,9 +128,20 @@ popd
 
 echo "+ Installing memcache..."
 # install memcache
-yes '' | pecl install memcache
+yes '' | pecl install memcache-beta
 # answer questions
 # "You should add "extension=memcache.so" to php.ini"
+
+echo "+ Installing memcached from source..."
+# install apc from source
+curl -L http://pecl.php.net/get/memcached-${MEMCACHED_VERSION}.tgz -o - | tar xz
+pushd memcached-${MEMCACHED_VERSION}
+# edit config.m4 line 21 so no => yes ############### IMPORTANT!!! ###############
+sed -i -e '21 s/no, no/yes, yes/' ./config.m4
+phpize
+./configure --with-libmemcached-dir=/app/local --with-php-config=/app/vendor/php/bin/php-config
+make && make install
+popd
 
 echo "+ Installing phpredis..."
 # install phpredis
