@@ -7,21 +7,6 @@ if [ "$LIBMCRYPT_VERSION" == "" ]; then
   exit 1
 fi
 
-if [ "$AWS_ID" == "" ]; then
-  echo "must set AWS_ID, i.e. export AWS_ID=1BHAJK48DJFMQKZMNV93"
-  exit 1
-fi
-
-if [ "$AWS_SECRET" == "" ]; then
-  echo "must set AWS_SECRET, i.e. export AWS_SECRET=fj2jjchebsjksmMJCN387RHNjdnddNfi4jjhshh3"
-  exit 1
-fi
-
-if [ "$S3_BUCKET" == "" ]; then
-  echo "must set S3_BUCKET, i.e. S3_BUCKET=heroku-buildpack-wordpress"
-  exit 1
-fi
-
 basedir="$( cd -P "$( dirname "$0" )" && pwd )"
 
 # make a temp directory
@@ -44,5 +29,4 @@ echo "+ Binaries available at ./libmcrypt-$LIBMCRYPT_VERSION.tar.gz"
 echo "+ Upload this package to Amazon S3."
 
 # upload to s3
-#$basedir/aws/s3 put $S3_BUCKET nginx-$NGINX_VERSION-heroku.tar.gz $tempdir/nginx-$NGINX_VERSION-heroku.tar.gz
-#s3cmd put $tempdir/nginx-$NGINX_VERSION-heroku.tar.gz s3://$S3_BUCKET
+#s3cmd put -rr $tempdir/*.tar.gz s3://$S3_BUCKET
