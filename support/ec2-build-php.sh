@@ -157,7 +157,7 @@ popd
 
 echo "+ Packaging PHP..."
 # package PHP
-echo "5.4.1" > /app/vendor/php/VERSION
+echo ${PHP_VERSION} > /app/vendor/php/VERSION
 pushd /app/vendor/php
 tar czf $orig_dir/php-${PHP_VERSION}-with-fpm-heroku.tar.gz *
 popd
