@@ -7,6 +7,7 @@ set -o pipefail
 # START CONFIG
 NGINX_VERSION=1.2.0
 LIBMCRYPT_VERSION=2.5.8
+LIBMEMCACHED_VERSION=1.0.7
 PHP_VERSION=5.4.1
 S3_BUCKET=heroku-buildpack-php-tyler
 # END CONFIG
@@ -14,6 +15,7 @@ S3_BUCKET=heroku-buildpack-php-tyler
 #
 NGINX_URL="https://s3.amazonaws.com/${S3_BUCKET}/nginx-${NGINX_VERSION}-heroku.tar.gz"
 MCRYPT_URL="https://s3.amazonaws.com/${S3_BUCKET}/libmcrypt-${LIBMCRYPT_VERSION}.tar.gz"
+MEMCACHED_URL="https://s3.amazonaws.com/${S3_BUCKET}/libmemcached-${LIBMEMCACHED_VERSION}.tar.gz"
 PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/php-${PHP_VERSION}-with-fpm-heroku.tar.gz"
 #
 
@@ -44,14 +46,24 @@ if [ ! -d ./vendor/nginx ]; then
   curl --silent --max-time 60 --location $NGINX_URL | tar xz
 fi
 
-# mcrypt
-echo "-----> Installing mcrypt"
+# libmcrypt
+echo "-----> Installing libmcrypt"
 cd ${BUILD_DIR}
 if [ ! -d ./local ]; then
-  echo "-----> Bundling mcrypt v${LIBMCRYPT_VERSION}"
+  echo "-----> Bundling libmcrypt v${LIBMCRYPT_VERSION}"
   mkdir -p ./local && cd ./local
   curl --silent --max-time 60 --location $MCRYPT_URL | tar xz
 fi
+
+# libmemcached
+echo "-----> Installing libmemcached"
+cd ${BUILD_DIR}
+if [ ! -d ./local ]; then
+  echo "-----> Bundling libmemcached v${LIBMEMCACHED_VERSION}"
+  mkdir -p ./local && cd ./local
+  curl --silent --max-time 60 --location ${MEMCACHED_URL} | tar xz
+fi
+
 
 # PHP
 echo "-----> Installing PHP"
