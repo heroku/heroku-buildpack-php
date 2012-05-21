@@ -1,0 +1,32 @@
+#!/bin/bash
+
+set -e
+
+if [ "$LIBMEMCACHED_VERSION" == "" ]; then
+  echo "must set LIBMCRYPT_VERSION, i.e LIBMCRYPT_VERSION=1.0.7"
+  exit 1
+fi
+
+basedir="$( cd -P "$( dirname "$0" )" && pwd )"
+
+# make a temp directory
+tempdir="$( mktemp -t libmemcached_XXXX )"
+rm -rf $tempdir
+mkdir -p $tempdir
+pushd $tempdir
+
+# download and extract libmcrypt
+curl -L "https://launchpad.net/libmemcached/1.0/${LIBMEMCACHED_VERSION}/+download/libmemcached-${LIBMEMCACHED_VERSION}.tar.gz" -o - | tar xz
+
+# build and package libmcrypt for heroku
+vulcan build -v -s libmemcached-$LIBMEMCACHED_VERSION -o $tempdir/libmemcached-$LIBMEMCACHED_VERSION.tar.gz -p /app/local -c './configure --prefix=/app/local && make install' 
+
+popd
+
+cp $tempdir/libmemcached-$LIBMEMCACHED_VERSION.tar.gz .
+
+echo "+ Binaries available at ./libmemcached-$LIBMEMCACHED_VERSION.tar.gz."
+echo "+ Upload this package to Amazon S3."
+
+# upload to s3
+#s3cmd put -rr ./libmemcached-$LIBMEMCACHED_VERSION.tar.gz s3://$S3_BUCKET

@@ -2,7 +2,7 @@ Nginx+PHP-FPM build pack
 ========================
 
 This is a build pack bundling PHP and Nginx for Heroku apps.
-Includes additional extensions: apc, memcache, phpredis, mcrypt.
+Includes additional extensions: apc, memcache, memcached, phpredis, mcrypt.
 
 Configuration
 -------------
@@ -10,7 +10,7 @@ Configuration
 The config files are bundled:
 
 * conf/nginx.conf.erb
-* conf/etc.d/01_apc.ini
+* conf/etc.d/01_memcached.ini
 * conf/etc.d/02_memcache.ini
 * conf/etc.d/03_phpredis.ini
 * conf/php.ini
@@ -31,9 +31,10 @@ Edit `support/set-env.sh` and `bin/compile` to update the version numbers.
 ````
 $ export AWS_ID="1BHAJK48DJFMQKZMNV93" # optional if s3 handled manually.
 $ export AWS_SECRET="fj2jjchebsjksmMJCN387RHNjdnddNfi4jjhshh3" # as above
-$ export S3_BUCKET="buildpack-php"
+$ export S3_BUCKET="heroku-buildpack-php-tyler" # set to your S3 bucket.
 $ source support/set-env.sh
 ````
+Edit `bin/compile` and `support/ec2-build-php.sh` to reflect the correct S3 bucket.
 
 ### Nginx
 Run:
@@ -49,20 +50,29 @@ $ support/package_libmcrypt
 ````
 The binary package will be produced in the current directory. Upload it to Amazon S3.
 
+### libmemcached
+Run:
+````
+$ support/package_libmcrypt
+````
+The binary package will be produced in the current directory. Upload it to Amazon S3.
+
 ### PHP
 PHP with mcrypt requires libmcrypt to be installed. Vulcan cannot be used to build in this case.
 
-To pre-compile PHP for Heroku, spin up an Amazon EC2 instance within the US-East Region: `ami-04c9306d`.
+To pre-compile PHP for Heroku, spin up an Amazon EC2 instance within the US-East Region: `ami-04c9306d`. Refer to `support/ec2-up.sh` for some hints.
 
 The use the following to compile PHP:
 ````
 # after logging into EC2 instance, preferably with screen running.
-$ curl -L "https://gist.github.com/raw/2650976/860a0a23aaf42069391717b1dd9fa4f7d4230563/build-php.sh" -o - | sudo bash
+$ curl -L "https://github.com/iphoting/heroku-buildpack-php-tyler/raw/master/support/ec2-build-php.sh" -o - | sudo bash
 ````
-You should review the build script at <https://gist.github.com/2650976>.
+You should review the build script at <https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/support/ec2-build-php.sh>.
 
 Usage
 -----
+To make your changes, fork this repo first and replace the following URLs with yours.
+
 To use this buildpack, on a new Heroku app:
 ````
 heroku create -s cedar -b git://github.com/iphoting/heroku-buildpack-php-tyler.git
@@ -74,12 +84,6 @@ heroku config:add BUILDPACK_URL=git://github.com/iphoting/heroku-buildpack-php-t
 ````
 
 Push deploy your app and you should see Nginx, mcrypt, and PHP being bundled.
-
-Hacking
--------
-
-To change this buildpack, fork it on Github. Push up changes to your fork, then create a test app with --buildpack <your-github-url> and push to it.
-
 
 Credits
 -------
