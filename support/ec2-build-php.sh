@@ -138,6 +138,7 @@ curl -L http://pecl.php.net/get/memcached-${MEMCACHED_VERSION}.tgz -o - | tar xz
 pushd memcached-${MEMCACHED_VERSION}
 # edit config.m4 line 21 so no => yes ############### IMPORTANT!!! ###############
 sed -i -e '21 s/no, no/yes, yes/' ./config.m4
+sed -i -e '18 s/no, no/yes, yes/' ./config.m4
 phpize
 ./configure --with-libmemcached-dir=/app/local --with-php-config=/app/vendor/php/bin/php-config
 make && make install
