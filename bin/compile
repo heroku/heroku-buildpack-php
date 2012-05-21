@@ -42,27 +42,23 @@ echo "-----> Installing Nginx"
 cd ${BUILD_DIR}
 if [ ! -d ./vendor/nginx ]; then
   echo "-----> Bundling Nginx v${NGINX_VERSION}"
-  mkdir -p ./vendor/nginx && cd ./vendor/nginx
-  curl --silent --max-time 60 --location $NGINX_URL | tar xz
+  mkdir -p ./vendor/nginx
+  curl --silent --max-time 60 --location $NGINX_URL | tar xz -C ./vendor/nginx
 fi
 
 # libmcrypt
 echo "-----> Installing libmcrypt"
 cd ${BUILD_DIR}
-if [ ! -d ./local ]; then
-  echo "-----> Bundling libmcrypt v${LIBMCRYPT_VERSION}"
-  mkdir -p ./local && cd ./local
-  curl --silent --max-time 60 --location $MCRYPT_URL | tar xz
-fi
+echo "-----> Bundling libmcrypt v${LIBMCRYPT_VERSION}"
+mkdir -p ./local
+curl --silent --max-time 60 --location $MCRYPT_URL | tar xz -C ./local
 
 # libmemcached
 echo "-----> Installing libmemcached"
 cd ${BUILD_DIR}
-if [ ! -d ./local ]; then
-  echo "-----> Bundling libmemcached v${LIBMEMCACHED_VERSION}"
-  mkdir -p ./local && cd ./local
-  curl --silent --max-time 60 --location ${MEMCACHED_URL} | tar xz
-fi
+echo "-----> Bundling libmemcached v${LIBMEMCACHED_VERSION}"
+mkdir -p ./local
+curl --silent --max-time 60 --location ${MEMCACHED_URL} | tar xz -C ./local
 
 
 # PHP
@@ -70,8 +66,8 @@ echo "-----> Installing PHP"
 cd ${BUILD_DIR}
 if [ ! -d ./vendor/php ]; then
   echo "-----> Bundling PHP v${PHP_VERSION}"
-  mkdir -p ./vendor/php && cd ./vendor/php
-  curl --silent --max-time 60 --location $PHP_URL | tar xz
+  mkdir -p ./vendor/php
+  curl --silent --max-time 60 --location $PHP_URL | tar xz -C ./vendor/php
 fi
 
 # Config files
