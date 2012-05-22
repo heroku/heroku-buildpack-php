@@ -24,6 +24,8 @@ cp -f daemon/newrelic-daemon.x64 $installdir/bin/newrelic-daemon
 cp -f scripts/newrelic.cfg.template $installdir/etc/newrelic.cfg
 sed -i 's|var|app/local/var|g' $installdir/etc/newrelic.cfg
 sed -i 's|#ssl=false|ssl=true|g' $installdir/etc/newrelic.cfg
+curl -L "https://gist.github.com/raw/2767604/d35c7a083744641f993cd10433b89e89031b7f19/newrelic-license.sh" -o $installdir/bin/newrelic-license
+chmod +x $installdir/bin/newrelic-license
 popd
 
 pushd $installdir
