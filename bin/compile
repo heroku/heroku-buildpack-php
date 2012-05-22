@@ -9,6 +9,7 @@ NGINX_VERSION=1.2.0
 LIBMCRYPT_VERSION=2.5.8
 LIBMEMCACHED_VERSION=1.0.7
 PHP_VERSION=5.4.1
+NEWRELIC_VERSION=2.8.5.73
 S3_BUCKET=heroku-buildpack-php-tyler
 # END CONFIG
 
@@ -17,6 +18,7 @@ NGINX_URL="https://s3.amazonaws.com/${S3_BUCKET}/nginx-${NGINX_VERSION}-heroku.t
 MCRYPT_URL="https://s3.amazonaws.com/${S3_BUCKET}/libmcrypt-${LIBMCRYPT_VERSION}.tar.gz"
 MEMCACHED_URL="https://s3.amazonaws.com/${S3_BUCKET}/libmemcached-${LIBMEMCACHED_VERSION}.tar.gz"
 PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/php-${PHP_VERSION}-with-fpm-heroku.tar.gz"
+NEWRELIC_URL="https://s3.amazonaws.com/${S3_BUCKET}/newrelic-${NEWRELIC_VERSION}-heroku.tar.gz"
 #
 
 function indent() {
@@ -70,6 +72,12 @@ if [ ! -d ./vendor/php ]; then
   curl --silent --max-time 60 --location $PHP_URL | tar xz -C ./vendor/php
 fi
 
+echo "-----> Installing newrelic"
+cd ${BUILD_DIR}
+echo "-----> Bundling newrelic daemon v${NEWRELIC_VERSION}"
+mkdir -p ./local
+curl --silent --max-time 60 --location $NEWRELIC_URL | tar xz -C ./local
+
 # Config files
 echo "-----> Copying config files"
 cp $LP_DIR/conf/php-fpm.conf ${BUILD_DIR}/vendor/php/etc/php-fpm.conf
@@ -110,10 +118,18 @@ fi
 
 # Set correct port variable.
 erb /app/vendor/nginx/conf/nginx.conf.erb > /app/vendor/nginx/conf/nginx.conf
+# Set NEWRELIC key
+if [ "$NEW_RELIC_LICENSE_KEY" ]; then
+	sed -i s|REPLACE_WITH_REAL_KEY|$NEW_RELIC_LICENSE_KEY|g /app/local/etc/newrelic.cfg
+fi
 
-touch /app/vendor/nginx/logs/access.log /app/vendor/nginx/logs/error.log /app/vendor/php/var/log/php-fpm.log
+touch /app/vendor/nginx/logs/access.log /app/vendor/nginx/logs/error.log /app/vendor/php/var/log/php-fpm.log /var/log/newrelic/newrelic-daemon.log
 mkdir -p client_body_temp fastcgi_temp proxy_temp scgi_temp uwsgi_temp
-(tail -f -n 0 /app/vendor/nginx/logs/*.log /app/vendor/php/var/log/*.log &)
+(tail -f -n 0 /app/vendor/nginx/logs/*.log /app/vendor/php/var/log/*.log /var/log/newrelic/newrelic-daemon.log &)
+
+if [ "$NEW_RELIC_LICENSE_KEY" ]; then
+	/app/local/bin/newrelic-daemon -c /app/local/etc/newrelic.cfg -d error
+fi
 
 php-fpm
 nginx
