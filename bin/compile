@@ -99,7 +99,7 @@ echo "Booting nginx"
 if [ -d /app/conf ]; then
 
 	if [ -d /app/conf/etc.d ]; then
-		cp -f /app/conf/etc.d/* /vendor/php/etc.d/
+		cp -f /app/conf/etc.d/* /app/vendor/php/etc.d/
 	fi
 
 	if [ -r /app/conf/php-fpm.conf ]; then
