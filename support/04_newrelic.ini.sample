@@ -1,0 +1,8 @@
+; Edit and place this file in your deployment as conf/etc.d/04_newrelic.ini
+extension=newrelic.so
+
+newrelic.appname = PHP Application
+newrelic.enabled = 1
+newrelic.logfile = /app/local/var/log/newrelic/php_agent.log
+newrelic.loglevel = none
+newrelic.browser_monitoring.auto_instrument = 1
