@@ -16,7 +16,7 @@ export NEWRELIC_VERSION="2.9.5.78"
 orig_dir=$( pwd )
 
 echo "+ Using S3 update sources..."
-sed -i 's/us-east-1.ec2.archive.ubuntu.com/us-east-1.ec2.archive.ubuntu.com.s3.amazonaws.com/g' /etc/apt/sources.list
+sed -i 's/us-east-1.ec2.archive.ubuntu.com\//us-east-1.ec2.archive.ubuntu.com.s3.amazonaws.com\//g' /etc/apt/sources.list
 
 echo "+ Updating apt-get sources..."
 apt-get -y update
@@ -51,7 +51,7 @@ export PATH=/usr/lib/ccache:$PATH
 echo "+ Fetching compiler cache..."
 curl -f -L "https://s3.amazonaws.com/${S3_BUCKET}/ccache.tar.bz2" -o - | tar xj
 
-mkdir build && pushd build
+mkdir -p build && pushd build
 
 echo "+ Fetching libmcrypt libraries..."
 # install mcrypt for portability.
@@ -168,6 +168,8 @@ echo "+ Packaging PHP..."
 echo ${PHP_VERSION} > /app/vendor/php/VERSION
 pushd /app/vendor/php
 tar czf $orig_dir/php-${PHP_VERSION}-with-fpm-heroku.tar.gz *
+popd
+
 popd
 
 echo "+ Binaries are packaged in $orig_dir/*.tar.gz. Upload to s3 bucket of your choice."
