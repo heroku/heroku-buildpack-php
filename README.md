@@ -73,6 +73,12 @@ Usage
 -----
 To make your changes, fork this repo first and replace the following URLs with yours.
 
+### Enabling New Relic
+Copy `support/04_newrelic.ini.sample` to your heroku app as `conf/etc.d/04_newrelic.ini`, and edit as necessary.
+
+Export your new relic license key as the `NEW_RELIC_LICENSE_KEY` env variable using `heroku config`. This is already done for you if you have the New Relic add on enabled.
+
+### Deploying
 To use this buildpack, on a new Heroku app:
 ````
 heroku create -s cedar -b git://github.com/iphoting/heroku-buildpack-php-tyler.git
