@@ -158,7 +158,7 @@ make && make install
 popd
 
 echo "+ Install newrelic..."
-curl -L "http://download.newrelic.com/php_agent/release/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar xz
+curl -L "http://download.newrelic.com/php_agent/archive/${NEWRELIC_VERSION}/newrelic-php5-${NEWRELIC_VERSION}-linux.tar.gz" | tar xz
 pushd newrelic-php5-${NEWRELIC_VERSION}-linux
 cp -f agent/x64/newrelic-20100525.so `php-config --extension-dir`/newrelic.so
 popd
