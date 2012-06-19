@@ -11,18 +11,18 @@ http {
   default_type        application/octet-stream;
   sendfile            on;
   keepalive_timeout   65;
-  gzip			on;
-  access_log		off;
+  gzip                on;
+  access_log          off;
   proxy_max_temp_file_size	0;
   #fastcgi_max_temp_file_size	0;
   limit_conn_zone $binary_remote_addr zone=phplimit:1m; # define a limit bucket for PHP-FPM
 
   server {
     listen            <%= ENV['PORT'] %>;
-    server_name       localhost;
+    server_name       _;
 
     root              /app/;
-    index             index.php;
+    index             index.php index.html index.htm;
 
     # Some basic cache-control for static files to be sent to the browser
     location ~* \.(?:ico|css|js|gif|jpeg|jpg|png)$ {
