@@ -17,10 +17,10 @@ Pre-compiling binaries
 
     # apache
     mkdir /app
-    wget http://apache.cyberuse.com//httpd/httpd-2.2.19.tar.gz
-    tar xvzf httpd-2.2.19.tar.gz
-    cd httpd-2.2.19
-    ./configure --prefix=/app/apache --enable-rewrite
+    wget http://apache.cyberuse.com/httpd/httpd-2.2.22.tar.gz
+    tar xvzf httpd-2.2.22.tar.gz
+    cd httpd-2.2.22
+    ./configure --prefix=/app/apache --enable-rewrite --enable-proxy --enable-proxy-http
     make
     make install
     cd ..
@@ -50,7 +50,7 @@ Pre-compiling binaries
     
     # package
     cd /app
-    echo '2.2.19' > apache/VERSION
+    echo '2.2.22' > apache/VERSION
     tar -zcvf apache.tar.gz apache
     echo '5.3.6' > php/VERSION
     tar -zcvf php.tar.gz php
