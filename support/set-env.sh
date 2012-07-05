@@ -1,6 +1,6 @@
 #!/bin/bash
 
-export NGINX_VERSION="1.2.1"
+export NGINX_VERSION="1.2.2"
 export PHP_VERSION="5.4.4"
 export LIBMCRYPT_VERSION="2.5.8"
 export LIBMEMCACHED_VERSION="1.0.7"
