@@ -91,6 +91,35 @@ heroku config:add BUILDPACK_URL=git://github.com/iphoting/heroku-buildpack-php-t
 
 Push deploy your app and you should see Nginx, mcrypt, and PHP being bundled.
 
+
+Testing the Buildpack
+---------------------
+Setup the test environment on Heroku as follows:
+```
+$ cd heroku-buildpack-php-tyler/
+$ heroku create -s cedar -b git://github.com/ryanbrainard/heroku-buildpack-testrunner.git
+Creating deep-thought-1234... done, stack is cedar
+http://deep-thought-1234.herokuapp.com/ | git@heroku.com:deep-thought-1234.git
+Git remote heroku added
+```
+
+Then, push the buildpack to be tested into Heroku:
+```
+$ git push -f heroku <branch>:master  # where <branch> is the git branch you want to test.
+```
+
+Finally, run those tests:
+```
+$ heroku run tests
+```
+
+If you run your tests programatically, you might need the follow command instead:
+```
+$ heroku run tests | bin/report
+```
+
+Source: <https://github.com/ryanbrainard/heroku-buildpack-testrunner>
+
 Credits
 -------
 
