@@ -70,14 +70,14 @@ then
 	check_md5 "${NGINX_FILE}"
 	if [ ! $? ]
 	then
-		echo "       Bundling Nginx v${NGINX_VERSION}"
+		echo "Bundling Nginx v${NGINX_VERSION}" | indent
 		curl --silent --max-time 60 -O --location $NGINX_URL
 	else
-		echo "       Using cached Nginx v${NGINX_VERSION}"
+		echo "Using cached Nginx v${NGINX_VERSION}" | indent
 	fi
 else
 	# fetch
-	echo "       Bundling Nginx v${NGINX_VERSION}"
+	echo "Bundling Nginx v${NGINX_VERSION}" | indent
 	curl --silent --max-time 60 -O --location $NGINX_URL
 fi
 
@@ -91,13 +91,13 @@ then
 	check_md5 "${MCRYPT_FILE}"
 	if [ ! $? ]
 	then
-		echo "       Bundling libmcrypt v${LIBMCRYPT_VERSION}"
+		echo "Bundling libmcrypt v${LIBMCRYPT_VERSION}" | indent
 		curl --silent --max-time 60 -O --location $MCRYPT_URL
 	else
-		echo "       Using cached libmcrypt v${LIBMCRYPT_VERSION}"
+		echo "Using cached libmcrypt v${LIBMCRYPT_VERSION}" | indent
 	fi
 else
-	echo "       Bundling libmcrypt v${LIBMCRYPT_VERSION}"
+	echo "Bundling libmcrypt v${LIBMCRYPT_VERSION}" | indent
 	curl --silent --max-time 60 -O --location $MCRYPT_URL
 fi
 
@@ -110,13 +110,13 @@ then
 	check_md5 "${MEMCACHED_FILE}"
 	if [ ! $? ]
 	then
-		echo "       Bundling libmemcached v${LIBMEMCACHED_VERSION}"
+		echo "Bundling libmemcached v${LIBMEMCACHED_VERSION}" | indent
 		curl --silent --max-time 60 -O --location ${MEMCACHED_URL}
 	else
-		echo "       Using cached libmemcached v${LIBMEMCACHED_VERSION}"
+		echo "Using cached libmemcached v${LIBMEMCACHED_VERSION}" | indent
 	fi
 else
-	echo "       Bundling libmemcached v${LIBMEMCACHED_VERSION}"
+	echo "Bundling libmemcached v${LIBMEMCACHED_VERSION}" | indent
 	curl --silent --max-time 60 -O --location ${MEMCACHED_URL}
 fi
 
@@ -129,13 +129,13 @@ then
 	check_md5 "${PHP_FILE}"
 	if [ ! $? ]
 	then
-		echo "       Bundling PHP v${PHP_VERSION}"
+		echo "Bundling PHP v${PHP_VERSION}" | indent
 		curl --silent --max-time 60 -O --location $PHP_URL
 	else
-		echo "       Using cached PHP v${PHP_VERSION}"
+		echo "Using cached PHP v${PHP_VERSION}" | indent
 	fi
 else
-	echo "       Bundling PHP v${PHP_VERSION}"
+	echo "Bundling PHP v${PHP_VERSION}" | indent
 	curl --silent --max-time 60 -O --location $PHP_URL
 fi
 
@@ -149,13 +149,13 @@ then
 	check_md5 "${NEWRELIC_FILE}"
 	if [ ! $? ]
 	then
-		echo "       Bundling newrelic daemon v${NEWRELIC_VERSION}"
+		echo "Bundling newrelic daemon v${NEWRELIC_VERSION}" | indent
 		curl --silent --max-time 60 -O --location $NEWRELIC_URL
 	else
-		echo "       Using cached newrelic daemon v${NEWRELIC_VERSION}"
+		echo "Using cached newrelic daemon v${NEWRELIC_VERSION}" | indent
 	fi
 else
-	echo "       Bundling newrelic daemon v${NEWRELIC_VERSION}"
+	echo "Bundling newrelic daemon v${NEWRELIC_VERSION}" | indent
 	curl --silent --max-time 60 -O --location $NEWRELIC_URL
 fi
 
