@@ -14,11 +14,21 @@ S3_BUCKET=heroku-buildpack-php-tyler
 # END CONFIG
 
 #
-NGINX_URL="https://s3.amazonaws.com/${S3_BUCKET}/nginx-${NGINX_VERSION}-heroku.tar.gz"
-MCRYPT_URL="https://s3.amazonaws.com/${S3_BUCKET}/libmcrypt-${LIBMCRYPT_VERSION}.tar.gz"
-MEMCACHED_URL="https://s3.amazonaws.com/${S3_BUCKET}/libmemcached-${LIBMEMCACHED_VERSION}.tar.gz"
-PHP_URL="https://s3.amazonaws.com/${S3_BUCKET}/php-${PHP_VERSION}-with-fpm-heroku.tar.gz"
-NEWRELIC_URL="https://s3.amazonaws.com/${S3_BUCKET}/newrelic-${NEWRELIC_VERSION}-heroku.tar.gz"
+S3_URL="https://s3.amazonaws.com/${S3_BUCKET}"
+
+MANIFEST_FILE="manifest.md5sum"
+NGINX_FILE="nginx-${NGINX_VERSION}-heroku.tar.gz"
+MCRYPT_FILE="libmcrypt-${LIBMCRYPT_VERSION}.tar.gz"
+MEMCACHED_FILE="libmemcached-${LIBMEMCACHED_VERSION}.tar.gz"
+PHP_FILE="php-${PHP_VERSION}-with-fpm-heroku.tar.gz"
+NEWRELIC_FILE="newrelic-${NEWRELIC_VERSION}-heroku.tar.gz"
+
+MANIFEST_URL="${S3_URL}/${MANIFEST_FILE}"
+NGINX_URL="${S3_URL}/${NGINX_FILE}"
+MCRYPT_URL="${S3_URL}/${MCRYPT_FILE}"
+MEMCACHED_URL="${S3_URL}/${MEMCACHED_FILE}"
+PHP_URL="${S3_URL}/${PHP_FILE}"
+NEWRELIC_URL="${S3_URL}/${NEWRELIC_FILE}"
 #
 
 function indent() {
@@ -29,54 +39,129 @@ function indent() {
   esac
 }
 
+function check_md5() {
+SUMS_FILE="${BUNDLE_DIR}/${MANIFEST_FILE}"
+TARGET="$1"
+SUM=`cat "${SUMS_FILE}" | grep "${TARGET}" | cut -d ' ' -f 1`
+OUTPUT=`md5sum ${BUNDLE_DIR}/${TARGET} | cut -d ' ' -f 1`
+[ "$SUM" = "$OUTPUT" ]
+}
+
 BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
 CACHE_DIR=$2
+BUNDLE_DIR="${CACHE_DIR}/bundles"
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
 # include .files when moving things around
 shopt -s dotglob
 
-mkdir -p $BUILD_DIR $CACHE_DIR
+mkdir -p $BUILD_DIR $CACHE_DIR ${BUNDLE_DIR} ${BUILD_DIR}/local
+
+echo "-----> Fetching Manifest"
+pushd ${BUNDLE_DIR} > /dev/null
+curl --silent --max-time 60 -O --location $MANIFEST_URL
 
 # Nginx
 echo "-----> Installing Nginx"
-cd ${BUILD_DIR}
-if [ ! -d ./vendor/nginx ]; then
-  echo "-----> Bundling Nginx v${NGINX_VERSION}"
-  mkdir -p ./vendor/nginx
-  curl --silent --max-time 60 --location $NGINX_URL | tar xz -C ./vendor/nginx
+if [ -f "${NGINX_FILE}" ]
+then
+	# check manifest
+	check_md5 "${NGINX_FILE}"
+	if [ ! $? ]
+	then
+		echo "       Bundling Nginx v${NGINX_VERSION}"
+		curl --silent --max-time 60 -O --location $NGINX_URL
+	else
+		echo "       Using cached Nginx v${NGINX_VERSION}"
+	fi
+else
+	# fetch
+	echo "       Bundling Nginx v${NGINX_VERSION}"
+	curl --silent --max-time 60 -O --location $NGINX_URL
 fi
+
+mkdir -p ${BUILD_DIR}/vendor/nginx
+tar xzf ${NGINX_FILE} -C ${BUILD_DIR}/vendor/nginx
 
 # libmcrypt
 echo "-----> Installing libmcrypt"
-cd ${BUILD_DIR}
-echo "-----> Bundling libmcrypt v${LIBMCRYPT_VERSION}"
-mkdir -p ./local
-curl --silent --max-time 60 --location $MCRYPT_URL | tar xz -C ./local
+if [ -f "${MCRYPT_FILE}" ]
+then
+	check_md5 "${MCRYPT_FILE}"
+	if [ ! $? ]
+	then
+		echo "       Bundling libmcrypt v${LIBMCRYPT_VERSION}"
+		curl --silent --max-time 60 -O --location $MCRYPT_URL
+	else
+		echo "       Using cached libmcrypt v${LIBMCRYPT_VERSION}"
+	fi
+else
+	echo "       Bundling libmcrypt v${LIBMCRYPT_VERSION}"
+	curl --silent --max-time 60 -O --location $MCRYPT_URL
+fi
+
+tar xzf ${MCRYPT_FILE} -C ${BUILD_DIR}/local
 
 # libmemcached
 echo "-----> Installing libmemcached"
-cd ${BUILD_DIR}
-echo "-----> Bundling libmemcached v${LIBMEMCACHED_VERSION}"
-mkdir -p ./local
-curl --silent --max-time 60 --location ${MEMCACHED_URL} | tar xz -C ./local
+if [ -f "${MEMCACHED_FILE}" ]
+then
+	check_md5 "${MEMCACHED_FILE}"
+	if [ ! $? ]
+	then
+		echo "       Bundling libmemcached v${LIBMEMCACHED_VERSION}"
+		curl --silent --max-time 60 -O --location ${MEMCACHED_URL}
+	else
+		echo "       Using cached libmemcached v${LIBMEMCACHED_VERSION}"
+	fi
+else
+	echo "       Bundling libmemcached v${LIBMEMCACHED_VERSION}"
+	curl --silent --max-time 60 -O --location ${MEMCACHED_URL}
+fi
 
+tar xzf ${MEMCACHED_FILE} -C ${BUILD_DIR}/local
 
 # PHP
 echo "-----> Installing PHP"
-cd ${BUILD_DIR}
-if [ ! -d ./vendor/php ]; then
-  echo "-----> Bundling PHP v${PHP_VERSION}"
-  mkdir -p ./vendor/php
-  curl --silent --max-time 60 --location $PHP_URL | tar xz -C ./vendor/php
+if [ -f "$PHP_FILE" ]
+then
+	check_md5 "${PHP_FILE}"
+	if [ ! $? ]
+	then
+		echo "       Bundling PHP v${PHP_VERSION}"
+		curl --silent --max-time 60 -O --location $PHP_URL
+	else
+		echo "       Using cached PHP v${PHP_VERSION}"
+	fi
+else
+	echo "       Bundling PHP v${PHP_VERSION}"
+	curl --silent --max-time 60 -O --location $PHP_URL
 fi
 
+mkdir -p ${BUILD_DIR}/vendor/php
+tar xzf ${PHP_FILE} -C ${BUILD_DIR}/vendor/php
+
+# newrelic
 echo "-----> Installing newrelic"
-cd ${BUILD_DIR}
-echo "-----> Bundling newrelic daemon v${NEWRELIC_VERSION}"
-mkdir -p ./local
-curl --silent --max-time 60 --location $NEWRELIC_URL | tar xz -C ./local
+if [ -f "${NEWRELIC_FILE}" ]
+then
+	check_md5 "${NEWRELIC_FILE}"
+	if [ ! $? ]
+	then
+		echo "       Bundling newrelic daemon v${NEWRELIC_VERSION}"
+		curl --silent --max-time 60 -O --location $NEWRELIC_URL
+	else
+		echo "       Using cached newrelic daemon v${NEWRELIC_VERSION}"
+	fi
+else
+	echo "       Bundling newrelic daemon v${NEWRELIC_VERSION}"
+	curl --silent --max-time 60 -O --location $NEWRELIC_URL
+fi
+
+tar xzf ${NEWRELIC_FILE} -C ${BUILD_DIR}/local
+
+popd > /dev/null
 
 # Config files
 echo "-----> Copying config files"
@@ -87,7 +172,6 @@ cp -a $LP_DIR/conf/etc.d ${BUILD_DIR}/vendor/php/
 cp $LP_DIR/conf/nginx.conf.erb ${BUILD_DIR}/vendor/nginx/conf/nginx.conf.erb
 #erb $LP_DIR/conf/nginx.conf.erb > ${BUILD_DIR}/vendor/nginx/conf/nginx.conf
 
-# setup web script. php-cgi relies on PHP_FCGI_CHILDREN=5 PHP_FCGI_MAX_REQUESTS=1000, set in 'bin/release'
 echo "-----> Installing boot script"
 cd $BUILD_DIR
 cat >>boot.sh <<EOF
