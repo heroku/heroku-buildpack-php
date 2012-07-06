@@ -2,7 +2,8 @@ Nginx+PHP-FPM build pack
 ========================
 
 This is a build pack bundling PHP and Nginx for Heroku apps.
-Includes additional extensions: apc, memcache, memcached, phpredis, mcrypt.
+Includes additional extensions: apc, memcache, memcached, phpredis, mcrypt, and newrelic.
+Dependency management is handled by Composer.
 
 Configuration
 -------------
@@ -16,7 +17,7 @@ The config files are bundled:
 * conf/php.ini
 * conf/php-fpm.conf
 
-### Overriding Configuration Files in During Deployment
+### Overriding Configuration Files During Deployment
 
 Create a `conf/` directory in the root of the your deployment. Any files with names matching the above will be copied over and overwitten.
 
@@ -29,6 +30,7 @@ Pre-compiling binaries
 ### Preparation
 Edit `support/set-env.sh` and `bin/compile` to update the version numbers.
 ````
+$ gem install vulcan
 $ export AWS_ID="1BHAJK48DJFMQKZMNV93" # optional if s3 handled manually.
 $ export AWS_SECRET="fj2jjchebsjksmMJCN387RHNjdnddNfi4jjhshh3" # as above
 $ export S3_BUCKET="heroku-buildpack-php-tyler" # set to your S3 bucket.
@@ -57,6 +59,13 @@ $ support/package_libmcrypt
 ````
 The binary package will be produced in the current directory. Upload it to Amazon S3.
 
+### newrelic
+Run:
+````
+$ support/package_newrelic
+````
+The binary package will be produced in the current directory. Upload it to Amazon S3.
+
 ### PHP
 PHP with mcrypt requires libmcrypt to be installed. Vulcan cannot be used to build in this case.
 
@@ -68,6 +77,26 @@ The use the following to compile PHP:
 $ curl -L "https://github.com/iphoting/heroku-buildpack-php-tyler/raw/master/support/ec2-build-php.sh" -o - | sudo bash
 ````
 You should review the build script at <https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/support/ec2-build-php.sh>.
+
+### Bundling Caching
+To speed up the slug compilation stage, precompiled binary packages are cached. The buildpack will attempt to fetch `manifest.md5sum` to verify that the cached packages are still fresh.
+
+This file is generated with the md5sum tool:
+```
+$ md5sum *.tar.gz > manifest.md5sum
+```
+
+Contents of `manifest.md5sum`:
+```
+$ cat manifest.md5sum
+7d99f732e54f6f53e026dd86de4158ac  libmcrypt-2.5.8.tar.gz
+1390676a5df6dc658fd9bce66eedae48  libmemcached-1.0.7.tar.gz
+d2447fba1ff9f1dbdf86d3fb20c79c4c  newrelic-2.9.5.78-heroku.tar.gz
+9b861de30f67a66358d58a8f897f6262  nginx-1.2.2-heroku.tar.gz
+ca9f712f2dde107f7a0ef44f0b743f1f  php-5.4.4-with-fpm-heroku.tar.gz
+```
+
+Remember to upload an updated `manifest.md5sum` to Amazon S3 whenever you upload new precompiled binary packages.
 
 Usage
 -----
@@ -90,6 +119,46 @@ heroku config:add BUILDPACK_URL=git://github.com/iphoting/heroku-buildpack-php-t
 ````
 
 Push deploy your app and you should see Nginx, mcrypt, and PHP being bundled.
+
+### Declaring Dependencies using Composer
+[Composer][] is the de fecto dependency manager for PHP, similar to Bundler in Ruby.
+
+- Declare your dependencies in `composer.json`; see [docs][cdocs] for syntax and other details.
+- Run `php composer.phar install` *locally* at least once to generate a `composer.lock` file. Make sure this file is also committed into version control.
+- When you push the app, the buildpack will fetch and install dependencies when it detects both `composer.json` and `composer.lock` files.
+
+Note: It is optional to have `composer.phar` within the application root. If missing, the buildpack will automatically fetch the latest version available from <http://getcomposer.org/composer.phar>.
+
+[cdocs]: http://getcomposer.org/doc/00-intro.md#declaring-dependencies
+[composer]: http://getcomposer.org/
+
+Testing the Buildpack
+---------------------
+Setup the test environment on Heroku as follows:
+```
+$ cd heroku-buildpack-php-tyler/
+$ heroku create -s cedar -b git://github.com/ryanbrainard/heroku-buildpack-testrunner.git
+Creating deep-thought-1234... done, stack is cedar
+http://deep-thought-1234.herokuapp.com/ | git@heroku.com:deep-thought-1234.git
+Git remote heroku added
+```
+
+Then, push the buildpack to be tested into Heroku:
+```
+$ git push -f heroku <branch>:master  # where <branch> is the git branch you want to test.
+```
+
+Finally, run those tests:
+```
+$ heroku run tests
+```
+
+If you run your tests programatically, you might need the follow command instead:
+```
+$ heroku run tests | bin/report
+```
+
+Source: <https://github.com/ryanbrainard/heroku-buildpack-testrunner>
 
 Credits
 -------
