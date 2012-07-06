@@ -2,7 +2,8 @@ Nginx+PHP-FPM build pack
 ========================
 
 This is a build pack bundling PHP and Nginx for Heroku apps.
-Includes additional extensions: apc, memcache, memcached, phpredis, mcrypt.
+Includes additional extensions: apc, memcache, memcached, phpredis, mcrypt, and newrelic.
+Dependency management is handled by Composer.
 
 Configuration
 -------------
@@ -91,6 +92,17 @@ heroku config:add BUILDPACK_URL=git://github.com/iphoting/heroku-buildpack-php-t
 
 Push deploy your app and you should see Nginx, mcrypt, and PHP being bundled.
 
+### Declaring Dependencies using Composer
+[Composer][] is the de fecto dependency manager for PHP, similar to Bundler in Ruby.
+
+- Declare your dependencies in `composer.json`; see [docs][cdocs] for syntax and other details.
+- Run `php composer.phar install` *locally* at least once to generate a `composer.lock` file. Make sure this file is also committed into version control.
+- When you push the app, the buildpack will fetch and install dependencies when it detects both `composer.json` and `composer.lock` files.
+
+Note: It is optional to have `composer.phar` within the application root. If missing, the buildpack will automatically fetch the latest version available from <http://getcomposer.org/composer.phar>.
+
+[cdocs]: http://getcomposer.org/doc/00-intro.md#declaring-dependencies
+[composer]: http://getcomposer.org/
 
 Testing the Buildpack
 ---------------------
