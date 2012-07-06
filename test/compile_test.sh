@@ -64,3 +64,32 @@ testCachedCompile()
 	assertCaptured "cached newrelic daemon v${NEWRELIC_VERSION}"
 	assertTrue "newrelic-daemon should be executable" "[ -x  ${BUILD_DIR}/local/bin/newrelic-daemon ]"
 }
+
+testCompileComposer()
+{
+
+	[ "`uname -m`" != "x86_64" ] && startSkipping
+
+	mkdir -p ${BUILD_DIR}/
+	touch ${BUILD_DIR}/index.php
+
+	cat >>${BUILD_DIR}/composer.json <<EOF
+{
+	"require": {
+		"packforlan/packtest": "*@dev"
+	}
+}
+EOF
+
+	compile
+
+	assertCapturedSuccess
+
+	assertCaptured "-----> Installing dependencies using Composer"
+	assertCaptured "Fetching composer.phar"
+	assertTrue "composer.phar exists" "[ -f ${BUILD_DIR}/composer.phar ]"
+
+	assertCaptured "Running: php composer.phar install"
+	assertCaptured "packforlan/packtest"
+	assertTrue "packforlan/packtest package exists" "[ -f ${BUILD_DIR}/vendor/packforlan/packtest/composer.json ]"
+}

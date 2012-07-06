@@ -29,6 +29,7 @@ MCRYPT_URL="${S3_URL}/${MCRYPT_FILE}"
 MEMCACHED_URL="${S3_URL}/${MEMCACHED_FILE}"
 PHP_URL="${S3_URL}/${PHP_FILE}"
 NEWRELIC_URL="${S3_URL}/${NEWRELIC_FILE}"
+COMPOSER_URL="http://getcomposer.org/composer.phar"
 #
 
 function indent() {
@@ -56,7 +57,7 @@ LP_DIR=`cd $(dirname $0); cd ..; pwd`
 # include .files when moving things around
 shopt -s dotglob
 
-mkdir -p $BUILD_DIR $CACHE_DIR ${BUNDLE_DIR} ${BUILD_DIR}/local
+mkdir -p $BUILD_DIR $CACHE_DIR ${BUNDLE_DIR} ${BUILD_DIR}/local ${BUILD_DIR}/vendor/bin
 
 echo "-----> Fetching Manifest"
 pushd ${BUNDLE_DIR} > /dev/null
@@ -161,6 +162,28 @@ fi
 
 tar xzf ${NEWRELIC_FILE} -C ${BUILD_DIR}/local
 
+popd > /dev/null
+
+# Composer Installation
+pushd $BUILD_DIR > /dev/null
+if [ -f "composer.json" ]
+then
+	echo "-----> Installing dependencies using Composer"
+	GIT_DIR_ORIG=$GIT_DIR
+	unset GIT_DIR
+
+	if [ ! -f "composer.phar" ]
+	then
+		echo "Fetching composer.phar" | indent
+		curl --silent --max-time 60 -O --location "$COMPOSER_URL"
+	fi
+
+	# do the deed!
+	echo "Running: php composer.phar install" | indent
+	LD_LIBRARY_PATH="${BUILD_DIR}/local/lib" ${BUILD_DIR}/vendor/php/bin/php composer.phar install | indent
+
+	export GIT_DIR=$GIT_DIR_ORIG
+fi
 popd > /dev/null
 
 # Config files
