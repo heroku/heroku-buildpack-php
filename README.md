@@ -55,7 +55,7 @@ The binary package will be produced in the current directory. Upload it to Amazo
 ### libmemcached
 Run:
 ````
-$ support/package_libmcrypt
+$ support/package_libmemcached
 ````
 The binary package will be produced in the current directory. Upload it to Amazon S3.
 
