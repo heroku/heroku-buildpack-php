@@ -17,19 +17,19 @@ Pre-compiling binaries
 
     # apache
     mkdir /app
-    wget http://apache.cyberuse.com//httpd/httpd-2.2.19.tar.gz
-    tar xvzf httpd-2.2.19.tar.gz
-    cd httpd-2.2.19
-    ./configure --prefix=/app/apache --enable-rewrite
+    curl -O http://apache.cyberuse.com/httpd/httpd-2.2.22.tar.gz
+    tar xvzf httpd-2.2.22.tar.gz
+    cd httpd-2.2.22
+    ./configure --prefix=/app/apache --enable-rewrite --enable-proxy --enable-proxy-http
     make
     make install
     cd ..
     
     # php
-    wget http://us2.php.net/get/php-5.3.6.tar.gz/from/us.php.net/mirror 
+    curl -LO http://us2.php.net/get/php-5.3.14.tar.gz/from/us.php.net/mirror
     mv mirror php.tar.gz
     tar xzvf php.tar.gz
-    cd php-5.3.6/
+    cd php-5.3.14/
     ./configure --prefix=/app/php --with-apxs2=/app/apache/bin/apxs --with-mysql --with-pdo-mysql --with-pgsql --with-pdo-pgsql --with-iconv --with-gd --with-curl=/usr/lib --with-config-file-path=/app/php --enable-soap=shared --with-openssl
     make
     make install
@@ -37,7 +37,7 @@ Pre-compiling binaries
     
     # php extensions
     mkdir /app/php/ext
-    cp /usr/lib/libmysqlclient.so.15 /app/php/ext/
+    cp /usr/lib/libmysqlclient.so.16 /app/php/ext/
     
     # pear
     apt-get install php5-dev php-pear
@@ -50,9 +50,9 @@ Pre-compiling binaries
     
     # package
     cd /app
-    echo '2.2.19' > apache/VERSION
+    echo '2.2.22' > apache/VERSION
     tar -zcvf apache.tar.gz apache
-    echo '5.3.6' > php/VERSION
+    echo '5.3.14' > php/VERSION
     tar -zcvf php.tar.gz php
 
 
