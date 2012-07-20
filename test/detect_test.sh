@@ -13,6 +13,17 @@ testDetect()
 	assertAppDetected "PHP"
 }
 
+testDeepDetect()
+{
+	mkdir -p ${BUILD_DIR}/public_html
+	touch ${BUILD_DIR}/public_html/index.php
+
+	detect
+
+	assertCapturedSuccess
+	assertAppDetected "PHP"
+}
+
 testNoDetectPHP()
 {
 	mkdir -p ${BUILD_DIR}/
