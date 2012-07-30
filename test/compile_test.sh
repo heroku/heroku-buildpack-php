@@ -92,4 +92,6 @@ EOF
 	assertCaptured "Running: php composer.phar install"
 	assertCaptured "packforlan/packtest"
 	assertTrue "packforlan/packtest package exists" "[ -f ${BUILD_DIR}/vendor/packforlan/packtest/composer.json ]"
+
+	assertTrue "composer cache exists in cache dir" "[ -d ${CACHE_DIR}/.composer/cache ]"
 }
