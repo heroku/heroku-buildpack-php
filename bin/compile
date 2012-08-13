@@ -6,11 +6,8 @@ set -e
 
 # config
 APACHE_VERSION="2.2.22"
-APACHE_PATH="apache"
 PHP_VERSION="5.3.10"
-PHP_PATH="php"
 
-BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
 CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
@@ -19,16 +16,6 @@ LP_DIR=`cd $(dirname $0); cd ..; pwd`
 shopt -s dotglob
 
 cd $BUILD_DIR
-
-# move app things to www
-mkdir -p $CACHE_DIR/www
-mv * $CACHE_DIR/www
-mv $CACHE_DIR/www .
-
-# keep Procfile
-if [ -f www/Procfile ]; then
-  mv www/Procfile .
-fi
 
 APACHE_URL="https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz"
 echo "-----> Bundling Apache version $APACHE_VERSION"
@@ -39,7 +26,7 @@ echo "-----> Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
 # update config files
-cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
+cp $LP_DIR/conf/httpd.conf apache/conf
 cp $LP_DIR/conf/php.ini php
 
 # make php available on bin
@@ -55,7 +42,7 @@ touch /app/apache/logs/access_log
 tail -F /app/apache/logs/error_log &
 tail -F /app/apache/logs/access_log &
 export LD_LIBRARY_PATH=/app/php/ext
-export PHP_INI_SCAN_DIR=/app/www
+export PHP_INI_SCAN_DIR=/app
 echo "Launching apache"
 exec /app/apache/bin/httpd -DNO_DETACH
 EOF
