@@ -99,10 +99,10 @@ echo "+ Configuring PHP..."
 --with-openssl \
 --with-pcre-regex \
 --with-pdo-mysql \
+--with-pgsql \
+--with-pdo-pgsql \
 --with-png-dir \
---with-zlib \
---without-pdo-sqlite \
---without-sqlite3
+--with-zlib
 
 echo "+ Compiling PHP..."
 # build & install it
