@@ -1,7 +1,7 @@
 #!/bin/bash
 
-export NGINX_VERSION="1.2.2"
-export PHP_VERSION="5.4.5"
+export NGINX_VERSION="1.2.3"
+export PHP_VERSION="5.4.6"
 export LIBMCRYPT_VERSION="2.5.8"
 export LIBMEMCACHED_VERSION="1.0.7"
 export NEWRELIC_VERSION="2.9.5.78"
