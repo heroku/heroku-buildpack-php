@@ -5,10 +5,12 @@
 set -e
 
 # config
-APACHE_VERSION="2.2.22"
+APACHE_VERSION="2.2.23"
 APACHE_PATH="apache"
-PHP_VERSION="5.3.10"
+PHP_VERSION="5.3.17"
 PHP_PATH="php"
+BUILDPACK_VERSION="1.2"
+
 
 BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
@@ -30,13 +32,16 @@ if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
-APACHE_URL="https://s3.amazonaws.com/heroku-buildpack-binaries/apache-$APACHE_VERSION.tar.gz"
-echo "-----> Bundling Apache version $APACHE_VERSION"
-curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
+BP_URL="https://s3.amazonaws.com/licorice-labs-buildpacks/apache-$APACHE_VERSION-php-$PHP_VERSION-v$BUILDPACK_VERSION.tar.gz"
+echo "-----> Bundling Apache $APACHE_VERSION PHP $PHP_VERSION build $BUILDPACK_VERSION"
+curl --silent --max-time 60 --location "$BP_URL" | tar xz
 
-PHP_URL="https://s3.amazonaws.com/heroku-buildpack-binaries/php-$PHP_VERSION.tar.gz"
-echo "-----> Bundling PHP version $PHP_VERSION"
-curl --silent --max-time 60 --location "$PHP_URL" | tar xz
+# echo "-----> Extracting bsdiff binary"
+# tar xzf $LP_DIR/src/bsdiff.tgz
+# echo "-----> Bundling Apache $APACHE_VERSION/PHP $PHP_VERSION build"
+# gunzip $LP_DIR/src/build.tgz
+# local/bin/bspatch $LP_DIR/src/build.tar $LP_DIR/src/build-apache-$APACHE_VERSION-php-$PHP_VERSION.tar $LP_DIR/src/build.bsdiff
+# tar xf $LP_DIR/src/build-apache-$APACHE_VERSION-php-$PHP_VERSION.tar
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
@@ -45,6 +50,8 @@ cp $LP_DIR/conf/php.ini php
 # make php available on bin
 mkdir -p bin
 ln -s /app/php/bin/php bin/php
+
+export LD_LIBRARY_PATH=$BUILD_DIR/local/lib
 
 # set a slug_id identifier
 slug_id=$(php/bin/php -r "echo md5(uniqid('', TRUE));")
@@ -57,6 +64,9 @@ if [ -n "\${WWWROOT:+x}" ]; then
   sed -ie "s%/app/www%/app/www\$WWWROOT%" /app/apache/conf/httpd.conf
 fi
 
+export HW_ADDR=\`/sbin/ifconfig eth0 | grep HWaddr | awk '{print \$5}'\`
+echo "SetEnv HW_ADDR \$HW_ADDR" >> /app/apache/conf/httpd.conf;
+
 for var in \`env|cut -f1 -d=\`; do
   echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
 done
@@ -64,7 +74,7 @@ touch /app/apache/logs/error_log
 touch /app/apache/logs/access_log
 tail -F /app/apache/logs/error_log &
 tail -F /app/apache/logs/access_log &
-export LD_LIBRARY_PATH=/app/php/ext
+export LD_LIBRARY_PATH=/app/local/lib
 export PHP_INI_SCAN_DIR=/app/www
 
 # let's check for hook scripts
