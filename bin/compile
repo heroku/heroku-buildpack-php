@@ -45,7 +45,7 @@ SUMS_FILE="${BUNDLE_DIR}/${MANIFEST_FILE}"
 TARGET="$1"
 SUM=`cat "${SUMS_FILE}" | grep "${TARGET}" | cut -d ' ' -f 1`
 OUTPUT=`md5sum ${BUNDLE_DIR}/${TARGET} | cut -d ' ' -f 1`
-[ "$SUM" = "$OUTPUT" ]
+! [ "$SUM" = "$OUTPUT" ]
 }
 
 BIN_DIR=$(dirname $0)
@@ -69,8 +69,7 @@ echo "-----> Installing Nginx"
 if [ -f "${NGINX_FILE}" ]
 then
 	# check manifest
-	check_md5 "${NGINX_FILE}"
-	if [ ! $? ]
+	if check_md5 "${NGINX_FILE}"
 	then
 		echo "Bundling Nginx v${NGINX_VERSION}" | indent
 		curl --silent --max-time 60 -O --location $NGINX_URL
@@ -90,8 +89,7 @@ tar xzf ${NGINX_FILE} -C ${BUILD_DIR}/vendor/nginx
 echo "-----> Installing libmcrypt"
 if [ -f "${MCRYPT_FILE}" ]
 then
-	check_md5 "${MCRYPT_FILE}"
-	if [ ! $? ]
+	if check_md5 "${MCRYPT_FILE}"
 	then
 		echo "Bundling libmcrypt v${LIBMCRYPT_VERSION}" | indent
 		curl --silent --max-time 60 -O --location $MCRYPT_URL
@@ -109,8 +107,7 @@ tar xzf ${MCRYPT_FILE} -C ${BUILD_DIR}/local
 echo "-----> Installing libmemcached"
 if [ -f "${MEMCACHED_FILE}" ]
 then
-	check_md5 "${MEMCACHED_FILE}"
-	if [ ! $? ]
+	if check_md5 "${MEMCACHED_FILE}"
 	then
 		echo "Bundling libmemcached v${LIBMEMCACHED_VERSION}" | indent
 		curl --silent --max-time 60 -O --location ${MEMCACHED_URL}
@@ -128,8 +125,7 @@ tar xzf ${MEMCACHED_FILE} -C ${BUILD_DIR}/local
 echo "-----> Installing PHP"
 if [ -f "$PHP_FILE" ]
 then
-	check_md5 "${PHP_FILE}"
-	if [ ! $? ]
+	if check_md5 "${PHP_FILE}"
 	then
 		echo "Bundling PHP v${PHP_VERSION}" | indent
 		curl --silent --max-time 60 -O --location $PHP_URL
@@ -148,8 +144,7 @@ tar xzf ${PHP_FILE} -C ${BUILD_DIR}/vendor/php
 echo "-----> Installing newrelic"
 if [ -f "${NEWRELIC_FILE}" ]
 then
-	check_md5 "${NEWRELIC_FILE}"
-	if [ ! $? ]
+	if check_md5 "${NEWRELIC_FILE}"
 	then
 		echo "Bundling newrelic daemon v${NEWRELIC_VERSION}" | indent
 		curl --silent --max-time 60 -O --location $NEWRELIC_URL
