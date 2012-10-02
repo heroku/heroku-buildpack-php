@@ -13,6 +13,9 @@ export MEMCACHED_VERSION="2.0.1"
 export NEWRELIC_VERSION="2.9.5.78"
 ## END EDIT
 
+set -e
+set -o pipefail
+
 orig_dir=$( pwd )
 
 echo "+ Using S3 update sources..."
