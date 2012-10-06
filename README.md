@@ -2,7 +2,7 @@ Nginx+PHP-FPM build pack
 ========================
 
 This is a build pack bundling PHP and Nginx for Heroku apps.
-Includes additional extensions: apc, memcache, memcached, phpredis, mcrypt, and newrelic.
+Includes additional extensions: apc, memcache, memcached, mysql, pgsql, phpredis, mcrypt, newrelic, and sqlite.
 Dependency management is handled by Composer.
 
 Configuration
@@ -36,7 +36,7 @@ $ export AWS_SECRET="fj2jjchebsjksmMJCN387RHNjdnddNfi4jjhshh3" # as above
 $ export S3_BUCKET="heroku-buildpack-php-tyler" # set to your S3 bucket.
 $ source support/set-env.sh
 ````
-Edit `bin/compile` and `support/ec2-build-php.sh` to reflect the correct S3 bucket.
+Edit `bin/compile` and `support/vulcan-build-php.sh` to reflect the correct S3 bucket.
 
 ### Nginx
 Run:
