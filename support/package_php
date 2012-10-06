@@ -1,0 +1,17 @@
+#!/bin/bash
+
+set -e
+
+if [ "$PHP_VERSION" == "" ]; then
+  echo "must set PHP_VERSION, i.e PHP_VERSION=5.4.7"
+  exit 1
+fi
+
+
+
+# build and package nginx for heroku
+vulcan build -v -o php-${PHP_VERSION}-with-fpm-heroku.tar.gz -p /app/vendor/php -c './vulcan-build-php.sh'
+
+echo "+ Binaries available at ./php-${PHP_VERSION}-with-fpm-heroku.tar.gz"
+echo "+ Upload this package to Amazon S3."
+

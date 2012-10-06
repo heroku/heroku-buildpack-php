@@ -67,16 +67,15 @@ $ support/package_newrelic
 The binary package will be produced in the current directory. Upload it to Amazon S3.
 
 ### PHP
-PHP with mcrypt requires libmcrypt to be installed. Vulcan cannot be used to build in this case.
+PHP requires supporting libraries to be avaliable when being built. Please have the preceeding packages built and uploaded onto S3 before continuing.
 
-To pre-compile PHP for Heroku, spin up an Amazon EC2 instance within the US-East Region: `ami-04c9306d`. Refer to `support/ec2-up.sh` for some hints.
+Review the `support/vulcan-build-php.sh` build script and verify the version numbers first.
 
-The use the following to compile PHP:
+Run:
 ````
-# after logging into EC2 instance, preferably with screen running.
-$ curl -L "https://github.com/iphoting/heroku-buildpack-php-tyler/raw/master/support/ec2-build-php.sh" -o - | sudo bash
+$ support/package_php
 ````
-You should review the build script at <https://github.com/iphoting/heroku-buildpack-php-tyler/blob/master/support/ec2-build-php.sh>.
+The binary package will be produced in the current directory. Upload it to Amazon S3.
 
 ### Bundling Caching
 To speed up the slug compilation stage, precompiled binary packages are cached. The buildpack will attempt to fetch `manifest.md5sum` to verify that the cached packages are still fresh.
