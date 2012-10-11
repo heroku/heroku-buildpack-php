@@ -26,6 +26,13 @@ testCompile()
 	assertCaptured "PHP v${PHP_VERSION}"
 	assertTrue "php-fpm should be executable" "[ -x ${BUILD_DIR}/vendor/php/sbin/php-fpm ]"
 
+	assertTrue "apc.so extension should exist" "[ -e ${BUILD_DIR}/vendor/php/lib/php/extensions/no-debug-non-zts-20100525/apc.so ]"
+	assertTrue "memcache.so extension should exist" "[ -e ${BUILD_DIR}/vendor/php/lib/php/extensions/no-debug-non-zts-20100525/memcache.so ]"
+	assertTrue "memcached.so extension should exist" "[ -e ${BUILD_DIR}/vendor/php/lib/php/extensions/no-debug-non-zts-20100525/memcached.so ]"
+	assertTrue "redis.so extension should exist" "[ -e ${BUILD_DIR}/vendor/php/lib/php/extensions/no-debug-non-zts-20100525/redis.so ]"
+	assertTrue "soap.so extension should exist" "[ -e ${BUILD_DIR}/vendor/php/lib/php/extensions/no-debug-non-zts-20100525/soap.so ]"
+	assertTrue "newrelic.so extension should exist" "[ -e ${BUILD_DIR}/vendor/php/lib/php/extensions/no-debug-non-zts-20100525/newrelic.so ]"
+
 	assertCaptured "-----> Installing newrelic"
 	assertCaptured "newrelic daemon v${NEWRELIC_VERSION}"
 	assertTrue "newrelic-daemon should be executable" "[ -x  ${BUILD_DIR}/local/bin/newrelic-daemon ]"
