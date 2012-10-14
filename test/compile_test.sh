@@ -84,6 +84,9 @@ testCompileComposer()
 {
 	"require": {
 		"packforlan/packtest": "*@dev"
+	},
+	"config": {
+		"notify-on-install": "false"
 	}
 }
 EOF
