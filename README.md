@@ -5,7 +5,9 @@ This is a build pack bundling PHP and Nginx for Heroku apps.
 
 - Includes additional extensions: apc, memcache, memcached, mysql, pgsql, phpredis, mcrypt, newrelic, and sqlite.
 - Dependency management handled by [Composer][ch].
+- [PHP Info][phpinfo].
 
+[phpinfo]: https://bp-php-t-phpinfo.herokuapp.com/
 [ch]: http://getcomposer.org/
 
 Configuration
