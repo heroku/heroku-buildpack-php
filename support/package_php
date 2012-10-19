@@ -7,10 +7,10 @@ if [ "$PHP_VERSION" == "" ]; then
   exit 1
 fi
 
-
+DIR="$( cd -P "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 
 # build and package nginx for heroku
-vulcan build -v -o php-${PHP_VERSION}-with-fpm-heroku.tar.gz -p /app/vendor/php -c './vulcan-build-php.sh'
+vulcan build -v -o php-${PHP_VERSION}-with-fpm-heroku.tar.gz -p /app/vendor/php -c './vulcan-build-php.sh' -s "$DIR"
 
 echo "+ Binaries available at ./php-${PHP_VERSION}-with-fpm-heroku.tar.gz"
 echo "+ Upload this package to Amazon S3."
