@@ -86,7 +86,7 @@ testCompileComposer()
 		"packforlan/packtest": "*@dev"
 	},
 	"config": {
-		"notify-on-install": "false"
+		"notify-on-install": false
 	}
 }
 EOF
