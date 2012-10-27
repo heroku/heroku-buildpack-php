@@ -10,6 +10,7 @@ http {
   include             mime.types;
   default_type        application/octet-stream;
   sendfile            on;
+  server_tokens       off;
   keepalive_timeout   65;
   gzip                on;
   access_log          off;
