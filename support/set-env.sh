@@ -10,7 +10,7 @@ export LIBMEMCACHED_VERSION="1.0.7"
 export MEMCACHED_VERSION="2.0.1"
 export NEWRELIC_VERSION="2.9.5.78"
 
-export NGINX_VERSION="1.2.4"
+export NGINX_VERSION="1.2.5"
 
 export EC2_PRIVATE_KEY=~/.ec2/pk.pem
 export EC2_CERT=~/.ec2/cert.pem
