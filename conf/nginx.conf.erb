@@ -10,12 +10,17 @@ http {
   include             mime.types;
   default_type        application/octet-stream;
   sendfile            on;
+  server_tokens       off;
   keepalive_timeout   65;
   gzip                on;
   access_log          off;
   proxy_max_temp_file_size	0;
   #fastcgi_max_temp_file_size	0;
   limit_conn_zone $binary_remote_addr zone=phplimit:1m; # define a limit bucket for PHP-FPM
+
+  upstream php_fpm {
+    server unix:/tmp/php-fpm.socket;
+  }
 
   server {
     listen            <%= ENV['PORT'] %>;
@@ -55,7 +60,7 @@ http {
     location ~ ^/(status|ping)$ {
       include         /app/vendor/nginx/conf/fastcgi_params;
       fastcgi_param   HTTPS on; # force SSL
-      fastcgi_pass    unix:/tmp/php-fpm.socket;
+      fastcgi_pass    php_fpm;
       fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
     }
 
@@ -89,7 +94,7 @@ http {
       limit_conn phplimit 5; # limit to 5 concurrent users to PHP per IP.
       include         /app/vendor/nginx/conf/fastcgi_params;
       fastcgi_param   HTTPS on; # force SSL
-      fastcgi_pass    unix:/tmp/php-fpm.socket;
+      fastcgi_pass    php_fpm;
       fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
     }
   }
