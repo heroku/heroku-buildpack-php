@@ -60,8 +60,12 @@ shopt -s dotglob
 
 mkdir -p $BUILD_DIR $CACHE_DIR ${BUNDLE_DIR} ${BUILD_DIR}/local ${BUILD_DIR}/vendor/bin ${COMPOSER_HOME}
 
-echo "-----> Fetching Manifest"
 pushd ${BUNDLE_DIR} > /dev/null
+
+echo "-----> Cleaning Unused Cached Bundles"
+find . -type f -atime +30 -delete | indent
+
+echo "-----> Fetching Manifest"
 curl --silent --max-time 60 -O --location $MANIFEST_URL
 
 # Nginx

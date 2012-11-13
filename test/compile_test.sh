@@ -72,6 +72,16 @@ testCachedCompile()
 	assertTrue "newrelic-daemon should be executable" "[ -x  ${BUILD_DIR}/local/bin/newrelic-daemon ]"
 }
 
+testCompileCachePrune()
+{
+	mkdir -p ${CACHE_DIR}/bundles
+	touch -amt '197001011234' ${CACHE_DIR}/bundles/delete_me.txt
+	compile
+
+	assertCaptured "Cleaning Unused Cached Bundles"
+	assertFalse "delete_me.txt should be deleted" "[ -e ${CACHE_DIR}/bundles/delete_me.txt ]"
+}
+
 testCompileComposer()
 {
 
