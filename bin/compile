@@ -48,6 +48,11 @@ OUTPUT=`md5sum ${BUNDLE_DIR}/${TARGET} | cut -d ' ' -f 1`
 ! [ "$SUM" = "$OUTPUT" ]
 }
 
+function download_url() {
+TARGET_URL="$1"
+curl -s -S -O -L -m 300 --connect-timeout 60 "$TARGET_URL"
+}
+
 BIN_DIR=$(dirname $0)
 BUILD_DIR=$1
 CACHE_DIR=$2
@@ -66,7 +71,7 @@ echo "-----> Cleaning Unused Cached Bundles"
 find . -type f -atime +30 -delete | indent
 
 echo "-----> Fetching Manifest"
-curl --silent --max-time 60 -O --location $MANIFEST_URL
+download_url $MANIFEST_URL
 
 # Nginx
 echo "-----> Installing Nginx"
@@ -76,14 +81,14 @@ then
 	if check_md5 "${NGINX_FILE}"
 	then
 		echo "Bundling Nginx v${NGINX_VERSION}" | indent
-		curl --silent --max-time 60 -O --location $NGINX_URL
+		download_url $NGINX_URL
 	else
 		echo "Using cached Nginx v${NGINX_VERSION}" | indent
 	fi
 else
 	# fetch
 	echo "Bundling Nginx v${NGINX_VERSION}" | indent
-	curl --silent --max-time 60 -O --location $NGINX_URL
+	download_url $NGINX_URL
 fi
 
 mkdir -p ${BUILD_DIR}/vendor/nginx
@@ -96,13 +101,13 @@ then
 	if check_md5 "${MCRYPT_FILE}"
 	then
 		echo "Bundling libmcrypt v${LIBMCRYPT_VERSION}" | indent
-		curl --silent --max-time 60 -O --location $MCRYPT_URL
+		download_url $MCRYPT_URL
 	else
 		echo "Using cached libmcrypt v${LIBMCRYPT_VERSION}" | indent
 	fi
 else
 	echo "Bundling libmcrypt v${LIBMCRYPT_VERSION}" | indent
-	curl --silent --max-time 60 -O --location $MCRYPT_URL
+	download_url $MCRYPT_URL
 fi
 
 tar xzf ${MCRYPT_FILE} -C ${BUILD_DIR}/local
@@ -114,13 +119,13 @@ then
 	if check_md5 "${MEMCACHED_FILE}"
 	then
 		echo "Bundling libmemcached v${LIBMEMCACHED_VERSION}" | indent
-		curl --silent --max-time 60 -O --location ${MEMCACHED_URL}
+		download_url ${MEMCACHED_URL}
 	else
 		echo "Using cached libmemcached v${LIBMEMCACHED_VERSION}" | indent
 	fi
 else
 	echo "Bundling libmemcached v${LIBMEMCACHED_VERSION}" | indent
-	curl --silent --max-time 60 -O --location ${MEMCACHED_URL}
+	download_url ${MEMCACHED_URL}
 fi
 
 tar xzf ${MEMCACHED_FILE} -C ${BUILD_DIR}/local
@@ -132,13 +137,13 @@ then
 	if check_md5 "${PHP_FILE}"
 	then
 		echo "Bundling PHP v${PHP_VERSION}" | indent
-		curl --silent --max-time 60 -O --location $PHP_URL
+		download_url $PHP_URL
 	else
 		echo "Using cached PHP v${PHP_VERSION}" | indent
 	fi
 else
 	echo "Bundling PHP v${PHP_VERSION}" | indent
-	curl --silent --max-time 60 -O --location $PHP_URL
+	download_url $PHP_URL
 fi
 
 mkdir -p ${BUILD_DIR}/vendor/php
@@ -151,13 +156,13 @@ then
 	if check_md5 "${NEWRELIC_FILE}"
 	then
 		echo "Bundling newrelic daemon v${NEWRELIC_VERSION}" | indent
-		curl --silent --max-time 60 -O --location $NEWRELIC_URL
+		download_url $NEWRELIC_URL
 	else
 		echo "Using cached newrelic daemon v${NEWRELIC_VERSION}" | indent
 	fi
 else
 	echo "Bundling newrelic daemon v${NEWRELIC_VERSION}" | indent
-	curl --silent --max-time 60 -O --location $NEWRELIC_URL
+	download_url $NEWRELIC_URL
 fi
 
 tar xzf ${NEWRELIC_FILE} -C ${BUILD_DIR}/local
@@ -175,7 +180,7 @@ then
 	if [ ! -f "composer.phar" ]
 	then
 		echo "Fetching composer.phar" | indent
-		curl --silent --max-time 60 -O --location "$COMPOSER_URL"
+		download_url "$COMPOSER_URL"
 	fi
 
 	# do the deed!
