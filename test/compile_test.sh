@@ -75,10 +75,13 @@ testCachedCompile()
 testCompileCachePrune()
 {
 	mkdir -p ${CACHE_DIR}/bundles
+	compile
+	assertNotCaptured "Pruning Unused Cached Bundles"
+
 	touch -amt '197001011234' ${CACHE_DIR}/bundles/delete_me.txt
 	compile
 
-	assertCaptured "Cleaning Unused Cached Bundles"
+	assertCaptured "Pruning Unused Cached Bundles"
 	assertFalse "delete_me.txt should be deleted" "[ -e ${CACHE_DIR}/bundles/delete_me.txt ]"
 }
 

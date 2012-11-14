@@ -67,8 +67,11 @@ mkdir -p $BUILD_DIR $CACHE_DIR ${BUNDLE_DIR} ${BUILD_DIR}/local ${BUILD_DIR}/ven
 
 pushd ${BUNDLE_DIR} > /dev/null
 
-echo "-----> Cleaning Unused Cached Bundles"
-find . -type f -atime +30 -delete | indent
+if [ -n "`find . -type f -atime +30`" ]
+then
+	echo "-----> Pruning Unused Cached Bundles"
+	find . -type f -atime +30 -delete | indent
+fi
 
 echo "-----> Fetching Manifest"
 download_url $MANIFEST_URL
