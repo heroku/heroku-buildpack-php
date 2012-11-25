@@ -36,6 +36,7 @@ Pre-compiling binaries
 Edit `support/set-env.sh` and `bin/compile` to update the version numbers.
 ````
 $ gem install vulcan
+$ vulcan create build-server-name
 $ export AWS_ID="1BHAJK48DJFMQKZMNV93" # optional if s3 handled manually.
 $ export AWS_SECRET="fj2jjchebsjksmMJCN387RHNjdnddNfi4jjhshh3" # as above
 $ export S3_BUCKET="heroku-buildpack-php-tyler" # set to your S3 bucket.
@@ -72,7 +73,7 @@ $ support/package_newrelic
 The binary package will be produced in the current directory. Upload it to Amazon S3.
 
 ### PHP
-PHP requires supporting libraries to be avaliable when being built. Please have the preceeding packages built and uploaded onto S3 before continuing.
+PHP requires supporting libraries to be available when being built. Please have the preceding packages built and uploaded onto S3 before continuing.
 
 Review the `support/vulcan-build-php.sh` build script and verify the version numbers in `support/set-env.sh`.
 
@@ -126,7 +127,7 @@ heroku config:add PATH="/app/vendor/bin:/app/local/bin:/app/vendor/nginx/sbin:/a
 Push deploy your app and you should see Nginx, mcrypt, and PHP being bundled.
 
 ### Declaring Dependencies using Composer
-[Composer][] is the de fecto dependency manager for PHP, similar to Bundler in Ruby.
+[Composer][] is the de facto dependency manager for PHP, similar to Bundler in Ruby.
 
 - Declare your dependencies in `composer.json`; see [docs][cdocs] for syntax and other details.
 - Run `php composer.phar install` *locally* at least once to generate a `composer.lock` file. Make sure both `composer.json` and `composer.lock` files are committed into version control.
@@ -168,7 +169,7 @@ Source: <https://github.com/ryanbrainard/heroku-buildpack-testrunner>
 Credits
 -------
 
-Original buildpack adapted and modified for Nginx+PHP support by [Ronald Ip][iht]. Buildpack originally inspired, and forked from <https://github.com/heroku/heroku-buildpack-php>.
+Original buildpack adapted and modified for Nginx + PHP support by [Ronald Ip][iht]. Buildpack originally inspired, and forked from <https://github.com/heroku/heroku-buildpack-php>.
 
 Credits to original authors.
 
