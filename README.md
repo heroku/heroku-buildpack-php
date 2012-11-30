@@ -126,6 +126,10 @@ heroku config:add PATH="/app/vendor/bin:/app/local/bin:/app/vendor/nginx/sbin:/a
 
 Push deploy your app and you should see Nginx, mcrypt, and PHP being bundled.
 
+**Note**: There are two branches in this buildpack, `master` and `develop`.
+The former is the default and the latter has more recently released versions of upstream software.
+To select the `develop` branch, append `#develop` to the buildpack URL above, without any spaces.
+
 ### Declaring Dependencies using Composer
 [Composer][] is the de facto dependency manager for PHP, similar to Bundler in Ruby.
 
