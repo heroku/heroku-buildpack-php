@@ -259,9 +259,9 @@ touch /app/vendor/nginx/logs/access.log /app/vendor/nginx/logs/error.log /app/ve
 mkdir -p client_body_temp fastcgi_temp proxy_temp scgi_temp uwsgi_temp
 (tail -f -n 0 /app/vendor/nginx/logs/*.log /app/vendor/php/var/log/*.log /app/local/var/log/newrelic/*.log &)
 
-newrelic-daemon -c /app/local/etc/newrelic.cfg -d error
-php-fpm
-nginx
+/app/local/bin/newrelic-daemon -c /app/local/etc/newrelic.cfg -d error
+/app/vendor/php/sbin/php-fpm
+/app/vendor/nginx/sbin/nginx
 EOF
 chmod +x boot.sh
 
