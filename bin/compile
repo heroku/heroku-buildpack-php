@@ -33,24 +33,24 @@ COMPOSER_URL="http://getcomposer.org/composer.phar"
 #
 
 function indent() {
-  c='s/^/       /'
-  case $(uname) in
-    Darwin) sed -l "$c";;
-    *)      sed -u "$c";;
-  esac
+	c='s/^/       /'
+	case $(uname) in
+		Darwin) sed -l "$c";;
+		*)      sed -u "$c";;
+	esac
 }
 
 function check_md5() {
-SUMS_FILE="${BUNDLE_DIR}/${MANIFEST_FILE}"
-TARGET="$1"
-SUM=`cat "${SUMS_FILE}" | grep "${TARGET}" | cut -d ' ' -f 1`
-OUTPUT=`md5sum ${BUNDLE_DIR}/${TARGET} | cut -d ' ' -f 1`
-! [ "$SUM" = "$OUTPUT" ]
+	SUMS_FILE="${BUNDLE_DIR}/${MANIFEST_FILE}"
+	TARGET="$1"
+	SUM=`cat "${SUMS_FILE}" | grep "${TARGET}" | cut -d ' ' -f 1`
+	OUTPUT=`md5sum ${BUNDLE_DIR}/${TARGET} | cut -d ' ' -f 1`
+	! [ "$SUM" = "$OUTPUT" ]
 }
 
 function download_url() {
-TARGET_URL="$1"
-curl -s -S -O -L -m 300 --connect-timeout 60 "$TARGET_URL"
+	TARGET_URL="$1"
+	curl -s -S -O -L -m 300 --connect-timeout 60 "$TARGET_URL"
 }
 
 BIN_DIR=$(dirname $0)
@@ -74,7 +74,8 @@ then
 fi
 
 echo "-----> Fetching Manifest"
-download_url $MANIFEST_URL
+echo ${MANIFEST_URL} | indent
+download_url ${MANIFEST_URL}
 
 # Nginx
 echo "-----> Installing Nginx"
@@ -84,14 +85,16 @@ then
 	if check_md5 "${NGINX_FILE}"
 	then
 		echo "Bundling Nginx v${NGINX_VERSION}" | indent
-		download_url $NGINX_URL
+		echo ${NGINX_URL} | indent
+		download_url ${NGINX_URL}
 	else
 		echo "Using cached Nginx v${NGINX_VERSION}" | indent
 	fi
 else
 	# fetch
 	echo "Bundling Nginx v${NGINX_VERSION}" | indent
-	download_url $NGINX_URL
+	echo ${NGINX_URL} | indent
+	download_url ${NGINX_URL}
 fi
 
 mkdir -p ${BUILD_DIR}/vendor/nginx
@@ -104,13 +107,15 @@ then
 	if check_md5 "${MCRYPT_FILE}"
 	then
 		echo "Bundling libmcrypt v${LIBMCRYPT_VERSION}" | indent
-		download_url $MCRYPT_URL
+		echo ${MCRYPT_URL} | indent
+		download_url ${MCRYPT_URL}
 	else
 		echo "Using cached libmcrypt v${LIBMCRYPT_VERSION}" | indent
 	fi
 else
 	echo "Bundling libmcrypt v${LIBMCRYPT_VERSION}" | indent
-	download_url $MCRYPT_URL
+	echo ${MCRYPT_URL} | indent
+	download_url ${MCRYPT_URL}
 fi
 
 tar xzf ${MCRYPT_FILE} -C ${BUILD_DIR}/local
@@ -122,12 +127,14 @@ then
 	if check_md5 "${MEMCACHED_FILE}"
 	then
 		echo "Bundling libmemcached v${LIBMEMCACHED_VERSION}" | indent
+		echo ${MEMCACHED_URL} | indent
 		download_url ${MEMCACHED_URL}
 	else
 		echo "Using cached libmemcached v${LIBMEMCACHED_VERSION}" | indent
 	fi
 else
 	echo "Bundling libmemcached v${LIBMEMCACHED_VERSION}" | indent
+	echo ${MEMCACHED_URL} | indent
 	download_url ${MEMCACHED_URL}
 fi
 
@@ -140,13 +147,15 @@ then
 	if check_md5 "${PHP_FILE}"
 	then
 		echo "Bundling PHP v${PHP_VERSION}" | indent
-		download_url $PHP_URL
+		echo ${PHP_URL} | indent
+		download_url ${PHP_URL}
 	else
 		echo "Using cached PHP v${PHP_VERSION}" | indent
 	fi
 else
 	echo "Bundling PHP v${PHP_VERSION}" | indent
-	download_url $PHP_URL
+	echo ${PHP_URL} | indent
+	download_url ${PHP_URL}
 fi
 
 mkdir -p ${BUILD_DIR}/vendor/php
@@ -159,13 +168,15 @@ then
 	if check_md5 "${NEWRELIC_FILE}"
 	then
 		echo "Bundling newrelic daemon v${NEWRELIC_VERSION}" | indent
-		download_url $NEWRELIC_URL
+		echo ${NEWRELIC_URL} | indent
+		download_url ${NEWRELIC_URL}
 	else
 		echo "Using cached newrelic daemon v${NEWRELIC_VERSION}" | indent
 	fi
 else
 	echo "Bundling newrelic daemon v${NEWRELIC_VERSION}" | indent
-	download_url $NEWRELIC_URL
+	echo ${NEWRELIC_URL} | indent
+	download_url ${NEWRELIC_URL}
 fi
 
 tar xzf ${NEWRELIC_FILE} -C ${BUILD_DIR}/local
@@ -173,24 +184,25 @@ tar xzf ${NEWRELIC_FILE} -C ${BUILD_DIR}/local
 popd > /dev/null
 
 # Composer Installation
-pushd $BUILD_DIR > /dev/null
+pushd ${BUILD_DIR} > /dev/null
 if [ -f "composer.json" ]
 then
 	echo "-----> Installing dependencies using Composer"
-	GIT_DIR_ORIG=$GIT_DIR
+	GIT_DIR_ORIG=${GIT_DIR}
 	unset GIT_DIR
 
 	if [ ! -f "composer.phar" ]
 	then
 		echo "Fetching composer.phar" | indent
-		download_url "$COMPOSER_URL"
+		echo ${COMPOSER_URL} | indent
+		download_url ${COMPOSER_URL}
 	fi
 
 	# do the deed!
 	echo "Running: php composer.phar install" | indent
 	LD_LIBRARY_PATH="${BUILD_DIR}/local/lib" ${BUILD_DIR}/vendor/php/bin/php composer.phar install -n | indent
 
-	export GIT_DIR=$GIT_DIR_ORIG
+	export GIT_DIR=${GIT_DIR_ORIG}
 fi
 popd > /dev/null
 
