@@ -250,6 +250,14 @@ if [ -x "/app/local/bin/newrelic-license" ]; then
 	/app/local/bin/newrelic-license
 fi
 
+# Preserve current php-fpm.conf so that env list does
+# not go out of hand across restarts.
+if [ -r /app/vendor/php/php-fpm.conf.current ]; then
+	cp -f /app/vendor/php/php-fpm.conf.current /app/vendor/php/php-fpm.conf
+else
+	cp -f /app/vendor/php/php-fpm.conf /app/vendor/php/php-fpm.conf.current
+fi
+
 # Expose Heroku config vars to PHP-FPM processes
 for var in \`env | cut -f1 -d=\`; do
 	echo "env[\$var] = \\$\${var}" >> /app/vendor/php/etc/php-fpm.conf
