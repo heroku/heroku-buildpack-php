@@ -267,7 +267,9 @@ touch /app/vendor/nginx/logs/access.log /app/vendor/nginx/logs/error.log /app/ve
 mkdir -p client_body_temp fastcgi_temp proxy_temp scgi_temp uwsgi_temp
 (tail -f -n 0 /app/vendor/nginx/logs/*.log /app/vendor/php/var/log/*.log /app/local/var/log/newrelic/*.log &)
 
-/app/local/bin/newrelic-daemon -c /app/local/etc/newrelic.cfg -d error
+if [ "\${NEW_RELIC_LICENSE_KEY}" ]; then
+	/app/local/bin/newrelic-daemon -c /app/local/etc/newrelic.cfg -d error
+fi
 /app/vendor/php/sbin/php-fpm
 /app/vendor/nginx/sbin/nginx
 EOF
