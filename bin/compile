@@ -72,8 +72,12 @@ for var in \`env|cut -f1 -d=\`; do
 done
 touch /app/apache/logs/error_log
 touch /app/apache/logs/access_log
+export PHP_ERROR_LOG=\`/app/php/bin/php -i | grep error_log | awk '{print \$5}'\`
+touch \$PHP_ERROR_LOG
+chmod 0777 \$PHP_ERROR_LOG
 tail -F /app/apache/logs/error_log &
 tail -F /app/apache/logs/access_log &
+tail -F \$PHP_ERROR_LOG &
 export LD_LIBRARY_PATH=/app/local/lib
 export PHP_INI_SCAN_DIR=/app/www
 
