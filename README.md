@@ -11,6 +11,9 @@ The config files are bundled with the buildpack itself:
 * conf/httpd.conf
 * conf/php.ini
 
+Configure Heroku to use this buildpack repo AND branch. If you do not specify the branch, you will have unexpected results.
+
+    heroku config:set BUILDPACK_URL=git://github.com/winglian/heroku-buildpack-php.git#master
 
 Pre-compiling binaries
 ----------------------
