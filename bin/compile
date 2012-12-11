@@ -62,5 +62,26 @@ EOF
 
 chmod +x boot.sh
 
+# Normally slugignore and pruning .git/DS_Store are done in the slug compiler,
+# but since the PHP buildpack moves everything out of $BUILD_DIR into
+# www/ we can't rely on that implementation and need to duplicate it here.
+
+if [ -r $BUILD_DIR/www/.slugignore ]; then
+    unset GIT_DIR
+    cd www
+    if [ $(git ls-files -z -o -i --exclude-from=.slugignore) != "" ]; then
+        git ls-files -z -o -i --exclude-from=.slugignore | xargs -0 rm
+    fi
+    cd ..
+fi
+
+if [ -d $BUILD_DIR/www/.git ]; then
+    rm -rf $BUILD_DIR/www/.git
+fi
+
+if [ $(find $BUILD_DIR -name .DS_Store -print0) != "" ]; then
+    find $BUILD_DIR -name .DS_Store -print0 | xargs -0 rm
+fi
+
 # clean the cache
 rm -rf $CACHE_DIR/*
