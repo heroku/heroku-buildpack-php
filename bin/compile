@@ -69,7 +69,7 @@ chmod +x boot.sh
 if [ -r $BUILD_DIR/www/.slugignore ]; then
     unset GIT_DIR
     cd www
-    if [ $(git ls-files -z -o -i --exclude-from=.slugignore) != "" ]; then
+    if [ "$(git ls-files -z -o -i --exclude-from=.slugignore)" != "" ]; then
         git ls-files -z -o -i --exclude-from=.slugignore | xargs -0 rm
     fi
     cd ..
@@ -79,7 +79,7 @@ if [ -d $BUILD_DIR/www/.git ]; then
     rm -rf $BUILD_DIR/www/.git
 fi
 
-if [ $(find $BUILD_DIR -name .DS_Store -print0) != "" ]; then
+if [ "$(find $BUILD_DIR -name .DS_Store -print0)" != "" ]; then
     find $BUILD_DIR -name .DS_Store -print0 | xargs -0 rm
 fi
 
