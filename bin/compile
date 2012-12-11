@@ -66,13 +66,10 @@ chmod +x boot.sh
 # but since the PHP buildpack moves everything out of $BUILD_DIR into
 # www/ we can't rely on that implementation and need to duplicate it here.
 
-if [ -r $BUILD_DIR/www/.slugignore ]; then
-    unset GIT_DIR
+if [ "$(cd $BUILD_DIR/www && git ls-files -o -i --exclude-from=.slugignore 2> /dev/null)" != "" ]; then
+    echo "-----> Deleting files matching .slugignore patterns."
     cd www
-    if [ "$(git ls-files -z -o -i --exclude-from=.slugignore)" != "" ]; then
-        echo "-----> Deleting files matching .slugignore patterns."
-        git ls-files -z -o -i --exclude-from=.slugignore | xargs -0 rm
-    fi
+    git ls-files -z -o -i --exclude-from=.slugignore | xargs -0 rm
     cd ..
 fi
 
