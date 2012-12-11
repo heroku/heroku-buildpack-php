@@ -70,6 +70,7 @@ if [ -r $BUILD_DIR/www/.slugignore ]; then
     unset GIT_DIR
     cd www
     if [ "$(git ls-files -z -o -i --exclude-from=.slugignore)" != "" ]; then
+        echo "-----> Deleting files matching .slugignore patterns."
         git ls-files -z -o -i --exclude-from=.slugignore | xargs -0 rm
     fi
     cd ..
