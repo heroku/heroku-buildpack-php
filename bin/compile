@@ -27,7 +27,7 @@ mv $CACHE_DIR/www .
 
 # keep Procfile
 if [ -f www/Procfile ]; then
-  mv www/Procfile .
+	mv www/Procfile .
 fi
 
 APACHE_URL="https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz"
@@ -48,7 +48,7 @@ ln -s /app/php/bin/php bin/php
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
-  echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
+	echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
 done
 touch /app/apache/logs/error_log
 touch /app/apache/logs/access_log
