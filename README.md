@@ -28,6 +28,7 @@ Create a `conf/` directory in the root of the your deployment. Any files with na
 
 This way, you can customise settings specific to your application, especially the document root in `nginx.conf.erb`. (Note the .erb extension.)
 
+Alternatively, the bundled `nginx.conf.erb` will automatically include all nginx configuration snippets within the application directory: `conf/nginx.d/*.conf`. This is another way that you can modify the `root` and `index` directives. Further, if the config snippets end with `.erb`, they will be parsed and have `.conf` extension appended to its filename. 
 
 Pre-compiling binaries
 ----------------------

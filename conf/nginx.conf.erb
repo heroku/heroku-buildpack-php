@@ -30,12 +30,12 @@ http {
     server unix:/tmp/php-fpm.socket;
   }
 
+  root              /app/;
+  index             index.php index.html index.htm;
+
   server {
     listen            <%= ENV['PORT'] %>;
     server_name       _;
-
-    root              /app/;
-    index             index.php index.html index.htm;
 
     # Some basic cache-control for static files to be sent to the browser
     location ~* \.(?:ico|css|js|gif|jpeg|jpg|png)$ {
@@ -96,6 +96,8 @@ http {
     #  #   rewrite ^/feed/?$ http://feeds.feedburner.com/feedburner-feed-id last;
     #  # }
     #}
+
+    include /app/conf/nginx.d/*.conf
 
     location ~ .*\.php$ {
       try_files $uri =404;

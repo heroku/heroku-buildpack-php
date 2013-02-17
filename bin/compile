@@ -225,6 +225,8 @@ echo "Booting nginx"
 # Override config files if provided in app.
 if [ -d /app/conf ]; then
 
+	mkdir -p /app/conf/nginx.d
+
 	if [ -d /app/conf/etc.d ]; then
 		cp -f /app/conf/etc.d/* /app/vendor/php/etc.d/
 	fi
@@ -245,6 +247,13 @@ fi
 
 # Set correct port variable.
 erb /app/vendor/nginx/conf/nginx.conf.erb > /app/vendor/nginx/conf/nginx.conf
+
+# Parse .erb into .conf.
+for f in /app/conf/nginx.d/*.erb
+do
+	erb "\${f}" > "\${f}.conf"
+done
+
 # Set NEWRELIC key
 if [ -x "/app/local/bin/newrelic-license" ]; then
 	/app/local/bin/newrelic-license
