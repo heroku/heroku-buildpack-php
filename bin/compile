@@ -249,11 +249,13 @@ fi
 # Set correct port variable.
 erb /app/vendor/nginx/conf/nginx.conf.erb > /app/vendor/nginx/conf/nginx.conf
 
-# Parse .erb into .conf.
-for f in /app/conf/nginx.d/*.erb
-do
-	erb "\${f}" > "\${f}.conf"
-done
+if [ -d /app/conf/nginx.d ]; then
+	# Parse .erb into .conf.
+	for f in /app/conf/nginx.d/*.erb
+	do
+		erb "\${f}" > "\${f}.conf"
+	done
+fi
 
 # Set NEWRELIC key
 if [ -x "/app/local/bin/newrelic-license" ]; then
