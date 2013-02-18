@@ -97,7 +97,7 @@ http {
     #  # }
     #}
 
-    include /app/conf/nginx.d/*.conf
+    include /app/conf/nginx.d/*.conf;
 
     location ~ .*\.php$ {
       try_files $uri =404;
