@@ -14,6 +14,7 @@ http {
   keepalive_timeout   65;
   gzip                on;
   access_log          off;
+  error_log           logs/error.log;
   proxy_max_temp_file_size	0;
   #fastcgi_max_temp_file_size	0;
   limit_conn_zone $binary_remote_addr zone=phplimit:1m; # define a limit bucket for PHP-FPM
