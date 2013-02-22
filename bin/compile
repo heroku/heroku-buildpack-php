@@ -253,7 +253,10 @@ if [ -d /app/conf/nginx.d ]; then
 	# Parse .erb into .conf.
 	for f in /app/conf/nginx.d/*.erb
 	do
-		erb "\${f}" > "\${f}.conf"
+		if [ -r "\${f}" ];
+		then
+			erb "\${f}" > "\${f}.conf"
+		fi
 	done
 fi
 
