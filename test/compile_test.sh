@@ -4,6 +4,11 @@
 
 . ${BUILDPACK_HOME}/support/set-env.sh
 
+assertCapturedOnStdErr()
+{
+	assertFileContains "$@" "${STD_ERR}"
+}
+
 testCompile()
 {
 	compile
@@ -47,6 +52,24 @@ testCompile()
 	assertTrue "boot.sh exists and executable" "[ -x ${BUILD_DIR}/boot.sh ]"
 
 	assertCaptured "-----> Done with compile"
+}
+
+testCompiledConfig()
+{
+	compile
+
+	# Test erb generation
+	[ -z "`which erb`" ] && startSkipping
+	PORT=3000 erb "${BUILD_DIR}/vendor/nginx/conf/nginx.conf.erb" > "${BUILD_DIR}/vendor/nginx/conf/nginx.conf"
+	assertTrue "port substituted" "[ `grep -c '<%= ENV['PORT'] %>' ${BUILD_DIR}/vendor/nginx/conf/nginx.conf` -eq 0 ]"
+
+	[ "`uname -m`" != "x86_64" ] && startSkipping
+	# disable error log in config file
+	#sed -i  '/error_log*/ s/^/#/' ${BUILD_DIR}/vendor/nginx/conf/nginx.conf
+	# Test nginx config file
+	capture ${BUILD_DIR}/vendor/nginx/sbin/nginx -t -c ${BUILD_DIR}/vendor/nginx/conf/nginx.conf
+	assertCapturedOnStdErr "syntax is ok"
+	#cat ${STD_ERR}
 }
 
 testCachedCompile()
