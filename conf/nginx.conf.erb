@@ -67,7 +67,7 @@ http {
 
     # Status. /status.html uses /status
     location ~ ^/(status|ping)$ {
-      include         /app/vendor/nginx/conf/fastcgi_params;
+      include         fastcgi_params;
       fastcgi_param   HTTPS $my_https if_not_empty;
       fastcgi_pass    php_fpm;
       fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
@@ -103,7 +103,7 @@ http {
     location ~ .*\.php$ {
       try_files $uri =404;
       limit_conn phplimit 5; # limit to 5 concurrent users to PHP per IP.
-      include         /app/vendor/nginx/conf/fastcgi_params;
+      include         fastcgi_params;
       fastcgi_param   HTTPS $my_https if_not_empty;
       fastcgi_pass    php_fpm;
       fastcgi_param   SCRIPT_FILENAME $document_root$fastcgi_script_name;
