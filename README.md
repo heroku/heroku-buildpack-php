@@ -127,7 +127,6 @@ heroku create -s cedar -b git://github.com/iphoting/heroku-buildpack-php-tyler.g
 On an existing app:
 ````
 heroku config:add BUILDPACK_URL=git://github.com/iphoting/heroku-buildpack-php-tyler.git
-heroku config:add PATH="/app/vendor/bin:/app/local/bin:/app/vendor/nginx/sbin:/app/vendor/php/bin:/app/vendor/php/sbin:/usr/local/bin:/usr/bin:/bin"
 ````
 
 Push deploy your app and you should see Nginx, mcrypt, and PHP being bundled.
