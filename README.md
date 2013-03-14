@@ -20,7 +20,7 @@ Pre-compiling binaries
     wget http://apache.cyberuse.com//httpd/httpd-2.2.19.tar.gz
     tar xvzf httpd-2.2.19.tar.gz
     cd httpd-2.2.19
-    ./configure --prefix=/app/apache --enable-rewrite
+    ./configure --prefix=/app/apache --enable-rewrite --enable-libxml
     make
     make install
     cd ..
@@ -30,7 +30,9 @@ Pre-compiling binaries
     mv mirror php.tar.gz
     tar xzvf php.tar.gz
     cd php-5.3.6/
-    ./configure --prefix=/app/php --with-apxs2=/app/apache/bin/apxs --with-mysql --with-pdo-mysql --with-pgsql --with-pdo-pgsql --with-iconv --with-gd --with-curl=/usr/lib --with-config-file-path=/app/php --enable-soap=shared --with-openssl
+    ./configure --prefix=/app/php  --enable-xslt --with-xsl --with-dom=/app/php --with-dom-xslt=/app/php  --with-iconv --with-gd --with-curl=/usr/lib --enable-libxml 
+    make
+    make install
     make
     make install
     cd ..
