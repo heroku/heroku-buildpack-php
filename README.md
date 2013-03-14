@@ -20,7 +20,7 @@ Pre-compiling binaries
     wget http://apache.cyberuse.com//httpd/httpd-2.2.19.tar.gz
     tar xvzf httpd-2.2.19.tar.gz
     cd httpd-2.2.19
-    ./configure --prefix=/app/apache --enable-rewrite
+    ./configure --prefix=/app/apache --enable-rewrite --enable-libxml
     make
     make install
     cd ..
