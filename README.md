@@ -1,19 +1,23 @@
-Apache+PHP build pack
-========================
+# Apache+PHP build pack
 
 This is a build pack bundling PHP and Apache for Heroku apps.
 
-Configuration
--------------
+## Configuration
 
 The config files are bundled with the build pack itself:
 
 * conf/httpd.conf
 * conf/php.ini
 
+### Concurrency
 
-Pre-compiling binaries
-----------------------
+By default, the buildpack will configure Apache with `ServerLimit` and `MaxClients` that are twice the number of CPUs on the system. You can override this by setting the `WEB_CONCURRENCY` configuration variable for your app:
+
+    $ heroku config:add WEB_CONCURRENCY=8
+
+Setting `WEB_CONCURRENCY` has the added benefit of better analytics if you're using [log2viz](https://blog.heroku.com/archives/2013/3/19/log2viz) to track app performance.
+
+## Pre-compiling binaries
 
     # apache
     mkdir /app
@@ -55,15 +59,11 @@ Pre-compiling binaries
     echo '5.3.6' > php/VERSION
     tar -zcvf php.tar.gz php
 
-
-Hacking
--------
+## Hacking
 
 To change this buildpack, fork it on Github. Push up changes to your fork, then create a test app with --buildpack <your-github-url> and push to it.
 
-
-Meta
-----
+## Meta
 
 Created by Pedro Belo.
 Many thanks to Keith Rarick for the help with assorted Unix topics :)
