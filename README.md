@@ -9,6 +9,14 @@ The config files are bundled with the build pack itself:
 * conf/httpd.conf
 * conf/php.ini
 
+### Concurrency
+
+By default, the buildpack will configure Apache with `ServerLimit` and `MaxClients` that are twice the number of CPUs on the system. You can override this by setting the `WEB_CONCURRENCY` configuration variable for your app:
+
+    $ heroku config:add WEB_CONCURRENCY=8
+
+Setting `WEB_CONCURRENCY` has the added benefit of better analytics if you're using [log2viz](https://blog.heroku.com/archives/2013/3/19/log2viz) to track app performance.
+
 ## Pre-compiling binaries
 
     # apache
