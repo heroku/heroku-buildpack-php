@@ -57,6 +57,10 @@ tail -F /app/apache/logs/access_log &
 export LD_LIBRARY_PATH=/app/php/ext
 export PHP_INI_SCAN_DIR=/app/www
 echo "Launching apache"
+if [ -z "\${WEB_CONCURRENCY}" ]; then
+  CPUS=\$(grep -c processor /proc/cpuinfo)
+  export WEB_CONCURRENCY=\$(expr \$CPUS + \$CPUS)
+fi
 exec /app/apache/bin/httpd -DNO_DETACH
 EOF
 
