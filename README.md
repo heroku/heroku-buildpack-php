@@ -1,19 +1,15 @@
-Apache+PHP build pack
-========================
+# Apache+PHP build pack
 
 This is a build pack bundling PHP and Apache for Heroku apps.
 
-Configuration
--------------
+## Configuration
 
 The config files are bundled with the build pack itself:
 
 * conf/httpd.conf
 * conf/php.ini
 
-
-Pre-compiling binaries
-----------------------
+## Pre-compiling binaries
 
     # apache
     mkdir /app
@@ -55,15 +51,11 @@ Pre-compiling binaries
     echo '5.3.6' > php/VERSION
     tar -zcvf php.tar.gz php
 
-
-Hacking
--------
+## Hacking
 
 To change this buildpack, fork it on Github. Push up changes to your fork, then create a test app with --buildpack <your-github-url> and push to it.
 
-
-Meta
-----
+## Meta
 
 Created by Pedro Belo.
 Many thanks to Keith Rarick for the help with assorted Unix topics :)
