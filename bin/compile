@@ -55,6 +55,7 @@ if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
   cd www
   LD_LIBRARY_PATH=$BUILD_DIR/php/ext $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
+  rm -rf vendor/**/.git
   cd $BUILD_DIR
   rm www/composer.phar
   export GIT_DIR=$GIT_DIR_ORIG
