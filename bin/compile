@@ -9,7 +9,7 @@ set -e
 # Affixed to all vendored binary output to represent changes to the
 # compilation environment without a change to the upstream version,
 # e.g. PHP 5.3.27 without, and then subsequently with, libmcrypt.
-heroku_rev='-1'
+heroku_rev='-2'
 
 # config
 MCRYPT_VERSION="2.5.8"
