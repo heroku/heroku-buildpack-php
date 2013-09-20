@@ -75,11 +75,13 @@ if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   ls -al
   echo ""
   echo "-"
-  
+
+  LD_LIBRARY_PATH=/app/php/ext:/app/apache/lib
+
   echo "-----> Updating Composer dependencies"
-  LD_LIBRARY_PATH=$BUILD_DIR/php/ext $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar update
+  php -c $LP_DIR/conf/php.ini composer.phar update
   echo "-----> Installing Composer dependencies"
-  LD_LIBRARY_PATH=$BUILD_DIR/php/ext $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
+  php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
   rm -rf vendor/**/.git
   cd $BUILD_DIR
   rm www/composer.phar
