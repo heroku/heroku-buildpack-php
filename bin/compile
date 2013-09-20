@@ -4,13 +4,6 @@
 # fail fast
 set -e
 
-# Heroku Revision.
-#
-# Affixed to all vendored binary output to represent changes to the
-# compilation environment without a change to the upstream version,
-# e.g. PHP 5.3.27 without, and then subsequently with, libmcrypt.
-heroku_rev='-2'
-
 # config
 MCRYPT_VERSION="2.5.8"
 APACHE_VERSION="2.2.25"
@@ -28,6 +21,16 @@ shopt -s dotglob
 
 cd $BUILD_DIR
 
+echo ""
+echo "=----."
+echo "     .      BIN_DIR: $BIN_DIR"
+echo "     .    BUILD_DIR: $BUILD_DIR"
+echo "     :   APACHE_DIR: $CACHE_DIR"
+echo "     :       LP_DIR: $LP_DIR"
+echo "     |"
+echo "     ^--------------------------=oO@"
+echo ""
+
 # move app things to www
 mkdir -p $CACHE_DIR/www
 mv * $CACHE_DIR/www
@@ -38,16 +41,16 @@ if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
-MCRYPT_URL="https://heroku-buildpack-php.s3.amazonaws.com/mcrypt-""$MCRYPT_VERSION""$heroku_rev"".tar.gz"
-echo "-----> Bundling mcrypt version $MCRYPT_VERSION"
+MCRYPT_URL="http://om-dev.s3.amazonaws.com/mcrypt-""$MCRYPT_VERSION"".tar.gz"
+echo "-----> Bundling mcrypt from $MCRYPT_URL"
 curl --silent --max-time 60 --location "$MCRYPT_URL" | tar xz
 
-APACHE_URL="https://heroku-buildpack-php.s3.amazonaws.com/apache-""$APACHE_VERSION""$heroku_rev"".tar.gz"
-echo "-----> Bundling Apache version $APACHE_VERSION"
+APACHE_URL="http://om-dev.s3.amazonaws.com/apache-""$APACHE_VERSION"".tar.gz"
+echo "-----> Bundling Apache from $APACHE_URL"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
-PHP_URL="https://heroku-buildpack-php.s3.amazonaws.com/php-$PHP_VERSION""$heroku_rev"".tar.gz"
-echo "-----> Bundling PHP version $PHP_VERSION"
+PHP_URL="http://om-dev.s3.amazonaws.com/php-""$PHP_VERSION"".tar.gz"
+echo "-----> Bundling PHP from $PHP_URL"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
 # update config files
@@ -76,3 +79,35 @@ chmod +x boot.sh
 
 # clean the cache
 rm -rf $CACHE_DIR
+
+# WIN
+echo ""
+echo "                                        ~??IIIII?I~                   "
+echo "                                  ~II7I77I7I:                         "
+echo "                              I??II777?                               "
+echo "                          :??I,II7                                    "
+echo "                       +?I,=II:                    +I?                "
+echo "                     +I, ?I?                      ?  ?=+              "
+echo "                  :?+ :?7                            ,??=,            "
+echo "                ~?? II                               ,??++            "
+echo "         ~:   =?+ ?I         :      =7       =?      ?I??+            "
+echo "       :=+  :+=,?I          ~                       :7I??             "
+echo "        ?:~+, =I                 +77777?          +7 ~                "
+echo "         =?II+               ?=IIII/  +=                              "
+echo "        ,?? =+I?:    =~  ?II?++??/     7= ~                           "
+echo "       ??+I   ,?=+   I+?+?III\\++     =III+                           "
+echo "     7                ~~=     ,|  \?III?I                             "
+echo "    +:+?+               ===,:??+,  /I?                                "
+echo "                       ,=++?II????I???                                "
+echo "                               ?|| | ||                               "
+echo "                              I        :?                             "
+echo "     :                       ~I|  | || |I                             "
+echo "       =~:                    +?IIIII?=                               "
+echo "         ,====:                                           +++         "
+echo "            ~=++==++~                                     ?+,    =+++ "
+echo "                ,?++??I????II+=:,                     ,~,:=~ ++?= ~+= "
+echo "                       ++?+I?I?: :=?II7I7I7777??=~:,    ,==, ~    ,   "
+echo "                               ~+77I7?II?II+=~=++?++=,   +?=          "
+echo "-----> Feel is good                                    +=~:           "
+echo ""
+

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ -f $1/index.php ]; then
+if [ -f $1/public/index.php ]; then
   echo "PHP" && exit 0
 else
   echo "no" && exit 1
