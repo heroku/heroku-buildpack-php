@@ -61,6 +61,12 @@ cp $LP_DIR/conf/php.ini php
 mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
+# npm for fun
+npm install
+
+# bower for fun
+bower install
+
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
   echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
@@ -81,6 +87,7 @@ chmod +x boot.sh
 rm -rf $CACHE_DIR
 
 # WIN
+echo ""
 echo "                                     ~??IIIII?I~                   "
 echo "                               ~II7I77I7I:                         "
 echo "                           I??II777?                               "
