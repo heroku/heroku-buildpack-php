@@ -69,6 +69,13 @@ if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   COMPOSER_URL="http://getcomposer.org/composer.phar"
   curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
   cd www
+
+  echo "-"
+  echo ""
+  ls -al
+  echo ""
+  echo "-"
+  
   echo "-----> Updating Composer dependencies"
   LD_LIBRARY_PATH=$BUILD_DIR/php/ext $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar update
   echo "-----> Installing Composer dependencies"
