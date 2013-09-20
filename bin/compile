@@ -41,7 +41,7 @@ if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
-MCRYPT_URL="http://om-dev.s3.amazonaws.com/php-""$MCRYPT_VERSION"".tar.gz"
+MCRYPT_URL="http://om-dev.s3.amazonaws.com/mcrypt-""$MCRYPT_VERSION"".tar.gz"
 echo "-----> Bundling mcrypt from $MCRYPT_URL"
 curl --silent --max-time 60 --location "$MCRYPT_URL" | tar xz
 
