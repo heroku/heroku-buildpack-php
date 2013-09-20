@@ -55,11 +55,11 @@ curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
-cp $LP_DIR/conf/php.ini $PHP_PATH
+cp $LP_DIR/conf/php.ini php
 
 # make php available on bin
 mkdir -p bin
-# ln -s $BUILD_DIR/php/bin/php bin/php
+ln -s /app/php/bin/php bin/php
 
 # check if we have Composer dependencies and vendors are not bundled
 if [ -f www/composer.json ]; then
@@ -78,8 +78,6 @@ if [ -f www/composer.json ]; then
   rm www/composer.phar
   export GIT_DIR=$GIT_DIR_ORIG
 fi
-
-
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
