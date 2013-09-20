@@ -72,7 +72,7 @@ if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
 
   echo "-"
   echo ""
-  ls -al
+  find / -name libmcrypt.so.4
   echo ""
   echo "-"
 
