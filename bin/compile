@@ -5,10 +5,9 @@
 set -e
 
 # config
-MCRYPT_VERSION="2.5.8"
-APACHE_VERSION="2.2.25"
+APACHE_VERSION="2.2.22"
 APACHE_PATH="apache"
-PHP_VERSION="5.3.27"
+PHP_VERSION="5.3.10"
 PHP_PATH="php"
 
 BIN_DIR=$(dirname $0)
@@ -21,16 +20,6 @@ shopt -s dotglob
 
 cd $BUILD_DIR
 
-echo ""
-echo "=----."
-echo "     .      BIN_DIR: $BIN_DIR"
-echo "     .    BUILD_DIR: $BUILD_DIR"
-echo "     :   APACHE_DIR: $CACHE_DIR"
-echo "     :       LP_DIR: $LP_DIR"
-echo "     |"
-echo "     ^--------------------------=oO@"
-echo ""
-
 # move app things to www
 mkdir -p $CACHE_DIR/www
 mv * $CACHE_DIR/www
@@ -41,16 +30,12 @@ if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
-MCRYPT_URL="http://om-dev.s3.amazonaws.com/mcrypt-""$MCRYPT_VERSION"".tar.gz"
-echo "-----> Bundling mcrypt from $MCRYPT_URL"
-curl --silent --max-time 60 --location "$MCRYPT_URL" | tar xz
-
-APACHE_URL="http://om-dev.s3.amazonaws.com/apache-""$APACHE_VERSION"".tar.gz"
-echo "-----> Bundling Apache from $APACHE_URL"
+APACHE_URL="https://s3.amazonaws.com/php-lp/apache-$APACHE_VERSION.tar.gz"
+echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
-PHP_URL="http://om-dev.s3.amazonaws.com/php-""$PHP_VERSION"".tar.gz"
-echo "-----> Bundling PHP from $PHP_URL"
+PHP_URL="https://s3.amazonaws.com/php-lp/php-$PHP_VERSION.tar.gz"
+echo "-----> Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
 # update config files
@@ -65,23 +50,11 @@ ln -s /app/php/bin/php bin/php
 if [ -f www/composer.json ] && [ ! -d www/vendor ]; then
   GIT_DIR_ORIG=$GIT_DIR
   unset GIT_DIR
-  echo "-----> Bundling Composer"
+  echo "-----> Installing Composer dependencies"
   COMPOSER_URL="http://getcomposer.org/composer.phar"
   curl --silent --max-time 60 --location "$COMPOSER_URL" > www/composer.phar
   cd www
-
-  echo "-"
-  echo ""
-  find / -name libmcrypt.so.4
-  echo ""
-  echo "-"
-
-  LD_LIBRARY_PATH=/app/php/ext:/app/apache/lib
-
-  echo "-----> Updating Composer dependencies"
-  $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar update
-  echo "-----> Installing Composer dependencies"
-  $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
+  LD_LIBRARY_PATH=$BUILD_DIR/php/ext $BUILD_DIR/php/bin/php -c $LP_DIR/conf/php.ini composer.phar install --prefer-source
   rm -rf vendor/**/.git
   cd $BUILD_DIR
   rm www/composer.phar
@@ -96,7 +69,7 @@ touch /app/apache/logs/error_log
 touch /app/apache/logs/access_log
 tail -F /app/apache/logs/error_log &
 tail -F /app/apache/logs/access_log &
-export LD_LIBRARY_PATH=/app/php/lib/php
+export LD_LIBRARY_PATH=/app/php/ext
 export PHP_INI_SCAN_DIR=/app/www
 echo "Launching apache"
 exec /app/apache/bin/httpd -DNO_DETACH
@@ -105,35 +78,4 @@ EOF
 chmod +x boot.sh
 
 # clean the cache
-rm -rf $CACHE_DIR
-
-# WIN
-echo "                                     ~??IIIII?I~                   "
-echo "                               ~II7I77I7I:                         "
-echo "                           I??II777?                               "
-echo "                       :??I,II7                                    "
-echo "                    +?I,=II:                    +I?                "
-echo "                  +I, ?I?                      ?  ?=+              "
-echo "               :?+ :?7                            ,??=,            "
-echo "             ~?? II                               ,??++            "
-echo "      ~:   =?+ ?I         :      =7       =?      ?I??+            "
-echo "    :=+  :+=,?I          ~                       :7I??             "
-echo "     ?:~+, =I                 +77777?          +7 ~                "
-echo "      =?II+               ?=IIII/  +=                              "
-echo "     ,?? =+I?:    =~  ?II?++??/     7= ~                           "
-echo "    ??+I   ,?=+   I+?+?III\\++     =III+                           "
-echo "  7                ~~=     ,|  \?III?I                             "
-echo " +:+?+               ===,:??+,  /I?                                "
-echo "                    ,=++?II????I???                                "
-echo "                            ?|| | ||                               "
-echo "                           I        :?                             "
-echo "  :                       ~I|  | || |I                             "
-echo "    =~:                    +?IIIII?=                               "
-echo "      ,====:                                           +++         "
-echo "         ~=++==++~                                     ?+,    =+++ "
-echo "             ,?++??I????II+=:,                     ,~,:=~ ++?= ~+= "
-echo "                    ++?+I?I?: :=?II7I7I7777??=~:,    ,==, ~    ,   "
-echo "                            ~+77I7?II?II+=~=++?++=,   +?=          "
-echo "-----> Feel is good                                 +=~:           "
-echo ""
-
+rm -rf $CACHE_DIR/*
