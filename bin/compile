@@ -23,7 +23,7 @@ cd $BUILD_DIR
 
 echo ""
 echo "=----."
-secho "    .      BIN_DIR: $BIN_DIR"
+echo "     .      BIN_DIR: $BIN_DIR"
 echo "     .    BUILD_DIR: $BUILD_DIR"
 echo "     :   APACHE_DIR: $CACHE_DIR"
 echo "     :       LP_DIR: $LP_DIR"
