@@ -17,8 +17,8 @@ Pre-compiling binaries
 
 On a Heroku Dyno, one can run the following as executable text.  After
 running it, `/app` will contain, among other entities,
-`apache-2.2.25-1.tar.gz`, `php-5.3.27-1.tar.gz`, and
-`mcrypt-2.5.8-1.tar.gz` which should be uploaded to a location that
+`apache-2.2.25-2.tar.gz`, `php-5.3.27-2.tar.gz`, and
+`mcrypt-2.5.8-2.tar.gz` which should be uploaded to a location that
 can be downloaded by the build pack (see the URIs in `compile`).
 
     #!/bin/bash
