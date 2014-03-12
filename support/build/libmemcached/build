@@ -22,7 +22,7 @@ make install
 popd
 
 # Take care of vendoring
-dep_version=${VERSION:-1.0.16}
+dep_version=${VERSION:-1.0.18}
 dep_dirname=libmemcached-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 

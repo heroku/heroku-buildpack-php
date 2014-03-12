@@ -53,9 +53,9 @@ make -s
 make install -s
 popd
 
-curl -L https://dl.dropboxusercontent.com/u/26887866/heroku/libmemcached-1.0.16.tgz | tar xz -C $PREFIX
-curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0b1.tar.gz | tar xz
-pushd php-memcached-2.2.0b1
+curl -L https://dl.dropboxusercontent.com/u/26887866/heroku/libmemcached-1.0.18.tgz | tar xz -C $PREFIX
+curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0RC1.tar.gz | tar xz
+pushd php-memcached-2.2.0RC1
 phpize
 ./configure \
     --enable-memcached \
