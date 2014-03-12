@@ -28,7 +28,7 @@ mkdir -p $COMPOSER_CACHE_DIR
 PHP_VERSIONS="5.5.10"
 if [ -f composer.json ]; then
     if [ ! -f composer.lock ]; then
-        has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null)
+        has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null || true) # might fail, set -e would stop execution
         if [ "$has_packages" == "True" ]; then
             error "Your composer.json specifies dependencies, but no composer.lock was found, please check it into your repository along with composer.json!"
         fi
@@ -61,7 +61,7 @@ mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
 
 # handle extensions
 if [ -f composer.json ]; then
-    exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}')
+    exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
     if [ ! -z $exts ]; then
         status "Activating PHP extensions listed in composer.json:"
         while read -r ext; do
@@ -75,8 +75,7 @@ if [ -f composer.json ]; then
     fi
 fi
 
-# look for composer.json, not composer.lock - maybe someone has a post-install-cmd, but no requires
-if [ -f composer.json ]; then
+if [ -f composer.lock ]; then
     # we need to run PHP in here, set it up!
     ln -s $BUILD_DIR/.heroku $HOME/.heroku
     export PATH=$HOME/.heroku/php/bin:$PATH
