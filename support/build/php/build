@@ -48,7 +48,10 @@ pushd $dep_dirname
     --enable-zip \
     --with-zlib=$PREFIX \
     --with-pgsql \
-    --with-pdo-pgsql
+    --with-pdo-pgsql \
+    --with-mysql \
+    --with-mysqli \
+    --with-pdo-mysql
 make -s
 make install -s
 popd
