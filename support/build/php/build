@@ -9,7 +9,7 @@ PREFIX=/app/.heroku/php
 mkdir -p $PREFIX/bin
 export PATH=$PREFIX/bin:$PATH
 
-curl -L https://dl.dropboxusercontent.com/u/26887866/heroku/zlib-1.2.8.tgz | tar xz -C $PREFIX
+curl -L https://lang-php.s3.amazonaws.com/dist-alpha/zlib-1.2.8.tgz | tar xz -C $PREFIX
 
 # Take care of vendoring
 dep_version=${VERSION:-5.5.10}
@@ -56,7 +56,7 @@ make -s
 make install -s
 popd
 
-curl -L https://dl.dropboxusercontent.com/u/26887866/heroku/libmemcached-1.0.18.tgz | tar xz -C $PREFIX
+curl -L https://lang-php.s3.amazonaws.com/dist-alpha/libmemcached-1.0.18.tgz | tar xz -C $PREFIX
 curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0RC1.tar.gz | tar xz
 pushd php-memcached-2.2.0RC1
 phpize
