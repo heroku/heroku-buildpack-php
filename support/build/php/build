@@ -35,6 +35,8 @@ fi
 rm -rf $dep_dirname
 tar jxf $dep_archive_name
 
+# cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
+
 # Compile PHP
 pushd $dep_dirname
 ./configure \
