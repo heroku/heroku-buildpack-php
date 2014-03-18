@@ -57,18 +57,27 @@ status "Installing PHP $PHP_VERSION..."
 curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 echo $PHP_VERSION > $BUILD_DIR/.heroku/php_version
 
+# we need to run PHP in here, set it up!
+ln -s $BUILD_DIR/.heroku $HOME/.heroku
+export PATH=$HOME/.heroku/php/bin:$PATH
+PHP_EXT_DIR=`php-config --extension-dir`
+
 # update config files
 cp $BP_DIR/conf/php.ini $BUILD_DIR/.heroku/php/etc
 mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
 
 # handle extensions
 if [ -f composer.json ]; then
-    exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
-    if [ ! -z $exts ]; then
+    exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
+    if [ ! -z "$exts" ]; then
         status "Activating PHP extensions listed in composer.json:"
         while read -r ext; do
-            if [ -f $BP_DIR/conf/php/conf.d/$ext.ini ]; then
-                cp $BP_DIR/conf/php/conf.d/$ext.ini $BUILD_DIR/.heroku/php/etc/php/conf.d
+            ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
+            if [ -f $ext_ini ]; then
+                cp $ext_ini $BUILD_DIR/.heroku/php/etc/php/conf.d
+                echo "- $ext (using dedicated ext-$ext.ini)" | indent
+            elif [ -f "$PHP_EXT_DIR/$ext.so" ]; then
+                echo "extension = $ext.so" > $BUILD_DIR/.heroku/php/etc/php/conf.d/ext-$ext.ini
                 echo "- $ext" | indent
             else
                 warning "Unknown extension $ext in composer.json, install may fail!"
@@ -78,10 +87,6 @@ if [ -f composer.json ]; then
 fi
 
 if [ -f composer.lock ]; then
-    # we need to run PHP in here, set it up!
-    ln -s $BUILD_DIR/.heroku $HOME/.heroku
-    export PATH=$HOME/.heroku/php/bin:$PATH
-    
     status "Installing dependencies..."
     
     # check if we should use a composer.phar version bundled with the project
