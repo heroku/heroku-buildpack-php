@@ -15,7 +15,7 @@ CACHE_DIR=$2
 # ENV_DIR=$3
 BP_DIR=`cd $(dirname $0); cd ..; pwd`
 
-S3_URL="https://lang-php.s3.amazonaws.com/dist-alpha"
+S3_URL="https://lang-php.s3.amazonaws.com/dist-develop"
 
 # convenience functions
 source $BP_DIR/bin/common.sh
