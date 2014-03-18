@@ -1,78 +1,108 @@
 #!/usr/bin/env bash
-# bin/compile <build-dir> <cache-dir>
 
-# fail fast
-set -e
+# bin/compile <build-dir> <cache-dir> <env-dir>
 
-# Heroku Revision.
-#
-# Affixed to all vendored binary output to represent changes to the
-# compilation environment without a change to the upstream version,
-# e.g. PHP 5.3.27 without, and then subsequently with, libmcrypt.
-heroku_rev='-2'
-
-# config
-MCRYPT_VERSION="2.5.8"
-APACHE_VERSION="2.2.25"
-APACHE_PATH="apache"
-PHP_VERSION="5.3.27"
-PHP_PATH="php"
-
-BIN_DIR=$(dirname $0)
-BUILD_DIR=$1
-CACHE_DIR=$2
-LP_DIR=`cd $(dirname $0); cd ..; pwd`
-
-# include .files when moving things around
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+# move hidden files too, just in case
 shopt -s dotglob
 
+BUILD_DIR=$1
+CACHE_DIR=$2
+# TODO: support UEC
+# ENV_DIR=$3
+BP_DIR=`cd $(dirname $0); cd ..; pwd`
+
+# convenience functions
+source $BP_DIR/bin/common.sh
+
 cd $BUILD_DIR
+mkdir -p .heroku/php
 
-# move app things to www
-mkdir -p $CACHE_DIR/www
-mv * $CACHE_DIR/www
-mv $CACHE_DIR/www .
+export COMPOSER_CMD='composer'
+export COMPOSER_CACHE_DIR=$CACHE_DIR/php/composer
+mkdir -p $COMPOSER_CACHE_DIR
 
-# keep Procfile
-if [ -f www/Procfile ]; then
-  mv www/Procfile .
+PHP_VERSIONS="5.5.10"
+if [ -f composer.json ]; then
+    if [ ! -f composer.lock ]; then
+        has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null || true) # might fail, set -e would stop execution
+        if [ "$has_packages" == "True" ]; then
+            error "Your composer.json specifies dependencies, but no composer.lock was found, please check it into your repository along with composer.json!"
+        fi
+    fi
+    
+    # FIXME: this would be, of course, very basic and doesn't support expressions; migrate to semver.org
+    phpver="" #$(cat composer.json | python -c 'import sys, json; print json.load(sys.stdin)["require"]["php"]' 2> /dev/null)
+    if [ ! -z $phpver ]; then
+        if [[ $PHP_VERSIONS =~ $phpver ]]; then
+            status "Detected request for PHP $phpver in composer.json."
+            PHP_VERSION=$phpver
+        else
+            # TODO: fail harder?
+            warning "Unknown PHP version in composer.json, will use default, install may fail!"
+        fi
+    fi
 fi
+# use first from PHP_VERSIONS as default
+PHP_VERSIONS_ARR=($PHP_VERSIONS)
+PHP_VERSION=${PHP_VERSION:-${PHP_VERSIONS_ARR[0]}}
 
-MCRYPT_URL="https://heroku-buildpack-php.s3.amazonaws.com/mcrypt-""$MCRYPT_VERSION""$heroku_rev"".tar.gz"
-echo "-----> Bundling mcrypt version $MCRYPT_VERSION"
-curl --silent --max-time 60 --location "$MCRYPT_URL" | tar xz
-
-APACHE_URL="https://heroku-buildpack-php.s3.amazonaws.com/apache-""$APACHE_VERSION""$heroku_rev"".tar.gz"
-echo "-----> Bundling Apache version $APACHE_VERSION"
-curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
-
-PHP_URL="https://heroku-buildpack-php.s3.amazonaws.com/php-$PHP_VERSION""$heroku_rev"".tar.gz"
-echo "-----> Bundling PHP version $PHP_VERSION"
-curl --silent --max-time 60 --location "$PHP_URL" | tar xz
+PHP_DIST_URL="https://lang-php.s3.amazonaws.com/dist-alpha/php-$PHP_VERSION.tgz"
+status "Installing PHP $PHP_VERSION..."
+curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+echo $PHP_VERSION > $BUILD_DIR/.heroku/php_version
 
 # update config files
-cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
-cp $LP_DIR/conf/php.ini php
+cp $BP_DIR/conf/php.ini $BUILD_DIR/.heroku/php/etc
+mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
 
-# make php available on bin
-mkdir -p bin
-ln -s /app/php/bin/php bin/php
+# handle extensions
+if [ -f composer.json ]; then
+    exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
+    if [ ! -z $exts ]; then
+        status "Activating PHP extensions listed in composer.json:"
+        while read -r ext; do
+            if [ -f $BP_DIR/conf/php/conf.d/$ext.ini ]; then
+                cp $BP_DIR/conf/php/conf.d/$ext.ini $BUILD_DIR/.heroku/php/etc/php/conf.d
+                echo "- $ext" | indent
+            else
+                warning "Unknown extension $ext in composer.json, install may fail!"
+            fi
+        done <<< "$exts"
+    fi
+fi
 
-cat >>boot.sh <<EOF
-for var in \`env|cut -f1 -d=\`; do
-  echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
-done
-touch /app/apache/logs/error_log
-touch /app/apache/logs/access_log
-tail -F /app/apache/logs/error_log &
-tail -F /app/apache/logs/access_log &
-export LD_LIBRARY_PATH=/app/php/lib/php
-export PHP_INI_SCAN_DIR=/app/www
-echo "Launching apache"
-exec /app/apache/bin/httpd -DNO_DETACH
+if [ -f composer.lock ]; then
+    # we need to run PHP in here, set it up!
+    ln -s $BUILD_DIR/.heroku $HOME/.heroku
+    export PATH=$HOME/.heroku/php/bin:$PATH
+    
+    status "Installing dependencies..."
+    
+    # check if we should use a composer.phar version bundled with the project
+    if [ -f composer.phar ]; then
+        COMPOSER_CMD="php composer.phar"
+        warning "Found a composer.phar in app root, will use it for install."
+        echo "Make sure this version of composer is up to date!" | indent
+    else
+        $COMPOSER_CMD self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
+    fi
+
+    # install dependencies
+    $COMPOSER_CMD --version | indent
+    $COMPOSER_CMD install --no-interaction | indent
+fi
+
+# Update the PATH
+status "Building runtime environment..."
+mkdir -p $BUILD_DIR/.profile.d
+# look for composer.json, not composer.lock - maybe someone has a post-install-cmd, but no requires
+cat > $BUILD_DIR/.profile.d/php.sh <<EOF
+export PATH="\$HOME/.heroku/php/bin:\$PATH"
+if [ -f composer.json ]; then
+    $COMPOSER_CMD run-script post-install-cmd --no-interaction --quiet
+fi
 EOF
-
-chmod +x boot.sh
-
-# clean the cache
-rm -rf $CACHE_DIR

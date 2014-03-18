@@ -1,0 +1,27 @@
+#!/bin/bash
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+PREFIX=/app/.heroku/php
+mkdir -p $PREFIX
+
+# Take care of vendoring
+dep_version=${VERSION:-1.2.8}
+dep_dirname=zlib-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
+
+curl -Lo $dep_archive_name http://zlib.net/${dep_archive_name}
+
+tar xzf $dep_archive_name
+pushd $dep_dirname
+./configure --prefix=$PREFIX
+make
+make install
+popd
+
+mv $PREFIX/* $2/
+
+echo "Done packaging $dep_dirname"

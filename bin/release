@@ -3,7 +3,7 @@
 
 cat <<EOF
 ---
+addons: []
 default_process_types:
-  web: sh boot.sh
+  web: php -S 0.0.0.0:\$PORT
 EOF
-
