@@ -100,7 +100,7 @@ if [ -f composer.lock ]; then
 
     # install dependencies
     $COMPOSER_CMD --version | indent
-    $COMPOSER_CMD install --no-interaction | indent
+    $COMPOSER_CMD install --no-dev --prefer-dist --no-interaction | indent
 fi
 
 # Update the PATH
@@ -110,6 +110,6 @@ mkdir -p $BUILD_DIR/.profile.d
 cat > $BUILD_DIR/.profile.d/php.sh <<EOF
 export PATH="\$HOME/.heroku/php/bin:\$PATH"
 if [ -f composer.json ]; then
-    $COMPOSER_CMD run-script post-install-cmd --no-interaction --quiet
+    $COMPOSER_CMD run-script post-install-cmd --no-dev --no-interaction --quiet
 fi
 EOF
