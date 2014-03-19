@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: libraries/zlib
+# Build Deps: libraries/zlib, libraries/libmemcached
 
 OUT_PREFIX=$1
 
@@ -18,15 +18,10 @@ dep_version=${VERSION:-5.5.10}
 dep_dirname=php-$dep_version
 dep_archive_name=$dep_dirname.tar.bz2
 
-# Download PHP if necessary.
-if [ ! -f $dep_archive_name ]
-then
-    curl -Lo $dep_archive_name http://us1.php.net/get/$dep_archive_name/from/www.php.net/mirror
-fi
+# Download PHP source.
+curl -Lo $dep_archive_name http://us1.php.net/get/$dep_archive_name/from/www.php.net/mirror
 
-
-
-# fetch mcrypt
+# Fetch mcrypt
 if [ -z MCRYPT_URL ]
 then
     MCRYPT_URL="https://heroku-buildpack-php.s3.amazonaws.com/mcrypt-2.5.8-2.tar.gz"
@@ -60,7 +55,7 @@ make -s
 make install -s
 popd
 
-curl -L https://lang-php.s3.amazonaws.com/dist-alpha/libmemcached-1.0.18.tgz | tar xz -C $OUT_PREFIX
+# PHP Memcache Extension
 curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0RC1.tar.gz | tar xz
 pushd php-memcached-2.2.0RC1
 phpize
