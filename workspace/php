@@ -1,15 +1,17 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+# Build Deps: libraries/zlib
+
+OUT_PREFIX=$1
 
 # fail hard
 set -o pipefail
 # fail harder
 set -eux
 
-PREFIX=/app/.heroku/php
-mkdir -p $PREFIX/bin
-export PATH=$PREFIX/bin:$PATH
+mkdir bin
+export PATH=$PWD/bin:$PATH
 
-curl -L https://lang-php.s3.amazonaws.com/dist-alpha/zlib-1.2.8.tgz | tar xz -C $PREFIX
 
 # Take care of vendoring
 dep_version=${VERSION:-5.5.10}
@@ -40,7 +42,7 @@ tar jxf $dep_archive_name
 # Compile PHP
 pushd $dep_dirname
 ./configure \
-    --prefix=$PREFIX \
+    --prefix=$OUT_PREFIX \
     --with-config-file-path=/app/.heroku/php/etc \
     --with-config-file-scan-dir=/app/.heroku/php/etc/php/conf.d \
     --with-openssl \
@@ -48,7 +50,7 @@ pushd $dep_dirname
     --enable-soap=shared \
     --enable-sockets \
     --enable-zip \
-    --with-zlib=$PREFIX \
+    --with-zlib=$OUT_PREFIX \
     --with-pgsql \
     --with-pdo-pgsql \
     --with-mysql \
@@ -58,13 +60,13 @@ make -s
 make install -s
 popd
 
-curl -L https://lang-php.s3.amazonaws.com/dist-alpha/libmemcached-1.0.18.tgz | tar xz -C $PREFIX
+curl -L https://lang-php.s3.amazonaws.com/dist-alpha/libmemcached-1.0.18.tgz | tar xz -C $OUT_PREFIX
 curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0RC1.tar.gz | tar xz
 pushd php-memcached-2.2.0RC1
 phpize
 ./configure \
     --enable-memcached \
-    --with-libmemcached-dir=$PREFIX
+    --with-libmemcached-dir=$OUT_PREFIX
 make -s
 make install -s
 popd
@@ -76,17 +78,17 @@ popd
 # $PATH manipulation Necessary for 'pecl install', which relies on
 # PHP binaries relative to $PATH.
 
-$PREFIX/bin/pecl channel-update pecl.php.net
+$OUT_PREFIX/bin/pecl channel-update pecl.php.net
 
 # bundle composer
-curl -sS https://getcomposer.org/installer | php -- --install-dir=$PREFIX/bin
-mv $PREFIX/bin/composer.phar $PREFIX/bin/composer
+curl -sS https://getcomposer.org/installer | php -- --install-dir=$OUT_PREFIX/bin
+mv $OUT_PREFIX/bin/composer.phar $PREFIX/bin/composer
 
 # Use defaults for apc build prompts.
-# yes '' | $PREFIX/bin/pecl install apc
+# yes '' | $OUT_PREFIX/bin/pecl install apc
 
-# echo $dep_version > $PREFIX/.heroku/dep_version
+# echo $dep_version > $OUT_PREFIX/.heroku/dep_version
 
-mv $PREFIX/* $2/
+mv $OUT_PREFIX/* $2/
 
 echo "Done building $dep_dirname"
