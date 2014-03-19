@@ -65,6 +65,8 @@ PHP_EXT_DIR=`php-config --extension-dir`
 # update config files
 cp $BP_DIR/conf/php.ini $BUILD_DIR/.heroku/php/etc
 mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
+# enable opcache
+cp "$BP_DIR/conf/php/conf.d/ext-opcache.ini" $BUILD_DIR/.heroku/php/etc/php/conf.d
 
 # handle extensions
 if [ -f composer.json ]; then
