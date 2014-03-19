@@ -9,7 +9,7 @@ set -o pipefail
 # fail harder
 set -eux
 
-mkdir bin
+mkdir -p bin
 export PATH=$PWD/bin:$PATH
 
 
