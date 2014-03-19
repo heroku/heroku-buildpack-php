@@ -1,17 +1,19 @@
 #!/bin/bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
 
 # fail hard
 set -o pipefail
 # fail harder
 set -eux
 
+echo "Building libmemcached..."
+
 #
 #./configure --prefix=/tmp/foo1
 #https://launchpad.net/libmemcached/1.0/1.0.16/+download/libmemcached-1.0.16.tar.gz
 #
-
-PREFIX=/app/.heroku/php
-mkdir -p $PREFIX
 
 curl -LO ftp://ftp.cyrusimap.org/cyrus-sasl/cyrus-sasl-2.1.26.tar.gz
 tar xzf cyrus-sasl-2.1.26.tar.gz
@@ -30,11 +32,16 @@ curl -LO https://launchpad.net/libmemcached/1.0/${dep_version}/+download/${dep_a
 
 tar xzf $dep_archive_name
 pushd $dep_dirname
-CPPFLAGS=-I$PREFIX/include LDFLAGS=-L$PREFIX/lib ./configure --prefix=$PREFIX --without-memcached
+CPPFLAGS=-I$OUT_PREFIX/include LDFLAGS=-L$OUT_PREFIX/lib ./configure --prefix=$OUT_PREFIX --without-memcached
 make
 make install
 popd
 
-mv $PREFIX/* $2/
 
-echo "Done packaging $dep_dirname"
+echo "Cleaning up..."
+rm -fr $dep_archive_name
+rm -fr $dep_dirname
+rm -fr $dep_dirname.tar.gz
+
+
+echo "Done building libmemcached."
