@@ -79,6 +79,8 @@ popd
 # $PATH manipulation Necessary for 'pecl install', which relies on
 # PHP binaries relative to $PATH.
 
+echo "=== Preparing Packaging Tools"
+
 echo "Updating PECL Channel: pecl.php.net..."
 $OUT_PREFIX/bin/pecl channel-update pecl.php.net
 
