@@ -3,6 +3,8 @@
 
 OUT_PREFIX=$1
 
+echo "Building zlib..."
+
 # fail hard
 set -o pipefail
 # fail harder
@@ -16,10 +18,16 @@ dep_archive_name=${dep_dirname}.tar.gz
 curl -Lo $dep_archive_name http://zlib.net/${dep_archive_name}
 
 tar xzf $dep_archive_name
+
 pushd $dep_dirname
 ./configure --prefix=$OUT_PREFIX
 make
 make install
 popd
 
-echo "Done packaging $dep_dirname"
+echo "Cleaning up..."
+rm -fr $dep_archive_name
+rm -fr $dep_dirname
+rm -fr $dep_dirname.tar.gz
+
+echo "Done building zlib!"
