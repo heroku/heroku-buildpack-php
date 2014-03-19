@@ -95,6 +95,9 @@ mv $OUT_PREFIX/bin/composer.phar $OUT_PREFIX/bin/composer
 # Use defaults for apc build prompts.
 # yes '' | $OUT_PREFIX/bin/pecl install apc
 
+
 # echo $dep_version > $OUT_PREFIX/.heroku/dep_version
 
 echo "Done building PHP v$dep_version!"
+
+
