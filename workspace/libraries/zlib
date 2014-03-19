@@ -9,7 +9,9 @@ set -o pipefail
 set -eux
 
 # Take care of vendoring
-dep_archive_name=zlib-1.2.8.tar.gz
+dep_version=${VERSION:-1.2.8}
+dep_dirname=zlib-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
 
 curl -Lo $dep_archive_name http://zlib.net/${dep_archive_name}
 
@@ -19,7 +21,5 @@ pushd $dep_dirname
 make
 make install
 popd
-
-mv $OUT_PREFIX/* $2/
 
 echo "Done packaging $dep_dirname"
