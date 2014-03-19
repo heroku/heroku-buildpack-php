@@ -82,7 +82,7 @@ $OUT_PREFIX/bin/pecl channel-update pecl.php.net
 
 # bundle composer
 curl -sS https://getcomposer.org/installer | php -- --install-dir=$OUT_PREFIX/bin
-mv $OUT_PREFIX/bin/composer.phar $PREFIX/bin/composer
+mv $OUT_PREFIX/bin/composer.phar $OUT_PREFIX/bin/composer
 
 # Use defaults for apc build prompts.
 # yes '' | $OUT_PREFIX/bin/pecl install apc
