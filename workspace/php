@@ -33,7 +33,7 @@ tar jxf $dep_archive_name
 
 
 # Compile PHP
-echo "Fetching PHP v$dep_version from source..."
+echo "Compiling PHP v$dep_version..."
 
 # cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
 pushd $dep_dirname
@@ -71,6 +71,10 @@ echo "Building PHP Memcache Extension..."
 make -s
 make install -s
 popd
+
+echo "Cleanup Up..."
+rm -fr php-memcached-2.2.0RC1
+rm -fr $dep_dirname $dep_archive_name
 
 # Copy in MySQL client library.
 # mkdir -p $PREFIX/lib/phpls
