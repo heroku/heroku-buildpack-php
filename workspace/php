@@ -18,23 +18,24 @@ dep_version=${VERSION:-5.5.10}
 dep_dirname=php-$dep_version
 dep_archive_name=$dep_dirname.tar.bz2
 
+
+echo "=== Building PHP"
+
 # Download PHP source.
+echo "Fetching PHP v$dep_version source..."
 curl -Lo $dep_archive_name http://us1.php.net/get/$dep_archive_name/from/www.php.net/mirror
 
-# Fetch mcrypt
-if [ -z MCRYPT_URL ]
-then
-    MCRYPT_URL="https://heroku-buildpack-php.s3.amazonaws.com/mcrypt-2.5.8-2.tar.gz"
-fi
-#curl --silent --max-time 60 --location "$MCRYPT_URL" | tar xz
+# TODO: Fetch mcrypt
 
 # Clean and extract PHP.
 rm -rf $dep_dirname
 tar jxf $dep_archive_name
 
-# cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
 
 # Compile PHP
+echo "Fetching PHP v$dep_version from source..."
+
+# cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
 pushd $dep_dirname
 ./configure \
     --prefix=$OUT_PREFIX \
@@ -55,10 +56,15 @@ make -s
 make install -s
 popd
 
-# PHP Memcache Extension
+echo "=== Building Built-In PHP Extensions"
+
+
+echo "Fetching PHP Memcache Extension..."
 curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0RC1.tar.gz | tar xz
 pushd php-memcached-2.2.0RC1
 phpize
+
+echo "Building PHP Memcache Extension..."
 ./configure \
     --enable-memcached \
     --with-libmemcached-dir=$OUT_PREFIX
@@ -73,9 +79,10 @@ popd
 # $PATH manipulation Necessary for 'pecl install', which relies on
 # PHP binaries relative to $PATH.
 
+echo "Updating PECL Channel: pecl.php.net..."
 $OUT_PREFIX/bin/pecl channel-update pecl.php.net
 
-# bundle composer
+echo "Bundling Latest Composer..."
 curl -sS https://getcomposer.org/installer | php -- --install-dir=$OUT_PREFIX/bin
 mv $OUT_PREFIX/bin/composer.phar $OUT_PREFIX/bin/composer
 
@@ -84,6 +91,4 @@ mv $OUT_PREFIX/bin/composer.phar $OUT_PREFIX/bin/composer
 
 # echo $dep_version > $OUT_PREFIX/.heroku/dep_version
 
-mv $OUT_PREFIX/* $2/
-
-echo "Done building $dep_dirname"
+echo "Done building PHP v$dep_version!"
