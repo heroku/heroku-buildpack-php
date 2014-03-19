@@ -15,10 +15,11 @@ echo "Building libmemcached..."
 #https://launchpad.net/libmemcached/1.0/1.0.16/+download/libmemcached-1.0.16.tar.gz
 #
 
+# SASL Support.
 curl -LO ftp://ftp.cyrusimap.org/cyrus-sasl/cyrus-sasl-2.1.26.tar.gz
 tar xzf cyrus-sasl-2.1.26.tar.gz
 pushd cyrus-sasl-2.1.26
-./configure --prefix=$PREFIX
+./configure --prefix=$OUT_PREFIX
 make
 make install
 popd
