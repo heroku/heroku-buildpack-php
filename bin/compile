@@ -64,6 +64,7 @@ PHP_EXT_DIR=`php-config --extension-dir`
 
 # update config files
 cp $BP_DIR/conf/php.ini $BUILD_DIR/.heroku/php/etc
+cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc
 mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
 # enable opcache
 cp "$BP_DIR/conf/php/conf.d/ext-opcache.ini" $BUILD_DIR/.heroku/php/etc/php/conf.d
@@ -110,7 +111,7 @@ status "Building runtime environment..."
 mkdir -p $BUILD_DIR/.profile.d
 # look for composer.json, not composer.lock - maybe someone has a post-install-cmd, but no requires
 cat > $BUILD_DIR/.profile.d/php.sh <<EOF
-export PATH="\$HOME/.heroku/php/bin:\$PATH"
+export PATH="\$HOME/.heroku/php/bin:\$HOME/.heroku/php/sbin:\$PATH"
 if [ -f composer.json ]; then
     $COMPOSER_CMD run-script post-install-cmd --no-dev --no-interaction --quiet
 fi
