@@ -23,6 +23,12 @@ source $BP_DIR/bin/common.sh
 cd $BUILD_DIR
 mkdir -p .heroku/php
 
+APACHE_VERSION="2.4.9"
+APACHE_DIST_URL="$S3_URL/httpd-$APACHE_VERSION.tgz"
+status "Installing Apache $APACHE_VERSION..."
+curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+echo $APACHE_VERSION > $BUILD_DIR/.heroku/apache_version
+
 export COMPOSER_CMD='composer'
 export COMPOSER_CACHE_DIR=$CACHE_DIR/php/composer
 mkdir -p $COMPOSER_CACHE_DIR
