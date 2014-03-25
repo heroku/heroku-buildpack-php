@@ -49,7 +49,7 @@ pushd $dep_dirname
     --enable-sockets \
     --enable-zip \
     --with-zlib \
-    --with-zlib-dir=$PREFIX \
+    --with-zlib-dir=$OUT_PREFIX \
     --enable-bcmath=shared \
     --enable-mbstring=shared \
     --with-mysql=shared \
