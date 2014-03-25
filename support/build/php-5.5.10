@@ -41,17 +41,27 @@ pushd $dep_dirname
     --prefix=$OUT_PREFIX \
     --with-config-file-path=/app/.heroku/php/etc \
     --with-config-file-scan-dir=/app/.heroku/php/etc/php/conf.d \
-    --with-openssl \
     --enable-fpm \
-    --enable-soap=shared \
+    --with-bz2 \
+    --with-curl \
+    --with-openssl \
+    --with-readline \
     --enable-sockets \
     --enable-zip \
-    --with-zlib=$OUT_PREFIX \
-    --with-pgsql \
-    --with-pdo-pgsql \
-    --with-mysql \
-    --with-mysqli \
-    --with-pdo-mysql
+    --with-zlib \
+    --with-zlib-dir=$PREFIX \
+    --enable-bcmath=shared \
+    --enable-mbstring=shared \
+    --with-mysql=shared \
+    --with-pdo-mysql=shared \
+    --with-mysqli=shared \
+    --enable-pcntl=shared \
+    --with-pgsql=shared \
+    --with-pdo-pgsql=shared \
+    --enable-shmop=shared \
+    --enable-soap=shared \
+    --with-xmlrpc=shared \
+    --with-xsl=shared
 make -s
 make install -s
 popd

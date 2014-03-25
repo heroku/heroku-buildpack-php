@@ -15,6 +15,8 @@ CACHE_DIR=$2
 # ENV_DIR=$3
 BP_DIR=`cd $(dirname $0); cd ..; pwd`
 
+S3_URL="https://lang-php.s3.amazonaws.com/dist-alpha"
+
 # convenience functions
 source $BP_DIR/bin/common.sh
 
@@ -50,23 +52,34 @@ fi
 PHP_VERSIONS_ARR=($PHP_VERSIONS)
 PHP_VERSION=${PHP_VERSION:-${PHP_VERSIONS_ARR[0]}}
 
-PHP_DIST_URL="https://lang-php.s3.amazonaws.com/dist-alpha/php-$PHP_VERSION.tgz"
+PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tgz"
 status "Installing PHP $PHP_VERSION..."
 curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 echo $PHP_VERSION > $BUILD_DIR/.heroku/php_version
 
+# we need to run PHP in here, set it up!
+ln -s $BUILD_DIR/.heroku $HOME/.heroku
+export PATH=$HOME/.heroku/php/bin:$PATH
+PHP_EXT_DIR=`php-config --extension-dir`
+
 # update config files
 cp $BP_DIR/conf/php.ini $BUILD_DIR/.heroku/php/etc
 mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
+# enable opcache
+cp "$BP_DIR/conf/php/conf.d/ext-opcache.ini" $BUILD_DIR/.heroku/php/etc/php/conf.d
 
 # handle extensions
 if [ -f composer.json ]; then
-    exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
-    if [ ! -z $exts ]; then
+    exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
+    if [ ! -z "$exts" ]; then
         status "Activating PHP extensions listed in composer.json:"
         while read -r ext; do
-            if [ -f $BP_DIR/conf/php/conf.d/$ext.ini ]; then
-                cp $BP_DIR/conf/php/conf.d/$ext.ini $BUILD_DIR/.heroku/php/etc/php/conf.d
+            ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
+            if [ -f $ext_ini ]; then
+                cp $ext_ini $BUILD_DIR/.heroku/php/etc/php/conf.d
+                echo "- $ext (using dedicated ext-$ext.ini)" | indent
+            elif [ -f "$PHP_EXT_DIR/$ext.so" ]; then
+                echo "extension = $ext.so" > $BUILD_DIR/.heroku/php/etc/php/conf.d/ext-$ext.ini
                 echo "- $ext" | indent
             else
                 warning "Unknown extension $ext in composer.json, install may fail!"
@@ -76,10 +89,6 @@ if [ -f composer.json ]; then
 fi
 
 if [ -f composer.lock ]; then
-    # we need to run PHP in here, set it up!
-    ln -s $BUILD_DIR/.heroku $HOME/.heroku
-    export PATH=$HOME/.heroku/php/bin:$PATH
-    
     status "Installing dependencies..."
     
     # check if we should use a composer.phar version bundled with the project
@@ -93,7 +102,7 @@ if [ -f composer.lock ]; then
 
     # install dependencies
     $COMPOSER_CMD --version | indent
-    $COMPOSER_CMD install --no-interaction | indent
+    $COMPOSER_CMD install --no-dev --prefer-dist --no-interaction | indent
 fi
 
 # Update the PATH
@@ -103,6 +112,6 @@ mkdir -p $BUILD_DIR/.profile.d
 cat > $BUILD_DIR/.profile.d/php.sh <<EOF
 export PATH="\$HOME/.heroku/php/bin:\$PATH"
 if [ -f composer.json ]; then
-    $COMPOSER_CMD run-script post-install-cmd --no-interaction --quiet
+    $COMPOSER_CMD run-script post-install-cmd --no-dev --no-interaction --quiet
 fi
 EOF
