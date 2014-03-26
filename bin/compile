@@ -11,14 +11,17 @@ shopt -s dotglob
 
 BUILD_DIR=$1
 CACHE_DIR=$2
-# TODO: support UEC
-# ENV_DIR=$3
+ENV_DIR=${3:-}
 BP_DIR=`cd $(dirname $0); cd ..; pwd`
 
 S3_URL="https://lang-php.s3.amazonaws.com/dist-alpha"
 
 # convenience functions
 source $BP_DIR/bin/common.sh
+
+if [ -z $ENV_DIR ]; then
+    export_env_dir "ENV_DIR" "" '^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH)$'
+fi
 
 cd $BUILD_DIR
 mkdir -p .heroku/php
