@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: php-5.5.10
+# Build Deps: php-5.5.11RC1
 
 OUT_PREFIX=$1
 
