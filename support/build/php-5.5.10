@@ -1,0 +1,110 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+# Build Deps: libraries/zlib, libraries/libmemcached
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+mkdir -p bin
+export PATH=$PWD/bin:$PATH
+
+
+# Take care of vendoring
+dep_version=${VERSION:-5.5.10}
+dep_dirname=php-$dep_version
+dep_archive_name=$dep_dirname.tar.bz2
+
+
+echo "=== Building PHP"
+
+# Download PHP source.
+echo "Fetching PHP v$dep_version source..."
+curl -Lo $dep_archive_name http://us1.php.net/get/$dep_archive_name/from/www.php.net/mirror
+
+# TODO: Fetch mcrypt
+
+# Clean and extract PHP.
+rm -rf $dep_dirname
+tar jxf $dep_archive_name
+
+
+# Compile PHP
+echo "Compiling PHP v$dep_version..."
+
+# cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
+pushd $dep_dirname
+./configure \
+    --prefix=$OUT_PREFIX \
+    --with-config-file-path=/app/.heroku/php/etc \
+    --with-config-file-scan-dir=/app/.heroku/php/etc/php/conf.d \
+    --enable-fpm \
+    --with-bz2 \
+    --with-curl \
+    --with-openssl \
+    --with-readline \
+    --enable-sockets \
+    --enable-zip \
+    --with-zlib \
+    --with-zlib-dir=$OUT_PREFIX \
+    --enable-bcmath=shared \
+    --enable-mbstring=shared \
+    --with-mysql=shared \
+    --with-pdo-mysql=shared \
+    --with-mysqli=shared \
+    --enable-pcntl=shared \
+    --with-pgsql=shared \
+    --with-pdo-pgsql=shared \
+    --enable-shmop=shared \
+    --enable-soap=shared \
+    --with-xmlrpc=shared \
+    --with-xsl=shared
+make -s
+make install -s
+popd
+
+echo "=== Building Built-In PHP Extensions"
+
+
+echo "Fetching PHP Memcache Extension..."
+curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0RC1.tar.gz | tar xz
+pushd php-memcached-2.2.0RC1
+phpize
+
+echo "Building PHP Memcache Extension..."
+./configure \
+    --enable-memcached \
+    --with-libmemcached-dir=$OUT_PREFIX
+make -s
+make install -s
+popd
+
+echo "Cleanup Up..."
+rm -fr php-memcached-2.2.0RC1
+rm -fr $dep_dirname $dep_archive_name
+
+# Copy in MySQL client library.
+# mkdir -p $PREFIX/lib/phpls
+# cp /usr/lib/libmysqlclient.so.16 $PREFIX/lib/php
+
+# $PATH manipulation Necessary for 'pecl install', which relies on
+# PHP binaries relative to $PATH.
+
+echo "=== Preparing Packaging Tools"
+
+echo "Updating PECL Channel: pecl.php.net..."
+$OUT_PREFIX/bin/pecl channel-update pecl.php.net
+
+echo "Bundling Latest Composer..."
+curl -sS https://getcomposer.org/installer | php -- --install-dir=$OUT_PREFIX/bin
+mv $OUT_PREFIX/bin/composer.phar $OUT_PREFIX/bin/composer
+
+# Use defaults for apc build prompts.
+# yes '' | $OUT_PREFIX/bin/pecl install apc
+
+# echo $dep_version > $OUT_PREFIX/.heroku/dep_version
+
+echo "Done building PHP v$dep_version!"
