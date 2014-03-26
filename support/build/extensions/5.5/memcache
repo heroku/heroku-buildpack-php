@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+# Build Deps: php-5.5.10
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+# Make the PHP binaries available.
+export PATH=$PWD/bin:$PATH
+
+
+# Take care of vendoring
+dep_version=${VERSION:-5.5.10}
+dep_dirname=php-$dep_version
+dep_archive_name=$dep_dirname.tar.bz2
+
+echo "=== Bulding PHP Memcache Extension for PHP 5.5"
+
+
+echo "Fetching PHP Memcache Extension..."
+curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0RC1.tar.gz | tar xz
+pushd php-memcached-2.2.0RC1
+phpize
+
+echo "Building PHP Memcache Extension..."
+./configure \
+    --enable-memcached \
+    --with-libmemcached-dir=$OUT_PREFIX
+make -s
+
+# Distill the existing PHP installation.
+rm -fr bin etc include lib php sbin share var
+
+make install -s
+popd
+
+echo "Cleanup Up..."
+rm -fr php-memcached-2.2.0RC1
+rm -fr $dep_dirname $dep_archive_name
+
+
+echo "Building PHP Memcache Extension for PHP 5.5!"
