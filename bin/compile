@@ -20,7 +20,7 @@ S3_URL="https://lang-php.s3.amazonaws.com/dist-develop"
 source $BP_DIR/bin/common.sh
 
 if [ -z $ENV_DIR ]; then
-    export_env_dir "ENV_DIR" "" '^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH)$'
+    export_env_dir "$ENV_DIR" "" '^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH)$'
 fi
 
 cd $BUILD_DIR
@@ -121,6 +121,7 @@ fi
 # we use our version of composer for this to make sure it works
 # TODO: make sure the project composer.json doesn't require this package
 # TODO: install same tree-ish as this buildpack instance (read it from BUILDPACK_URL)
+BUILDPACK_URL=${BUILDPACK_URL:-}
 this_git_tree_ish=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' || true)
 this_git_tree_ish=${this_git_tree_ish:-develop}
 # FIXME: should be dev-master#$this_git_tree_ish unless the tree-ish is a branch name
