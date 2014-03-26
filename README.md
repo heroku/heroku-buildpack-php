@@ -10,21 +10,41 @@ Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for us
 
 ### Compiling Binaries
 
-The folder `support/build` contains [Hammer](https://github.com/hone/hammer) build scripts for all dependencies.
+The folder `support/build` contains [Bob](http://github.com/kennethreitz/bob-builder) build scripts for all binaries and dependencies.
 
-To get started with Hammer:
+To get started with it, create an app on Heroku inside a clone of this repository, and set your S3 config vars:
 
-    $ gem install --prerelease hammer
+```term
+$ heroku create --buildpack https://github.com/heroku/heroku-buildpack-python#not-heroku
+$ heroku ps:scale web=0
+$ heroku config:set WORKSPACE_DIR=/app/support/build
+$ heroku config:set AWS_ACCESS_KEY_ID=<your_aws_key>
+$ heroku config:set AWS_SECRET_ACCESS_KEY=<your_aws_secret>
+$ heroku config:set S3_BUCKET=<your_s3_bucket_name>
+$ heroku config:set S3_PREFIX=<optional_s3_subfolder_to_upload_to>
+```
 
-Then, in each folder inside `support/build`, run:
+Then, shell into an instance and run a build by giving the name of the formula inside `support/build`:
 
-    $ hammer build
+```term
+$ heroku run bash
+Running `bash` attached to terminal... up, run.6880
+~ $ bob build php-5.5.11RC1
 
-to easily build the respective component using Anvil on Heroku infrastructure.
+Fetching dependencies... found 2:
+  - libraries/zlib
+  - libraries/libmemcached
+Building formula php-5.5.11RC1:
+    === Building PHP
+    Fetching PHP v5.5.11RC1 source...
+    Compiling PHP v5.5.11RC1...
+```
 
-Resulting packages will be placed inside the `builds/` subfolder of each component and can be uploaded to a public location (e.g. S3 or Dropbox).
+If this works, run `bob deploy` instead of `bob build` to have the result uploaded to S3 for you.
 
-The URI of this upload is referenced inside `bin/compile`.
+To speed things up drastically, it'll usually be a good idea to `heroku run bash --size PX` instead.
+
+If the dependencies are not yet deployed, you can do so by e.g. running `bob deploy libraries/zlib`.
 
 ### Hacking
 
