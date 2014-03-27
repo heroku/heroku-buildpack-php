@@ -83,7 +83,7 @@ cd /app/ibm_db2-1.9.5/
 #./configure --with-IBM_DB2=/app/clidriver
 #make
 #make install
-#cd $BUILD_DIR
+cd $BUILD_DIR
 
 echo "extenstion=ibm_db2.so" >> /app/php/php.ini
 
