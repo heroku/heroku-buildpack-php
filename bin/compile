@@ -59,20 +59,32 @@ mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
 CLI_URL = "https://www.ng.bluemix.net/docs/Services/BluStratus/samples/clidriver.tgz"
-DB2_DIR = "$BUILD_DIR"
 
 echo "Downloading IBM Data Server Driver...."
-curl "$CLI_URL" -s -o ${DB2_DIR}/clidriver.tgz
+curl -LO "$CLI_URL"
 
-tar xzf ${DB2_DIR}/clidriver.tgz -C ${DB2_DIR}
+# Clean and extract DS Driver
+rm -rf clidriver
+tar -xzf clidriver.tgz
 
-#Delete the archive
-rm -rf ${DB2_DIR}/clidriver.tgz
-mv $DB2_DIR/clidriver /app/clidriver
+IBM_DB2_URL = "http://pecl.php.net/get/ibm_db2-1.9.5.tgz"
 
-export IBM_DB_HOME="/app/clidriver"
-export PATH=/app/php/bin:${PATH}
-/app/php/bin/pecl install ibm_db2
+echo "Downloading IBM_DB2 source..."
+curl -LO "$IBM_DB2_URL"
+
+# Clean and extract IBM_DB2
+rm -rf ibm_db2-1.9.5
+tar -xzf ibm_db2-1.9.5.tgz
+
+export PATH=/app/php/bin:$PATH
+#Build and install IBM_DB2
+pushd "ibm_db2-1.9.5"
+/app/php/bin/phpize
+./configure --with-IBM_DB2=/app/clidriver
+make -s
+make install -s
+popd
+echo "extenstion=ibm_db2.so" >> /app/php/php.ini
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
