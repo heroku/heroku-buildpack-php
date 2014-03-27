@@ -72,30 +72,6 @@ fi
 rm -rf $php_dirname
 tar jxf $php_archive_name
 
-# download/clean/extract IBM_DB2/DS Driver
-ds_driver_dirname=clidriver
-ds_driver_archive_name=clidriver.tgz
-ibm_db2_version=1.9.5
-ibm_db2_dirname=ibm_db2-$ibm_db2_version
-ibm_db2_archive_name=$ibm_db2_dirname.tgz
-
-if [ ! -f $ds_driver_archive_name ]
-then
-    echo "Downloading DS Driver ...."
-    curl -Lo $ds_driver_archive_name "https://www.ng.bluemix.net/docs/Services/BluStratus/samples/clidriver.tgz" 
-fi
-
-if [ ! -f $ibm_db2_archive_name ]
-then
-    echo "Downloading IBM_DB2 module ...."
-    curl -Lo $ibm_db2_archive_name "http://pecl.php.net/get/ibm_db2-1.9.5.tgz" 
-fi
-
-rm -rf $ds_driver_dirname
-rm -rf $ibm_db2_dirname
-tar xzf $ds_driver_archive_name
-tar xzf $ibm_db2_archive_name
-mv $ibm_db2_dirname $php_dirname/ext/$ibm_db2_dirname
 
 # Compile PHP
 pushd $php_dirname
@@ -103,7 +79,7 @@ pushd $php_dirname
 --with-mysql --with-pdo-mysql --with-pgsql --with-pdo-pgsql         \
 --with-iconv --with-gd --with-curl=/usr/lib                         \
 --with-config-file-path=/app/php --enable-soap=shared               \
---with-openssl --with-mcrypt=/app/vendor/mcrypt --with-IBM_DB2=/app/clidriver --enable-sockets
+--with-openssl --with-mcrypt=/app/vendor/mcrypt --enable-sockets
 make -s
 make install -s
 popd
