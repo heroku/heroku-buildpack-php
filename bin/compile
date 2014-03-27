@@ -76,14 +76,14 @@ curl -LO "$IBM_DB2_URL"
 rm -rf ibm_db2-1.9.5
 tar -xzf ibm_db2-1.9.5.tgz
 
-export PATH=/app/php/bin:$PATH
+#export PATH=/app/php/bin:$PATH
 #Build and install IBM_DB2
 cd /app/ibm_db2-1.9.5/
 #/app/php/bin/phpize
-./configure --with-IBM_DB2=/app/clidriver
-make -s
-make install -s
-cd $BUILD_DIR
+#./configure --with-IBM_DB2=/app/clidriver
+#make
+#make install
+#cd $BUILD_DIR
 
 echo "extenstion=ibm_db2.so" >> /app/php/php.ini
 
