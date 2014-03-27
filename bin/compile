@@ -85,7 +85,7 @@ tar -xzf ibm_db2-1.9.5.tgz
 #make install
 cd $BUILD_DIR
 
-echo "extenstion=ibm_db2.so" >> /app/php/php.ini
+#echo "extenstion=ibm_db2.so" >> /app/php/php.ini
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
