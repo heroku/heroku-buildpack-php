@@ -126,8 +126,10 @@ this_git_tree_ish=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' 
 this_git_tree_ish=${this_git_tree_ish:-develop}
 # FIXME: should be dev-master#$this_git_tree_ish unless the tree-ish is a branch name
 # require without updates, then update with --no-dev, as currently, require defaults to dev since the recent install-with-dev change
-composer require --no-update --no-interaction "heroku/heroku-buildpack-php dev-$this_git_tree_ish" | indent
-composer update --no-dev --prefer-dist --no-interaction "heroku/heroku-buildpack-php" | indent
+# must to --prefer-source to work around Packagist caching issues
+# the Git repository will be cached, so it's no big deal
+composer require --prefer-source --no-update --no-interaction "heroku/heroku-buildpack-php dev-$this_git_tree_ish" | indent
+composer update --prefer-source --no-dev --prefer-dist --no-interaction "heroku/heroku-buildpack-php" | indent
 
 # Update the PATH
 status "Building runtime environment..."
