@@ -58,7 +58,7 @@ cp $LP_DIR/conf/php.ini php
 mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
-CLI_URL = "https://www.ng.bluemix.net/docs/Services/BluStratus/samples/clidriver.tgz"
+CLI_URL="https://www.ng.bluemix.net/docs/Services/BluStratus/samples/clidriver.tgz"
 
 echo "Downloading IBM Data Server Driver...."
 curl -LO "$CLI_URL"
@@ -67,7 +67,7 @@ curl -LO "$CLI_URL"
 rm -rf clidriver
 tar -xzf clidriver.tgz
 
-IBM_DB2_URL = "http://pecl.php.net/get/ibm_db2-1.9.5.tgz"
+IBM_DB2_URL="http://pecl.php.net/get/ibm_db2-1.9.5.tgz"
 
 echo "Downloading IBM_DB2 source..."
 curl -LO "$IBM_DB2_URL"
