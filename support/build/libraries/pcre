@@ -1,0 +1,30 @@
+#!/bin/bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
+
+echo "Building PCRE..."
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+dep_version=${VERSION:-8.34}
+dep_dirname=pcre-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
+
+curl -Lo $dep_archive_name http://sourceforge.net/projects/pcre/files/pcre/${dep_version}/${dep_archive_name}
+
+tar xzf $dep_archive_name
+
+pushd $dep_dirname
+./configure --prefix=$OUT_PREFIX
+make
+make install
+popd
+
+echo "Cleaning up..."
+rm -rf $dep_dirname $dep_archive_name
+
+echo "Done building PCRE!"
