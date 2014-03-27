@@ -74,9 +74,6 @@ export IBM_DB_HOME="/app/clidriver"
 export PATH=/app/php/bin:$PATH
 /app/php/bin/pecl install ibm_db2
 
-echo "Setting LD_LIBRARY_PATH to IBM DataServer Driver lib in profile..."
-set-env LD_LIBRARY_PATH /app/.heroku/clidriver/lib:$LD_LIBRARY_PATH
-
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
@@ -86,7 +83,7 @@ touch /app/apache/logs/error_log
 touch /app/apache/logs/access_log
 tail -F /app/apache/logs/error_log &
 tail -F /app/apache/logs/access_log &
-export LD_LIBRARY_PATH=/app/php/lib/php
+export LD_LIBRARY_PATH=/app/php/lib/php:/app/clidriver/lib
 export PHP_INI_SCAN_DIR=/app/www
 echo "Launching apache"
 exec /app/apache/bin/httpd -DNO_DETACH
