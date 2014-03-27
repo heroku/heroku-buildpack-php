@@ -58,6 +58,26 @@ cp $LP_DIR/conf/php.ini php
 mkdir -p bin
 ln -s /app/php/bin/php bin/php
 
+CLI_URL = "https://www.ng.bluemix.net/docs/Services/BluStratus/samples/clidriver.tgz"
+DB2_DIR = "$BUILD_DIR"
+
+echo "Downloading IBM Data Server Driver...."
+curl "$CLI_URL" -s -o ${DB2_DIR}/clidriver.tgz
+
+tar xzf ${DB2_DIR}/clidriver.tgz -C ${DB2_DIR}
+
+#Delete the archive
+rm -rf ${DB2_DIR}/clidriver.tgz
+mv $DB2_DIR/clidriver /app/clidriver
+
+export IBM_DB_HOME="/app/clidriver"
+export PATH=/app/php/bin:$PATH
+/app/php/bin/pecl install ibm_db2
+
+echo "Setting LD_LIBRARY_PATH to IBM DataServer Driver lib in profile..."
+set-env LD_LIBRARY_PATH /app/.heroku/clidriver/lib:$LD_LIBRARY_PATH
+
+
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
   echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
