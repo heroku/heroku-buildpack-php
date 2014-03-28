@@ -89,7 +89,7 @@ echo `ls /app/php/bin`
 echo "echoing /app/vendor/mcrypt ..."
 echo `ls /app/vendor/mcrypt`
 
-/app/php/bin/phpize
+pecl install ibm_db2
 #configure
 #make
 #make install
