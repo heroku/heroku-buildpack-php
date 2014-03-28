@@ -74,25 +74,23 @@ rm -rf ibm_db2-1.9.5
 tar -xzf ibm_db2-1.9.5.tgz
 rm -rf ibm_db2-1.9.5.tgz
 
-export PATH=$BUILD_DIR/php/bin:$PATH
+ln -s $BUILD_DIR/php /app/php
+
+export PATH=/app/php/bin:$PATH
 export IBM_DB_HOME=$BUILD_DIR/clidriver
+export LD_LIBRARY_PATH=$BUILD_DIR/vendor/mcrypt:$LD_LIBRARY_PATH
 
 #Build and install IBM_DB2
-#cd ibm_db2-1.9.5
+cd ibm_db2-1.9.5
 
-echo "now echoing /app "
-echo `ls /app/`
-echo "done echoing /app "
-#echo `ls /`
-ln -s $BUILD_DIR/php /app/php
 echo "now echoing /app/php "
 echo `ls /app/php`
 
-#phpize
+phpize
 #configure
 #make
 #make install
-#cd $BUILD_DIR
+cd $BUILD_DIR
 
 #echo "extenstion=ibm_db2.so" >> $BUILD_DIR/php/php.ini
 
