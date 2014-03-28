@@ -87,7 +87,7 @@ cd ibm_db2-1.9.5
 echo "now echoing /app/php/bin "
 echo `ls /app/php/bin`
 echo "echoing /app/vendor/mcrypt ..."
-echo `ls /app/vendor/mcrypt`
+#echo `ls /app/vendor/mcrypt`
 
 #phpize
 #configure
