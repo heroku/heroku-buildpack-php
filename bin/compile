@@ -86,7 +86,7 @@ cd ibm_db2-1.9.5
 echo "now echoing /app/php "
 echo `ls /app/php`
 
-phpize
+#phpize
 #configure
 #make
 #make install
