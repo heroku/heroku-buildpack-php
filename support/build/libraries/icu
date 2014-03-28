@@ -1,0 +1,30 @@
+#!/bin/bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+echo "Building ICU..."
+
+echo "=== Downloading ICU source..."
+curl -LO http://download.icu-project.org/files/icu4c/52.1/icu4c-52_1-src.tgz
+tar xzf icu4c-52_1-src.tgz
+pushd icu4c-52_1-src/source
+
+
+echo "=== Compiling ICU..."
+./runConfigureICU Linux --prefix=$OUT_PREFIX
+make
+make install
+popd
+
+
+echo "=== Cleaning up..."
+rm -fr icu4c-52_1-src icu4c-52_1-src.tgz
+
+
+echo "Done building ICU."
