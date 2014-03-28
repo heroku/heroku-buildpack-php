@@ -79,7 +79,7 @@ ln -s $BUILD_DIR/vendor /app/vendor
 
 export PATH=/app/php/bin:$PATH
 export IBM_DB_HOME=$BUILD_DIR/clidriver
-export LD_LIBRARY_PATH=/app/vendor/mcrypt:$LD_LIBRARY_PATH
+#export LD_LIBRARY_PATH=/app/vendor/mcrypt:$LD_LIBRARY_PATH
 
 #Build and install IBM_DB2
 cd ibm_db2-1.9.5
@@ -87,7 +87,7 @@ cd ibm_db2-1.9.5
 echo "now echoing /app/php/bin "
 echo `ls /app/php/bin`
 echo "echoing /app/vendor/mcrypt ..."
-echo `ls /app/vendor/mcrypt`
+#echo `ls /app/vendor/mcrypt`
 
 #phpize
 #configure
