@@ -78,7 +78,7 @@ tar -xzf ibm_db2-1.9.5.tgz
 
 #export PATH=/app/php/bin:$PATH
 #Build and install IBM_DB2
-cd /app/ibm_db2-1.9.5
+cd ibm_db2-1.9.5
 #/app/php/bin/phpize
 #./configure --with-IBM_DB2=/app/clidriver
 #make
