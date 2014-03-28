@@ -3,18 +3,18 @@
 
 OUT_PREFIX=$1
 
-echo "Building zlib..."
+echo "Building PCRE..."
 
 # fail hard
 set -o pipefail
 # fail harder
 set -eux
 
-dep_version=${VERSION:-1.2.8}
-dep_dirname=zlib-${dep_version}
+dep_version=${VERSION:-8.34}
+dep_dirname=pcre-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 
-curl -Lo $dep_archive_name http://zlib.net/${dep_archive_name}
+curl -Lo $dep_archive_name http://sourceforge.net/projects/pcre/files/pcre/${dep_version}/${dep_archive_name}
 
 tar xzf $dep_archive_name
 
@@ -27,4 +27,4 @@ popd
 echo "Cleaning up..."
 rm -rf $dep_dirname $dep_archive_name
 
-echo "Done building zlib!"
+echo "Done building PCRE!"

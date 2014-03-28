@@ -11,23 +11,32 @@ shopt -s dotglob
 
 BUILD_DIR=$1
 CACHE_DIR=$2
-# TODO: support UEC
-# ENV_DIR=$3
+ENV_DIR=${3:-}
 BP_DIR=`cd $(dirname $0); cd ..; pwd`
 
-S3_URL="https://lang-php.s3.amazonaws.com/dist-alpha"
+S3_URL="https://lang-php.s3.amazonaws.com/dist-develop"
 
 # convenience functions
 source $BP_DIR/bin/common.sh
 
+if [ -z $ENV_DIR ]; then
+    export_env_dir "$ENV_DIR" "" '^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH)$'
+fi
+
 cd $BUILD_DIR
 mkdir -p .heroku/php
+
+APACHE_VERSION="2.4.9"
+APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
+status "Installing Apache $APACHE_VERSION..."
+curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+echo $APACHE_VERSION > $BUILD_DIR/.heroku/apache_version
 
 export COMPOSER_CMD='composer'
 export COMPOSER_CACHE_DIR=$CACHE_DIR/php/composer
 mkdir -p $COMPOSER_CACHE_DIR
 
-PHP_VERSIONS="5.5.10"
+PHP_VERSIONS="5.5.11RC1"
 if [ -f composer.json ]; then
     if [ ! -f composer.lock ]; then
         has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null || true) # might fail, set -e would stop execution
@@ -37,7 +46,7 @@ if [ -f composer.json ]; then
     fi
     
     # FIXME: this would be, of course, very basic and doesn't support expressions; migrate to semver.org
-    phpver="" #$(cat composer.json | python -c 'import sys, json; print json.load(sys.stdin)["require"]["php"]' 2> /dev/null)
+    phpver=$(cat composer.json | python -c 'import sys, json; print json.load(sys.stdin)["require"]["php"]' 2> /dev/null || true)
     if [ ! -z $phpver ]; then
         if [[ $PHP_VERSIONS =~ $phpver ]]; then
             status "Detected request for PHP $phpver in composer.json."
@@ -52,7 +61,7 @@ fi
 PHP_VERSIONS_ARR=($PHP_VERSIONS)
 PHP_VERSION=${PHP_VERSION:-${PHP_VERSIONS_ARR[0]}}
 
-PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tgz"
+PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tar.gz"
 status "Installing PHP $PHP_VERSION..."
 curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 echo $PHP_VERSION > $BUILD_DIR/.heroku/php_version
@@ -64,9 +73,12 @@ PHP_EXT_DIR=`php-config --extension-dir`
 
 # update config files
 cp $BP_DIR/conf/php.ini $BUILD_DIR/.heroku/php/etc
+cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc
 mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
 # enable opcache
 cp "$BP_DIR/conf/php/conf.d/ext-opcache.ini" $BUILD_DIR/.heroku/php/etc/php/conf.d
+# Apache; copy in our config
+cp $BP_DIR/conf/apache2/httpd.conf.default $BUILD_DIR/.heroku/php/etc/apache2/httpd.conf
 
 # handle extensions
 if [ -f composer.json ]; then
@@ -105,12 +117,26 @@ if [ -f composer.lock ]; then
     $COMPOSER_CMD install --no-dev --prefer-dist --no-interaction | indent
 fi
 
+# install this buildpack as a composer package
+# it will contain the apache/nginx/php configs and the boot script
+# this will only install this one package, and leave everything else intact
+# we use our version of composer for this to make sure it works
+# TODO: make sure the project composer.json doesn't require this package
+# TODO: install same tree-ish as this buildpack instance (read it from BUILDPACK_URL)
+BUILDPACK_URL=${BUILDPACK_URL:-}
+this_git_tree_ish=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' || true)
+this_git_tree_ish=${this_git_tree_ish:-develop}
+# FIXME: should be dev-master#$this_git_tree_ish unless the tree-ish is a branch name
+# require without updates, then update with --no-dev, as currently, require defaults to dev since the recent install-with-dev change
+composer require --no-update --no-interaction "heroku/heroku-buildpack-php dev-$this_git_tree_ish" | indent
+composer update --no-dev --prefer-dist --no-interaction "heroku/heroku-buildpack-php" | indent
+
 # Update the PATH
 status "Building runtime environment..."
 mkdir -p $BUILD_DIR/.profile.d
 # look for composer.json, not composer.lock - maybe someone has a post-install-cmd, but no requires
 cat > $BUILD_DIR/.profile.d/php.sh <<EOF
-export PATH="\$HOME/.heroku/php/bin:\$PATH"
+export PATH="\$HOME/.heroku/php/bin:\$HOME/.heroku/php/sbin:\$PATH"
 if [ -f composer.json ]; then
     $COMPOSER_CMD run-script post-install-cmd --no-dev --no-interaction --quiet
 fi
