@@ -83,7 +83,7 @@ echo $PATH
 echo $IBM_DB_HOME
 echo $BUILD_DIR
 echo `ls $BUILD_DIR/php/bin`
-$BUILD_DIR/php/bin/phpize
+`phpize`
 #configure
 #make
 #make install
