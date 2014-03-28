@@ -13,7 +13,7 @@ echo "Building ICU..."
 echo "=== Downloading ICU source..."
 curl -LO http://download.icu-project.org/files/icu4c/52.1/icu4c-52_1-src.tgz
 tar xzf icu4c-52_1-src.tgz
-pushd icu4c-52_1-src/source
+pushd icu/source
 
 
 echo "=== Compiling ICU..."
@@ -24,7 +24,7 @@ popd
 
 
 echo "=== Cleaning up..."
-rm -fr icu4c-52_1-src icu4c-52_1-src.tgz
+rm -fr icu icu4c-52_1-src.tgz
 
 
 echo "Done building ICU."
