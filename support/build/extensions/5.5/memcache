@@ -33,7 +33,7 @@ echo "Building PHP Memcache Extension..."
 make -s
 
 # Distill the existing PHP installation.
-rm -fr bin etc include lib php sbin share var
+rm -fr ../bin ../etc ../include ../lib ../php ../sbin ../share ../var
 
 make install -s
 popd
