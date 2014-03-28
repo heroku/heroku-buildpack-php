@@ -69,17 +69,28 @@ IBM_DB2_URL="http://pecl.php.net/get/ibm_db2-1.9.5.tgz"
 echo "Downloading IBM_DB2 source..."
 curl -LO "$IBM_DB2_URL"
 
+echo "Downloading autoconf
+curl -LO http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
+tar -xzf autoconf-2.69.tar.gz
+cd autoconf-2.69
+./configure --prefix=$BUILD_DIR/autoconf
+make
+make install
+cd $BUILD_DIR
 # Clean and extract IBM_DB2
 rm -rf ibm_db2-1.9.5
 tar -xzf ibm_db2-1.9.5.tgz
 rm -rf ibm_db2-1.9.5.tgz
 
+ln -s $BUILD_DIR/autoconf-2.10
 ln -s $BUILD_DIR/php /app/php
 ln -s $BUILD_DIR/vendor /app/vendor
 
-export PATH=/app/php/bin:$PATH
+export PATH=$BUILD_DIR/autoconf/bin:/app/php/bin:$PATH
 export IBM_DB_HOME=$BUILD_DIR/clidriver
 export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$LD_LIBRARY_PATH
+export PHP_AUTOCONF=$BUILD_DIR/autoconf/bin/autoconf
+export PHP_AUTOHEADER=$BUILD_DIR/autoconf/bin/autoheader
 
 #Build and install IBM_DB2
 cd ibm_db2-1.9.5
