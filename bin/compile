@@ -69,7 +69,7 @@ IBM_DB2_URL="http://pecl.php.net/get/ibm_db2-1.9.5.tgz"
 echo "Downloading IBM_DB2 source..."
 curl -LO "$IBM_DB2_URL"
 
-echo "Downloading autoconf
+echo "Downloading autoconf"
 curl -LO http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
 curl -LO http://ftp.gnu.org/pub/gnu/m4/m4-1.4.13.tar.gz
 tar -xzf autoconf-2.69.tar.gz
@@ -79,8 +79,8 @@ cd m4-1.4.13
 ./configure --prefix=$BUILD_DIR/m4
 make
 make install
-
 export PATH=$BUILD_DIR/m4/bin:$PATH
+
 cd $BUILD_DIR/autoconf-2.69
 ./configure --prefix=$BUILD_DIR/autoconf
 make
