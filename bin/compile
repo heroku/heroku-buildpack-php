@@ -80,8 +80,8 @@ export IBM_DB_HOME=$BUILD_DIR/clidriver
 #Build and install IBM_DB2
 cd ibm_db2-1.9.5
 
-echo `ls /app`
-echo `ls /`
+echo `ls /app/`
+#echo `ls /`
 #phpize
 #configure
 #make
