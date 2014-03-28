@@ -78,18 +78,18 @@ export PATH=$BUILD_DIR/php/bin:$PATH
 export IBM_DB_HOME=$BUILD_DIR/clidriver
 
 #Build and install IBM_DB2
-cd ibm_db2-1.9.5
+#cd ibm_db2-1.9.5
 
 echo `ls /app/`
 #echo `ls /`
 ln -s $BUILD_DIR/php /app/php
-ls -s $BUILD_DIR/vendor /app/vendor
+echo `ls /app/`
 
-phpize
+#phpize
 #configure
 #make
 #make install
-cd $BUILD_DIR
+#cd $BUILD_DIR
 
 #echo "extenstion=ibm_db2.so" >> $BUILD_DIR/php/php.ini
 
