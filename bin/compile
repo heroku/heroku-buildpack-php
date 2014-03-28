@@ -82,7 +82,8 @@ cd ibm_db2-1.9.5
 
 echo `ls /app/`
 #echo `ls /`
-ln -s $BUILD_DIR /app
+ln -s $BUILD_DIR/php /app/php
+ls -s $BUILD_DIR/vendor /app/vendor
 
 phpize
 #configure
