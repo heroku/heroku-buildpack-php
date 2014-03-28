@@ -1,0 +1,56 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+# Build Deps: libraries/zlib, libraries/pcre
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+mkdir -p bin
+export PATH=$PWD/bin:$PATH
+
+dep_version=${VERSION:-2.4.9}
+dep_dirname=httpd-$dep_version
+dep_archive_name=$dep_dirname.tar.gz
+depdeps_archive_name=$dep_dirname-deps.tar.gz
+
+echo "=== Building Apache"
+
+echo "Fetching Apache v$dep_version source..."
+curl -LO http://archive.apache.org/dist/httpd/$dep_archive_name
+echo "Fetching Apache v$dep_version dependencies (APR)..."
+curl -LO http://archive.apache.org/dist/httpd/$depdeps_archive_name
+
+rm -rf $dep_dirname
+# both of these untar to $dep_dirname
+tar xzf $dep_archive_name
+tar xzf $depdeps_archive_name
+
+
+echo "Compiling Apache v$dep_version..."
+
+pushd $dep_dirname
+./configure \
+    --enable-layout=GNU \
+    --prefix=$OUT_PREFIX \
+    --with-included-apr \
+    --with-pcre=$OUT_PREFIX \
+    --with-z=$OUT_PREFIX \
+    --with-ssl \
+    --with-mpm=event \
+    --enable-mods-shared=all \
+    --enable-proxy \
+    --enable-proxy-fcgi \
+    --enable-rewrite
+make -s
+make install -s
+popd
+
+
+echo "Cleanup Up..."
+rm -rf $dep_dirname $dep_archive_name $depdeps_archive_name
+
+echo "Done building Apache v$dep_version!"
