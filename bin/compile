@@ -82,7 +82,9 @@ cd ibm_db2-1.9.5
 
 echo `ls /app/`
 #echo `ls /`
-#phpize
+ln -s $BUILD_DIR /app
+
+phpize
 #configure
 #make
 #make install
