@@ -66,6 +66,7 @@ curl -LO "$CLI_URL"
 # Clean and extract DS Driver
 rm -rf clidriver
 tar -xzf clidriver.tgz
+rm -rf clidriver.tgz
 
 IBM_DB2_URL="http://pecl.php.net/get/ibm_db2-1.9.5.tgz"
 
@@ -75,6 +76,7 @@ curl -LO "$IBM_DB2_URL"
 # Clean and extract IBM_DB2
 rm -rf ibm_db2-1.9.5
 tar -xzf ibm_db2-1.9.5.tgz
+rm -rf ibm_db2-1.9.5.tgz
 
 export PATH=$BUILD_DIR/php/bin:$PATH
 export IBM_DB_HOME=$BUILD_DIR/clidriver
@@ -82,9 +84,9 @@ export IBM_DB_HOME=$BUILD_DIR/clidriver
 #Build and install IBM_DB2
 cd ibm_db2-1.9.5
 $BUILD_DIR/php/bin/phpize
-#./configure
-make
-make install
+#configure
+#make
+#make install
 cd $BUILD_DIR
 
 #echo "extenstion=ibm_db2.so" >> /app/php/php.ini
