@@ -54,10 +54,6 @@ curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
 
-# make php available on bin
-mkdir -p bin
-ln -s /app/php/bin/php bin/php
-
 CLI_URL="https://www.ng.bluemix.net/docs/Services/BluStratus/samples/clidriver.tgz"
 
 echo "Downloading IBM Data Server Driver...."
@@ -78,8 +74,8 @@ rm -rf ibm_db2-1.9.5
 tar -xzf ibm_db2-1.9.5.tgz
 rm -rf ibm_db2-1.9.5.tgz
 
-export PATH=/app/php/bin:$PATH
-export IBM_DB_HOME=/app/php/clidriver
+export PATH=$BUILD_DIR/php/bin:$PATH
+export IBM_DB_HOME=$BUILD_DIR/clidriver
 
 #Build and install IBM_DB2
 cd ibm_db2-1.9.5
@@ -93,7 +89,11 @@ echo `ls $BUILD_DIR/php/bin`
 #make install
 cd $BUILD_DIR
 
-#echo "extenstion=ibm_db2.so" >> /app/php/php.ini
+#echo "extenstion=ibm_db2.so" >> $BUILD_DIR/php/php.ini
+
+# make php available on bin
+mkdir -p bin
+ln -s /app/php/bin/php bin/php
 
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
