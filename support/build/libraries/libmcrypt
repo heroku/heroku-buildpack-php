@@ -1,0 +1,30 @@
+#!/bin/bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+echo "Building libmcrypt..."
+
+echo "=== Downloading libmcrypt source..."
+curl -L http://downloads.sourceforge.net/project/mcrypt/Libmcrypt/2.5.8/libmcrypt-2.5.8.tar.gz
+tar xzf libmcrypt-2.5.8.tar.gz
+pushd libmcrypt-2.5.8.tar.gz
+
+
+echo "=== Compiling libmcrypt..."
+./configure --disable-posix-threads --prefix=$OUT_PREFIX
+make
+make install
+popd
+
+
+echo "=== Cleaning up..."
+rm -fr ibmcrypt-2.5.8.tar.gz cibmcrypt-2.5.8
+
+
+echo "Done building libmcrypt."

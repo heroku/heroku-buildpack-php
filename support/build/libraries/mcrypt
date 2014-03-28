@@ -1,4 +1,0 @@
-#!/bin/bash
-# Build Path: /app/.heroku/php/
-
-OUT_PREFIX=$1
