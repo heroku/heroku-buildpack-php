@@ -83,7 +83,7 @@ export IBM_DB_HOME=$BUILD_DIR/clidriver
 echo `ls /app/`
 #echo `ls /`
 ln -s $BUILD_DIR/php /app/php
-echo `ls /app/`
+echo `ls /app/php`
 
 #phpize
 #configure
