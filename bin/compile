@@ -77,6 +77,8 @@ cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc
 mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
 # enable opcache
 cp "$BP_DIR/conf/php/conf.d/ext-opcache.ini" $BUILD_DIR/.heroku/php/etc/php/conf.d
+# Apache; copy in our config
+cp $BP_DIR/conf/apache2/httpd.conf.default $BUILD_DIR/.heroku/php/etc/apache2/httpd.conf
 
 # handle extensions
 if [ -f composer.json ]; then
