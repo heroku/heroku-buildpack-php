@@ -73,8 +73,6 @@ curl -LO http://ftp.gnu.org/pub/gnu/m4/m4-1.4.13.tar.gz
 tar -xzf autoconf-2.69.tar.gz
 tar -xzf m4-1.4.13.tar.gz
 
-
-
 echo "Installing m4 and autoconf ..."
 cd m4-1.4.13
 ./configure --prefix=$BUILD_DIR/m4
@@ -88,8 +86,13 @@ make
 make install
 
 cd $BUILD_DIR
+#Cleaning clidriver, m4 and autoconf
+rm -rf clidriver.tgz
+rm -rf m4-1.4.13.tar.gz
+rm -rf m4-1.4.13
+rm -rf autoconf-2.69.tar.gz
+rm -rf autoconf-2.69
 
-ln -s $BUILD_DIR/autoconf-2.10
 ln -s $BUILD_DIR/php /app/php
 ln -s $BUILD_DIR/vendor /app/vendor
 
@@ -101,8 +104,6 @@ export PHP_AUTOHEADER=$BUILD_DIR/autoconf/bin/autoheader
 
 echo "Installing ibm_db2 ..."
 pecl install ibm_db2
-
-#echo "extenstion=ibm_db2.so" >> $BUILD_DIR/php/php.ini
 
 # make php available on bin
 mkdir -p bin
