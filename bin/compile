@@ -85,7 +85,7 @@ export LD_LIBRARY_PATH=/app/vendor/mcrypt:$LD_LIBRARY_PATH
 cd ibm_db2-1.9.5
 
 echo "now echoing /app/php/bin "
-echo `ls /app/php/bin`
+echo `ls /app/php`
 echo "echoing /app/vendor/mcrypt ..."
 #echo `ls /app/vendor/mcrypt`
 
