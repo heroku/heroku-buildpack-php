@@ -89,7 +89,7 @@ echo `ls /app/php/bin`
 echo "echoing /app/vendor/mcrypt ..."
 echo `ls /app/vendor/mcrypt`
 
-phpize
+/app/php/bin/phpize
 #configure
 #make
 #make install
