@@ -42,9 +42,10 @@ pushd $dep_dirname
     --with-ssl \
     --with-mpm=event \
     --enable-mods-shared=all \
-    --enable-proxy \
-    --enable-proxy-fcgi \
-    --enable-rewrite
+    --enable-proxy=static \
+    --enable-proxy-fcgi=static \
+    --enable-rewrite=static \
+    --enable-deflate=static
 make -s
 make install -s
 popd
