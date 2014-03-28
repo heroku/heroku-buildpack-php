@@ -86,6 +86,7 @@ cd ibm_db2-1.9.5
 echo $PATH
 echo $IBM_DB_HOME
 echo $BUILD_DIR
+echo `ls $BUILD_DIR/php`
 #$BUILD_DIR/php/bin/phpize
 #configure
 #make
