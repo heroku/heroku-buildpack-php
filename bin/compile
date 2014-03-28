@@ -85,7 +85,8 @@ export IBM_DB_HOME=/app/php/clidriver
 cd ibm_db2-1.9.5
 echo $PATH
 echo $IBM_DB_HOME
-/app/php/bin/phpize
+echo $BUILD_DIR
+$BUILD_DIR/php/bin/phpize
 #configure
 #make
 #make install
