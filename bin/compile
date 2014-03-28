@@ -80,9 +80,12 @@ export IBM_DB_HOME=$BUILD_DIR/clidriver
 #Build and install IBM_DB2
 #cd ibm_db2-1.9.5
 
+echo "now echoing /app "
 echo `ls /app/`
+echo "done echoing /app "
 #echo `ls /`
 ln -s $BUILD_DIR/php /app/php
+echo "now echoing /app/php "
 echo `ls /app/php`
 
 #phpize
