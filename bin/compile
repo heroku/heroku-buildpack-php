@@ -27,7 +27,7 @@ cd $BUILD_DIR
 mkdir -p .heroku/php
 
 APACHE_VERSION="2.4.9"
-APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tgz"
+APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
 status "Installing Apache $APACHE_VERSION..."
 curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 echo $APACHE_VERSION > $BUILD_DIR/.heroku/apache_version
@@ -61,7 +61,7 @@ fi
 PHP_VERSIONS_ARR=($PHP_VERSIONS)
 PHP_VERSION=${PHP_VERSION:-${PHP_VERSIONS_ARR[0]}}
 
-PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tgz"
+PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tar.gz"
 status "Installing PHP $PHP_VERSION..."
 curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 echo $PHP_VERSION > $BUILD_DIR/.heroku/php_version
