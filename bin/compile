@@ -84,7 +84,7 @@ cd ibm_db2-1.9.5
 #echo $BUILD_DIR
 #echo `ls $BUILD_DIR/php/bin`
 echo `which phpize`
-#phpize
+yes '' | phpize
 #configure
 #make
 #make install
