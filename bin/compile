@@ -84,8 +84,8 @@ export LD_LIBRARY_PATH=/app/vendor/mcrypt:$LD_LIBRARY_PATH
 #Build and install IBM_DB2
 cd ibm_db2-1.9.5
 
-echo "now echoing /app/php "
-echo `ls /app/php`
+echo "now echoing /app/php/bin "
+echo `ls /app/php/bin`
 
 phpize
 #configure
