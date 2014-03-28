@@ -13,7 +13,7 @@ echo "Building libmcrypt..."
 echo "=== Downloading libmcrypt source..."
 curl -LO http://downloads.sourceforge.net/project/mcrypt/Libmcrypt/2.5.8/libmcrypt-2.5.8.tar.gz
 tar xzf libmcrypt-2.5.8.tar.gz
-pushd libmcrypt-2.5.8.tar.gz
+pushd libmcrypt-2.5.8
 
 
 echo "=== Compiling libmcrypt..."
