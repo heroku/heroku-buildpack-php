@@ -59,22 +59,25 @@ CLI_URL="https://www.ng.bluemix.net/docs/Services/BluStratus/samples/clidriver.t
 echo "Downloading IBM Data Server Driver...."
 curl -LO "$CLI_URL"
 
-# Clean and extract DS Driver
+# Extracting and Cleaning DS Driver
 rm -rf clidriver
 tar -xzf clidriver.tgz
 rm -rf clidriver.tgz
 
-IBM_DB2_URL="http://pecl.php.net/get/ibm_db2-1.9.5.tgz"
 
-echo "Downloading IBM_DB2 source..."
-curl -LO "$IBM_DB2_URL"
-
-echo "Downloading autoconf"
+echo "Downloading autoconf..."
 curl -LO http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
+
+echo "Downloading m4..."
 curl -LO http://ftp.gnu.org/pub/gnu/m4/m4-1.4.13.tar.gz
+
+# Extracting and Cleaning m4 and autoconf
 tar -xzf autoconf-2.69.tar.gz
 tar -xzf m4-1.4.13.tar.gz
+rm -rf autoconf-2.69.tar.gz
+rm -rf m4-1.4.13.tar.gz
 
+echo "Installing m4 and autoconf ..."
 cd m4-1.4.13
 ./configure --prefix=$BUILD_DIR/m4
 make
@@ -88,11 +91,6 @@ make install
 
 cd $BUILD_DIR
 
-# Clean and extract IBM_DB2
-rm -rf ibm_db2-1.9.5
-tar -xzf ibm_db2-1.9.5.tgz
-rm -rf ibm_db2-1.9.5.tgz
-
 ln -s $BUILD_DIR/autoconf-2.10
 ln -s $BUILD_DIR/php /app/php
 ln -s $BUILD_DIR/vendor /app/vendor
@@ -103,19 +101,8 @@ export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$LD_LIBRARY_PATH
 export PHP_AUTOCONF=$BUILD_DIR/autoconf/bin/autoconf
 export PHP_AUTOHEADER=$BUILD_DIR/autoconf/bin/autoheader
 
-#Build and install IBM_DB2
-cd ibm_db2-1.9.5
-
-echo "now echoing /app/php/bin "
-echo `ls /app/php/bin`
-echo "echoing /app/vendor/mcrypt ..."
-echo `ls /app/vendor/mcrypt`
-
+echo "Installing ibm_db2 ..."
 pecl install ibm_db2
-#configure
-#make
-#make install
-cd $BUILD_DIR
 
 #echo "extenstion=ibm_db2.so" >> $BUILD_DIR/php/php.ini
 
