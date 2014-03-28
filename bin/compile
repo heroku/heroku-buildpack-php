@@ -76,6 +76,8 @@ tar -xzf autoconf-2.69.tar.gz
 tar -xzf m4-1.4.13.tar.gz
 
 cd $BUILD_DIR/m4-1.4.13
+echo "echoing from m4-1.4.13
+echo `ls $BUILD_DIR/m4-1.4.13`
 ./configure --prefix=$BUILD_DIR/m4
 make
 make install
@@ -110,7 +112,7 @@ echo `ls /app/php/bin`
 echo "echoing /app/vendor/mcrypt ..."
 echo `ls /app/vendor/mcrypt`
 
-pecl install ibm_db2
+#pecl install ibm_db2
 #configure
 #make
 #make install
