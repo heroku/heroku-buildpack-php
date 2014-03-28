@@ -71,12 +71,22 @@ curl -LO "$IBM_DB2_URL"
 
 echo "Downloading autoconf
 curl -LO http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
+curl -LO http://ftp.gnu.org/pub/gnu/m4/m4-1.4.13.tar.gz
 tar -xzf autoconf-2.69.tar.gz
-cd autoconf-2.69
+tar -xzf m4-1.4.13.tar.gz
+
+cd $BUILD_DIR/m4-1.4.13
+./configure --prefix=$BUILD_DIR/m4
+make
+make install
+
+export PATH=$BUILD_PATH/m4/bin:$PATH
+cd $BUILD_DIR/autoconf-2.69
 ./configure --prefix=$BUILD_DIR/autoconf
 make
 make install
 cd $BUILD_DIR
+
 # Clean and extract IBM_DB2
 rm -rf ibm_db2-1.9.5
 tar -xzf ibm_db2-1.9.5.tgz
