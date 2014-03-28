@@ -11,7 +11,7 @@ set -eux
 echo "Building libmcrypt..."
 
 echo "=== Downloading libmcrypt source..."
-curl -L http://downloads.sourceforge.net/project/mcrypt/Libmcrypt/2.5.8/libmcrypt-2.5.8.tar.gz
+curl -LO http://downloads.sourceforge.net/project/mcrypt/Libmcrypt/2.5.8/libmcrypt-2.5.8.tar.gz
 tar xzf libmcrypt-2.5.8.tar.gz
 pushd libmcrypt-2.5.8.tar.gz
 
@@ -24,7 +24,7 @@ popd
 
 
 echo "=== Cleaning up..."
-rm -fr ibmcrypt-2.5.8.tar.gz cibmcrypt-2.5.8
+rm -fr libmcrypt-2.5.8.tar.gz libmcrypt-2.5.8
 
 
 echo "Done building libmcrypt."
