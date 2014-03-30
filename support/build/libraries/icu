@@ -11,10 +11,14 @@ set -eux
 echo "Building ICU..."
 
 echo "=== Downloading ICU source..."
-curl -LO http://download.icu-project.org/files/icu4c/52.1/icu4c-52_1-src.tgz
-tar xzf icu4c-52_1-src.tgz
-pushd icu/source
 
+dep_version=${VERSION:-52.1}
+dep_dirname=icu
+dep_archive_name=icu4c-${dep_version//\./_}-src.tgz
+
+curl -LO http://download.icu-project.org/files/icu4c/${dep_version}/${dep_archive_name}
+tar xzf ${dep_archive_name}
+pushd ${dep_dirname}/source
 
 echo "=== Compiling ICU..."
 ./runConfigureICU Linux --prefix=$OUT_PREFIX
@@ -24,7 +28,7 @@ popd
 
 
 echo "=== Cleaning up..."
-rm -fr icu icu4c-52_1-src.tgz
+rm -fr ${dep_dirname} ${dep_archive_name}
 
 
 echo "Done building ICU."
