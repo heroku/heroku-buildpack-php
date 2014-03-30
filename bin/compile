@@ -108,7 +108,7 @@ cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
 
 echo "showing cache dirs"
-echo `ls -l $CACHE_DIR'
+echo `ls -l $CACHE_DIR`
 echo "done"
 
 # Restore old artifacts from the cache.
