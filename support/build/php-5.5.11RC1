@@ -44,7 +44,6 @@ LD_LIBRARY_PATH=$OUT_PREFIX ./configure \
     --enable-fpm \
     --with-bz2 \
     --with-curl \
-    --enable-intl \
     --with-mcrypt=$OUT_PREFIX \
     --with-openssl \
     --with-readline \
@@ -53,6 +52,7 @@ LD_LIBRARY_PATH=$OUT_PREFIX ./configure \
     --with-zlib \
     --with-zlib-dir=$OUT_PREFIX \
     --enable-bcmath=shared \
+    --enable-intl=shared \
     --enable-mbstring=shared \
     --with-mysql=shared \
     --with-pdo-mysql=shared \
