@@ -124,9 +124,16 @@ if [ -f clidriver/lib/libdb2.so ]; then
 else
   echo "-------> downloading and installing ibm_db2"
   download_and_install_ibm_db
-  mkdir -p $cache_dir/$CACHED_DIRS
-  cp -R clidriver $cache_dir/$CACHED_DIRS &> /dev/null || true
-  cp php/lib/php/extensions/no-debug-non-zts-20090626/ibm_db2.so $cache_dir/$CACHED_DIRS &> /dev/null || true
+  echo "fn done"
+  for dir in $CACHED_DIRS; do
+    echo "mkdir"
+    mkdir -p $cache_dir/$dir
+    echo "cp clidriver"
+    cp -R clidriver $cache_dir/$dir &> /dev/null || true
+    echo "cp ibm_db2.so"
+    cp php/lib/php/extensions/no-debug-non-zts-20090626/ibm_db2.so $cache_dir/$dir &> /dev/null || true
+    echo "done"
+  done
 fi
 
 
