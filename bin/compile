@@ -107,6 +107,9 @@ curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
 
+echo "showing cache dirs"
+echo `ls -l $CACHE_DIR'
+echo "done"
 
 # Restore old artifacts from the cache.
 CACHED_DIRS="ibmdb2"
@@ -123,7 +126,7 @@ else
   download_and_install_ibm_db
   mkdir -p $cache_dir/$CACHED_DIRS
   cp -R clidriver $cache_dir/$CACHED_DIRS &> /dev/null || true
-  cp ibm_db2.so $cache_dir/$CACHED_DIRS &> /dev/null || true
+  cp php/lib/php/extensions/no-debug-non-zts-20090626/ibm_db2.so $cache_dir/$CACHED_DIRS &> /dev/null || true
 fi
 
 
