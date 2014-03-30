@@ -111,7 +111,7 @@ cp $LP_DIR/conf/php.ini php
 # Restore old artifacts from the cache.
 CACHED_DIRS="ibmdb2"
 for dir in $CACHED_DIRS; do
-  cp -R $CACHE_DIR/$dir . &> /dev/null || true
+  cp -R $CACHE_DIR/$dir/* . &> /dev/null || true
 done
 
 if [ -f clidriver/lib/libdb2.so ]; then
@@ -121,7 +121,9 @@ if [ -f clidriver/lib/libdb2.so ]; then
 else
   echo "-------> downloading and installing ibm_db2"
   download_and_install_ibm_db
-  cp -R clidriver cache_dir &> /dev/null || true
+  mkdir -p $cache_dir/$CACHED_DIRS
+  cp -R clidriver $cache_dir/$CACHED_DIRS &> /dev/null || true
+  cp ibm_db2.so $cache_dir/$CACHED_DIRS &> /dev/null || true
 fi
 
 
