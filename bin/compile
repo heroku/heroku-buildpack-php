@@ -23,6 +23,59 @@ BUILD_DIR=$1
 CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
+function download_and_install_ibm_db() {
+  CLI_URL="https://www.ng.bluemix.net/docs/Services/BluStratus/samples/clidriver.tgz"
+
+  echo "Downloading IBM Data Server Driver...."
+  curl -LO "$CLI_URL"
+
+  # Extracting and Cleaning DS Driver
+  rm -rf clidriver
+  tar -xzf clidriver.tgz
+
+  echo "Downloading autoconf..."
+  curl -LO http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
+
+  echo "Downloading m4..."
+  curl -LO http://ftp.gnu.org/pub/gnu/m4/m4-1.4.13.tar.gz
+
+  # Extracting m4 and autoconf
+  tar -xzf autoconf-2.69.tar.gz
+  tar -xzf m4-1.4.13.tar.gz
+
+  echo "Installing m4 and autoconf ..."
+  cd m4-1.4.13
+  ./configure --prefix=$BUILD_DIR/m4
+  make
+  make install
+  export PATH=$BUILD_DIR/m4/bin:$PATH
+
+  cd $BUILD_DIR/autoconf-2.69
+  ./configure --prefix=$BUILD_DIR/autoconf
+  make
+  make install
+
+  cd $BUILD_DIR
+  #Cleaning clidriver, m4 and autoconf
+  rm -rf clidriver.tgz
+  rm -rf m4-1.4.13.tar.gz
+  rm -rf m4-1.4.13
+  rm -rf autoconf-2.69.tar.gz
+  rm -rf autoconf-2.69
+
+  ln -s $BUILD_DIR/php /app/php
+  ln -s $BUILD_DIR/vendor /app/vendor
+
+  export PATH=$BUILD_DIR/autoconf/bin:/app/php/bin:$PATH
+  export IBM_DB_HOME=$BUILD_DIR/clidriver
+  export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$LD_LIBRARY_PATH
+  export PHP_AUTOCONF=$BUILD_DIR/autoconf/bin/autoconf
+  export PHP_AUTOHEADER=$BUILD_DIR/autoconf/bin/autoheader
+
+  echo "Installing ibm_db2 ..."
+  pecl install ibm_db2
+}
+  
 # include .files when moving things around
 shopt -s dotglob
 
@@ -54,56 +107,24 @@ curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
 
-CLI_URL="https://www.ng.bluemix.net/docs/Services/BluStratus/samples/clidriver.tgz"
 
-echo "Downloading IBM Data Server Driver...."
-curl -LO "$CLI_URL"
+# Restore old artifacts from the cache.
+CACHED_DIRS="ibmdb2"
+for dir in $CACHED_DIRS; do
+  cp -R $CACHE_DIR/$dir . &> /dev/null || true
+done
 
-# Extracting and Cleaning DS Driver
-rm -rf clidriver
-tar -xzf clidriver.tgz
+if [ -f clidriver/lib/libdb2.so ]; then
+  # we have from cache, just restore php's db2.so
+  echo "-------> restoring ibm_db2 from cache"
+  cp ibm_db2.so php/lib/php/extensions/no-debug-non-zts-20090626/
+else
+  echo "-------> downloading and installing ibm_db2"
+  download_and_install_ibm_db
+  cp -R clidriver cache_dir &> /dev/null || true
+fi
 
-echo "Downloading autoconf..."
-curl -LO http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
 
-echo "Downloading m4..."
-curl -LO http://ftp.gnu.org/pub/gnu/m4/m4-1.4.13.tar.gz
-
-# Extracting m4 and autoconf
-tar -xzf autoconf-2.69.tar.gz
-tar -xzf m4-1.4.13.tar.gz
-
-echo "Installing m4 and autoconf ..."
-cd m4-1.4.13
-./configure --prefix=$BUILD_DIR/m4
-make
-make install
-export PATH=$BUILD_DIR/m4/bin:$PATH
-
-cd $BUILD_DIR/autoconf-2.69
-./configure --prefix=$BUILD_DIR/autoconf
-make
-make install
-
-cd $BUILD_DIR
-#Cleaning clidriver, m4 and autoconf
-rm -rf clidriver.tgz
-rm -rf m4-1.4.13.tar.gz
-rm -rf m4-1.4.13
-rm -rf autoconf-2.69.tar.gz
-rm -rf autoconf-2.69
-
-ln -s $BUILD_DIR/php /app/php
-ln -s $BUILD_DIR/vendor /app/vendor
-
-export PATH=$BUILD_DIR/autoconf/bin:/app/php/bin:$PATH
-export IBM_DB_HOME=$BUILD_DIR/clidriver
-export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$LD_LIBRARY_PATH
-export PHP_AUTOCONF=$BUILD_DIR/autoconf/bin/autoconf
-export PHP_AUTOHEADER=$BUILD_DIR/autoconf/bin/autoheader
-
-echo "Installing ibm_db2 ..."
-pecl install ibm_db2
 
 # make php available on bin
 mkdir -p bin
@@ -126,4 +147,4 @@ EOF
 chmod +x boot.sh
 
 # clean the cache
-rm -rf $CACHE_DIR
+#rm -rf $CACHE_DIR
