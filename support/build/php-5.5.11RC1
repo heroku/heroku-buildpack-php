@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: libraries/zlib, libraries/libmemcached, libraries/icu
+# Build Deps: libraries/zlib, libraries/libmemcached, libraries/libmcrypt, libraries/icu
 
 OUT_PREFIX=$1
 
@@ -45,6 +45,7 @@ LD_LIBRARY_PATH=$OUT_PREFIX ./configure \
     --with-bz2 \
     --with-curl \
     --enable-intl \
+    --with-mcrypt=$OUT_PREFIX \
     --with-openssl \
     --with-readline \
     --enable-sockets \
