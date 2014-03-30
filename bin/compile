@@ -107,10 +107,6 @@ curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
 
-echo "showing cache dirs"
-echo `ls -l $CACHE_DIR`
-echo "done"
-
 # Restore old artifacts from the cache.
 CACHED_DIRS="ibmdb2"
 for dir in $CACHED_DIRS; do
