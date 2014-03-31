@@ -34,6 +34,7 @@ if [ -s composer.json ]; then
     fi
 else
     json_empty=1
+    warning 'Your composer.json is completely empty, please consider putting at least "{}" in there to make it valid JSON.'
 fi
 
 mkdir -p .heroku/php
