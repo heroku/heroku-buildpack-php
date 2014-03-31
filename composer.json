@@ -1,3 +1,6 @@
 {
-    "name": "heroku/heroku-buildpack-php"
+    "name": "heroku/heroku-buildpack-php",
+    "bin": [
+        "bin/heroku-php-boot"
+    ]
 }
