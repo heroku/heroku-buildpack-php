@@ -1,0 +1,30 @@
+#!/bin/bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+echo "Building ImageMagick.."
+
+echo "=== Downloading ImageMagick source..."
+curl -LO http://www.imagemagick.org/download/ImageMagick-6.8.8-10.tar.gz
+tar xzf ImageMagick-6.8.8-10.tar.gz
+pushd ImageMagick-6.8.8-10
+
+
+echo "=== Compiling ImageMagick..."
+./configure --prefix=$OUT_PREFIX
+make
+make install
+popd
+
+
+echo "=== Cleaning up..."
+rm -fr ImageMagick-6.8.8-10 ImageMagick-6.8.8-10.tar.gz
+
+
+echo "Done building ImageMagick."
