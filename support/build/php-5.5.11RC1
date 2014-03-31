@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: libraries/zlib, libraries/libmemcached
+# Build Deps: libraries/zlib, libraries/libmemcached, libraries/libmcrypt, libraries/icu
 
 OUT_PREFIX=$1
 
@@ -37,13 +37,14 @@ echo "Compiling PHP v$dep_version..."
 
 # cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
 pushd $dep_dirname
-./configure \
+LD_LIBRARY_PATH=$OUT_PREFIX ./configure \
     --prefix=$OUT_PREFIX \
     --with-config-file-path=/app/.heroku/php/etc \
     --with-config-file-scan-dir=/app/.heroku/php/etc/php/conf.d \
     --enable-fpm \
     --with-bz2 \
     --with-curl \
+    --with-mcrypt=$OUT_PREFIX \
     --with-openssl \
     --with-readline \
     --enable-sockets \
@@ -51,6 +52,13 @@ pushd $dep_dirname
     --with-zlib \
     --with-zlib-dir=$OUT_PREFIX \
     --enable-bcmath=shared \
+    --enable-exif=shared \
+    --with-gd=shared \
+        --enable-gd-native-ttf \
+        --with-freetype-dir=/usr \
+        --with-jpeg-dir=/usr \
+        --with-png-dir=/usr \
+    --enable-intl=shared \
     --enable-mbstring=shared \
     --with-mysql=shared \
     --with-pdo-mysql=shared \
