@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: extensions/imagick, libraries/imagemagick
+# Build Deps: extensions/5.5/imagick, libraries/imagemagick
 
 # That's it.
