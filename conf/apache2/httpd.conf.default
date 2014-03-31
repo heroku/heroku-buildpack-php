@@ -123,16 +123,16 @@ LoadModule setenvif_module libexec/mod_setenvif.so
 LoadModule version_module libexec/mod_version.so
 #LoadModule remoteip_module libexec/mod_remoteip.so
 LoadModule proxy_module libexec/mod_proxy.so
-LoadModule proxy_connect_module libexec/mod_proxy_connect.so
-LoadModule proxy_ftp_module libexec/mod_proxy_ftp.so
-LoadModule proxy_http_module libexec/mod_proxy_http.so
+#LoadModule proxy_connect_module libexec/mod_proxy_connect.so
+#LoadModule proxy_ftp_module libexec/mod_proxy_ftp.so
+#LoadModule proxy_http_module libexec/mod_proxy_http.so
 LoadModule proxy_fcgi_module libexec/mod_proxy_fcgi.so
-LoadModule proxy_scgi_module libexec/mod_proxy_scgi.so
+#LoadModule proxy_scgi_module libexec/mod_proxy_scgi.so
 #LoadModule proxy_fdpass_module libexec/mod_proxy_fdpass.so
-LoadModule proxy_wstunnel_module libexec/mod_proxy_wstunnel.so
-LoadModule proxy_ajp_module libexec/mod_proxy_ajp.so
-LoadModule proxy_balancer_module libexec/mod_proxy_balancer.so
-LoadModule proxy_express_module libexec/mod_proxy_express.so
+#LoadModule proxy_wstunnel_module libexec/mod_proxy_wstunnel.so
+#LoadModule proxy_ajp_module libexec/mod_proxy_ajp.so
+#LoadModule proxy_balancer_module libexec/mod_proxy_balancer.so
+#LoadModule proxy_express_module libexec/mod_proxy_express.so
 #LoadModule session_module libexec/mod_session.so
 #LoadModule session_cookie_module libexec/mod_session_cookie.so
 #LoadModule session_dbd_module libexec/mod_session_dbd.so
@@ -516,4 +516,3 @@ SSLRandomSeed connect builtin
 #<IfModule headers_module>
 #RequestHeader unset DNT env=bad_DNT
 #</IfModule>
-
