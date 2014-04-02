@@ -6,6 +6,7 @@ set -o pipefail
 set -eu
 
 DIR=`pwd`
+# we need this in configs
 export DOCUMENT_ROOT=$DIR
 
 httpd_user_config=""
@@ -18,6 +19,7 @@ while getopts ":a:f:t" opt; do
                 echo "Must give additional httpd.conf path (relative to '$DIR')" >&2
                 exit 1
             fi
+            # FIXME: check if it exists
             httpd_user_config="Include $DIR/$OPTARG"
             echo "Using additional Apache2 configuration file '$DIR/$OPTARG'" >&2
             ;;
@@ -26,6 +28,7 @@ while getopts ":a:f:t" opt; do
                 echo "Must give custom php-fpm.conf path (relative to '$DIR')" >&2
                 exit 1
             fi
+            # FIXME: check if it exists
             php="$php -y $DIR/$OPTARG" # can safely repeat to overwrite
             echo "Using custom PHP-FPM configuration file '$DIR/$OPTARG'" >&2
             ;;
@@ -34,6 +37,7 @@ while getopts ":a:f:t" opt; do
                 echo "Must give custom php.ini path (relative to '$DIR')" >&2
                 exit 1
             fi
+            # FIXME: check if it exists
             php="$php -c $DIR/$OPTARG" # can safely repeat to overwrite
             echo "Using custom PHP INI file '$DIR/$OPTARG'" >&2
             ;;
@@ -51,11 +55,13 @@ done
 shift $((OPTIND-1))
 
 if [ "$#" == "1" ]; then
+    # FIXME: check if it exists, strip trailing slashes
     DOCUMENT_ROOT=$DIR/$1
     echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
 fi
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
+# this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).
 wait_pipe=`mktemp -t "waitpipe-$PORT.XXXXXX" -u`
 rm -rf $wait_pipe
 mkfifo $wait_pipe
@@ -64,6 +70,8 @@ mkfifo $wait_pipe
 ( $php; echo "php-fpm" > $wait_pipe )&
 # start apache; write "php-fpm" to the shared pipe if it exits
 ( httpd -D FOREGROUND -c "Include $DIR/vendor/heroku/heroku-buildpack-php/conf/apache2/heroku.conf" -c "$httpd_user_config"; echo "httpd" > $wait_pipe )&
+
+# TODO: trap SIGINT/SIGERM/EXIT/QUIT and kill subprocesses
 
 # wait for something to come from the shared pipe
 read exitproc < $wait_pipe
