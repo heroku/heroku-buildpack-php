@@ -63,7 +63,7 @@ mkfifo $wait_pipe
 # start FPM; write "php-fpm" to the shared pipe if it exits
 ( $php; echo "php-fpm" > $wait_pipe )&
 # start apache; write "php-fpm" to the shared pipe if it exits
-( nginx -g "include $DIR/vendor/heroku/heroku-buildpack-php/conf/nginx/heroku.conf" -c "$httpd_user_config"; echo "httpd" > $wait_pipe )&
+( nginx -g "include $DIR/vendor/heroku/heroku-buildpack-php/conf/nginx/heroku.conf; $nginx_user_config"; echo "nginx" > $wait_pipe )&
 
 # wait for something to come from the shared pipe
 read exitproc < $wait_pipe
