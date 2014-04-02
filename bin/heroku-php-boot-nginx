@@ -1,0 +1,73 @@
+#!/usr/bin/env bash
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
+DIR=`pwd`
+export DOCUMENT_ROOT=$DIR
+
+nginx_user_config=""
+php="php-fpm --nodaemonize -y $DIR/vendor/heroku/heroku-buildpack-php/conf/php/php-fpm.conf -c $DIR/vendor/heroku/heroku-buildpack-php/conf/php/php.ini"
+test=0
+while getopts ":n:f:t" opt; do
+    case $opt in
+        n)
+            if [[ -z $OPTARG ]]; then
+                echo "Must give additional httpd.conf path (relative to '$DIR')" >&2
+                exit 1
+            fi
+            nginx_user_config="include $DIR/$OPTARG;"
+            echo "Using additional Apache2 configuration file '$DIR/$OPTARG'" >&2
+            ;;
+        f)
+            if [[ -z $OPTARG ]]; then
+                echo "Must give custom php-fpm.conf path (relative to '$DIR')" >&2
+                exit 1
+            fi
+            php="$php -y $DIR/$OPTARG" # can safely repeat to overwrite
+            echo "Using custom PHP-FPM configuration file '$DIR/$OPTARG'" >&2
+            ;;
+        i)
+            if [[ -z $OPTARG ]]; then
+                echo "Must give custom php.ini path (relative to '$DIR')" >&2
+                exit 1
+            fi
+            php="$php -c $DIR/$OPTARG" # can safely repeat to overwrite
+            echo "Using custom PHP INI file '$DIR/$OPTARG'" >&2
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            exit 1
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument." >&2
+            exit 1
+            ;;
+    esac
+done
+# clear processed arguments
+shift $((OPTIND-1))
+
+if [ "$#" == "1" ]; then
+    DOCUMENT_ROOT=$DIR/$1
+    echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
+fi
+
+# make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
+wait_pipe=`mktemp -t -u "waitpipe-$PORT.XXXXXXXXXX"`
+rm -rf $wait_pipe
+mkfifo $wait_pipe
+
+# start FPM; write "php-fpm" to the shared pipe if it exits
+( $php; echo "php-fpm" > $wait_pipe )&
+# start apache; write "php-fpm" to the shared pipe if it exits
+( nginx -g "include $DIR/vendor/heroku/heroku-buildpack-php/conf/nginx/heroku.conf" -c "$httpd_user_config"; echo "httpd" > $wait_pipe )&
+
+# wait for something to come from the shared pipe
+read exitproc < $wait_pipe
+
+# we'll only reach this if one of the processes above has terminated
+echo "Process exited unexpectedly: $exitproc"
+exit 1

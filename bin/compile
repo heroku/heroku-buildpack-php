@@ -45,6 +45,12 @@ status "Installing Apache $APACHE_VERSION..."
 curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 echo $APACHE_VERSION > $BUILD_DIR/.heroku/apache_version
 
+NGINX_VERSION="1.4.6"
+NGINX_DIST_URL="$S3_URL/nginx-$NGINX_VERSION.tar.gz"
+status "Installing Nginx $NGINX_VERSION..."
+curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+echo $NGINX_VERSION > $BUILD_DIR/.heroku/nginx_version
+
 export COMPOSER_CMD='composer'
 export COMPOSER_CACHE_DIR=$CACHE_DIR/php/composer
 mkdir -p $COMPOSER_CACHE_DIR
