@@ -24,6 +24,19 @@ if [ -z $ENV_DIR ]; then
 fi
 
 cd $BUILD_DIR
+
+if [ -s composer.json ]; then
+    json_empty=0
+    json_invalid=0
+    cat composer.json | python -mjson.tool &> /dev/null || json_invalid=$?
+    if [[ "$json_invalid" != "0" ]]; then
+        error "Could not parse composer.json; make sure it's valid!"
+    fi
+else
+    json_empty=1
+    warning 'Your composer.json is completely empty, please consider putting at least "{}" in there to make it valid JSON.'
+fi
+
 mkdir -p .heroku/php
 
 APACHE_VERSION="2.4.9"
@@ -72,7 +85,7 @@ export PATH=$HOME/.heroku/php/bin:$PATH
 PHP_EXT_DIR=`php-config --extension-dir`
 
 # update config files
-cp $BP_DIR/conf/php.ini $BUILD_DIR/.heroku/php/etc
+cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc
 cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc
 mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
 # enable opcache
@@ -129,6 +142,9 @@ this_git_tree_ish=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' 
 this_git_tree_ish=${this_git_tree_ish:-develop}
 # FIXME: should be dev-master#$this_git_tree_ish unless the tree-ish is a branch name
 # require without updates (quietly to not confuse people), then update with --no-dev, as currently, require defaults to dev since the recent install-with-dev change
+if [[ "$json_empty" == "1" ]]; then
+    echo "{}" > composer.json
+fi
 composer require --no-update --no-interaction --quiet "heroku/heroku-buildpack-php dev-$this_git_tree_ish" | indent
 composer update --no-dev --prefer-dist --optimize-autoloader --no-interaction "heroku/heroku-buildpack-php" | indent
 

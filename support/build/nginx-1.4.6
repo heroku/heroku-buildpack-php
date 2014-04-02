@@ -1,0 +1,39 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+#curl -L https://lang-php.s3.amazonaws.com/dist-alpha/zlib-1.2.8.tgz | tar xz -C $PREFIX
+curl -L http://zlib.net/zlib-1.2.8.tar.gz | tar xz
+#curl -L https://lang-php.s3.amazonaws.com/dist-alpha/pcre-8.34.tgz | tar xz -C $PREFIX
+curl -L http://sourceforge.net/projects/pcre/files/pcre/8.34/pcre-8.34.tar.gz | tar xz
+
+dep_version=${VERSION:-1.4.6}
+dep_dirname=nginx-$dep_version
+dep_archive_name=$dep_dirname.tar.gz
+
+echo "=== Building Nginx"
+
+echo "Fetching Nginx v$dep_version source..."
+curl -LO http://nginx.org/download/$dep_archive_name
+
+rm -rf $dep_dirname
+tar xzf $dep_archive_name
+
+echo "Compiling Nginx v$dep_version..."
+
+pushd $dep_dirname
+./configure \
+    --prefix=$OUT_PREFIX \
+    --with-pcre=pcre-8.34 \
+    --with-zlib=zlib-1.2.8
+make -s
+make install -s
+popd
+
+echo "Done building Nginx v$dep_version"
