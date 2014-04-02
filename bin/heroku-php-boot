@@ -56,7 +56,7 @@ if [ "$#" == "1" ]; then
 fi
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
-wait_pipe=`mktemp -t -u "waitpipe-$PORT.XXXXXXXXXX"`
+wait_pipe=`mktemp -t "waitpipe-$PORT.XXXXXX" -u`
 rm -rf $wait_pipe
 mkfifo $wait_pipe
 
