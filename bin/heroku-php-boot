@@ -8,6 +8,10 @@ set -eu
 DIR=`pwd`
 # we need this in configs
 export DOCUMENT_ROOT=$DIR
+# set a default port if none is given
+PORT=${PORT:-$(( $RANDOM+1024 ))}
+echo "Booting on port $PORT..." >&2
+export PORT
 
 httpd_user_config=""
 php="php-fpm --nodaemonize -y $DIR/vendor/heroku/heroku-buildpack-php/conf/php/php-fpm.conf -c $DIR/vendor/heroku/heroku-buildpack-php/conf/php/php.ini"
@@ -67,8 +71,10 @@ rm -rf $wait_pipe
 mkfifo $wait_pipe
 
 # start FPM; write "php-fpm" to the shared pipe if it exits
+echo "Starting php-fpm..." >&2
 ( $php; echo "php-fpm" > $wait_pipe )&
 # start apache; write "php-fpm" to the shared pipe if it exits
+echo "Starting httpd..." >&2
 ( httpd -D FOREGROUND -c "Include $DIR/vendor/heroku/heroku-buildpack-php/conf/apache2/heroku.conf" -c "$httpd_user_config"; echo "httpd" > $wait_pipe )&
 
 # TODO: trap SIGINT/SIGERM/EXIT/QUIT and kill subprocesses
