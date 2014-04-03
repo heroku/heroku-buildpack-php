@@ -95,6 +95,8 @@ mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
 cp "$BP_DIR/conf/php/conf.d/ext-opcache.ini" $BUILD_DIR/.heroku/php/etc/php/conf.d
 # Apache; copy in our config
 cp $BP_DIR/conf/apache2/httpd.conf.default $BUILD_DIR/.heroku/php/etc/apache2/httpd.conf
+# nginx; copy in our config
+cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/conf/nginx.conf
 
 # handle extensions
 if [ -f composer.json ]; then

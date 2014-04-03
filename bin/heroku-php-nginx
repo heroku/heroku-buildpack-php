@@ -5,8 +5,25 @@ set -o pipefail
 # fail harder
 set -eu
 
-DIR=`pwd`
+php_passthrough() {
+    local dir=`dirname $1`
+    local file=`basename $1`
+    local out=`basename $file .php`
+    if [[ "$out" != "$file" ]]; then
+        out="$dir/$out"
+        php $1 > $out
+        echo $out
+    else
+        echo $1
+    fi
+}
+
+# we need this in configs
+export DIR=`pwd`
 export DOCUMENT_ROOT=$DIR
+# set a default port if none is given
+export PORT=${PORT:-$(( $RANDOM+1024 ))}
+echo "Booting on port $PORT..." >&2
 
 nginx_user_config=""
 php="php-fpm --nodaemonize -y $DIR/vendor/heroku/heroku-buildpack-php/conf/php/php-fpm.conf -c $DIR/vendor/heroku/heroku-buildpack-php/conf/php/php.ini"
@@ -15,17 +32,20 @@ while getopts ":n:f:t" opt; do
     case $opt in
         n)
             if [[ -z $OPTARG ]]; then
-                echo "Must give additional httpd.conf path (relative to '$DIR')" >&2
+                echo "Must give additional nginx.conf path (relative to '$DIR')" >&2
                 exit 1
             fi
-            nginx_user_config="include $DIR/$OPTARG;"
-            echo "Using additional Apache2 configuration file '$DIR/$OPTARG'" >&2
+            # FIXME: check if it exists
+            nginx_user_config=$(php_passthrough "$DIR/$OPTARG")
+            echo "Using additional Nginx configuration file '$nginx_user_config'" >&2
+            nginx_user_config="include $nginx_user_config;"
             ;;
         f)
             if [[ -z $OPTARG ]]; then
                 echo "Must give custom php-fpm.conf path (relative to '$DIR')" >&2
                 exit 1
             fi
+            # FIXME: check if it exists
             php="$php -y $DIR/$OPTARG" # can safely repeat to overwrite
             echo "Using custom PHP-FPM configuration file '$DIR/$OPTARG'" >&2
             ;;
@@ -34,6 +54,7 @@ while getopts ":n:f:t" opt; do
                 echo "Must give custom php.ini path (relative to '$DIR')" >&2
                 exit 1
             fi
+            # FIXME: check if it exists
             php="$php -c $DIR/$OPTARG" # can safely repeat to overwrite
             echo "Using custom PHP INI file '$DIR/$OPTARG'" >&2
             ;;
@@ -51,19 +72,26 @@ done
 shift $((OPTIND-1))
 
 if [ "$#" == "1" ]; then
+    # FIXME: check if it exists, strip trailing slashes
     DOCUMENT_ROOT=$DIR/$1
     echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
 fi
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
-wait_pipe=`mktemp -t -u "waitpipe-$PORT.XXXXXXXXXX"`
+# this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).
+wait_pipe=`mktemp -t "waitpipe-$PORT.XXXXXX" -u`
 rm -rf $wait_pipe
 mkfifo $wait_pipe
 
 # start FPM; write "php-fpm" to the shared pipe if it exits
+echo "Starting php-fpm..." >&2
 ( $php; echo "php-fpm" > $wait_pipe )&
-# start apache; write "php-fpm" to the shared pipe if it exits
-( nginx -g "include $DIR/vendor/heroku/heroku-buildpack-php/conf/nginx/heroku.conf; $nginx_user_config"; echo "nginx" > $wait_pipe )&
+# start nginx; write "nginx" to the shared pipe if it exits
+echo "Starting nginx..." >&2
+nginx_config=$(php_passthrough "$DIR/vendor/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php")
+( nginx -g "include $nginx_config; $nginx_user_config"; echo "nginx" > $wait_pipe )&
+
+# TODO: trap SIGINT/SIGERM/EXIT/QUIT and kill subprocesses
 
 # wait for something to come from the shared pipe
 read exitproc < $wait_pipe
