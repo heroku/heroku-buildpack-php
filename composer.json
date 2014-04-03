@@ -1,7 +1,7 @@
 {
     "name": "heroku/heroku-buildpack-php",
     "bin": [
-        "bin/heroku-php-apache",
+        "bin/heroku-php-apache2",
         "bin/heroku-php-nginx"
     ]
 }
