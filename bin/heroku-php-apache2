@@ -73,7 +73,7 @@ mkfifo $wait_pipe
 # start FPM; write "php-fpm" to the shared pipe if it exits
 echo "Starting php-fpm..." >&2
 ( $php; echo "php-fpm" > $wait_pipe )&
-# start apache; write "php-fpm" to the shared pipe if it exits
+# start apache; write "httpd" to the shared pipe if it exits
 echo "Starting httpd..." >&2
 ( httpd -D FOREGROUND -c "Include $DIR/vendor/heroku/heroku-buildpack-php/conf/apache2/heroku.conf" -c "$httpd_user_config"; echo "httpd" > $wait_pipe )&
 
