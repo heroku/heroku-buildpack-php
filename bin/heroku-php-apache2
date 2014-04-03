@@ -5,13 +5,12 @@ set -o pipefail
 # fail harder
 set -eu
 
-DIR=`pwd`
+export DIR=`pwd`
 # we need this in configs
 export DOCUMENT_ROOT=$DIR
 # set a default port if none is given
-PORT=${PORT:-$(( $RANDOM+1024 ))}
+export PORT=${PORT:-$(( $RANDOM+1024 ))}
 echo "Booting on port $PORT..." >&2
-export PORT
 
 httpd_user_config=""
 php="php-fpm --nodaemonize -y $DIR/vendor/heroku/heroku-buildpack-php/conf/php/php-fpm.conf -c $DIR/vendor/heroku/heroku-buildpack-php/conf/php/php.ini"
