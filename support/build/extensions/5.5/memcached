@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: php-5.5.11RC1
+# Build Deps: php-5.5.11
 
 OUT_PREFIX=$1
 
@@ -22,8 +22,8 @@ echo "=== Bulding PHP Memcache Extension for PHP 5.5"
 
 
 echo "Fetching PHP Memcache Extension..."
-curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0RC1.tar.gz | tar xz
-pushd php-memcached-2.2.0RC1
+curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0.tar.gz | tar xz
+pushd php-memcached-2.2.0
 phpize
 
 echo "Building PHP Memcache Extension..."
