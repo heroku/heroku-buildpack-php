@@ -53,7 +53,7 @@ export COMPOSER_CMD='composer'
 export COMPOSER_CACHE_DIR=$CACHE_DIR/php/composer
 mkdir -p $COMPOSER_CACHE_DIR
 
-PHP_VERSIONS="5.5.11RC1"
+PHP_VERSIONS="5.5.11"
 if [ -f composer.json ]; then
     if [ ! -f composer.lock ]; then
         has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null || true) # might fail, set -e would stop execution
