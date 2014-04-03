@@ -57,7 +57,6 @@ LD_LIBRARY_PATH=$OUT_PREFIX ./configure \
         --with-png-dir=/usr \
     --enable-intl=shared \
     --enable-mbstring=shared \
-    --with-mysql=shared \
     --with-pdo-mysql=shared \
     --with-mysqli=shared \
     --enable-pcntl=shared \
