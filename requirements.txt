@@ -1,1 +1,1 @@
-bob-builder==0.0.5
+-e git+https://github.com/dzuelke/bob-builder.git#egg=bob-builder
