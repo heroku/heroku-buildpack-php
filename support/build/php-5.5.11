@@ -36,7 +36,7 @@ echo "Compiling PHP v$dep_version..."
 pushd $dep_dirname
 LD_LIBRARY_PATH=$OUT_PREFIX ./configure \
     --prefix=$OUT_PREFIX \
-    --with-config-file-path=/app/.heroku/php/etc \
+    --with-config-file-path=/app/.heroku/php/etc/php \
     --with-config-file-scan-dir=/app/.heroku/php/etc/php/conf.d \
     --enable-fpm \
     --with-bz2 \
