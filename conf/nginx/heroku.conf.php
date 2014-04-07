@@ -4,7 +4,10 @@ http {
     server {
         listen <?=getenv('PORT')?:'8080'?>;
         
-        root <?=getenv('DOCUMENT_ROOT')?:getenv('DIR')?:getcwd()?>;
+        root <?=getenv('DOCUMENT_ROOT')?:getenv('HEROKU_APP_DIR')?:getcwd()?>;
+        
+        error_log stderr;
+        access_log /tmp/heroku.nginx_access.<?=getenv('PORT')?:'8080'?>.log;
         
         location ~ \.php {
             try_files $uri 404;

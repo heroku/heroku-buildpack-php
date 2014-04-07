@@ -5,44 +5,44 @@ set -o pipefail
 # fail harder
 set -eu
 
-export DIR=`pwd`
+export HEROKU_APP_DIR=`pwd`
 # we need this in configs
-export DOCUMENT_ROOT=$DIR
+export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 # set a default port if none is given
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
 echo "Booting on port $PORT..." >&2
 
 httpd_user_config=""
-php="php-fpm --nodaemonize -y $DIR/vendor/heroku/heroku-buildpack-php/conf/php/php-fpm.conf -c $DIR/vendor/heroku/heroku-buildpack-php/conf/php/php.ini"
+php="php-fpm --nodaemonize -y $HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/php/php-fpm.conf -c $HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/php/php.ini"
 test=0
 while getopts ":a:f:t" opt; do
     case $opt in
         a)
             if [[ -z $OPTARG ]]; then
-                echo "Must give additional httpd.conf path (relative to '$DIR')" >&2
+                echo "Must give additional httpd.conf path (relative to '$HEROKU_APP_DIR')" >&2
                 exit 1
             fi
             # FIXME: check if it exists
-            httpd_user_config="Include $DIR/$OPTARG"
-            echo "Using additional Apache2 configuration file '$DIR/$OPTARG'" >&2
+            httpd_user_config="Include $HEROKU_APP_DIR/$OPTARG"
+            echo "Using additional Apache2 configuration file '$HEROKU_APP_DIR/$OPTARG'" >&2
             ;;
         f)
             if [[ -z $OPTARG ]]; then
-                echo "Must give custom php-fpm.conf path (relative to '$DIR')" >&2
+                echo "Must give custom php-fpm.conf path (relative to '$HEROKU_APP_DIR')" >&2
                 exit 1
             fi
             # FIXME: check if it exists
-            php="$php -y $DIR/$OPTARG" # can safely repeat to overwrite
-            echo "Using custom PHP-FPM configuration file '$DIR/$OPTARG'" >&2
+            php="$php -y $HEROKU_APP_DIR/$OPTARG" # can safely repeat to overwrite
+            echo "Using custom PHP-FPM configuration file '$HEROKU_APP_DIR/$OPTARG'" >&2
             ;;
         i)
             if [[ -z $OPTARG ]]; then
-                echo "Must give custom php.ini path (relative to '$DIR')" >&2
+                echo "Must give custom php.ini path (relative to '$HEROKU_APP_DIR')" >&2
                 exit 1
             fi
             # FIXME: check if it exists
-            php="$php -c $DIR/$OPTARG" # can safely repeat to overwrite
-            echo "Using custom PHP INI file '$DIR/$OPTARG'" >&2
+            php="$php -c $HEROKU_APP_DIR/$OPTARG" # can safely repeat to overwrite
+            echo "Using custom PHP INI file '$HEROKU_APP_DIR/$OPTARG'" >&2
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -59,7 +59,7 @@ shift $((OPTIND-1))
 
 if [ "$#" == "1" ]; then
     # FIXME: check if it exists, strip trailing slashes
-    DOCUMENT_ROOT=$DIR/$1
+    DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
     echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
 fi
 
@@ -69,12 +69,16 @@ wait_pipe=`mktemp -t "waitpipe-$PORT.XXXXXX" -u`
 rm -rf $wait_pipe
 mkfifo $wait_pipe
 
+echo "Starting log redirection..." >&2
+( touch "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log"; tail -qF -n 0 /tmp/heroku.*.$PORT.log; echo "tail heroku.*.$PORT.log" > $wait_pipe )&
+# FIXME: check for 5.5.11 or later
 # start FPM; write "php-fpm" to the shared pipe if it exits
 echo "Starting php-fpm..." >&2
 ( $php; echo "php-fpm" > $wait_pipe )&
+# FIXME: check for 2.4.8 or later
 # start apache; write "httpd" to the shared pipe if it exits
 echo "Starting httpd..." >&2
-( httpd -D FOREGROUND -c "Include $DIR/vendor/heroku/heroku-buildpack-php/conf/apache2/heroku.conf" -c "$httpd_user_config"; echo "httpd" > $wait_pipe )&
+( httpd -D FOREGROUND -c "Include $HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/apache2/heroku.conf" -c "$httpd_user_config"; echo "httpd" > $wait_pipe )&
 
 # TODO: trap SIGINT/SIGERM/EXIT/QUIT and kill subprocesses
 

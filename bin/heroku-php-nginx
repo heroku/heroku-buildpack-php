@@ -10,7 +10,7 @@ php_passthrough() {
     local file=`basename $1`
     local out=`basename $file .php`
     if [[ "$out" != "$file" ]]; then
-        out="$dir/$out"
+        out="$HEROKU_APP_DIR/$out"
         php $1 > $out
         echo $out
     else
@@ -19,44 +19,44 @@ php_passthrough() {
 }
 
 # we need this in configs
-export DIR=`pwd`
-export DOCUMENT_ROOT=$DIR
+export HEROKU_APP_DIR=`pwd`
+export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 # set a default port if none is given
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
 echo "Booting on port $PORT..." >&2
 
 nginx_user_config=""
-php="php-fpm --nodaemonize -y $DIR/vendor/heroku/heroku-buildpack-php/conf/php/php-fpm.conf -c $DIR/vendor/heroku/heroku-buildpack-php/conf/php/php.ini"
+php="php-fpm --nodaemonize -y $HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/php/php-fpm.conf -c $HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/php/php.ini"
 test=0
 while getopts ":n:f:t" opt; do
     case $opt in
         n)
             if [[ -z $OPTARG ]]; then
-                echo "Must give additional nginx.conf path (relative to '$DIR')" >&2
+                echo "Must give additional nginx.conf path (relative to '$HEROKU_APP_DIR')" >&2
                 exit 1
             fi
             # FIXME: check if it exists
-            nginx_user_config=$(php_passthrough "$DIR/$OPTARG")
+            nginx_user_config=$(php_passthrough "$HEROKU_APP_DIR/$OPTARG")
             echo "Using additional Nginx configuration file '$nginx_user_config'" >&2
             nginx_user_config="include $nginx_user_config;"
             ;;
         f)
             if [[ -z $OPTARG ]]; then
-                echo "Must give custom php-fpm.conf path (relative to '$DIR')" >&2
+                echo "Must give custom php-fpm.conf path (relative to '$HEROKU_APP_DIR')" >&2
                 exit 1
             fi
             # FIXME: check if it exists
-            php="$php -y $DIR/$OPTARG" # can safely repeat to overwrite
-            echo "Using custom PHP-FPM configuration file '$DIR/$OPTARG'" >&2
+            php="$php -y $HEROKU_APP_DIR/$OPTARG" # can safely repeat to overwrite
+            echo "Using custom PHP-FPM configuration file '$HEROKU_APP_DIR/$OPTARG'" >&2
             ;;
         i)
             if [[ -z $OPTARG ]]; then
-                echo "Must give custom php.ini path (relative to '$DIR')" >&2
+                echo "Must give custom php.ini path (relative to '$HEROKU_APP_DIR')" >&2
                 exit 1
             fi
             # FIXME: check if it exists
-            php="$php -c $DIR/$OPTARG" # can safely repeat to overwrite
-            echo "Using custom PHP INI file '$DIR/$OPTARG'" >&2
+            php="$php -c $HEROKU_APP_DIR/$OPTARG" # can safely repeat to overwrite
+            echo "Using custom PHP INI file '$HEROKU_APP_DIR/$OPTARG'" >&2
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -73,7 +73,7 @@ shift $((OPTIND-1))
 
 if [ "$#" == "1" ]; then
     # FIXME: check if it exists, strip trailing slashes
-    DOCUMENT_ROOT=$DIR/$1
+    DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
     echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
 fi
 
@@ -83,12 +83,15 @@ wait_pipe=`mktemp -t "waitpipe-$PORT.XXXXXX" -u`
 rm -rf $wait_pipe
 mkfifo $wait_pipe
 
+echo "Starting log redirection..." >&2
+( touch "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.nginx_access.$PORT.log"; tail -qF -n 0 /tmp/heroku.*.$PORT.log; echo "tail heroku.*.$PORT.log" > $wait_pipe )&
+# FIXME: check for 5.5.11 or later
 # start FPM; write "php-fpm" to the shared pipe if it exits
 echo "Starting php-fpm..." >&2
 ( $php; echo "php-fpm" > $wait_pipe )&
 # start nginx; write "nginx" to the shared pipe if it exits
 echo "Starting nginx..." >&2
-nginx_config=$(php_passthrough "$DIR/vendor/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php")
+nginx_config=$(php_passthrough "$HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php")
 ( nginx -g "include $nginx_config; $nginx_user_config"; echo "nginx" > $wait_pipe )&
 
 # TODO: trap SIGINT/SIGERM/EXIT/QUIT and kill subprocesses

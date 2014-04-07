@@ -2,7 +2,7 @@
 #user  nobody;
 worker_processes  auto;
 
-#error_log  logs/error.log;
+error_log  stderr;
 #error_log  logs/error.log  notice;
 #error_log  logs/error.log  info;
 
