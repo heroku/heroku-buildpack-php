@@ -39,16 +39,6 @@ fi
 
 mkdir -p .heroku/php
 
-APACHE_VERSION="2.4.9"
-APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
-status "Installing Apache $APACHE_VERSION..."
-curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
-
-NGINX_VERSION="1.4.6"
-NGINX_DIST_URL="$S3_URL/nginx-$NGINX_VERSION.tar.gz"
-status "Installing Nginx $NGINX_VERSION..."
-curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
-
 export COMPOSER_CMD='composer'
 export COMPOSER_CACHE_DIR=$CACHE_DIR/php/composer
 mkdir -p $COMPOSER_CACHE_DIR
@@ -78,15 +68,15 @@ fi
 PHP_VERSIONS_ARR=($PHP_VERSIONS)
 PHP_VERSION=${PHP_VERSION:-${PHP_VERSIONS_ARR[0]}}
 
-PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tar.gz"
-status "Installing PHP $PHP_VERSION..."
-curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+status "Setting up runtime environment..."
 
+PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tar.gz"
+echo "- PHP $PHP_VERSION" | indent
+curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # we need to run PHP in here, set it up!
 ln -s $BUILD_DIR/.heroku $HOME/.heroku
 export PATH=$HOME/.heroku/php/bin:$PATH
 PHP_EXT_DIR=`php-config --extension-dir`
-
 # update config files
 mkdir -p $BUILD_DIR/.heroku/php/etc/php
 cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc/php
@@ -94,8 +84,18 @@ cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc/php
 mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
 # enable opcache
 cp "$BP_DIR/conf/php/conf.d/ext-opcache.ini" $BUILD_DIR/.heroku/php/etc/php/conf.d
+
+APACHE_VERSION="2.4.9"
+APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
+echo "- Apache $APACHE_VERSION" | indent
+curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # Apache; copy in our config
 cp $BP_DIR/conf/apache2/httpd.conf.default $BUILD_DIR/.heroku/php/etc/apache2/httpd.conf
+
+NGINX_VERSION="1.4.6"
+NGINX_DIST_URL="$S3_URL/nginx-$NGINX_VERSION.tar.gz"
+echo "- Nginx $NGINX_VERSION" | indent
+curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # nginx; copy in our config
 cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.conf
 
