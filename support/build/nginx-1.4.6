@@ -47,6 +47,8 @@ VAR=$OUT_PREFIX/var
     --with-zlib=zlib-1.2.8
 make -s
 make install -s
+# this doesn't get created
+mkdir -p $VAR/run/nginx
 popd
 
 echo "Cleanup Up..."
