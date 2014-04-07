@@ -33,7 +33,7 @@ ETC=$OUT_PREFIX/etc
 VAR=$OUT_PREFIX/var
 ./configure \
     --prefix=$OUT_PREFIX \
-    --conf-path=$ETC/etc/nginx/nginx.conf \
+    --conf-path=$ETC/nginx/nginx.conf \
     --pid-path=$VAR/run/nginx.pid \
     --lock-path=$VAR/run/nginx.lock \
     --http-client-body-temp-path=$VAR/run/nginx/client_body_temp \
