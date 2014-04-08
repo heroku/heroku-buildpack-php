@@ -33,8 +33,17 @@ if [[ -n "$DYNO" ]]; then
 fi
 
 test=0
-while getopts ":n:f:t" opt; do
+while getopts ":i:n:" opt; do
     case $opt in
+        i)
+            if [[ -z $OPTARG ]]; then
+                echo "Must give custom php.ini path (relative to '$HEROKU_APP_DIR')" >&2
+                exit 1
+            fi
+            # FIXME: check if it exists
+            hhvm="$hhvm -c $HEROKU_APP_DIR/$OPTARG" # can safely repeat to overwrite
+            echo "Using custom HHVM INI file '$HEROKU_APP_DIR/$OPTARG'" >&2
+            ;;
         n)
             if [[ -z $OPTARG ]]; then
                 echo "Must give additional nginx.conf path (relative to '$HEROKU_APP_DIR')" >&2
