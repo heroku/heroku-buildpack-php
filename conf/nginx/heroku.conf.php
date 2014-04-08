@@ -1,5 +1,3 @@
-daemon off;
-
 http {
     server {
         listen <?=getenv('PORT')?:'8080'?>;
