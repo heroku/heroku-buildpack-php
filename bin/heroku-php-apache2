@@ -69,22 +69,31 @@ wait_pipe=`mktemp -t "heroku.waitpipe-$PORT.XXXXXX" -u`
 rm -rf $wait_pipe
 mkfifo $wait_pipe
 
+# trap SIGINT/SIGQUIT (ctrl+c or ctrl+\ on the console), SIGTERM, and EXIT (upon failure of any command due to set -e, or because of the exit 1 at the very end), kill subshell child processes, then subshells
+# 1) restore EXIT trap immediately, or the exit at the end of the line will trigger this trap again
+# 2) kill childrens' child processes (the stuff running inside the sub-shells) using xargs because this is easier (-P expects a comma separated list); the || true prevents premature exit (set -e) if one of those doesn't have children anymore (it's likely that's why we're hitting this bit of code in the first place)
+# 3) kill child processes (that's the sub-shells); it's likely that some of them have already disappeared, so xarg || true it too and suppress "no such process" complaints by sending them to /dev/null
+# FIXME: this doesn't currently fire when the subshells themselves are terminated, and apparently also not when killing the tail command
+# FIXME: when killing the httpd command or ctrl+c-ing, it leaves fpm behind, unlike with nginx, must investigate
+# TODO: for extra brownie points, move to a function and curry for each given signal, passing the signal in as an arg, so we can use different exit codes or messages
+trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -p | xargs -n1 pkill -TERM -P || true; jobs -p | xargs -n1 kill -TERM 2> /dev/null || true; exit' SIGINT SIGQUIT SIGTERM EXIT
+
+# redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
 echo "Starting log redirection..." >&2
-( touch "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log"; tail -qF -n 0 /tmp/heroku.*.$PORT.log; echo "tail heroku.*.$PORT.log" > $wait_pipe )&
+( touch "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log"; tail -qF -n 0 /tmp/heroku.*.$PORT.log 1>&2; echo "tail heroku.*.$PORT.log"; ) > $wait_pipe &
 # FIXME: check for 5.5.11 or later
 # start FPM; write "php-fpm" to the shared pipe if it exits
 echo "Starting php-fpm..." >&2
-( $php; echo "php-fpm" > $wait_pipe )&
+( $php; echo "php-fpm"; ) > $wait_pipe &
 # FIXME: check for 2.4.8 or later
 # start apache; write "httpd" to the shared pipe if it exits
 echo "Starting httpd..." >&2
-( httpd -D FOREGROUND -c "Include $HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/apache2/heroku.conf" -c "$httpd_user_config"; echo "httpd" > $wait_pipe )&
+( httpd -D FOREGROUND -c "Include $HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/apache2/heroku.conf" -c "$httpd_user_config" || true; echo "httpd"; ) > $wait_pipe &
 
-# TODO: trap SIGINT/SIGERM/EXIT/QUIT and kill subprocesses
-
-# wait for something to come from the shared pipe
-read exitproc < $wait_pipe
-
+# wait for something to come from the shared pipe, which means that the given process was killed or has failed
 # we'll only reach this if one of the processes above has terminated
+read exitproc < $wait_pipe
 echo "Process exited unexpectedly: $exitproc"
+
+# this will trigger the trap and kill all remaining children
 exit 1
