@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+dep_version=${VERSION:-2014.03.20}
+dep_archive_name=hhvm-nightly_$dep_version~lucid.tgz
+
+mkdir -p $OUT_PREFIX/bin
+mkdir -p $OUT_PREFIX/lib/hhvm
+
+echo "=== Packaging HHVM nightly"
+
+echo "Fetching HHVM $dep_version nightly..."
+curl -L http://dl.hhvm.com/heroku/$dep_archive_name | tar xz -C $OUT_PREFIX/lib/hhvm
+
+mv $OUT_PREFIX/lib/hhvm/hhvm $OUT_PREFIX/bin
+
+echo "Done packaging HHVM $dep_version nightly!"
