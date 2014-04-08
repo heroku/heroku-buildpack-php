@@ -57,6 +57,7 @@ done
 shift $((OPTIND-1))
 
 php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This program requires PHP 5.5.11 or newer" >&2; exit 1; }
+httpd -v | php -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/([\d\\.]+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.8", "<"));' || { echo "This program requires Apache 2.4.8 or newer with mod_proxy_fcgi enabled" >&2; exit 1; }
 
 echo "Booting on port $PORT..." >&2
 
