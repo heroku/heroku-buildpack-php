@@ -23,7 +23,6 @@ export HEROKU_APP_DIR=`pwd`
 export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 # set a default port if none is given
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
-echo "Booting on port $PORT..." >&2
 
 nginx_user_config=""
 php="php-fpm --nodaemonize -y $HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/php/php-fpm.conf -c $HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/php/php.ini"
@@ -71,6 +70,10 @@ done
 # clear processed arguments
 shift $((OPTIND-1))
 
+php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This program requires PHP 5.5.11 or newer" >&2; exit 1; }
+
+echo "Booting on port $PORT..." >&2
+
 if [ "$#" == "1" ]; then
     # FIXME: check if it exists, strip trailing slashes
     DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
@@ -94,7 +97,6 @@ trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -
 # redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
 echo "Starting log redirection..." >&2
 ( touch "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.nginx_access.$PORT.log"; tail -qF -n 0 /tmp/heroku.*.$PORT.log 1>&2; echo "tail heroku.*.$PORT.log"; ) > $wait_pipe &
-# FIXME: check for 5.5.11 or later
 # start FPM; write "php-fpm" to the shared pipe if it exits
 echo "Starting php-fpm..." >&2
 ( $php; echo "php-fpm"; ) > $wait_pipe &
