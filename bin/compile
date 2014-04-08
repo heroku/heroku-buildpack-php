@@ -85,6 +85,10 @@ mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
 # enable opcache
 cp "$BP_DIR/conf/php/conf.d/ext-opcache.ini" $BUILD_DIR/.heroku/php/etc/php/conf.d
 
+HHVM_DIST_URL="$S3_URL/hhvm-nightly.tar.gz"
+echo "- HHVM nightly" | indent
+curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+
 APACHE_VERSION="2.4.9"
 APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
 echo "- Apache $APACHE_VERSION" | indent

@@ -1,0 +1,100 @@
+#!/usr/bin/env bash
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
+php_passthrough() {
+    local dir=`dirname $1`
+    local file=`basename $1`
+    local out=`basename $file .php`
+    if [[ "$out" != "$file" ]]; then
+        out="$dir/$out"
+        php $1 > $out
+        echo $out
+    else
+        echo $1
+    fi
+}
+
+# we need this in configs
+export HEROKU_APP_DIR=`pwd`
+export DOCUMENT_ROOT="$HEROKU_APP_DIR"
+# set a default port if none is given
+export PORT=${PORT:-$(( $RANDOM+1024 ))}
+
+nginx_user_config=""
+hhvm="hhvm --mode server -vServer.Type=fastcgi -vServer.FileSocket=/tmp/heroku.fcgi.$PORT.sock"
+if [[ -n "$DYNO" ]]; then
+    # on heroku
+    # our package needs LD_LIBRARY_PATH to function
+    hhvm="env LD_LIBRARY_PATH=/app/.heroku/php/lib/hhvm $hhvm"
+fi
+
+test=0
+while getopts ":n:f:t" opt; do
+    case $opt in
+        n)
+            if [[ -z $OPTARG ]]; then
+                echo "Must give additional nginx.conf path (relative to '$HEROKU_APP_DIR')" >&2
+                exit 1
+            fi
+            # FIXME: check if it exists
+            nginx_user_config=$(php_passthrough "$HEROKU_APP_DIR/$OPTARG")
+            echo "Using additional Nginx configuration file '$nginx_user_config'" >&2
+            nginx_user_config="include $nginx_user_config;"
+            ;;
+        \?)
+            echo "Invalid option: -$OPTARG" >&2
+            exit 1
+            ;;
+        :)
+            echo "Option -$OPTARG requires an argument." >&2
+            exit 1
+            ;;
+    esac
+done
+# clear processed arguments
+shift $((OPTIND-1))
+
+echo "Booting on port $PORT..." >&2
+
+if [ "$#" == "1" ]; then
+    # FIXME: check if it exists, strip trailing slashes
+    DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
+    echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
+fi
+
+# make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
+# this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).
+wait_pipe=`mktemp -t "heroku.waitpipe-$PORT.XXXXXX" -u`
+rm -rf $wait_pipe
+mkfifo $wait_pipe
+
+# trap SIGINT/SIGQUIT (ctrl+c or ctrl+\ on the console), SIGTERM, and EXIT (upon failure of any command due to set -e, or because of the exit 1 at the very end), kill subshell child processes, then subshells
+# 1) restore EXIT trap immediately, or the exit at the end of the line will trigger this trap again
+# 2) kill childrens' child processes (the stuff running inside the sub-shells) using xargs because this is easier (-P expects a comma separated list); the || true prevents premature exit (set -e) if one of those doesn't have children anymore (it's likely that's why we're hitting this bit of code in the first place)
+# 3) kill child processes (that's the sub-shells); it's likely that some of them have already disappeared, so xarg || true it too and suppress "no such process" complaints by sending them to /dev/null
+# FIXME: this doesn't currently fire when the subshells themselves are terminated, and apparently also not when killing the tail command
+# TODO: for extra brownie points, move to a function and curry for each given signal, passing the signal in as an arg, so we can use different exit codes or messages
+trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -p | xargs -n1 pkill -TERM -P || true; jobs -p | xargs -n1 kill -TERM 2> /dev/null || true; exit' SIGINT SIGQUIT SIGTERM EXIT
+
+# redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
+echo "Starting log redirection..." >&2
+( touch "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.nginx_access.$PORT.log"; tail -qF -n 0 /tmp/heroku.*.$PORT.log 1>&2; echo "tail heroku.*.$PORT.log"; ) > $wait_pipe &
+# start FPM; write "php-fpm" to the shared pipe if it exits
+echo "Starting hhvm..." >&2
+( $hhvm >&2; echo "hhvm"; ) > $wait_pipe &
+# start nginx; write "nginx" to the shared pipe if it exits
+echo "Starting nginx..." >&2
+nginx_config=$(php_passthrough "$HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php")
+( nginx -g "daemon off; include $nginx_config; $nginx_user_config"; echo "nginx"; ) > $wait_pipe &
+
+# wait for something to come from the shared pipe, which means that the given process was killed or has failed
+# we'll only reach this if one of the processes above has terminated
+read exitproc < $wait_pipe
+echo "Process exited unexpectedly: $exitproc"
+
+# this will trigger the trap and kill all remaining children
+exit 1
