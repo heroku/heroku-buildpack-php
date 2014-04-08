@@ -79,7 +79,7 @@ fi
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
 # this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).
-wait_pipe=`mktemp -t "waitpipe-$PORT.XXXXXX" -u`
+wait_pipe=`mktemp -t "heroku.waitpipe-$PORT.XXXXXX" -u`
 rm -rf $wait_pipe
 mkfifo $wait_pipe
 
