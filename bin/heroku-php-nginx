@@ -10,7 +10,7 @@ php_passthrough() {
     local file=`basename $1`
     local out=`basename $file .php`
     if [[ "$out" != "$file" ]]; then
-        out="$HEROKU_APP_DIR/$out"
+        out="$dir/$out"
         php $1 > $out
         echo $out
     else
