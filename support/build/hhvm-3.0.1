@@ -8,14 +8,14 @@ set -o pipefail
 # fail harder
 set -eux
 
-dep_version=${VERSION:-2014.04.08}
-dep_archive_name=hhvm-nightly_$dep_version~lucid_amd64.deb
+dep_version=${VERSION:-3.0.1}
+dep_archive_name=hhvm_$dep_version~lucid_amd64.deb
 
 mkdir -p $OUT_PREFIX
 
-echo "=== Packaging HHVM nightly"
+echo "=== Packaging HHVM"
 
-echo "Fetching HHVM $dep_version nightly..."
+echo "Fetching HHVM $dep_version ..."
 
 curl http://dl.hhvm.com/ubuntu/pool/main/h/hhvm/$dep_archive_name > hhvm_3.0.1~lucid_amd64.deb
 curl http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu/pool/main/b/binutils/binutils_2.22-4ubuntu1~10.04.1_amd64.deb > binutils_2.22-4ubuntu1~10.04.1_amd64.deb
@@ -34,4 +34,4 @@ dpkg -x libmcrypt4_2.5.8-3.1_amd64.deb $OUT_PREFIX
 dpkg -x libc-client2007e_2007e~dfsg-3.1_amd64.deb $OUT_PREFIX
 dpkg -x libelf1_0.143-1_amd64.deb $OUT_PREFIX
 
-echo "Done packaging HHVM $dep_version nightly!"
+echo "Done packaging HHVM $dep_version!"
