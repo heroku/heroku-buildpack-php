@@ -87,7 +87,7 @@ trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -
 # redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
 echo "Starting log redirection..." >&2
 ( touch "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.nginx_access.$PORT.log"; tail -qF -n 0 /tmp/heroku.*.$PORT.log 1>&2; echo "tail heroku.*.$PORT.log"; ) > $wait_pipe &
-# start FPM; write "php-fpm" to the shared pipe if it exits
+# start HHVM; write "hhvm" to the shared pipe if it exits
 echo "Starting hhvm..." >&2
 ( $hhvm >&2; echo "hhvm"; ) > $wait_pipe &
 # start nginx; write "nginx" to the shared pipe if it exits
