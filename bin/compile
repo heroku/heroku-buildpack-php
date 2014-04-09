@@ -172,7 +172,6 @@ if [ -f composer.json ]; then
 fi
 EOF
 cat >> $BUILD_DIR/.profile.d/hhvm.sh <<EOF
-export PATH="\$HOME/.heroku/php/usr/bin:\$PATH"
-hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib hhvm \$*; }
+hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib /app/.heroku/php/usr/bin/hhvm \$*; }
 export -f hhvm
 EOF
