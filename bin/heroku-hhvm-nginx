@@ -18,6 +18,7 @@ php_passthrough() {
     fi
 }
 
+DYNO=${DYNO:-}
 # we need this in configs
 export HEROKU_APP_DIR=`pwd`
 export DOCUMENT_ROOT="$HEROKU_APP_DIR"
