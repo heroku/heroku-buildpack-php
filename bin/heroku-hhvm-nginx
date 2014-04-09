@@ -91,11 +91,10 @@ echo "Starting log redirection..." >&2
 echo "Starting hhvm..." >&2
 ( $hhvm >&2; echo "hhvm"; ) > $wait_pipe &
 # wait a few seconds for HHVM to finish initializing; otherwise an early request might break nginx with the FastCGI pipe not being ready
-sleep 2
 # start nginx; write "nginx" to the shared pipe if it exits
 echo "Starting nginx..." >&2
 nginx_config=$(php_passthrough "$HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php")
-( nginx -g "daemon off; include $nginx_config; $nginx_user_config"; echo "nginx"; ) > $wait_pipe &
+( sleep 2; nginx -g "daemon off; include $nginx_config; $nginx_user_config"; echo "nginx"; ) > $wait_pipe &
 
 # wait for something to come from the shared pipe, which means that the given process was killed or has failed
 # we'll only reach this if one of the processes above has terminated
