@@ -173,5 +173,5 @@ fi
 EOF
 cat >> $BUILD_DIR/.profile.d/php.sh <<EOF
 export PATH="\$HOME/.heroku/php/usr/bin:\$PATH"
-alias hhvm="LD_LIBRARY_PATH=/app/.heroku/php/lib/hhvm `which hhvm`"
+alias hhvm="LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib hhvm"
 EOF

@@ -18,7 +18,6 @@ php_passthrough() {
     fi
 }
 
-DYNO=${DYNO:-}
 # we need this in configs
 export HEROKU_APP_DIR=`pwd`
 export DOCUMENT_ROOT="$HEROKU_APP_DIR"
@@ -27,11 +26,6 @@ export PORT=${PORT:-$(( $RANDOM+1024 ))}
 
 nginx_user_config=""
 hhvm="hhvm --mode server -vServer.Type=fastcgi -vServer.FileSocket=/tmp/heroku.fcgi.$PORT.sock"
-if [[ -n "$DYNO" ]]; then
-    # on heroku
-    # our package needs LD_LIBRARY_PATH to function
-    hhvm="env LD_LIBRARY_PATH=/app/.heroku/php/lib/hhvm $hhvm"
-fi
 
 test=0
 while getopts ":i:n:" opt; do
