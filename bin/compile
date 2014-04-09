@@ -44,6 +44,7 @@ export COMPOSER_CACHE_DIR=$CACHE_DIR/php/composer
 mkdir -p $COMPOSER_CACHE_DIR
 
 PHP_VERSIONS="5.5.11"
+HHVM_VERSIONS="3.0.1"
 if [ -f composer.json ]; then
     if [ ! -f composer.lock ]; then
         has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null || true) # might fail, set -e would stop execution
@@ -64,9 +65,11 @@ if [ -f composer.json ]; then
         fi
     fi
 fi
-# use first from PHP_VERSIONS as default
+# use first from *_VERSIONS as default
 PHP_VERSIONS_ARR=($PHP_VERSIONS)
 PHP_VERSION=${PHP_VERSION:-${PHP_VERSIONS_ARR[0]}}
+HHVM_VERSIONS_ARR=($HHVM_VERSIONS)
+HHVM_VERSION=${HHVM_VERSION:-${HHVM_VERSIONS_ARR[0]}}
 
 status "Setting up runtime environment..."
 
@@ -85,8 +88,8 @@ mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
 # enable opcache
 cp "$BP_DIR/conf/php/conf.d/ext-opcache.ini" $BUILD_DIR/.heroku/php/etc/php/conf.d
 
-HHVM_DIST_URL="$S3_URL/hhvm-nightly.tar.gz"
-echo "- HHVM nightly" | indent
+HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
+echo "- HHVM $HHVM_VERSION" | indent
 curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 
 APACHE_VERSION="2.4.9"
@@ -167,4 +170,8 @@ export PATH="\$HOME/.heroku/php/bin:\$HOME/.heroku/php/sbin:\$PATH"
 if [ -f composer.json ]; then
     $COMPOSER_CMD run-script post-install-cmd --no-dev --no-interaction --quiet
 fi
+EOF
+cat >> $BUILD_DIR/.profile.d/php.sh <<EOF
+export PATH="\$HOME/.heroku/php/usr/bin:\$PATH"
+alias hhvm="LD_LIBRARY_PATH=/app/.heroku/php/lib/hhvm `which hhvm`"
 EOF
