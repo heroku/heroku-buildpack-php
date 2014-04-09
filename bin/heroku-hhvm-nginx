@@ -90,6 +90,8 @@ echo "Starting log redirection..." >&2
 # start HHVM; write "hhvm" to the shared pipe if it exits
 echo "Starting hhvm..." >&2
 ( $hhvm >&2; echo "hhvm"; ) > $wait_pipe &
+# wait a few seconds for HHVM to finish initializing; otherwise an early request might break nginx with the FastCGI pipe not being ready
+sleep 2
 # start nginx; write "nginx" to the shared pipe if it exits
 echo "Starting nginx..." >&2
 nginx_config=$(php_passthrough "$HEROKU_APP_DIR/vendor/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php")
