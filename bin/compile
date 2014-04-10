@@ -146,7 +146,6 @@ status "Building runtime environment..."
 # it will contain the apache/nginx/php configs and the boot script
 # this will only install this one package, and leave everything else intact
 # we use our version of composer for this to make sure it works
-# TODO: make sure the project composer.json doesn't require this package
 # TODO: install same tree-ish as this buildpack instance (read it from BUILDPACK_URL)
 BUILDPACK_URL=${BUILDPACK_URL:-}
 this_git_tree_ish=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' || true)
