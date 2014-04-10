@@ -16,6 +16,12 @@ http {
 
     #gzip  on;
 
+    upstream heroku-fcgi {
+        #server 127.0.0.1:4999 max_fails=3 fail_timeout=3s;
+        server unix:/tmp/heroku.fcgi.<?=getenv('PORT')?:'8080'?>.sock max_fails=3 fail_timeout=3s;
+        keepalive 16;
+    }
+    
     server {
         listen <?=getenv('PORT')?:'8080'?>;
         
@@ -24,23 +30,6 @@ http {
         error_log stderr;
         access_log /tmp/heroku.nginx_access.<?=getenv('PORT')?:'8080'?>.log;
         
-        location ~ \.php {
-            try_files $uri 404;
-            
-            include fastcgi_params;
-            fastcgi_param  SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            # fastcgi_pass 127.0.0.1:4999;
-            fastcgi_pass unix:/tmp/heroku.fcgi.<?=getenv('PORT')?:'8080'?>.sock;
-            fastcgi_buffers 256 4k;
-        }
-        
-        error_page   500 502 503 504  /50x.html;
-        location = /50x.html {
-            root   html;
-        }
-        
-        location / {
-            index  index.php index.html index.htm;
-        }
+        include <?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>;
     }
 }
