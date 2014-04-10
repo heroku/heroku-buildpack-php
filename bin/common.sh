@@ -5,7 +5,7 @@ error() {
 
 warning() {
   status "WARNING!"
-  echo $* | indent
+  echo "$*" | indent
 }
 
 status() {
