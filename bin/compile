@@ -138,7 +138,7 @@ if [ -f composer.lock ]; then
 
     # install dependencies
     $COMPOSER_CMD --version | indent
-    $COMPOSER_CMD install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
+    $COMPOSER_CMD install --no-dev --prefer-dist --no-interaction | indent
 fi
 
 status "Building runtime environment..."
