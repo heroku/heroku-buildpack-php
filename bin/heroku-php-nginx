@@ -49,9 +49,10 @@ Options:
   -c <nginx.conf>         The path to the full configuration file that is
                           included after Heroku's (or your local) Nginx config
                           is loaded. It must contain an 'http { ... }' block
-                          with a 'server { ... }' inside (see option -C above),
-                          but no global directives (those are taken from the
-                          default Nginx configuration).
+                          with a 'server { ... }' inside that contains 'listen'
+                          and 'root' (see option -C above), but no global,
+                          directives (globals are read from the system's default
+                          Nginx configuration files).
                           [default: $COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php]
   -F <php-fpm.inc.conf>   The path to the configuration file to include at the  
                           end of php-fpm.conf (see option -f below), in the
