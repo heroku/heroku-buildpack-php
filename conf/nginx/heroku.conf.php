@@ -33,5 +33,13 @@ http {
         access_log /tmp/heroku.nginx_access.<?=getenv('PORT')?:'8080'?>.log;
         
         include <?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>;
+        
+        # default handling of .php
+        location ~ \.php {
+            try_files $uri =404;
+            include fastcgi_params;
+            fastcgi_param  SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            fastcgi_pass heroku-fcgi;
+        }
     }
 }
