@@ -1,8 +1,17 @@
 # Heroku PHP buildpack
 
-This is a build pack bundling PHP for Heroku apps. Currently very alpha.
+This is a build pack bundling PHP for Heroku apps.
 
 ## Usage
+
+You'll need to set a `BUILDPACK_URL`, and add a `composer.json` and a `Procfile` on your application.
+
+    heroku config:set BUILDPACK_URL=https://github.com/dzuelke/heroku-buildpack-php#hhvm
+    echo 'web: vendor/bin/heroku-hhvm-nginx' > Procfile
+    echo '{}' > composer.json 
+    git add .
+    git commit -am "add a dummy composer.json and a Procfile so that foreman/heroku know how to start the app"
+
 
 Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for usage instructions.
 
