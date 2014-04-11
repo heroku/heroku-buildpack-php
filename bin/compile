@@ -159,6 +159,14 @@ status "Building runtime environment..."
 if [[ "$json_empty" == "1" ]]; then
     echo "{}" > composer.json
 fi
+if [ "$BUILDPACK_OWNER" != "heroku" ]; then
+notice "You're using a fork of the original buildpack; for runtime use
+it'll now install itself into the application with Composer using package
+'heroku/heroku-buildpack-php' from Packagist. This operation will pull
+from the original buildpack sources. To have Composer install your fork
+instead, load your package in composer.json using a VCS repository, see
+https://getcomposer.org/doc/05-repositories.md#loading-a-package-from-a-vcs-repository."
+fi
 composer require --no-update --no-interaction --quiet "heroku/heroku-buildpack-php dev-$BUILDPACK_BRANCH" | indent
 composer update --no-dev --prefer-dist --optimize-autoloader --no-interaction "heroku/heroku-buildpack-php" | indent
 
