@@ -11,17 +11,24 @@ shopt -s dotglob
 
 BUILD_DIR=$1
 CACHE_DIR=$2
-ENV_DIR=${3:-}
+ENV_DIR=${3:-} # Anvil has none
 BP_DIR=`cd $(dirname $0); cd ..; pwd`
-
-S3_URL="https://lang-php.s3.amazonaws.com/dist-develop"
 
 # convenience functions
 source $BP_DIR/bin/common.sh
 
-if [ -n "$ENV_DIR" ]; then
-    export_env_dir "$ENV_DIR" "" '^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH)$'
+export_env_dir "$ENV_DIR" "" '^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH)$'
+
+BUILDPACK_URL=${BUILDPACK_URL:-} # Anvil has none
+BUILDPACK_BRANCH=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' || true)
+BUILDPACK_BRANCH=${BUILDPACK_BRANCH:-master}
+BUILDPACK_OWNER=$(expr "$BUILDPACK_URL" : '^.*/\(..*\)/heroku-buildpack-php' || true)
+
+S3_URL=$BUILDPACK_BRANCH
+if [ "$BUILDPACK_BRANCH" != "beta" ]; then
+    S3_URL="develop"
 fi
+S3_URL="https://lang-php.s3.amazonaws.com/dist-${S3_URL}"
 
 cd $BUILD_DIR
 
@@ -145,7 +152,7 @@ if [ -f composer.lock ]; then
 
     # install dependencies
     $COMPOSER_CMD --version | indent
-    $COMPOSER_CMD install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
+    $COMPOSER_CMD install --no-dev --prefer-dist --no-interaction | indent
 fi
 
 status "Building runtime environment..."
@@ -153,17 +160,21 @@ status "Building runtime environment..."
 # it will contain the apache/nginx/php configs and the boot script
 # this will only install this one package, and leave everything else intact
 # we use our version of composer for this to make sure it works
-# TODO: make sure the project composer.json doesn't require this package
-# TODO: install same tree-ish as this buildpack instance (read it from BUILDPACK_URL)
-BUILDPACK_URL=${BUILDPACK_URL:-}
-this_git_tree_ish=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' || true)
-this_git_tree_ish=${this_git_tree_ish:-master}
+# TODO: warn if require-dev has the package using a different branch
 # FIXME: should be dev-master#$this_git_tree_ish unless the tree-ish is a branch name
 # require without updates (quietly to not confuse people), then update with --no-dev, as currently, require defaults to dev since the recent install-with-dev change
 if [[ "$json_empty" == "1" ]]; then
     echo "{}" > composer.json
 fi
-composer require --no-update --no-interaction --quiet "heroku/heroku-buildpack-php dev-$this_git_tree_ish" | indent
+if [ "$BUILDPACK_OWNER" != "heroku" ]; then
+notice "You're using a fork of the official buildpack; for runtime use
+it'll now install itself into the application with Composer using package
+'heroku/heroku-buildpack-php' from Packagist. This operation will pull
+from the official buildpack sources. To have Composer install your fork
+instead, load your package in composer.json using a VCS repository, see
+https://getcomposer.org/doc/05-repositories.md#loading-a-package-from-a-vcs-repository."
+fi
+composer require --no-update --no-interaction --quiet "heroku/heroku-buildpack-php dev-$BUILDPACK_BRANCH" | indent
 composer update --no-dev --prefer-dist --optimize-autoloader --no-interaction "heroku/heroku-buildpack-php" | indent
 
 # Update the PATH
