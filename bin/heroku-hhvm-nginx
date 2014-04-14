@@ -45,13 +45,14 @@ Options:
                           Recommended approach when customizing Nginx's config
                           in most cases, unless you need to set http or
                           fundamental server level options.
-                          [default: $COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/heroku_site.conf.php]
+                          [default: $COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf]
   -c <nginx.conf>         The path to the full configuration file that is
                           included after Heroku's (or your local) Nginx config
                           is loaded. It must contain an 'http { ... }' block
-                          with a 'server { ... }' inside (see option -C above),
-                          but no global directives (those are taken from the
-                          default Nginx configuration).
+                          with a 'server { ... }' inside that contains 'listen'
+                          and 'root' (see option -C above), but no global,
+                          directives (globals are read from the system's default
+                          Nginx configuration files).
                           [default: $COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php]
   -h                      Display this help screen and exit.
   -i <php.ini>            The path to the php.ini file to use.
