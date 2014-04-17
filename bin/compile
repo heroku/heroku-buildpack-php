@@ -179,3 +179,9 @@ if [ -f composer.json ]; then
     $COMPOSER_CMD run-script post-install-cmd --no-dev --no-interaction --quiet
 fi
 EOF
+
+if [[ ! -f "Procfile" ]]; then
+    bindir=`composer config bin-dir`
+    echo "web: $bindir/heroku-php-apache2" > Procfile
+    status "No Procfile found, defaulting to 'web: $bindir/heroku-php-apache2'"
+fi
