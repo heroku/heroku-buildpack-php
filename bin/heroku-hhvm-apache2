@@ -158,7 +158,7 @@ echo "Starting log redirection..." >&2
 # (it writes to STDOUT, we need to redirect to STDERR)
 echo "Starting hhvm..." >&2
 ( hhvm --mode server -vServer.Type=fastcgi -vServer.FileSocket=/tmp/heroku.fcgi.$PORT.sock -c "$php_config" >&2; echo "hhvm"; ) > $wait_pipe &
-# wait a few seconds for HHVM to finish initializing; otherwise an early request might break nginx with the FastCGI pipe not being ready
+# wait a few seconds for HHVM to finish initializing; otherwise an early request might break Apache with the FastCGI pipe not being ready
 # start apache; write "httpd" to the shared pipe if it exits
 echo "Starting httpd..." >&2
 ( sleep 2; httpd -D FOREGROUND -c "Include $httpd_config" || true; echo "httpd"; ) > $wait_pipe &
