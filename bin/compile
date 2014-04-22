@@ -172,12 +172,8 @@ composer update --no-dev --prefer-dist --optimize-autoloader --no-interaction "h
 
 # Update the PATH
 mkdir -p $BUILD_DIR/.profile.d
-# look for composer.json, not composer.lock - maybe someone has a post-install-cmd, but no requires
 cat > $BUILD_DIR/.profile.d/php.sh <<EOF
 export PATH="\$HOME/.heroku/php/bin:\$HOME/.heroku/php/sbin:\$PATH"
-if [ -f composer.json ]; then
-    $COMPOSER_CMD run-script post-install-cmd --no-dev --no-interaction --quiet
-fi
 EOF
 
 if [[ ! -f "Procfile" ]]; then
