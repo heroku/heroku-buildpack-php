@@ -182,9 +182,10 @@ echo "Starting log redirection..." >&2
 # start FPM; write "php-fpm" to the shared pipe if it exits
 echo "Starting php-fpm..." >&2
 ( php-fpm --nodaemonize -y "$fpm_config" -c "$php_config"; echo "php-fpm"; ) > $wait_pipe &
+# wait a few seconds for FPM to finish initializing; otherwise an early request might break Apache with the FastCGI pipe not being ready
 # start apache; write "httpd" to the shared pipe if it exits
 echo "Starting httpd..." >&2
-( httpd -D FOREGROUND -c "Include $httpd_config" || true; echo "httpd"; ) > $wait_pipe &
+( sleep 2; httpd -D FOREGROUND -c "Include $httpd_config" || true; echo "httpd"; ) > $wait_pipe &
 
 # wait for something to come from the shared pipe, which means that the given process was killed or has failed
 # we'll only reach this if one of the processes above has terminated
