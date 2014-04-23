@@ -12,7 +12,7 @@ shopt -s dotglob
 BUILD_DIR=$1
 CACHE_DIR=$2
 ENV_DIR=${3:-} # Anvil has none
-BP_DIR=`cd $(dirname $0); cd ..; pwd`
+BP_DIR=$(cd $(dirname $0); cd ..; pwd)
 
 # convenience functions
 source $BP_DIR/bin/common.sh
@@ -88,7 +88,7 @@ curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # we need to run PHP in here, set it up!
 ln -s $BUILD_DIR/.heroku $HOME/.heroku
 export PATH=$HOME/.heroku/php/bin:$PATH
-PHP_EXT_DIR=`php-config --extension-dir`
+PHP_EXT_DIR=$(php-config --extension-dir)
 # update config files
 mkdir -p $BUILD_DIR/.heroku/php/etc/php
 cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc/php
@@ -189,7 +189,7 @@ EOF
 fi
 
 if [[ ! -f "Procfile" ]]; then
-    bindir=`composer config bin-dir`
+    bindir=$(composer config bin-dir)
     echo "web: $bindir/heroku-php-apache2" > Procfile
     status "No Procfile found, defaulting to 'web: $bindir/heroku-php-apache2'"
 fi
