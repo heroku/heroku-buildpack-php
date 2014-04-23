@@ -41,7 +41,8 @@ if [[ -s "composer.json" ]]; then
     fi
 else
     json_empty=1
-    warning 'Your composer.json is completely empty, please consider putting at least "{}" in there to make it valid JSON.'
+    notice 'Your composer.json is completely empty.
+Consider putting at least "{}" in there to make it valid JSON.'
 fi
 
 mkdir -p .heroku/php
@@ -137,8 +138,8 @@ if [[ -f "composer.lock" ]]; then
     # check if we should use a composer.phar version bundled with the project
     if [[ -f "composer.phar" ]]; then
         COMPOSER_CMD="php composer.phar"
-        warning "Found a composer.phar in app root, will use it for install."
-        echo "Make sure this version of composer is up to date!" | indent
+        notice "Found a composer.phar in app root, will use it for install.
+Make sure this version of composer is up to date!"
     else
         $COMPOSER_CMD self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
     fi
