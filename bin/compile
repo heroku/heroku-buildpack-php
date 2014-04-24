@@ -148,30 +148,31 @@ Make sure this version of composer is up to date!"
 
     # install dependencies
     composer --version | indent
-    composer install --no-dev --prefer-dist --no-interaction | indent
+    composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
 fi
 
 status "Building runtime environment..."
-# install this buildpack as a composer package
+
+# install this buildpack like a composer package
 # it will contain the apache/nginx/php configs and the boot script
-# this will only install this one package, and leave everything else intact
-# we use our version of composer for this to make sure it works
 # TODO: warn if require-dev has the package using a different branch
-# FIXME: should be dev-master#$this_git_tree_ish unless the tree-ish is a branch name
-# require without updates (quietly to not confuse people), then update with --no-dev, as currently, require defaults to dev since the recent install-with-dev change
-if [[ "$json_empty" == "1" ]]; then
-    echo "{}" > composer.json
-fi
-if [[ "$BUILDPACK_OWNER" != "heroku" ]]; then
-notice "You're using a fork of the official buildpack; for runtime use
-it'll now install itself into the application with Composer using package
-'heroku/heroku-buildpack-php' from Packagist. This operation will pull
-from the official buildpack sources. To have Composer install your fork
-instead, load your package in composer.json using a VCS repository, see
-https://getcomposer.org/doc/05-repositories.md#loading-a-package-from-a-vcs-repository."
-fi
-composer require --no-update --no-interaction --quiet "heroku/heroku-buildpack-php dev-$BUILDPACK_BRANCH" | indent
-composer update --no-dev --prefer-dist --optimize-autoloader --no-interaction "heroku/heroku-buildpack-php" | indent
+shopt -u dotglob # we don't want .git, .gitignore et al
+composer_vendordir=$(composer config vendor-dir)
+composer_bindir=$(composer config bin-dir)
+# figure out the package dir name to write to and copy to it
+hbpdir="$composer_vendordir/$(cat $BP_DIR/composer.json | python -c 'import sys, json; print json.load(sys.stdin)["name"]')"
+mkdir -p "$BUILD_DIR/$hbpdir"
+cp -r "$BP_DIR"/* "$BUILD_DIR/$hbpdir/"
+# make bin dir, just in case
+mkdir -p "$BUILD_DIR/$composer_bindir"
+# figure out shortest relative path from vendor/heroku/heroku-buildpack-php to vendor/bin (or whatever the bin dir is)
+relbin=$(python -c "import os.path; print os.path.relpath('$hbpdir', '$composer_bindir')")
+# collect bin names from composer.json
+relbins=$(cat $BP_DIR/composer.json | python -c 'from __future__ import print_function; import sys, json; { print(sys.argv[1]+"/"+bin) for bin in json.load(sys.stdin)["bin"] }' $relbin)
+# link to bins
+cd $BUILD_DIR/$composer_bindir
+ln -s $relbins .
+cd $BUILD_DIR
 
 # Update the PATH
 mkdir -p $BUILD_DIR/.profile.d
