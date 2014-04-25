@@ -8,9 +8,9 @@ set -eu
 shopt -s extglob
 
 php_passthrough() {
-    local dir=`dirname $1`
-    local file=`basename $1`
-    local out=`basename $file .php`
+    local dir=$(dirname $1)
+    local file=$(basename $1)
+    local out=$(basename $file .php)
     if [[ "$out" != "$file" ]]; then
         echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
         out="$dir/$out"
@@ -75,11 +75,11 @@ you retain the appropriate include mechanisms (see default configs for details).
 }
 
 # we need this in configs
-export HEROKU_APP_DIR=`pwd`
+export HEROKU_APP_DIR=$(pwd)
 export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 # set a default port if none is given
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
-COMPOSER_VENDOR_DIR=`composer config vendor-dir`
+COMPOSER_VENDOR_DIR=$(composer config vendor-dir)
 
 while getopts ":C:c:F:f:i:h" opt; do
     case $opt in
@@ -121,7 +121,7 @@ if [[ "$#" -gt "1" ]]; then
 fi
 
 php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This program requires PHP 5.5.11 or newer" >&2; exit 1; }
-httpd -v | php -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/([\d\\.]+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.8", "<"));' || { echo "This program requires Apache 2.4.8 or newer with mod_proxy_fcgi enabled" >&2; exit 1; }
+{ { httpd -v | php -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/([\d\\.]+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.8", "<"));'; } && { httpd -t -D DUMP_MODULES 2> /dev/null | grep "proxy_fcgi_module" > /dev/null; }; } || { echo "This program requires Apache 2.4.8 or newer with mod_proxy_fcgi enabled" >&2; exit 1; }
 
 echo "Booting on port $PORT..." >&2
 
@@ -163,7 +163,7 @@ httpd_config=$(php_passthrough "$httpd_config")
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
 # this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).
-wait_pipe=`mktemp -t "heroku.waitpipe-$PORT.XXXXXX" -u`
+wait_pipe=$(mktemp -t "heroku.waitpipe-$PORT.XXXXXX" -u)
 rm -rf $wait_pipe
 mkfifo $wait_pipe
 
@@ -172,7 +172,6 @@ mkfifo $wait_pipe
 # 2) kill childrens' child processes (the stuff running inside the sub-shells) using xargs because this is easier (-P expects a comma separated list); the || true prevents premature exit (set -e) if one of those doesn't have children anymore (it's likely that's why we're hitting this bit of code in the first place)
 # 3) kill child processes (that's the sub-shells); it's likely that some of them have already disappeared, so xarg || true it too and suppress "no such process" complaints by sending them to /dev/null
 # FIXME: this doesn't currently fire when the subshells themselves are terminated, and apparently also not when killing the tail command
-# FIXME: when killing the httpd command or ctrl+c-ing, it leaves fpm behind, unlike with nginx, must investigate
 # TODO: for extra brownie points, move to a function and curry for each given signal, passing the signal in as an arg, so we can use different exit codes or messages
 trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -p | xargs -n1 pkill -TERM -P || true; jobs -p | xargs -n1 kill -TERM 2> /dev/null || true; exit' SIGINT SIGQUIT SIGTERM EXIT
 
@@ -182,9 +181,10 @@ echo "Starting log redirection..." >&2
 # start FPM; write "php-fpm" to the shared pipe if it exits
 echo "Starting php-fpm..." >&2
 ( php-fpm --nodaemonize -y "$fpm_config" -c "$php_config"; echo "php-fpm"; ) > $wait_pipe &
+# wait a few seconds for FPM to finish initializing; otherwise an early request might break Apache with the FastCGI pipe not being ready
 # start apache; write "httpd" to the shared pipe if it exits
 echo "Starting httpd..." >&2
-( httpd -D FOREGROUND -c "Include $httpd_config" || true; echo "httpd"; ) > $wait_pipe &
+( sleep 2; httpd -D NO_DETACH -c "Include $httpd_config" || true; echo "httpd"; ) > $wait_pipe &
 
 # wait for something to come from the shared pipe, which means that the given process was killed or has failed
 # we'll only reach this if one of the processes above has terminated

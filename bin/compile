@@ -12,7 +12,7 @@ shopt -s dotglob
 BUILD_DIR=$1
 CACHE_DIR=$2
 ENV_DIR=${3:-} # Anvil has none
-BP_DIR=`cd $(dirname $0); cd ..; pwd`
+BP_DIR=$(cd $(dirname $0); cd ..; pwd)
 
 # convenience functions
 source $BP_DIR/bin/common.sh
@@ -32,7 +32,7 @@ S3_URL="https://lang-php.s3.amazonaws.com/dist-${S3_URL}"
 
 cd $BUILD_DIR
 
-if [ -s composer.json ]; then
+if [[ -s "composer.json" ]]; then
     json_empty=0
     json_invalid=0
     cat composer.json | python -mjson.tool &> /dev/null || json_invalid=$?
@@ -41,19 +41,19 @@ if [ -s composer.json ]; then
     fi
 else
     json_empty=1
-    warning 'Your composer.json is completely empty, please consider putting at least "{}" in there to make it valid JSON.'
+    notice 'Your composer.json is completely empty.
+Consider putting at least "{}" in there to make it valid JSON.'
 fi
 
 mkdir -p .heroku/php
 
-export COMPOSER_CMD='composer'
 export COMPOSER_CACHE_DIR=$CACHE_DIR/php/composer
 mkdir -p $COMPOSER_CACHE_DIR
 
 PHP_VERSIONS="5.5.11"
 HHVM_VERSIONS="3.0.1"
-if [ -f composer.json ]; then
-    if [ ! -f composer.lock ]; then
+if [[ -f "composer.json" ]]; then
+    if [[ ! -f "composer.lock" ]]; then
         has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null || true) # might fail, set -e would stop execution
         if [ "$has_packages" == "True" ]; then
             error "Your composer.json specifies dependencies, but no composer.lock was found, please check it into your repository along with composer.json!"
@@ -61,14 +61,14 @@ if [ -f composer.json ]; then
     fi
     
     require_self=$(cat composer.json | python -c 'import sys, json; print json.load(sys.stdin)["require"]["heroku/heroku-buildpack-php"]' 2> /dev/null || true)
-    if [ -n "$require_self" ]; then
+    if [[ -n "$require_self" ]]; then
         error "Your composer.json specifies 'heroku/heroku-buildpack-php' as a requirement; this package may only be used as a dev dependency!"
     fi
     
     # FIXME: this would be, of course, very basic and doesn't support expressions; migrate to semver.org
     phpver=$(cat composer.json | python -c 'import sys, json; print json.load(sys.stdin)["require"]["php"]' 2> /dev/null || true)
-    if [ ! -z $phpver ]; then
-        if [[ $PHP_VERSIONS =~ $phpver ]]; then
+    if [[ -n "$phpver" ]]; then
+        if [[ $PHP_VERSIONS =~ "$phpver" ]]; then
             status "Detected request for PHP $phpver in composer.json."
             PHP_VERSION=$phpver
         else
@@ -91,7 +91,7 @@ curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # we need to run PHP in here, set it up!
 ln -s $BUILD_DIR/.heroku $HOME/.heroku
 export PATH=$HOME/.heroku/php/bin:$PATH
-PHP_EXT_DIR=`php-config --extension-dir`
+PHP_EXT_DIR=$(php-config --extension-dir)
 # update config files
 mkdir -p $BUILD_DIR/.heroku/php/etc/php
 cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc/php
@@ -119,16 +119,16 @@ curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.conf
 
 # handle extensions
-if [ -f composer.json ]; then
+if [[ -f "composer.json" ]]; then
     exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
-    if [ ! -z "$exts" ]; then
+    if [[ -n "$exts" ]]; then
         status "Activating PHP extensions listed in composer.json:"
         while read -r ext; do
             ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
-            if [ -f $ext_ini ]; then
+            if [[ -f "$ext_ini" ]]; then
                 cp $ext_ini $BUILD_DIR/.heroku/php/etc/php/conf.d
                 echo "- $ext (using dedicated ext-$ext.ini)" | indent
-            elif [ -f "$PHP_EXT_DIR/$ext.so" ]; then
+            elif [[ -f "$PHP_EXT_DIR/$ext.so" ]]; then
                 echo "extension = $ext.so" > $BUILD_DIR/.heroku/php/etc/php/conf.d/ext-$ext.ini
                 echo "- $ext" | indent
             else
@@ -138,55 +138,70 @@ if [ -f composer.json ]; then
     fi
 fi
 
-if [ -f composer.lock ]; then
+if [[ -f "composer.lock" ]]; then
     status "Installing dependencies..."
     
     # check if we should use a composer.phar version bundled with the project
-    if [ -f composer.phar ]; then
-        COMPOSER_CMD="php composer.phar"
-        warning "Found a composer.phar in app root, will use it for install."
-        echo "Make sure this version of composer is up to date!" | indent
+    if [[ -f "composer.phar" ]]; then
+        composer() {
+            php composer.phar $*
+        }
+        export -f composer
+        notice "Found a composer.phar in app root, will use it for install.
+Make sure this version of composer is up to date!"
     else
-        $COMPOSER_CMD self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
+        composer self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
     fi
 
     # install dependencies
-    $COMPOSER_CMD --version | indent
-    $COMPOSER_CMD install --no-dev --prefer-dist --no-interaction | indent
+    composer --version | indent
+    composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
 fi
 
 status "Building runtime environment..."
-# install this buildpack as a composer package
+
+# install this buildpack like a composer package
 # it will contain the apache/nginx/php configs and the boot script
-# this will only install this one package, and leave everything else intact
-# we use our version of composer for this to make sure it works
 # TODO: warn if require-dev has the package using a different branch
-# FIXME: should be dev-master#$this_git_tree_ish unless the tree-ish is a branch name
-# require without updates (quietly to not confuse people), then update with --no-dev, as currently, require defaults to dev since the recent install-with-dev change
-if [[ "$json_empty" == "1" ]]; then
-    echo "{}" > composer.json
-fi
-if [ "$BUILDPACK_OWNER" != "heroku" ]; then
-notice "You're using a fork of the official buildpack; for runtime use
-it'll now install itself into the application with Composer using package
-'heroku/heroku-buildpack-php' from Packagist. This operation will pull
-from the official buildpack sources. To have Composer install your fork
-instead, load your package in composer.json using a VCS repository, see
-https://getcomposer.org/doc/05-repositories.md#loading-a-package-from-a-vcs-repository."
-fi
-composer require --no-update --no-interaction --quiet "heroku/heroku-buildpack-php dev-$BUILDPACK_BRANCH" | indent
-composer update --no-dev --prefer-dist --optimize-autoloader --no-interaction "heroku/heroku-buildpack-php" | indent
+shopt -u dotglob # we don't want .git, .gitignore et al
+composer_vendordir=$(composer config vendor-dir)
+composer_bindir=$(composer config bin-dir)
+# figure out the package dir name to write to and copy to it
+hbpdir="$composer_vendordir/$(cat $BP_DIR/composer.json | python -c 'import sys, json; print json.load(sys.stdin)["name"]')"
+mkdir -p "$BUILD_DIR/$hbpdir"
+cp -r "$BP_DIR"/* "$BUILD_DIR/$hbpdir/"
+# make bin dir, just in case
+mkdir -p "$BUILD_DIR/$composer_bindir"
+# figure out shortest relative path from vendor/heroku/heroku-buildpack-php to vendor/bin (or whatever the bin dir is)
+relbin=$(python -c "import os.path; print os.path.relpath('$hbpdir', '$composer_bindir')")
+# collect bin names from composer.json
+relbins=$(cat $BP_DIR/composer.json | python -c 'from __future__ import print_function; import sys, json; { print(sys.argv[1]+"/"+bin) for bin in json.load(sys.stdin)["bin"] }' $relbin)
+# link to bins
+cd $BUILD_DIR/$composer_bindir
+ln -s $relbins .
+cd $BUILD_DIR
 
 # Update the PATH
 mkdir -p $BUILD_DIR/.profile.d
-# look for composer.json, not composer.lock - maybe someone has a post-install-cmd, but no requires
 cat > $BUILD_DIR/.profile.d/php.sh <<EOF
 export PATH="\$HOME/.heroku/php/bin:\$HOME/.heroku/php/sbin:\$PATH"
-if [ -f composer.json ]; then
-    $COMPOSER_CMD run-script post-install-cmd --no-dev --no-interaction --quiet
-fi
 EOF
 cat >> $BUILD_DIR/.profile.d/hhvm.sh <<EOF
 hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib /app/.heroku/php/usr/bin/hhvm \$*; }
 export -f hhvm
 EOF
+# Alias composer if needed
+if [[ -f "composer.phar" ]]; then
+    cat > $BUILD_DIR/.profile.d/composer.sh <<EOF
+composer() {
+    php composer.phar \$*
+}
+export -f composer
+EOF
+fi
+
+if [[ ! -f "Procfile" ]]; then
+    bindir=$(composer config bin-dir)
+    echo "web: $bindir/heroku-hhvm-apache2" > Procfile
+    status "No Procfile found, defaulting to 'web: $bindir/heroku-hhvm-apache2'"
+fi
