@@ -8,9 +8,9 @@ set -eu
 shopt -s extglob
 
 php_passthrough() {
-    local dir=`dirname $1`
-    local file=`basename $1`
-    local out=`basename $file .php`
+    local dir=$(dirname $1)
+    local file=$(basename $1)
+    local out=$(basename $file .php)
     if [[ "$out" != "$file" ]]; then
         echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
         out="$dir/$out"
@@ -68,11 +68,11 @@ the appropriate include mechanisms (see default configs for details).
 }
 
 # we need this in configs
-export HEROKU_APP_DIR=`pwd`
+export HEROKU_APP_DIR=$(pwd)
 export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 # set a default port if none is given
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
-COMPOSER_VENDOR_DIR=`composer config vendor-dir`
+COMPOSER_VENDOR_DIR=$(composer config vendor-dir)
 
 while getopts ":C:c:i:h" opt; do
     case $opt in
@@ -138,7 +138,7 @@ httpd_config=$(php_passthrough "$httpd_config")
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
 # this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).
-wait_pipe=`mktemp -t "heroku.waitpipe-$PORT.XXXXXX" -u`
+wait_pipe=$(mktemp -t "heroku.waitpipe-$PORT.XXXXXX" -u)
 rm -rf $wait_pipe
 mkfifo $wait_pipe
 
