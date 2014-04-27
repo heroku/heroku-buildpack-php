@@ -54,7 +54,7 @@ LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
     --enable-soap=shared \
     --with-xmlrpc=shared \
     --with-xsl=shared
-make -s
+make -s -j 9
 make install -s
 popd
 
@@ -67,7 +67,7 @@ phpize
 ./configure \
     --enable-memcached \
     --with-libmemcached-dir=${OUT_PREFIX}
-make -s
+make -s -j 9
 make install -s
 popd
 

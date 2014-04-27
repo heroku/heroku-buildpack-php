@@ -37,7 +37,7 @@ pushd ${dep_dirname}
     --enable-proxy-fcgi \
     --enable-rewrite \
     --enable-deflate
-make -s
+make -s -j 9
 make install -s
 popd
 

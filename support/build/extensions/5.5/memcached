@@ -26,7 +26,7 @@ phpize
     --prefix=$OUT_PREFIX
     --enable-memcached \
     --with-libmemcached-dir=$OUT_PREFIX
-make -s
+make -s -j 9
 # php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
 rm -rf ${OUT_PREFIX}/*
 make install -s
