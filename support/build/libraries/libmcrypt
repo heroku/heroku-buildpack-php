@@ -8,27 +8,20 @@ set -o pipefail
 # fail harder
 set -eux
 
-echo "Building libmcrypt..."
-
-echo "=== Downloading libmcrypt source..."
-
-dep_version=${VERSION:-2.5.8}
+DEFAULT_VERSION="2.5.8"
+dep_version=${VERSION:-$DEFAULT_VERSION}
 dep_dirname=libmcrypt-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
+dep_url=http://downloads.sourceforge.net/project/mcrypt/Libmcrypt/${dep_version}/${dep_archive_name}
 
-curl -LO http://downloads.sourceforge.net/project/mcrypt/Libmcrypt/${dep_version}/${dep_archive_name}
-tar xzf $dep_archive_name
-pushd $dep_dirname
+echo "-----> Building libmcrypt ${dep_version}..."
 
-echo "=== Compiling libmcrypt..."
-./configure --disable-posix-threads --prefix=$OUT_PREFIX
-make
-make install
+curl -L ${dep_url} | tar xz
+
+pushd ${dep_dirname}
+./configure --disable-posix-threads --prefix=${OUT_PREFIX}
+make -s
+make install -s
 popd
 
-
-echo "=== Cleaning up..."
-rm -fr ${dep_dirname} ${dep_archive_name}
-
-
-echo "Done building libmcrypt."
+echo "-----> Done."

@@ -8,23 +8,20 @@ set -o pipefail
 # fail harder
 set -eux
 
-echo "Building ImageMagick.."
+DEFAULT_VERSION="6.6.8-10"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=ImageMagick-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
+dep_url=http://www.imagemagick.org/download/${dep_archive_name}
 
-echo "=== Downloading ImageMagick source..."
-curl -LO http://www.imagemagick.org/download/ImageMagick-6.8.8-10.tar.gz
-tar xzf ImageMagick-6.8.8-10.tar.gz
-pushd ImageMagick-6.8.8-10
+echo "-----> Building ImageMagick ${dep_version}..."
 
+curl -L ${dep_url} | tar xz
 
-echo "=== Compiling ImageMagick..."
-./configure --prefix=$OUT_PREFIX
-make
-make install
+pushd ${dep_dirname}
+./configure --prefix=${OUT_PREFIX}
+make -s
+make install -s
 popd
 
-
-echo "=== Cleaning up..."
-rm -fr ImageMagick-6.8.8-10 ImageMagick-6.8.8-10.tar.gz
-
-
-echo "Done building ImageMagick."
+echo "-----> Done."
