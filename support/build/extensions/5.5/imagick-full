@@ -2,4 +2,7 @@
 # Build Path: /app/.heroku/php/
 # Build Deps: extensions/5.5/imagick, libraries/imagemagick
 
-# That's it.
+# That's it - we're combining the dep build and the extension build here
+
+echo "-----> Merging dependencies..."
+echo "-----> Done."

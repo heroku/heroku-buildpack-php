@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: php-5.5.11
+# Build Deps: php-5.5.11, libraries/libmemcached
 
 OUT_PREFIX=$1
 
@@ -9,38 +9,27 @@ set -o pipefail
 # fail harder
 set -eux
 
-# Make the PHP binaries available.
-export PATH=$PWD/bin:$PATH
+DEFAULT_VERSION="2.2.0"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=php-memcached-${dep_version}
+dep_archive_name=${dep_version}.tar.gz
+dep_url=https://github.com/php-memcached-dev/php-memcached/archive/${dep_archive_name}
 
+echo "-----> Building ext/memcached ${dep_version}..."
 
-# Take care of vendoring
-dep_version=${VERSION:-5.5.10}
-dep_dirname=php-$dep_version
-dep_archive_name=$dep_dirname.tar.bz2
+curl -L ${dep_url} | tar xz
 
-echo "=== Bulding PHP Memcache Extension for PHP 5.5"
-
-
-echo "Fetching PHP Memcache Extension..."
-curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0.tar.gz | tar xz
-pushd php-memcached-2.2.0
+pushd ${dep_dirname}
+export PATH=$OUT_PREFIX/bin:$PATH
 phpize
-
-echo "Building PHP Memcache Extension..."
 ./configure \
+    --prefix=$OUT_PREFIX
     --enable-memcached \
     --with-libmemcached-dir=$OUT_PREFIX
 make -s
-
-# Distill the existing PHP installation.
-rm -fr ../bin ../etc ../include ../lib ../php ../sbin ../share ../var
-
+# php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
+rm -rf ${OUT_PREFIX}/*
 make install -s
 popd
 
-echo "Cleanup Up..."
-rm -fr php-memcached-2.2.0RC1
-rm -fr $dep_dirname $dep_archive_name
-
-
-echo "Building PHP Memcache Extension for PHP 5.5!"
+echo "-----> Done."
