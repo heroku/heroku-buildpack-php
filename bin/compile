@@ -76,8 +76,8 @@ fi
 
 mkdir -p .heroku/php
 
-export COMPOSER_CACHE_DIR=$CACHE_DIR/php/composer
-mkdir -p $COMPOSER_CACHE_DIR
+export COMPOSER_HOME=$CACHE_DIR/php/.composer
+mkdir -p $COMPOSER_HOME
 
 PHP_VERSIONS="5.5.11"
 if [[ -f "composer.json" ]]; then
