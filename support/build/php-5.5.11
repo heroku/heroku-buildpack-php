@@ -58,19 +58,6 @@ make -s -j 9
 make install -s
 popd
 
-echo "-----> Building ext/memcached..."
-
-curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0.tar.gz | tar xz
-
-pushd php-memcached-2.2.0
-phpize
-./configure \
-    --enable-memcached \
-    --with-libmemcached-dir=${OUT_PREFIX}
-make -s -j 9
-make install -s
-popd
-
 echo "-----> Preparing PECL..."
 ${OUT_PREFIX}/bin/pecl channel-update pecl.php.net
 
