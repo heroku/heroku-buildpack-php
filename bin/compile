@@ -3,12 +3,13 @@
 # bin/compile <build-dir> <cache-dir> <env-dir>
 
 install_ext () {
-    ext=$1
-    reason=${2:-}
-    ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
+    local ext=$1
+    local reason=${2:-}
+    local ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
+    local ext_dir=$(basename $(php-config --extension-dir))
     if [[ -f "$ext_ini" ]]; then
         if [[ ! -f "$PHP_EXT_DIR/$ext.so" ]]; then
-            curl --silent --location "${S3_URL}/extensions/5.5/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
+            curl --silent --location "${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
             echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini')" | indent
         else
             echo "- ${ext} (${reason}; bundled, using 'ext-${ext}.ini')" | indent
