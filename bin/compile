@@ -135,10 +135,20 @@ install_ext "opcache" "automatic"
 if [[ -f "composer.json" ]]; then
     exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
 fi
+newrelic_installed=false
 if [[ -n "$exts" ]]; then
     while read -r ext; do
+        if [[ "$ext" == "newrelic" ]]; then
+            newrelic_installed=true
+        fi
         install_ext "$ext" "composer.json"
     done <<< "$exts"
+fi
+# special treatment for New Relic; we enable it if we detect a license key for it
+# otherwise users would have to have it in their require section, which is annoying in development environments
+NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
+if [[ $newrelic_installed == false && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
+    install_ext "newrelic" "add-on detected"
 fi
 
 if [[ -f "composer.lock" ]]; then
@@ -198,6 +208,13 @@ composer() {
 export -f composer
 EOF
 fi
+# new relic defaults
+cat > $BUILD_DIR/.profile.d/newrelic.sh <<"EOF"
+if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
+    export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-"PHP Application on Heroku"}
+    export NEW_RELIC_LOG=${NEW_RELIC_LOG:-"stdout"}
+fi
+EOF
 
 if [[ ! -f "Procfile" ]]; then
     bindir=$(composer config bin-dir)
