@@ -30,7 +30,11 @@ LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
     --with-bz2 \
     --with-curl \
     --with-mcrypt=${OUT_PREFIX} \
+    --with-pdo-mysql \
+    --with-mysqli \
     --with-openssl \
+    --with-pgsql \
+    --with-pdo-pgsql \
     --with-readline \
     --enable-sockets \
     --enable-zip \
@@ -45,11 +49,7 @@ LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
         --with-png-dir=/usr \
     --enable-intl=shared \
     --enable-mbstring=shared \
-    --with-pdo-mysql=shared \
-    --with-mysqli=shared \
     --enable-pcntl=shared \
-    --with-pgsql=shared \
-    --with-pdo-pgsql=shared \
     --enable-shmop=shared \
     --enable-soap=shared \
     --with-xmlrpc=shared \
