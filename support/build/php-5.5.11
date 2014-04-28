@@ -9,45 +9,33 @@ set -o pipefail
 # fail harder
 set -eux
 
-export PATH=$OUT_PREFIX/bin:$PATH
+DEFAULT_VERSION="5.5.11"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=php-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
+dep_url=http://us1.php.net/get/${dep_archive_name}/from/www.php.net/mirror
 
+echo "-----> Building PHP ${dep_version}..."
 
-# Take care of vendoring
-dep_version=${VERSION:-5.5.11}
-dep_dirname=php-$dep_version
-dep_archive_name=$dep_dirname.tar.bz2
+curl -L ${dep_url} | tar xz
 
-
-echo "=== Building PHP"
-
-# Download PHP source.
-echo "Fetching PHP v$dep_version source..."
-curl -Lo $dep_archive_name http://us1.php.net/get/$dep_archive_name/from/www.php.net/mirror
-
-# Clean and extract PHP.
-rm -rf $dep_dirname
-tar jxf $dep_archive_name
-
-
-# Compile PHP
-echo "Compiling PHP v$dep_version..."
-
+pushd ${dep_dirname}
+export PATH=${OUT_PREFIX}/bin:$PATH
 # cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
-pushd $dep_dirname
-LD_LIBRARY_PATH=$OUT_PREFIX ./configure \
-    --prefix=$OUT_PREFIX \
+LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
+    --prefix=${OUT_PREFIX} \
     --with-config-file-path=/app/.heroku/php/etc/php \
     --with-config-file-scan-dir=/app/.heroku/php/etc/php/conf.d \
     --enable-fpm \
     --with-bz2 \
     --with-curl \
-    --with-mcrypt=$OUT_PREFIX \
+    --with-mcrypt=${OUT_PREFIX} \
     --with-openssl \
     --with-readline \
     --enable-sockets \
     --enable-zip \
     --with-zlib \
-    --with-zlib-dir=$OUT_PREFIX \
+    --with-zlib-dir=${OUT_PREFIX} \
     --enable-bcmath=shared \
     --enable-exif=shared \
     --with-gd=shared \
@@ -70,29 +58,24 @@ make -s
 make install -s
 popd
 
-echo "=== Building Built-In PHP Extensions"
+echo "-----> Building ext/memcached..."
 
-
-echo "Fetching PHP Memcache Extension..."
 curl -L https://github.com/php-memcached-dev/php-memcached/archive/2.2.0.tar.gz | tar xz
+
 pushd php-memcached-2.2.0
 phpize
-
-echo "Building PHP Memcache Extension..."
 ./configure \
     --enable-memcached \
-    --with-libmemcached-dir=$OUT_PREFIX
+    --with-libmemcached-dir=${OUT_PREFIX}
 make -s
 make install -s
 popd
 
-echo "=== Preparing Packaging Tools"
+echo "-----> Preparing PECL..."
+${OUT_PREFIX}/bin/pecl channel-update pecl.php.net
 
-echo "Updating PECL Channel: pecl.php.net..."
-$OUT_PREFIX/bin/pecl channel-update pecl.php.net
+echo "-----> Bundling Composer..."
+curl -sS https://getcomposer.org/installer | php -- --install-dir=${OUT_PREFIX}/bin
+mv ${OUT_PREFIX}/bin/composer.phar ${OUT_PREFIX}/bin/composer
 
-echo "Bundling Latest Composer..."
-curl -sS https://getcomposer.org/installer | php -- --install-dir=$OUT_PREFIX/bin
-mv $OUT_PREFIX/bin/composer.phar $OUT_PREFIX/bin/composer
-
-echo "Done building PHP v$dep_version!"
+echo "-----> Done."
