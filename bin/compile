@@ -45,8 +45,8 @@ BUILDPACK_BRANCH=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' |
 BUILDPACK_BRANCH=${BUILDPACK_BRANCH:-master}
 BUILDPACK_OWNER=$(expr "$BUILDPACK_URL" : '^.*/\(..*\)/heroku-buildpack-php' || true)
 
-S3_URL=$BUILDPACK_BRANCH
-if [ "$BUILDPACK_BRANCH" != "beta" ]; then
+S3_URL="beta"
+if [[ "$BUILDPACK_BRANCH" != "beta" && "$BUILDPACK_BRANCH" != "master" ]]; then
     S3_URL="develop"
 fi
 S3_URL="https://lang-php.s3.amazonaws.com/dist-${S3_URL}"
