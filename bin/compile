@@ -54,16 +54,24 @@ S3_URL="https://lang-php.s3.amazonaws.com/dist-${S3_URL}"
 cd $BUILD_DIR
 
 if [[ -s "composer.json" ]]; then
-    json_empty=0
-    json_invalid=0
-    cat composer.json | python -mjson.tool &> /dev/null || json_invalid=$?
-    if [[ "$json_invalid" != "0" ]]; then
+    json_empty=false
+    json_invalid=false
+    cat composer.json | python -mjson.tool &> /dev/null || json_invalid=true
+    if [[ $json_invalid == true ]]; then
         error "Could not parse composer.json; make sure it's valid!"
     fi
+elif [[ ! -f "composer.json" ]]; then
+    json_empty=true
+    warning 'No composer.json found.
+Using index.php to declare PHP applications is considered legacy
+functionality and may lead to unexpected behavior.'
 else
-    json_empty=1
+    json_empty=true
     notice 'Your composer.json is completely empty.
 Consider putting at least "{}" in there to make it valid JSON.'
+fi
+if [[ $json_empty == true ]]; then
+    echo "{}" > composer.json
 fi
 
 mkdir -p .heroku/php
@@ -134,6 +142,7 @@ cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.
 # handle extensions
 status "Installing PHP extensions:"
 install_ext "opcache" "automatic"
+exts=
 if [[ -f "composer.json" ]]; then
     exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
 fi

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ -f $1/composer.json ]; then
+if [[ -f "$1/composer.json" || -f "$1/index.php" ]]; then
   echo "PHP" && exit 0
 else
   exit 1
