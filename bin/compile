@@ -19,7 +19,7 @@ install_ext () {
         echo "extension = ${ext}.so" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
         echo "- ${ext} (${reason}; bundled)" | indent
     else
-        warning "Unknown extension ${ext} (${reason}), install may fail!"
+        warning_inline "Unknown extension ${ext} (${reason}), install may fail!"
     fi
 }
 
@@ -76,7 +76,8 @@ if [[ -f "composer.json" ]]; then
     if [[ ! -f "composer.lock" ]]; then
         has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null || true) # might fail, set -e would stop execution
         if [ "$has_packages" == "True" ]; then
-            error "Your composer.json specifies dependencies, but no composer.lock was found, please check it into your repository along with composer.json!"
+            error "Your composer.json specifies dependencies, but no composer.lock
+was found, please check it into your repository along with composer.json!"
         fi
     fi
     
@@ -220,5 +221,5 @@ EOF
 if [[ ! -f "Procfile" ]]; then
     bindir=$(composer config bin-dir)
     echo "web: $bindir/heroku-php-apache2" > Procfile
-    status "No Procfile found, defaulting to 'web: $bindir/heroku-php-apache2'"
+    notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-php-apache2'"
 fi
