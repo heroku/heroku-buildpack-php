@@ -171,8 +171,7 @@ if [[ -f "composer.lock" ]]; then
             php composer.phar $*
         }
         export -f composer
-        notice "Found a composer.phar in app root, will use it for install.
-Make sure this version of composer is up to date!"
+        notice_inline "Found a composer.phar in root directory, will use it for install."
     else
         composer self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
     fi
