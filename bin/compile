@@ -176,9 +176,22 @@ Make sure this version of composer is up to date!"
     else
         composer self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
     fi
+    # echo composer version for info purposes
+    composer --version | indent
+    
+    # handle custom oauth keys
+    COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
+    if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
+        composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN"
+        notice_inline 'Using custom GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
+    else
+        # don't forget to remove any stored key if it's gone from the env
+        composer config -g --unset github-oauth.github.com
+    fi
+    # no need for the token to stay around in the env
+    unset COMPOSER_GITHUB_OAUTH_TOKEN
 
     # install dependencies
-    composer --version | indent
     composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
 fi
 
