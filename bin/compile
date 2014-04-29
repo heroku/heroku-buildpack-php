@@ -1,78 +1,294 @@
 #!/usr/bin/env bash
-# bin/compile <build-dir> <cache-dir>
 
-# fail fast
-set -e
+# bin/compile <build-dir> <cache-dir> <env-dir>
 
-# Heroku Revision.
-#
-# Affixed to all vendored binary output to represent changes to the
-# compilation environment without a change to the upstream version,
-# e.g. PHP 5.3.27 without, and then subsequently with, libmcrypt.
-heroku_rev='-2'
+install_ext () {
+    local ext=$1
+    local reason=${2:-}
+    local ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
+    local ext_dir=$(basename $(php-config --extension-dir))
+    if [[ -f "$ext_ini" ]]; then
+        if [[ ! -f "$PHP_EXT_DIR/$ext.so" ]]; then
+            curl --silent --location "${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
+            echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini')" | indent
+        else
+            echo "- ${ext} (${reason}; bundled, using 'ext-${ext}.ini')" | indent
+        fi
+        cp "${ext_ini}" "${BUILD_DIR}/.heroku/php/etc/php/conf.d"
+    elif [[ -f "${PHP_EXT_DIR}/${ext}.so" ]]; then
+        echo "extension = ${ext}.so" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
+        echo "- ${ext} (${reason}; bundled)" | indent
+    else
+        warning_inline "Unknown extension ${ext} (${reason}), install may fail!"
+    fi
+}
 
-# config
-MCRYPT_VERSION="2.5.8"
-APACHE_VERSION="2.2.25"
-APACHE_PATH="apache"
-PHP_VERSION="5.3.27"
-PHP_PATH="php"
-
-BIN_DIR=$(dirname $0)
-BUILD_DIR=$1
-CACHE_DIR=$2
-LP_DIR=`cd $(dirname $0); cd ..; pwd`
-
-# include .files when moving things around
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+# move hidden files too, just in case
 shopt -s dotglob
+
+BUILD_DIR=$1
+CACHE_DIR=$2/php
+mkdir -p "$CACHE_DIR"
+ENV_DIR=${3:-} # Anvil has none
+BP_DIR=$(cd $(dirname $0); cd ..; pwd)
+
+# convenience functions
+source $BP_DIR/bin/common.sh
+
+export_env_dir "$ENV_DIR" "" '^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH)$'
+
+BUILDPACK_URL=${BUILDPACK_URL:-} # Anvil has none
+BUILDPACK_BRANCH=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' || true)
+BUILDPACK_BRANCH=${BUILDPACK_BRANCH:-master}
+BUILDPACK_OWNER=$(expr "$BUILDPACK_URL" : '^.*/\(..*\)/heroku-buildpack-php' || true)
+
+S3_URL="beta"
+if [[ "$BUILDPACK_BRANCH" != "beta" && "$BUILDPACK_BRANCH" != "master" ]]; then
+    S3_URL="develop"
+fi
+S3_URL="https://lang-php.s3.amazonaws.com/dist-${S3_URL}"
 
 cd $BUILD_DIR
 
-# move app things to www
-mkdir -p $CACHE_DIR/www
-mv -- * $CACHE_DIR/www
-mv $CACHE_DIR/www .
-
-# keep Procfile
-if [ -f www/Procfile ]; then
-  mv www/Procfile .
+if [[ -s "composer.json" ]]; then
+    json_empty=false
+    json_invalid=false
+    cat composer.json | python -mjson.tool &> /dev/null || json_invalid=true
+    if [[ $json_invalid == true ]]; then
+        error "Could not parse composer.json; make sure it's valid!"
+    fi
+elif [[ ! -f "composer.json" ]]; then
+    json_empty=true
+    warning 'No composer.json found.
+Using index.php to declare PHP applications is considered legacy
+functionality and may lead to unexpected behavior.'
+else
+    json_empty=true
+    notice 'Your composer.json is completely empty.
+Consider putting at least "{}" in there to make it valid JSON.'
+fi
+if [[ $json_empty == true ]]; then
+    echo "{}" > composer.json
 fi
 
-MCRYPT_URL="https://heroku-buildpack-php.s3.amazonaws.com/mcrypt-""$MCRYPT_VERSION""$heroku_rev"".tar.gz"
-echo "-----> Bundling mcrypt version $MCRYPT_VERSION"
-curl --silent --max-time 60 --location "$MCRYPT_URL" | tar xz
+mkdir -p .heroku/php
 
-APACHE_URL="https://heroku-buildpack-php.s3.amazonaws.com/apache-""$APACHE_VERSION""$heroku_rev"".tar.gz"
-echo "-----> Bundling Apache version $APACHE_VERSION"
-curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
+export COMPOSER_HOME=$CACHE_DIR/.composer
+mkdir -p $COMPOSER_HOME
 
-PHP_URL="https://heroku-buildpack-php.s3.amazonaws.com/php-$PHP_VERSION""$heroku_rev"".tar.gz"
-echo "-----> Bundling PHP version $PHP_VERSION"
-curl --silent --max-time 60 --location "$PHP_URL" | tar xz
+PHP_VERSIONS="5.5.11"
+PHP_VERSIONS_ARR=($PHP_VERSIONS)
+PHP_VERSION=
+HHVM_VERSIONS="3.0.1"
+HHVM_VERSIONS_ARR=($HHVM_VERSIONS)
+HHVM_VERSION=
+engine="php"
+if [[ -f "composer.json" ]]; then
+    if [[ ! -f "composer.lock" ]]; then
+        has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null || true) # might fail, set -e would stop execution
+        if [ "$has_packages" == "True" ]; then
+            error "Your composer.json specifies dependencies, but no composer.lock
+was found, please check it into your repository along with composer.json!"
+        fi
+    fi
+    
+    require_self=$(cat composer.json | python -c 'import sys, json; print json.load(sys.stdin)["require"]["heroku/heroku-buildpack-php"]' 2> /dev/null || true)
+    if [[ -n "$require_self" ]]; then
+        error "Your composer.json requires 'heroku/heroku-buildpack-php'.
+This package may only be used as a dev dependency (in 'require-dev')!"
+    fi
+    
+    # FIXME: this would be, of course, very basic and doesn't support expressions; migrate to semver.org
+    phpver=$(cat composer.json | python -c 'import sys, json; print json.load(sys.stdin)["require"]["php"]' 2> /dev/null || true)
+    if [[ -n "$phpver" ]]; then
+        if [[ $PHP_VERSIONS =~ "$phpver" ]]; then
+            status "Detected request for PHP $phpver in composer.json."
+            PHP_VERSION=$phpver
+        else
+            # TODO: fail harder?
+            warning "Your composer.json requires an unknown PHP version.
+Defaulting to PHP ${PHP_VERSIONS_ARR[0]}; install may fail!"
+        fi
+    fi
+    # FIXME: this would be, of course, very basic and doesn't support expressions; migrate to semver.org
+    hhvmver=$(cat composer.json | python -c 'import sys, json; print json.load(sys.stdin)["require"]["hhvm"]' 2> /dev/null || true)
+    if [[ -n "$hhvmver" ]]; then
+        if [[ $HHVM_VERSIONS =~ "$hhvmver" ]]; then
+            status "Detected request for HHVM $hhvmver in composer.json."
+            HHVM_VERSION=$hhvmver
+        else
+            # TODO: fail harder?
+            warning "Your composer.json requires an unknown HHVM version.
+Defaulting to HHVM ${HHVM_VERSIONS_ARR[0]}; install may fail!"
+        fi
+        engine="hhvm"
+    fi
+fi
+if [[ -n "$PHP_VERSION" &&  -n "$HHVM_VERSION" ]]; then
+    error "Cannot require both 'hhvm' and 'php' in composer.json!"
+fi
 
+# use first from *_VERSIONS as default
+PHP_VERSION=${PHP_VERSION:-${PHP_VERSIONS_ARR[0]}}
+HHVM_VERSION=${HHVM_VERSION:-${HHVM_VERSIONS_ARR[0]}}
+
+status "Setting up runtime environment..."
+
+PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tar.gz"
+echo "- PHP $PHP_VERSION" | indent
+curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+# we need to run PHP in here, set it up!
+ln -s $BUILD_DIR/.heroku $HOME/.heroku
+export PATH=$HOME/.heroku/php/bin:$PATH
+PHP_EXT_DIR=$(php-config --extension-dir)
 # update config files
-cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
-cp $LP_DIR/conf/php.ini php
+mkdir -p $BUILD_DIR/.heroku/php/etc/php
+cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc/php
+cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc/php
+mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
+# remember the version for future upgrade handling
+echo $PHP_VERSION > $CACHE_DIR/php_version
 
-# make php available on bin
-mkdir -p bin
-ln -s /app/php/bin/php bin/php
+if [[ $engine == "hhvm" ]]; then
+    HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
+    echo "- HHVM $HHVM_VERSION" | indent
+    curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+    echo $HHVM_VERSION > $CACHE_DIR/hhvm_version
+fi
 
-cat >>boot.sh <<EOF
-for var in \`env|cut -f1 -d=\`; do
-  echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
-done
-touch /app/apache/logs/error_log
-touch /app/apache/logs/access_log
-tail -F /app/apache/logs/error_log &
-tail -F /app/apache/logs/access_log &
-export LD_LIBRARY_PATH=/app/php/lib/php
-export PHP_INI_SCAN_DIR=/app/www
-echo "Launching apache"
-exec /app/apache/bin/httpd -DNO_DETACH
+APACHE_VERSION="2.4.9"
+APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
+echo "- Apache $APACHE_VERSION" | indent
+curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+# Apache; copy in our config
+cp $BP_DIR/conf/apache2/httpd.conf.default $BUILD_DIR/.heroku/php/etc/apache2/httpd.conf
+# remember the version for future upgrade handling
+echo $APACHE_VERSION > $CACHE_DIR/apache2_version
+
+NGINX_VERSION="1.4.6"
+NGINX_DIST_URL="$S3_URL/nginx-$NGINX_VERSION.tar.gz"
+echo "- Nginx $NGINX_VERSION" | indent
+curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+# nginx; copy in our config
+cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.conf
+# remember the version for future upgrade handling
+echo $NGINX_VERSION > $CACHE_DIR/nginx_version
+
+# handle extensions for PHP
+if [[ $engine == "php" ]]; then
+    status "Installing PHP extensions:"
+    install_ext "opcache" "automatic"
+    exts=
+    if [[ -f "composer.json" ]]; then
+        exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
+    fi
+    newrelic_installed=false
+    if [[ -n "$exts" ]]; then
+        while read -r ext; do
+            if [[ "$ext" == "newrelic" ]]; then
+                newrelic_installed=true
+            fi
+            install_ext "$ext" "composer.json"
+        done <<< "$exts"
+    fi
+    # special treatment for New Relic; we enable it if we detect a license key for it
+    # otherwise users would have to have it in their require section, which is annoying in development environments
+    NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
+    if [[ $newrelic_installed == false && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
+        install_ext "newrelic" "add-on detected"
+    fi
+fi
+
+if [[ -f "composer.lock" ]]; then
+    status "Installing dependencies..."
+    
+    # check if we should use a composer.phar version bundled with the project
+    if [[ -f "composer.phar" ]]; then
+        composer() {
+             php composer.phar $*
+        }
+        export -f composer
+        notice_inline "Found a composer.phar in root directory, will use it for install."
+    else
+        composer self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
+    fi
+    # echo composer version for info purposes
+    # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+    composer --version 2> /dev/null | tail -n 1 | indent
+    
+    # handle custom oauth keys
+    COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
+    if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
+        composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+        notice_inline 'Using custom GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
+    else
+        # don't forget to remove any stored key if it's gone from the env
+        composer config -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+    fi
+    # no need for the token to stay around in the env
+    unset COMPOSER_GITHUB_OAUTH_TOKEN
+
+    # install dependencies
+    composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
+fi
+
+status "Building runtime environment..."
+
+# install this buildpack like a composer package
+# it will contain the apache/nginx/php configs and the boot script
+# TODO: warn if require-dev has the package using a different branch
+shopt -u dotglob # we don't want .git, .gitignore et al
+composer_vendordir=$(composer config vendor-dir | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+composer_bindir=$(composer config bin-dir | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+# figure out the package dir name to write to and copy to it
+hbpdir="$composer_vendordir/$(cat $BP_DIR/composer.json | python -c 'import sys, json; print json.load(sys.stdin)["name"]')"
+mkdir -p "$BUILD_DIR/$hbpdir"
+cp -r "$BP_DIR"/* "$BUILD_DIR/$hbpdir/"
+# make bin dir, just in case
+mkdir -p "$BUILD_DIR/$composer_bindir"
+# figure out shortest relative path from vendor/heroku/heroku-buildpack-php to vendor/bin (or whatever the bin dir is)
+relbin=$(python -c "import os.path; print os.path.relpath('$hbpdir', '$composer_bindir')")
+# collect bin names from composer.json
+relbins=$(cat $BP_DIR/composer.json | python -c 'from __future__ import print_function; import sys, json; { print(sys.argv[1]+"/"+bin) for bin in json.load(sys.stdin)["bin"] }' $relbin)
+# link to bins
+cd $BUILD_DIR/$composer_bindir
+ln -s $relbins .
+cd $BUILD_DIR
+
+# Update the PATH
+mkdir -p $BUILD_DIR/.profile.d
+cat > $BUILD_DIR/.profile.d/php.sh <<"EOF"
+export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
+EOF
+if [[ $engine == "hhvm" ]]; then
+    cat > $BUILD_DIR/.profile.d/hhvm.sh <<"EOF"
+hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib /app/.heroku/php/usr/bin/hhvm "$@"; }
+export -f hhvm
+EOF
+fi
+# Alias composer if needed
+if [[ -f "composer.phar" ]]; then
+    cat > $BUILD_DIR/.profile.d/composer.sh <<"EOF"
+composer() {
+    php composer.phar "$@"
+}
+export -f composer
+EOF
+fi
+# new relic defaults
+cat > $BUILD_DIR/.profile.d/newrelic.sh <<"EOF"
+if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
+    export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-"PHP Application on Heroku"}
+    export NEW_RELIC_LOG=${NEW_RELIC_LOG:-"stdout"}
+fi
 EOF
 
-chmod +x boot.sh
-
-# clean the cache
-rm -rf $CACHE_DIR
+if [[ ! -f "Procfile" ]]; then
+    bindir=$(composer config bin-dir)
+    echo "web: $bindir/heroku-$engine-apache2" > Procfile
+    notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-$engine-apache2'"
+fi

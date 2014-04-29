@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+DEFAULT_VERSION="4.8.0.47"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=newrelic-php5-${dep_version}-linux
+dep_archive_name=${dep_dirname}.tar.gz
+dep_url=https://download.newrelic.com/php_agent/archive/${dep_version}/${dep_archive_name}
+
+echo "-----> Packaging ext/newrelic ${dep_version}..."
+
+curl -L ${dep_url} | tar xz
+
+pushd ${dep_dirname}
+ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-20121212
+bin_dir=${OUT_PREFIX}/bin
+mkdir -p ${ext_dir}
+mkdir -p ${bin_dir}
+cp agent/x64/newrelic-20121212.so ${ext_dir}/newrelic.so
+cp daemon/newrelic-daemon.x64 ${bin_dir}/newrelic-daemon
+popd
+
+echo "-----> Done."

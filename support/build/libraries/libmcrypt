@@ -1,0 +1,27 @@
+#!/bin/bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+DEFAULT_VERSION="2.5.8"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=libmcrypt-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
+dep_url=http://downloads.sourceforge.net/project/mcrypt/Libmcrypt/${dep_version}/${dep_archive_name}
+
+echo "-----> Building libmcrypt ${dep_version}..."
+
+curl -L ${dep_url} | tar xz
+
+pushd ${dep_dirname}
+./configure --disable-posix-threads --prefix=${OUT_PREFIX}
+make -s -j 9
+make install -s
+popd
+
+echo "-----> Done."

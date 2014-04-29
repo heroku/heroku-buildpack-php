@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+# Build Deps: libraries/zlib, libraries/pcre
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+DEFAULT_VERSION="2.4.9"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=httpd-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
+dep_url=http://archive.apache.org/dist/httpd/${dep_archive_name}
+depdeps_archive_name=${dep_dirname}-deps.tar.gz
+depdeps_url=http://archive.apache.org/dist/httpd/${depdeps_archive_name}
+
+echo "-----> Building Apache ${dep_version}..."
+
+curl -L ${dep_url} | tar xz
+# both of these untar to $dep_dirname
+curl -L ${depdeps_url} | tar xz
+
+pushd ${dep_dirname}
+./configure \
+    --enable-layout=GNU \
+    --prefix=${OUT_PREFIX} \
+    --with-included-apr \
+    --with-pcre=${OUT_PREFIX} \
+    --with-z=${OUT_PREFIX} \
+    --with-ssl \
+    --with-mpm=event \
+    --enable-mods-shared=all \
+    --enable-proxy \
+    --enable-proxy-fcgi \
+    --enable-rewrite \
+    --enable-deflate
+make -s -j 9
+make install -s
+popd
+
+echo "-----> Done."

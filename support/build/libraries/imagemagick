@@ -1,0 +1,31 @@
+#!/bin/bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+DEFAULT_VERSION="6.8.9-0"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=ImageMagick-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
+if [[ "$dep_version" == "$DEFAULT_VERSION" ]]; then
+    dep_url=http://www.imagemagick.org/download/${dep_archive_name}
+else
+    dep_url=http://www.imagemagick.org/download/legacy/${dep_archive_name}
+fi
+
+echo "-----> Building ImageMagick ${dep_version}..."
+
+curl -L ${dep_url} | tar xz
+
+pushd ${dep_dirname}
+./configure --prefix=${OUT_PREFIX}
+make -s -j 9
+make install -s
+popd
+
+echo "-----> Done."

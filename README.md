@@ -1,148 +1,63 @@
-Apache+PHP build pack
-========================
+# Heroku buildpack: PHP
 
-This is a build pack bundling PHP and Apache for Heroku apps.
+This is a [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) for PHP applications.
 
-Configuration
--------------
+It uses Composer for dependency management, supports PHP or HHVM (experimental) as runtimes, and offers a choice of Apache2 or Nginx web servers.
 
-The config files are bundled with the build pack itself:
+## Usage
 
-* conf/httpd.conf
-* conf/php.ini
+You'll need to use at least an empty `composer.json` in your application.
 
-
-Pre-compiling binaries
-----------------------
-
-On a Heroku Dyno, one can run the following as executable text.  After
-running it, `/app` will contain, among other entities,
-`apache-2.2.25-2.tar.gz`, `php-5.3.27-2.tar.gz`, and
-`mcrypt-2.5.8-2.tar.gz` which should be uploaded to a location that
-can be downloaded by the build pack (see the URIs in `compile`).
-
-    #!/bin/bash
-    set -uex
-    cd /tmp
-
-    # Heroku revision.  Must match in 'compile' program.
-    #
-    # Affixed to all vendored binary output to represent changes to the
-    # compilation environment without a change to the upstream version,
-    # e.g. PHP 5.3.27 without, and then subsequently with, libmcrypt.
-    heroku_rev='-2'
-
-    # Clear /app directory
-    find /app -mindepth 1 -print0 | xargs -0 rm -rf
-
-    # Take care of vendoring libmcrypt
-    mcrypt_version=2.5.8
-    mcrypt_dirname=libmcrypt-$mcrypt_version
-    mcrypt_archive_name=$mcrypt_dirname.tar.bz2
-
-    # Download mcrypt if necessary
-    if [ ! -f mcrypt_archive_name ]
-    then
-        curl -Lo $mcrypt_archive_name http://sourceforge.net/projects/mcrypt/files/Libmcrypt/2.5.8/libmcrypt-2.5.8.tar.bz2/download
-    fi
-
-    # Clean and extract mcrypt
-    rm -rf $mcrypt_dirname
-    tar jxf $mcrypt_archive_name
-
-    # Build and install mcrypt.
-    pushd $mcrypt_dirname
-    ./configure --prefix=/app/vendor/mcrypt \
-      --disable-posix-threads --enable-dynamic-loading
-    make -s
-    make install -s
-    popd
-
-    # Take care of vendoring Apache.
-    httpd_version=2.2.25
-    httpd_dirname=httpd-$httpd_version
-    httpd_archive_name=$httpd_dirname.tar.bz2
-
-    # Download Apache if necessary.
-    if [ ! -f $httpd_archive_name ]
-    then
-        curl -LO ftp://ftp.osuosl.org/pub/apache//httpd/$httpd_archive_name
-    fi
-
-    # Clean and extract Apache.
-    rm -rf $httpd_dirname
-    tar jxf $httpd_archive_name
-
-    # Build and install Apache.
-    pushd $httpd_dirname
-    ./configure --prefix=/app/apache --enable-rewrite --with-included-apr
-    make -s
-    make install -s
-    popd
-
-    # Take care of vendoring PHP.
-    php_version=5.3.27
-    php_dirname=php-$php_version
-    php_archive_name=$php_dirname.tar.bz2
-
-    # Download PHP if necessary.
-    if [ ! -f $php_archive_name ]
-    then
-        curl -Lo $php_archive_name http://us1.php.net/get/php-5.3.27.tar.bz2/from/www.php.net/mirror
-    fi
-
-    # Clean and extract PHP.
-    rm -rf $php_dirname
-    tar jxf $php_archive_name
-
-    # Compile PHP
-    pushd $php_dirname
-    ./configure --prefix=/app/php --with-apxs2=/app/apache/bin/apxs     \
-    --with-mysql --with-pdo-mysql --with-pgsql --with-pdo-pgsql         \
-    --with-iconv --with-gd --with-curl=/usr/lib                         \
-    --with-config-file-path=/app/php --enable-soap=shared               \
-    --with-openssl --with-mcrypt=/app/vendor/mcrypt --enable-sockets
-    make -s
-    make install -s
-    popd
-
-    # Copy in MySQL client library.
-    mkdir -p /app/php/lib/php
-    cp /usr/lib/libmysqlclient.so.16 /app/php/lib/php
-
-    # 'apc' installation
-    #
-    # $PATH manipulation Necessary for 'pecl install', which relies on
-    # PHP binaries relative to $PATH.
-
-    export PATH=/app/php/bin:$PATH
-    /app/php/bin/pecl channel-update pecl.php.net
-
-    # Use defaults for apc build prompts.
-    yes '' | /app/php/bin/pecl install apc
-
-    # Sanitize default cgi-bin to rid oneself of Apache sample
-    # programs.
-    find /app/apache/cgi-bin/ -mindepth 1 -print0 | xargs -0 rm -r
-
-    # Stamp and archive binaries.
-    pushd /app
-    echo $mcrypt_version > vendor/mcrypt/VERSION
-    tar -zcf mcrypt-"$mcrypt_version""$heroku_rev".tar.gz vendor/mcrypt
-    echo $httpd_version > apache/VERSION
-    tar -zcf apache-"$httpd_version""$heroku_rev".tar.gz apache
-    echo $php_version > php/VERSION
-    tar -zcf php-"$php_version""$heroku_rev".tar.gz php
-    popd
-
-Hacking
--------
-
-To change this buildpack, fork it on Github. Push up changes to your fork, then create a test app with --buildpack <your-github-url> and push to it.
+    heroku config:set BUILDPACK_URL=https://github.com/heroku/heroku-buildpack-php
+    echo '{}' > composer.json
+    git add .
+    git commit -am "add composer.json for PHP app detection"
 
 
-Meta
-----
+Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for further usage instructions.
 
-Created by Pedro Belo.
-Many thanks to Keith Rarick for the help with assorted Unix topics :)
+## Development
+
+### Compiling Binaries
+
+The folder `support/build` contains [Bob](http://github.com/kennethreitz/bob-builder) build scripts for all binaries and dependencies.
+
+To get started with it, create an app on Heroku inside a clone of this repository, and set your S3 config vars:
+
+```term
+$ heroku create --buildpack https://github.com/heroku/heroku-buildpack-python#not-heroku
+$ heroku ps:scale web=0
+$ heroku config:set WORKSPACE_DIR=/app/support/build
+$ heroku config:set AWS_ACCESS_KEY_ID=<your_aws_key>
+$ heroku config:set AWS_SECRET_ACCESS_KEY=<your_aws_secret>
+$ heroku config:set S3_BUCKET=<your_s3_bucket_name>
+$ heroku config:set S3_PREFIX=<optional_s3_subfolder_to_upload_to>
+```
+
+Then, shell into an instance and run a build by giving the name of the formula inside `support/build`:
+
+```term
+$ heroku run bash
+Running `bash` attached to terminal... up, run.6880
+~ $ bob build php-5.5.11RC1
+
+Fetching dependencies... found 2:
+  - libraries/zlib
+  - libraries/libmemcached
+Building formula php-5.5.11RC1:
+    === Building PHP
+    Fetching PHP v5.5.11RC1 source...
+    Compiling PHP v5.5.11RC1...
+```
+
+If this works, run `bob deploy` instead of `bob build` to have the result uploaded to S3 for you.
+
+To speed things up drastically, it'll usually be a good idea to `heroku run bash --size PX` instead.
+
+If the dependencies are not yet deployed, you can do so by e.g. running `bob deploy libraries/zlib`.
+
+### Hacking
+
+To work on this buildpack, fork it on Github. You can then use [Anvil with a local buildpack](https://github.com/heroku/anvil-cli#iterate-on-buildpacks-without-pushing-to-github) to easily iterate on changes without pushing each time.
+
+Alternatively, you may push changes to your fork (ideally in a branch if you'd like to submit pull requests), then create a test app with `heroku create --buildpack <your-github-url#branch>` and push to it.
