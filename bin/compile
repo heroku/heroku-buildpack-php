@@ -95,7 +95,8 @@ was found, please check it into your repository along with composer.json!"
     
     require_self=$(cat composer.json | python -c 'import sys, json; print json.load(sys.stdin)["require"]["heroku/heroku-buildpack-php"]' 2> /dev/null || true)
     if [[ -n "$require_self" ]]; then
-        error "Your composer.json specifies 'heroku/heroku-buildpack-php' as a requirement; this package may only be used as a dev dependency!"
+        error "Your composer.json requires 'heroku/heroku-buildpack-php'.
+This package may only be used as a dev dependency (in 'require-dev')!"
     fi
     
     # FIXME: this would be, of course, very basic and doesn't support expressions; migrate to semver.org
