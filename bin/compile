@@ -134,6 +134,7 @@ echo $PHP_VERSION > $CACHE_DIR/php_version
 HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
 echo "- HHVM $HHVM_VERSION" | indent
 curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+echo $HHVM_VERSION > $CACHE_DIR/hhvm_version
 
 APACHE_VERSION="2.4.9"
 APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
