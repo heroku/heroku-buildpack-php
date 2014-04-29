@@ -108,6 +108,8 @@ if [[ "$#" -gt "1" ]]; then
     exit 2
 fi
 
+hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { echo "This program requires HHVM 3.0.1 or newer" >&2; exit 1; }
+
 echo "Booting on port $PORT..." >&2
 
 if [[ "$#" == "1" ]]; then
