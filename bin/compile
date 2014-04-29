@@ -81,9 +81,12 @@ export COMPOSER_HOME=$CACHE_DIR/.composer
 mkdir -p $COMPOSER_HOME
 
 PHP_VERSIONS="5.5.11"
+PHP_VERSIONS_ARR=($PHP_VERSIONS)
 PHP_VERSION=
 HHVM_VERSIONS="3.0.1"
+HHVM_VERSIONS_ARR=($HHVM_VERSIONS)
 HHVM_VERSION=
+engine="php"
 if [[ -f "composer.json" ]]; then
     if [[ ! -f "composer.lock" ]]; then
         has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null || true) # might fail, set -e would stop execution
@@ -107,7 +110,8 @@ This package may only be used as a dev dependency (in 'require-dev')!"
             PHP_VERSION=$phpver
         else
             # TODO: fail harder?
-            warning "Unknown PHP version in composer.json, will use default, install may fail!"
+            warning "Your composer.json requires an unknown PHP version.
+Defaulting to PHP ${PHP_VERSIONS_ARR[0]}; install may fail!"
         fi
     fi
     # FIXME: this would be, of course, very basic and doesn't support expressions; migrate to semver.org
@@ -118,22 +122,18 @@ This package may only be used as a dev dependency (in 'require-dev')!"
             HHVM_VERSION=$hhvmver
         else
             # TODO: fail harder?
-            warning "Unknown HHVM version in composer.json, will use default, install may fail!"
+            warning "Your composer.json requires an unknown HHVM version.
+Defaulting to HHVM ${HHVM_VERSIONS_ARR[0]}; install may fail!"
         fi
+        engine="hhvm"
     fi
 fi
 if [[ -n "$PHP_VERSION" &&  -n "$HHVM_VERSION" ]]; then
     error "Cannot require both 'hhvm' and 'php' in composer.json!"
 fi
-engine="php"
-if [[ -n "$HHVM_VERSION" ]]; then
-    engine="hhvm"
-fi
 
 # use first from *_VERSIONS as default
-PHP_VERSIONS_ARR=($PHP_VERSIONS)
 PHP_VERSION=${PHP_VERSION:-${PHP_VERSIONS_ARR[0]}}
-HHVM_VERSIONS_ARR=($HHVM_VERSIONS)
 HHVM_VERSION=${HHVM_VERSION:-${HHVM_VERSIONS_ARR[0]}}
 
 status "Setting up runtime environment..."
