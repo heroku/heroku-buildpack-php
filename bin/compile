@@ -2,6 +2,27 @@
 
 # bin/compile <build-dir> <cache-dir> <env-dir>
 
+install_ext () {
+    local ext=$1
+    local reason=${2:-}
+    local ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
+    local ext_dir=$(basename $(php-config --extension-dir))
+    if [[ -f "$ext_ini" ]]; then
+        if [[ ! -f "$PHP_EXT_DIR/$ext.so" ]]; then
+            curl --silent --location "${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
+            echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini')" | indent
+        else
+            echo "- ${ext} (${reason}; bundled, using 'ext-${ext}.ini')" | indent
+        fi
+        cp "${ext_ini}" "${BUILD_DIR}/.heroku/php/etc/php/conf.d"
+    elif [[ -f "${PHP_EXT_DIR}/${ext}.so" ]]; then
+        echo "extension = ${ext}.so" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
+        echo "- ${ext} (${reason}; bundled)" | indent
+    else
+        warning_inline "Unknown extension ${ext} (${reason}), install may fail!"
+    fi
+}
+
 # fail hard
 set -o pipefail
 # fail harder
@@ -24,8 +45,8 @@ BUILDPACK_BRANCH=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' |
 BUILDPACK_BRANCH=${BUILDPACK_BRANCH:-master}
 BUILDPACK_OWNER=$(expr "$BUILDPACK_URL" : '^.*/\(..*\)/heroku-buildpack-php' || true)
 
-S3_URL=$BUILDPACK_BRANCH
-if [ "$BUILDPACK_BRANCH" != "beta" ]; then
+S3_URL="beta"
+if [[ "$BUILDPACK_BRANCH" != "beta" && "$BUILDPACK_BRANCH" != "master" ]]; then
     S3_URL="develop"
 fi
 S3_URL="https://lang-php.s3.amazonaws.com/dist-${S3_URL}"
@@ -33,22 +54,30 @@ S3_URL="https://lang-php.s3.amazonaws.com/dist-${S3_URL}"
 cd $BUILD_DIR
 
 if [[ -s "composer.json" ]]; then
-    json_empty=0
-    json_invalid=0
-    cat composer.json | python -mjson.tool &> /dev/null || json_invalid=$?
-    if [[ "$json_invalid" != "0" ]]; then
+    json_empty=false
+    json_invalid=false
+    cat composer.json | python -mjson.tool &> /dev/null || json_invalid=true
+    if [[ $json_invalid == true ]]; then
         error "Could not parse composer.json; make sure it's valid!"
     fi
+elif [[ ! -f "composer.json" ]]; then
+    json_empty=true
+    warning 'No composer.json found.
+Using index.php to declare PHP applications is considered legacy
+functionality and may lead to unexpected behavior.'
 else
-    json_empty=1
+    json_empty=true
     notice 'Your composer.json is completely empty.
 Consider putting at least "{}" in there to make it valid JSON.'
+fi
+if [[ $json_empty == true ]]; then
+    echo "{}" > composer.json
 fi
 
 mkdir -p .heroku/php
 
-export COMPOSER_CACHE_DIR=$CACHE_DIR/php/composer
-mkdir -p $COMPOSER_CACHE_DIR
+export COMPOSER_HOME=$CACHE_DIR/php/.composer
+mkdir -p $COMPOSER_HOME
 
 PHP_VERSIONS="5.5.11"
 HHVM_VERSIONS="3.0.1"
@@ -56,7 +85,8 @@ if [[ -f "composer.json" ]]; then
     if [[ ! -f "composer.lock" ]]; then
         has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null || true) # might fail, set -e would stop execution
         if [ "$has_packages" == "True" ]; then
-            error "Your composer.json specifies dependencies, but no composer.lock was found, please check it into your repository along with composer.json!"
+            error "Your composer.json specifies dependencies, but no composer.lock
+was found, please check it into your repository along with composer.json!"
         fi
     fi
     
@@ -97,8 +127,6 @@ mkdir -p $BUILD_DIR/.heroku/php/etc/php
 cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc/php
 cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc/php
 mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
-# enable opcache
-cp "$BP_DIR/conf/php/conf.d/ext-opcache.ini" $BUILD_DIR/.heroku/php/etc/php/conf.d
 
 HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
 echo "- HHVM $HHVM_VERSION" | indent
@@ -119,23 +147,26 @@ curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.conf
 
 # handle extensions
+status "Installing PHP extensions:"
+install_ext "opcache" "automatic"
+exts=
 if [[ -f "composer.json" ]]; then
     exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
-    if [[ -n "$exts" ]]; then
-        status "Activating PHP extensions listed in composer.json:"
-        while read -r ext; do
-            ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
-            if [[ -f "$ext_ini" ]]; then
-                cp $ext_ini $BUILD_DIR/.heroku/php/etc/php/conf.d
-                echo "- $ext (using dedicated ext-$ext.ini)" | indent
-            elif [[ -f "$PHP_EXT_DIR/$ext.so" ]]; then
-                echo "extension = $ext.so" > $BUILD_DIR/.heroku/php/etc/php/conf.d/ext-$ext.ini
-                echo "- $ext" | indent
-            else
-                warning "Unknown extension $ext in composer.json, install may fail!"
-            fi
-        done <<< "$exts"
-    fi
+fi
+newrelic_installed=false
+if [[ -n "$exts" ]]; then
+    while read -r ext; do
+        if [[ "$ext" == "newrelic" ]]; then
+            newrelic_installed=true
+        fi
+        install_ext "$ext" "composer.json"
+    done <<< "$exts"
+fi
+# special treatment for New Relic; we enable it if we detect a license key for it
+# otherwise users would have to have it in their require section, which is annoying in development environments
+NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
+if [[ $newrelic_installed == false && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
+    install_ext "newrelic" "add-on detected"
 fi
 
 if [[ -f "composer.lock" ]]; then
@@ -147,14 +178,27 @@ if [[ -f "composer.lock" ]]; then
             php composer.phar $*
         }
         export -f composer
-        notice "Found a composer.phar in app root, will use it for install.
-Make sure this version of composer is up to date!"
+        notice_inline "Found a composer.phar in root directory, will use it for install."
     else
         composer self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
     fi
+    # echo composer version for info purposes
+    # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+    composer --version 2> /dev/null | tail -n 1 | indent
+    
+    # handle custom oauth keys
+    COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
+    if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
+        composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+        notice_inline 'Using custom GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
+    else
+        # don't forget to remove any stored key if it's gone from the env
+        composer config -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+    fi
+    # no need for the token to stay around in the env
+    unset COMPOSER_GITHUB_OAUTH_TOKEN
 
     # install dependencies
-    composer --version | indent
     composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
 fi
 
@@ -164,8 +208,8 @@ status "Building runtime environment..."
 # it will contain the apache/nginx/php configs and the boot script
 # TODO: warn if require-dev has the package using a different branch
 shopt -u dotglob # we don't want .git, .gitignore et al
-composer_vendordir=$(composer config vendor-dir)
-composer_bindir=$(composer config bin-dir)
+composer_vendordir=$(composer config vendor-dir | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+composer_bindir=$(composer config bin-dir | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
 # figure out the package dir name to write to and copy to it
 hbpdir="$composer_vendordir/$(cat $BP_DIR/composer.json | python -c 'import sys, json; print json.load(sys.stdin)["name"]')"
 mkdir -p "$BUILD_DIR/$hbpdir"
@@ -199,9 +243,16 @@ composer() {
 export -f composer
 EOF
 fi
+# new relic defaults
+cat > $BUILD_DIR/.profile.d/newrelic.sh <<"EOF"
+if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
+    export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-"PHP Application on Heroku"}
+    export NEW_RELIC_LOG=${NEW_RELIC_LOG:-"stdout"}
+fi
+EOF
 
 if [[ ! -f "Procfile" ]]; then
     bindir=$(composer config bin-dir)
     echo "web: $bindir/heroku-hhvm-apache2" > Procfile
-    status "No Procfile found, defaulting to 'web: $bindir/heroku-hhvm-apache2'"
+    notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-hhvm-apache2'"
 fi

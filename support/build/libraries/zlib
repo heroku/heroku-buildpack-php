@@ -3,28 +3,25 @@
 
 OUT_PREFIX=$1
 
-echo "Building zlib..."
-
 # fail hard
 set -o pipefail
 # fail harder
 set -eux
 
-dep_version=${VERSION:-1.2.8}
+DEFAULT_VERSION="1.2.8"
+dep_version=${VERSION:-$DEFAULT_VERSION}
 dep_dirname=zlib-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
+dep_url=http://zlib.net/${dep_archive_name}
 
-curl -Lo $dep_archive_name http://zlib.net/${dep_archive_name}
+echo "-----> Building zlib ${dep_version}..."
 
-tar xzf $dep_archive_name
+curl -L ${dep_url} | tar xz
 
-pushd $dep_dirname
-./configure --prefix=$OUT_PREFIX
-make
-make install
+pushd ${dep_dirname}
+./configure --prefix=${OUT_PREFIX}
+make -s -j 9
+make install -s
 popd
 
-echo "Cleaning up..."
-rm -rf $dep_dirname $dep_archive_name
-
-echo "Done building zlib!"
+echo "-----> Done."

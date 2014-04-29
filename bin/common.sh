@@ -1,10 +1,21 @@
 error() {
-  echo " !     $*" >&2
+  echo
+  echo -n " !     ERROR: "
+  echo "$*" | indent
+  echo
   exit 1
 }
 
 warning() {
-  status "WARNING!"
+  echo
+  echo -n " !     WARNING: "
+  echo "$*" | indent
+  echo "See https://devcenter.heroku.com/categories/php" | indent
+  echo
+}
+
+warning_inline() {
+  echo -n " !     WARNING: "
   echo "$*" | indent
 }
 
@@ -15,8 +26,12 @@ status() {
 notice() {
   echo
   echo "NOTICE: $*" | indent
-  echo "See https://devcenter.heroku.com/articles/php-support" | indent
+  echo "See https://devcenter.heroku.com/categories/php" | indent
   echo
+}
+
+notice_inline() {
+  echo "NOTICE: $*" | indent
 }
 
 # sed -l basically makes sed replace and buffer through stdin to stdout

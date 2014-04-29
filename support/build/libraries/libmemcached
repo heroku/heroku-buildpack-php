@@ -8,44 +8,32 @@ set -o pipefail
 # fail harder
 set -eux
 
-echo "Building libmemcached..."
-
-#
-#./configure --prefix=/tmp/foo1
-#https://launchpad.net/libmemcached/1.0/1.0.16/+download/libmemcached-1.0.16.tar.gz
-#
-
-# SASL Support.
-echo "=== Building Cyrus-SASL..."
-curl -LO ftp://ftp.cyrusimap.org/cyrus-sasl/cyrus-sasl-2.1.26.tar.gz
-tar xzf cyrus-sasl-2.1.26.tar.gz
-pushd cyrus-sasl-2.1.26
-./configure --prefix=$OUT_PREFIX
-make
-make install
-popd
-
-echo "=== Cleaning up..."
-rm -fr cyrus-sasl-2.1.26.tar.gz cyrus-sasl-2.1.26
-
-# Take care of vendoring
-dep_version=${VERSION:-1.0.18}
+DEFAULT_VERSION="1.0.18"
+dep_version=${VERSION:-$DEFAULT_VERSION}
 dep_dirname=libmemcached-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
+dep_url=https://launchpad.net/libmemcached/1.0/${dep_version}/+download/${dep_archive_name}
 
-echo "=== Downloading libmemcached source..."
-curl -LO https://launchpad.net/libmemcached/1.0/${dep_version}/+download/${dep_archive_name}
+# SASL Support.
+echo "-----> Building cyrus-sasl 2.1.26..."
 
-tar xzf $dep_archive_name
-pushd $dep_dirname
-CPPFLAGS=-I$OUT_PREFIX/include LDFLAGS=-L$OUT_PREFIX/lib ./configure --prefix=$OUT_PREFIX --without-memcached
-echo "=== Compiling libmemcached..."
-make
-make install
+curl -LO ftp://ftp.cyrusimap.org/cyrus-sasl/cyrus-sasl-2.1.26.tar.gz
+# FTP doesn't play well with piping into tar xz
+tar xzf cyrus-sasl-2.1.26.tar.gz
+
+pushd cyrus-sasl-2.1.26
+./configure --prefix=${OUT_PREFIX}
+make -s -j 9
+make install -s
 popd
 
+echo "-----> Building libmemcached ${dep_version}..."
 
-echo "=== Cleaning up..."
-rm -fr $dep_archive_name $dep_dirname $dep_dirname.tar.gz
+curl -L ${dep_url} | tar xz
+pushd ${dep_dirname}
+CPPFLAGS=-I${OUT_PREFIX}/include LDFLAGS=-L${OUT_PREFIX}/lib ./configure --prefix=${OUT_PREFIX} --without-memcached
+make -s -j 9
+make install -s
+popd
 
-echo "Done building libmemcached."
+echo "-----> Done."

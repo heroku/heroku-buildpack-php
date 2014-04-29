@@ -1,4 +1,3 @@
 .DS_Store
-support/build/*/builds
 composer.lock
 vendor

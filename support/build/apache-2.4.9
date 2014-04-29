@@ -9,32 +9,27 @@ set -o pipefail
 # fail harder
 set -eux
 
-dep_version=${VERSION:-2.4.9}
-dep_dirname=httpd-$dep_version
-dep_archive_name=$dep_dirname.tar.gz
-depdeps_archive_name=$dep_dirname-deps.tar.gz
+DEFAULT_VERSION="2.4.9"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=httpd-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
+dep_url=http://archive.apache.org/dist/httpd/${dep_archive_name}
+depdeps_archive_name=${dep_dirname}-deps.tar.gz
+depdeps_url=http://archive.apache.org/dist/httpd/${depdeps_archive_name}
 
-echo "=== Building Apache"
+echo "-----> Building Apache ${dep_version}..."
 
-echo "Fetching Apache v$dep_version source..."
-curl -LO http://archive.apache.org/dist/httpd/$dep_archive_name
-echo "Fetching Apache v$dep_version dependencies (APR)..."
-curl -LO http://archive.apache.org/dist/httpd/$depdeps_archive_name
-
+curl -L ${dep_url} | tar xz
 # both of these untar to $dep_dirname
-tar xzf $dep_archive_name
-tar xzf $depdeps_archive_name
+curl -L ${depdeps_url} | tar xz
 
-
-echo "Compiling Apache v$dep_version..."
-
-pushd $dep_dirname
+pushd ${dep_dirname}
 ./configure \
     --enable-layout=GNU \
-    --prefix=$OUT_PREFIX \
+    --prefix=${OUT_PREFIX} \
     --with-included-apr \
-    --with-pcre=$OUT_PREFIX \
-    --with-z=$OUT_PREFIX \
+    --with-pcre=${OUT_PREFIX} \
+    --with-z=${OUT_PREFIX} \
     --with-ssl \
     --with-mpm=event \
     --enable-mods-shared=all \
@@ -42,8 +37,8 @@ pushd $dep_dirname
     --enable-proxy-fcgi \
     --enable-rewrite \
     --enable-deflate
-make -s
+make -s -j 9
 make install -s
 popd
 
-echo "Done building Apache v$dep_version!"
+echo "-----> Done."
