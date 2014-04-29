@@ -81,7 +81,9 @@ export COMPOSER_HOME=$CACHE_DIR/.composer
 mkdir -p $COMPOSER_HOME
 
 PHP_VERSIONS="5.5.11"
+PHP_VERSION=
 HHVM_VERSIONS="3.0.1"
+HHVM_VERSION=
 if [[ -f "composer.json" ]]; then
     if [[ ! -f "composer.lock" ]]; then
         has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null || true) # might fail, set -e would stop execution
@@ -107,7 +109,26 @@ was found, please check it into your repository along with composer.json!"
             warning "Unknown PHP version in composer.json, will use default, install may fail!"
         fi
     fi
+    # FIXME: this would be, of course, very basic and doesn't support expressions; migrate to semver.org
+    hhvmver=$(cat composer.json | python -c 'import sys, json; print json.load(sys.stdin)["require"]["hhvm"]' 2> /dev/null || true)
+    if [[ -n "$hhvmver" ]]; then
+        if [[ $HHVM_VERSIONS =~ "$hhvmver" ]]; then
+            status "Detected request for HHVM $hhvmver in composer.json."
+            HHVM_VERSION=$hhvmver
+        else
+            # TODO: fail harder?
+            warning "Unknown HHVM version in composer.json, will use default, install may fail!"
+        fi
+    fi
 fi
+if [[ -n "$PHP_VERSION" &&  -n "$HHVM_VERSION" ]]; then
+    error "Cannot require both 'hhvm' and 'php' in composer.json!"
+fi
+engine="php"
+if [[ -n "$HHVM_VERSION" ]]; then
+    engine="hhvm"
+fi
+
 # use first from *_VERSIONS as default
 PHP_VERSIONS_ARR=($PHP_VERSIONS)
 PHP_VERSION=${PHP_VERSION:-${PHP_VERSIONS_ARR[0]}}
@@ -131,10 +152,12 @@ mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
 # remember the version for future upgrade handling
 echo $PHP_VERSION > $CACHE_DIR/php_version
 
-HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
-echo "- HHVM $HHVM_VERSION" | indent
-curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
-echo $HHVM_VERSION > $CACHE_DIR/hhvm_version
+if [[ $engine == "hhvm" ]]; then
+    HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
+    echo "- HHVM $HHVM_VERSION" | indent
+    curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+    echo $HHVM_VERSION > $CACHE_DIR/hhvm_version
+fi
 
 APACHE_VERSION="2.4.9"
 APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
@@ -154,27 +177,29 @@ cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.
 # remember the version for future upgrade handling
 echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 
-# handle extensions
-status "Installing PHP extensions:"
-install_ext "opcache" "automatic"
-exts=
-if [[ -f "composer.json" ]]; then
-    exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
-fi
-newrelic_installed=false
-if [[ -n "$exts" ]]; then
-    while read -r ext; do
-        if [[ "$ext" == "newrelic" ]]; then
-            newrelic_installed=true
-        fi
-        install_ext "$ext" "composer.json"
-    done <<< "$exts"
-fi
-# special treatment for New Relic; we enable it if we detect a license key for it
-# otherwise users would have to have it in their require section, which is annoying in development environments
-NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
-if [[ $newrelic_installed == false && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
-    install_ext "newrelic" "add-on detected"
+# handle extensions for PHP
+if [[ $engine == "php" ]]; then
+    status "Installing PHP extensions:"
+    install_ext "opcache" "automatic"
+    exts=
+    if [[ -f "composer.json" ]]; then
+        exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
+    fi
+    newrelic_installed=false
+    if [[ -n "$exts" ]]; then
+        while read -r ext; do
+            if [[ "$ext" == "newrelic" ]]; then
+                newrelic_installed=true
+            fi
+            install_ext "$ext" "composer.json"
+        done <<< "$exts"
+    fi
+    # special treatment for New Relic; we enable it if we detect a license key for it
+    # otherwise users would have to have it in their require section, which is annoying in development environments
+    NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
+    if [[ $newrelic_installed == false && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
+        install_ext "newrelic" "add-on detected"
+    fi
 fi
 
 if [[ -f "composer.lock" ]]; then
@@ -183,7 +208,7 @@ if [[ -f "composer.lock" ]]; then
     # check if we should use a composer.phar version bundled with the project
     if [[ -f "composer.phar" ]]; then
         composer() {
-            php composer.phar $*
+             php composer.phar $*
         }
         export -f composer
         notice_inline "Found a composer.phar in root directory, will use it for install."
@@ -238,10 +263,12 @@ mkdir -p $BUILD_DIR/.profile.d
 cat > $BUILD_DIR/.profile.d/php.sh <<EOF
 export PATH="\$HOME/.heroku/php/bin:\$HOME/.heroku/php/sbin:\$PATH"
 EOF
-cat >> $BUILD_DIR/.profile.d/hhvm.sh <<EOF
+if [[ $engine == "hhvm" ]]; then
+    cat >> $BUILD_DIR/.profile.d/hhvm.sh <<EOF
 hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib /app/.heroku/php/usr/bin/hhvm \$*; }
 export -f hhvm
 EOF
+fi
 # Alias composer if needed
 if [[ -f "composer.phar" ]]; then
     cat > $BUILD_DIR/.profile.d/composer.sh <<EOF
@@ -261,6 +288,6 @@ EOF
 
 if [[ ! -f "Procfile" ]]; then
     bindir=$(composer config bin-dir)
-    echo "web: $bindir/heroku-hhvm-apache2" > Procfile
-    notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-hhvm-apache2'"
+    echo "web: $bindir/heroku-$engine-apache2" > Procfile
+    notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-$engine-apache2'"
 fi
