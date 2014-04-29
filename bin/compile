@@ -31,7 +31,8 @@ set -eu
 shopt -s dotglob
 
 BUILD_DIR=$1
-CACHE_DIR=$2
+CACHE_DIR=$2/php
+mkdir -p "$CACHE_DIR"
 ENV_DIR=${3:-} # Anvil has none
 BP_DIR=$(cd $(dirname $0); cd ..; pwd)
 
@@ -76,7 +77,7 @@ fi
 
 mkdir -p .heroku/php
 
-export COMPOSER_HOME=$CACHE_DIR/php/.composer
+export COMPOSER_HOME=$CACHE_DIR/.composer
 mkdir -p $COMPOSER_HOME
 
 PHP_VERSIONS="5.5.11"
@@ -127,6 +128,8 @@ mkdir -p $BUILD_DIR/.heroku/php/etc/php
 cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc/php
 cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc/php
 mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
+# remember the version for future upgrade handling
+echo $PHP_VERSION > $CACHE_DIR/php_version
 
 HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
 echo "- HHVM $HHVM_VERSION" | indent
@@ -138,6 +141,8 @@ echo "- Apache $APACHE_VERSION" | indent
 curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # Apache; copy in our config
 cp $BP_DIR/conf/apache2/httpd.conf.default $BUILD_DIR/.heroku/php/etc/apache2/httpd.conf
+# remember the version for future upgrade handling
+echo $APACHE_VERSION > $CACHE_DIR/apache_version
 
 NGINX_VERSION="1.4.6"
 NGINX_DIST_URL="$S3_URL/nginx-$NGINX_VERSION.tar.gz"
@@ -145,6 +150,8 @@ echo "- Nginx $NGINX_VERSION" | indent
 curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # nginx; copy in our config
 cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.conf
+# remember the version for future upgrade handling
+echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 
 # handle extensions
 status "Installing PHP extensions:"
