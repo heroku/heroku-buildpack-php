@@ -254,8 +254,8 @@ status "Building runtime environment..."
 # it will contain the apache/nginx/php configs and the boot script
 # TODO: warn if require-dev has the package using a different branch
 shopt -u dotglob # we don't want .git, .gitignore et al
-composer_vendordir=$(composer config vendor-dir | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
-composer_bindir=$(composer config bin-dir | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+composer_vendordir=$(composer config vendor-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+composer_bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
 # figure out the package dir name to write to and copy to it
 hbpdir="$composer_vendordir/$(cat $BP_DIR/composer.json | python -c 'import sys, json; print json.load(sys.stdin)["name"]')"
 mkdir -p "$BUILD_DIR/$hbpdir"
@@ -300,7 +300,7 @@ fi
 EOF
 
 if [[ ! -f "Procfile" ]]; then
-    bindir=$(composer config bin-dir | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+    bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
     echo "web: $bindir/heroku-$engine-apache2" > Procfile
     notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-$engine-apache2'"
 fi
