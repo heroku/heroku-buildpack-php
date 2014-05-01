@@ -300,7 +300,7 @@ fi
 EOF
 
 if [[ ! -f "Procfile" ]]; then
-    bindir=$(composer config bin-dir)
+    bindir=$(composer config bin-dir | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
     echo "web: $bindir/heroku-$engine-apache2" > Procfile
     notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-$engine-apache2'"
 fi
