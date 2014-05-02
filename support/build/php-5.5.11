@@ -22,6 +22,7 @@ curl -L ${dep_url} | tar xz
 pushd ${dep_dirname}
 export PATH=${OUT_PREFIX}/bin:$PATH
 # cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
+# sqlite3 and pdo_sqlite are on by default but we're building them shared on purpose
 LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
     --prefix=${OUT_PREFIX} \
     --with-config-file-path=/app/.heroku/php/etc/php \
@@ -53,6 +54,8 @@ LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
     --enable-pcntl=shared \
     --enable-shmop=shared \
     --enable-soap=shared \
+    --with-sqlite3=shared \
+    --with-pdo-sqlite=shared \
     --with-xmlrpc=shared \
     --with-xsl=shared
 make -s -j 9
