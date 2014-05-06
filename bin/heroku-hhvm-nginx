@@ -45,7 +45,7 @@ Options:
                           Recommended approach when customizing Nginx's config
                           in most cases, unless you need to set http or
                           fundamental server level options.
-                          [default: $COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf]
+                          [default: $COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf.php]
   -c <nginx.conf>         The path to the full configuration file that is
                           included after Heroku's (or your local) Nginx config
                           is loaded. It must contain an 'http { ... }' block
@@ -129,7 +129,7 @@ php_config=${php_config:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-bui
 echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 php_config=$(php_passthrough "$php_config")
 
-nginx_config_include=${nginx_config_include:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf"}
+nginx_config_include=${nginx_config_include:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf.php"}
 echo "Using Nginx server-level configuration include '${nginx_config_include#$HEROKU_APP_DIR/}'" >&2
 nginx_config_include=$(php_passthrough "$nginx_config_include")
 export HEROKU_PHP_NGINX_CONFIG_INCLUDE="$nginx_config_include"
