@@ -18,6 +18,8 @@ install_ext () {
     elif [[ -f "${PHP_EXT_DIR}/${ext}.so" ]]; then
         echo "extension = ${ext}.so" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
         echo "- ${ext} (${reason}; bundled)" | indent
+    elif echo -n ${ext} | php -r 'exit((int)!extension_loaded(file_get_contents("php://stdin")));'; then
+        echo "- ${ext} (${reason}; enabled by default)" | indent
     else
         warning_inline "Unknown extension ${ext} (${reason}), install may fail!"
     fi
@@ -80,7 +82,7 @@ mkdir -p .heroku/php
 export COMPOSER_HOME=$CACHE_DIR/.composer
 mkdir -p $COMPOSER_HOME
 
-PHP_VERSIONS="5.5.11"
+PHP_VERSIONS="5.5.12 5.5.11"
 PHP_VERSIONS_ARR=($PHP_VERSIONS)
 PHP_VERSION=
 HHVM_VERSIONS="3.0.1"
@@ -223,11 +225,21 @@ if [[ -f "composer.lock" ]]; then
     # handle custom oauth keys
     COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
     if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
-        composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
-        notice_inline 'Using custom GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
+        if curl --fail --silent -H "Authorization: token $COMPOSER_GITHUB_OAUTH_TOKEN" https://api.github.com/rate_limit > /dev/null; then
+            composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+            notice_inline 'Using custom GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
+        else
+            error 'Invalid GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
+        fi
     else
         # don't forget to remove any stored key if it's gone from the env
         composer config -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+        if curl --silent https://api.github.com/rate_limit | python -c 'import sys, json; sys.exit((json.load(sys.stdin)["resources"]["core"]["remaining"] > 0))'; then # yes, check > 0, not < 1 - exit status of 0 will trigger the if
+            notice "You've reached the GitHub API's request rate limit.
+Composer will now try and fall back to slower downloads from source.
+It's strongly recommended you use a custom OAuth token; for details, see
+http://devcenter.heroku.com/articles/php-support#custom-github-oauth-tokens"
+        fi
     fi
     # no need for the token to stay around in the env
     unset COMPOSER_GITHUB_OAUTH_TOKEN
@@ -242,8 +254,8 @@ status "Building runtime environment..."
 # it will contain the apache/nginx/php configs and the boot script
 # TODO: warn if require-dev has the package using a different branch
 shopt -u dotglob # we don't want .git, .gitignore et al
-composer_vendordir=$(composer config vendor-dir | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
-composer_bindir=$(composer config bin-dir | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+composer_vendordir=$(composer config vendor-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+composer_bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
 # figure out the package dir name to write to and copy to it
 hbpdir="$composer_vendordir/$(cat $BP_DIR/composer.json | python -c 'import sys, json; print json.load(sys.stdin)["name"]')"
 mkdir -p "$BUILD_DIR/$hbpdir"
@@ -288,7 +300,7 @@ fi
 EOF
 
 if [[ ! -f "Procfile" ]]; then
-    bindir=$(composer config bin-dir)
+    bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
     echo "web: $bindir/heroku-$engine-apache2" > Procfile
     notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-$engine-apache2'"
 fi

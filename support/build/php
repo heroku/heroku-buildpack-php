@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+# Build Deps: libraries/zlib, libraries/libmcrypt, libraries/icu
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+DEFAULT_VERSION="5.5.11"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=php-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
+dep_url=http://us1.php.net/get/${dep_archive_name}/from/www.php.net/mirror
+
+echo "-----> Building PHP ${dep_version}..."
+
+curl -L ${dep_url} | tar xz
+
+pushd ${dep_dirname}
+export PATH=${OUT_PREFIX}/bin:$PATH
+# cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
+# sqlite3 and pdo_sqlite are on by default but we're building them shared on purpose
+LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
+    --prefix=${OUT_PREFIX} \
+    --with-config-file-path=/app/.heroku/php/etc/php \
+    --with-config-file-scan-dir=/app/.heroku/php/etc/php/conf.d \
+    --enable-fpm \
+    --with-bz2 \
+    --with-curl \
+    --with-mcrypt=${OUT_PREFIX} \
+    --with-pdo-mysql \
+    --with-mysqli \
+    --with-openssl \
+    --with-pgsql \
+    --with-pdo-pgsql \
+    --with-readline \
+    --enable-sockets \
+    --enable-zip \
+    --with-zlib \
+    --with-zlib-dir=${OUT_PREFIX} \
+    --enable-bcmath=shared \
+    --enable-exif=shared \
+    --with-gd=shared \
+        --enable-gd-native-ttf \
+        --with-freetype-dir=/usr \
+        --with-jpeg-dir=/usr \
+        --with-png-dir=/usr \
+    --enable-intl=shared \
+    --enable-mbstring=shared \
+    --with-mysql=shared \
+    --enable-pcntl=shared \
+    --enable-shmop=shared \
+    --enable-soap=shared \
+    --with-sqlite3=shared \
+    --with-pdo-sqlite=shared \
+    --with-xmlrpc=shared \
+    --with-xsl=shared
+make -s -j 9
+make install -s
+popd
+
+echo "-----> Preparing PECL..."
+${OUT_PREFIX}/bin/pecl channel-update pecl.php.net
+
+echo "-----> Bundling Composer..."
+curl -sS https://getcomposer.org/installer | php -- --install-dir=${OUT_PREFIX}/bin
+mv ${OUT_PREFIX}/bin/composer.phar ${OUT_PREFIX}/bin/composer
+
+echo "-----> Done."
