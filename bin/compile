@@ -56,6 +56,7 @@ S3_URL="https://lang-php.s3.amazonaws.com/dist-${S3_URL}"
 
 cd $BUILD_DIR
 
+json_empty=true
 if [[ -s "composer.json" ]]; then
     json_empty=false
     json_invalid=false
@@ -64,12 +65,10 @@ if [[ -s "composer.json" ]]; then
         error "Could not parse composer.json; make sure it's valid!"
     fi
 elif [[ ! -f "composer.json" ]]; then
-    json_empty=true
     warning 'No composer.json found.
 Using index.php to declare PHP applications is considered legacy
 functionality and may lead to unexpected behavior.'
 else
-    json_empty=true
     notice 'Your composer.json is completely empty.
 Consider putting at least "{}" in there to make it valid JSON.'
 fi
@@ -205,48 +204,46 @@ if [[ $engine == "php" ]]; then
     fi
 fi
 
-if [[ -f "composer.lock" ]]; then
-    status "Installing dependencies..."
-    
-    # check if we should use a composer.phar version bundled with the project
-    if [[ -f "composer.phar" ]]; then
-        composer() {
-             php composer.phar $*
-        }
-        export -f composer
-        notice_inline "Found a composer.phar in root directory, will use it for install."
+status "Installing dependencies..."
+
+# check if we should use a composer.phar version bundled with the project
+if [[ -f "composer.phar" ]]; then
+    composer() {
+         php composer.phar $*
+    }
+    export -f composer
+    notice_inline "Found a composer.phar in root directory, will use it for install."
+else
+    composer self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
+fi
+# echo composer version for info purposes
+# tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+composer --version 2> /dev/null | tail -n 1 | indent
+
+# handle custom oauth keys
+COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
+if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
+    if curl --fail --silent -H "Authorization: token $COMPOSER_GITHUB_OAUTH_TOKEN" https://api.github.com/rate_limit > /dev/null; then
+        composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+        notice_inline 'Using custom GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
     else
-        composer self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
+        error 'Invalid GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
     fi
-    # echo composer version for info purposes
-    # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
-    composer --version 2> /dev/null | tail -n 1 | indent
-    
-    # handle custom oauth keys
-    COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
-    if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
-        if curl --fail --silent -H "Authorization: token $COMPOSER_GITHUB_OAUTH_TOKEN" https://api.github.com/rate_limit > /dev/null; then
-            composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
-            notice_inline 'Using custom GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
-        else
-            error 'Invalid GitHub OAuth token in $COMPOSER_GITHUB_OAUTH_TOKEN'
-        fi
-    else
-        # don't forget to remove any stored key if it's gone from the env
-        composer config -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
-        if curl --silent https://api.github.com/rate_limit | python -c 'import sys, json; sys.exit((json.load(sys.stdin)["resources"]["core"]["remaining"] > 0))'; then # yes, check > 0, not < 1 - exit status of 0 will trigger the if
-            notice "You've reached the GitHub API's request rate limit.
+else
+    # don't forget to remove any stored key if it's gone from the env
+    composer config -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+    if curl --silent https://api.github.com/rate_limit | python -c 'import sys, json; sys.exit((json.load(sys.stdin)["resources"]["core"]["remaining"] > 0))'; then # yes, check > 0, not < 1 - exit status of 0 will trigger the if
+        notice "You've reached the GitHub API's request rate limit.
 Composer will now try and fall back to slower downloads from source.
 It's strongly recommended you use a custom OAuth token; for details, see
 http://devcenter.heroku.com/articles/php-support#custom-github-oauth-tokens"
-        fi
     fi
-    # no need for the token to stay around in the env
-    unset COMPOSER_GITHUB_OAUTH_TOKEN
-
-    # install dependencies
-    composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
 fi
+# no need for the token to stay around in the env
+unset COMPOSER_GITHUB_OAUTH_TOKEN
+
+# install dependencies
+composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
 
 status "Building runtime environment..."
 
