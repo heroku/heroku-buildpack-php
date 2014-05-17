@@ -115,7 +115,7 @@ LoadModule log_config_module libexec/mod_log_config.so
 #LoadModule logio_module libexec/mod_logio.so
 LoadModule env_module libexec/mod_env.so
 #LoadModule mime_magic_module libexec/mod_mime_magic.so
-#LoadModule expires_module libexec/mod_expires.so
+LoadModule expires_module libexec/mod_expires.so
 LoadModule headers_module libexec/mod_headers.so
 #LoadModule usertrack_module libexec/mod_usertrack.so
 #LoadModule unique_id_module libexec/mod_unique_id.so
