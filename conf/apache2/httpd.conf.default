@@ -125,7 +125,7 @@ LoadModule version_module libexec/mod_version.so
 LoadModule proxy_module libexec/mod_proxy.so
 #LoadModule proxy_connect_module libexec/mod_proxy_connect.so
 #LoadModule proxy_ftp_module libexec/mod_proxy_ftp.so
-#LoadModule proxy_http_module libexec/mod_proxy_http.so
+LoadModule proxy_http_module libexec/mod_proxy_http.so
 LoadModule proxy_fcgi_module libexec/mod_proxy_fcgi.so
 #LoadModule proxy_scgi_module libexec/mod_proxy_scgi.so
 #LoadModule proxy_fdpass_module libexec/mod_proxy_fdpass.so
