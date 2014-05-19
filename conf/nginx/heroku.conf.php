@@ -26,6 +26,8 @@ http {
     }
     
     server {
+        # TODO: use X-Forwarded-Host? http://comments.gmane.org/gmane.comp.web.nginx.english/2170
+        server_name localhost;
         listen <?=getenv('PORT')?:'8080'?>;
         
         root <?=getenv('DOCUMENT_ROOT')?:getenv('HEROKU_APP_DIR')?:getcwd()?>;
