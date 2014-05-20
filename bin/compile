@@ -143,8 +143,8 @@ PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tar.gz"
 echo "- PHP $PHP_VERSION" | indent
 curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # we need to run PHP in here, set it up!
-ln -s $BUILD_DIR/.heroku $HOME/.heroku
-export PATH=$HOME/.heroku/php/bin:$PATH
+ln -s $BUILD_DIR/.heroku /app/.heroku
+export PATH=/app/.heroku/php/bin:$PATH
 PHP_EXT_DIR=$(php-config --extension-dir)
 # update config files
 mkdir -p $BUILD_DIR/.heroku/php/etc/php
@@ -159,6 +159,11 @@ if [[ $engine == "hhvm" ]]; then
     echo "- HHVM $HHVM_VERSION" | indent
     curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
     echo $HHVM_VERSION > $CACHE_DIR/hhvm_version
+    # make HHVM accessible
+    export PATH=$PATH:/app/.heroku/php/usr/bin
+    # so it'll start. remember to use the full path to the binary, or we'll get an infinite loop
+    hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib `which hhvm` "$@"; }
+    export -f hhvm
 fi
 
 APACHE_VERSION="2.4.9"
@@ -209,11 +214,15 @@ status "Installing dependencies..."
 # check if we should use a composer.phar version bundled with the project
 if [[ -f "composer.phar" ]]; then
     composer() {
-         php composer.phar $*
+        $engine composer.phar "$@"
     }
     export -f composer
     notice_inline "Found a composer.phar in root directory, will use it for install."
 else
+    composer() {
+        $engine `which composer` "$@"
+    }
+    export -f composer
     composer self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
 fi
 # echo composer version for info purposes
@@ -275,15 +284,23 @@ export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
 EOF
 if [[ $engine == "hhvm" ]]; then
     cat > $BUILD_DIR/.profile.d/hhvm.sh <<"EOF"
-hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib /app/.heroku/php/usr/bin/hhvm "$@"; }
+export PATH="$PATH:$HOME/.heroku/php/usr/bin"
+hhvm() { LD_LIBRARY_PATH=$HOME/.heroku/php/usr/lib/hhvm:$HOME/.heroku/php/usr/lib `which hhvm` "$@"; }
 export -f hhvm
 EOF
 fi
 # Alias composer if needed
 if [[ -f "composer.phar" ]]; then
-    cat > $BUILD_DIR/.profile.d/composer.sh <<"EOF"
+    cat > $BUILD_DIR/.profile.d/composer.sh <<EOF
 composer() {
-    php composer.phar "$@"
+    $engine composer.phar "\$@"
+}
+export -f composer
+EOF
+else
+    cat > $BUILD_DIR/.profile.d/composer.sh <<EOF
+composer() {
+    $engine \`which composer\` "\$@"
 }
 export -f composer
 EOF
