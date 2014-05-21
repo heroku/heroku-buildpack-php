@@ -111,8 +111,9 @@ This package may only be used as a dev dependency (in 'require-dev')!"
             PHP_VERSION=$phpver
         else
             # TODO: fail harder?
+            PHP_VERSION=${PHP_VERSIONS_ARR[0]}
             warning "Your composer.json requires an unknown PHP version.
-Defaulting to PHP ${PHP_VERSIONS_ARR[0]}; install may fail!"
+Defaulting to PHP ${PHP_VERSION}; install may fail!"
         fi
     fi
     # FIXME: this would be, of course, very basic and doesn't support expressions; migrate to semver.org
@@ -123,38 +124,35 @@ Defaulting to PHP ${PHP_VERSIONS_ARR[0]}; install may fail!"
             HHVM_VERSION=$hhvmver
         else
             # TODO: fail harder?
+            HHVM_VERSION=${HHVM_VERSIONS_ARR[0]}
             warning "Your composer.json requires an unknown HHVM version.
-Defaulting to HHVM ${HHVM_VERSIONS_ARR[0]}; install may fail!"
+Defaulting to HHVM ${HHVM_VERSION}; install may fail!"
         fi
         engine="hhvm"
     fi
 fi
-if [[ -n "$PHP_VERSION" &&  -n "$HHVM_VERSION" ]]; then
-    error "Cannot require both 'hhvm' and 'php' in composer.json!"
-fi
-
-# use first from *_VERSIONS as default
-PHP_VERSION=${PHP_VERSION:-${PHP_VERSIONS_ARR[0]}}
-HHVM_VERSION=${HHVM_VERSION:-${HHVM_VERSIONS_ARR[0]}}
 
 status "Setting up runtime environment..."
 
-PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tar.gz"
-echo "- PHP $PHP_VERSION" | indent
-curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
-# we need to run PHP in here, set it up!
+# we need to run things in here, set it up!
 ln -s $BUILD_DIR/.heroku /app/.heroku
 export PATH=/app/.heroku/php/bin:$PATH
-PHP_EXT_DIR=$(php-config --extension-dir)
-# update config files
-mkdir -p $BUILD_DIR/.heroku/php/etc/php
-cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc/php
-cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc/php
-mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
-# remember the version for future upgrade handling
-echo $PHP_VERSION > $CACHE_DIR/php_version
 
-if [[ $engine == "hhvm" ]]; then
+if [[ "${PHP_VERSION:-}" || ! "${HHVM_VERSION:-}" ]]; then
+    PHP_VERSION=${PHP_VERSION:-${PHP_VERSIONS_ARR[0]}}
+    PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tar.gz"
+    echo "- PHP $PHP_VERSION" | indent
+    curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+    PHP_EXT_DIR=$(php-config --extension-dir)
+    # update config files
+    mkdir -p $BUILD_DIR/.heroku/php/etc/php
+    cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc/php
+    cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc/php
+    mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
+    # remember the version for future upgrade handling
+    echo $PHP_VERSION > $CACHE_DIR/php_version
+fi
+if [[ "${HHVM_VERSION:-}" ]]; then
     HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
     echo "- HHVM $HHVM_VERSION" | indent
     curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php

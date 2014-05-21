@@ -14,7 +14,7 @@ php_passthrough() {
     if [[ "$out" != "$file" ]]; then
         echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
         out="$dir/$out"
-        php $1 > $out
+        hhvm $1 > $out
         echo $out
     else
         echo $1
