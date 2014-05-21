@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+# Build Deps: php-5.5.12
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+echo "-----> Bundling Composer (latest)..."
+
+export PATH=${OUT_PREFIX}/bin:$PATH
+
+curl -sS https://getcomposer.org/installer | php
+
+rm -rf ${OUT_PREFIX}/*
+mkdir -p ${OUT_PREFIX}/bin
+
+mv composer.phar ${OUT_PREFIX}/bin/composer
+
+echo "-----> Done."

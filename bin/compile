@@ -217,6 +217,7 @@ if [[ -f "composer.phar" ]]; then
     export -f composer
     notice_inline "Found a composer.phar in root directory, will use it for install."
 else
+    curl --silent --location "$S3_URL/composer.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
     composer() {
         $engine `which composer` "$@"
     }
