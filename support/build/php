@@ -66,8 +66,4 @@ popd
 echo "-----> Preparing PECL..."
 ${OUT_PREFIX}/bin/pecl channel-update pecl.php.net
 
-echo "-----> Bundling Composer..."
-curl -sS https://getcomposer.org/installer | php -- --install-dir=${OUT_PREFIX}/bin
-mv ${OUT_PREFIX}/bin/composer.phar ${OUT_PREFIX}/bin/composer
-
 echo "-----> Done."
