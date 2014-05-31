@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: libraries/zlib, libraries/libmcrypt, libraries/icu
+# Build Deps: libraries/zlib, libraries/libmcrypt, libraries/icu, libraries/gettext
 
 OUT_PREFIX=$1
 
@@ -48,6 +48,7 @@ LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
         --with-freetype-dir=/usr \
         --with-jpeg-dir=/usr \
         --with-png-dir=/usr \
+    --with-gettext=shared,${OUT_PREFIX} \
     --enable-intl=shared \
     --enable-mbstring=shared \
     --with-mysql=shared \
