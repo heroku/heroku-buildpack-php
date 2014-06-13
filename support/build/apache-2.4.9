@@ -41,4 +41,12 @@ make -s -j 9
 make install -s
 popd
 
+echo "-----> Building mod_proxy_handler..."
+
+export PATH=${OUT_PREFIX}/bin:${OUT_PREFIX}/sbin:$PATH
+
+curl -LO https://gist.githubusercontent.com/progandy/6ed4eeea60f6277c3e39/raw/5762a2542a18cd41ed6694bb0c4bd13109b649ad/mod_proxy_handler.c
+
+apxs -i -c mod_proxy_handler.c
+
 echo "-----> Done."
