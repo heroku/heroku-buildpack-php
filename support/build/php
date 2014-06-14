@@ -20,6 +20,10 @@ echo "-----> Building PHP ${dep_version}..."
 curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
+
+echo "-----> Applying https://github.com/php/php-src/pull/694..."
+curl -L https://github.com/php/php-src/pull/694.diff | patch -p1
+
 export PATH=${OUT_PREFIX}/bin:$PATH
 # cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
 # sqlite3 and pdo_sqlite are on by default but we're building them shared on purpose
