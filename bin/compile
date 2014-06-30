@@ -312,7 +312,7 @@ if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
 fi
 EOF
 
-source $BP_DIR/bin/phalcon.sh
+source $BP_DIR/bin/phalcon
 
 if [[ ! -f "Procfile" ]]; then
     bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
