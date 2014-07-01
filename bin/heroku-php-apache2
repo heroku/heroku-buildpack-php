@@ -121,8 +121,10 @@ if [[ "$#" -gt "1" ]]; then
     exit 2
 fi
 
-php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This program requires PHP 5.5.11 or newer" >&2; exit 1; }
-{ { httpd -v | php -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/([\d\\.]+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.8", "<"));'; } && { httpd -t -D DUMP_MODULES 2> /dev/null | grep "proxy_fcgi_module" > /dev/null; }; } || { echo "This program requires Apache 2.4.8 or newer with mod_proxy_fcgi enabled" >&2; exit 1; }
+php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This program requires PHP 5.5.11 or newer; check your 'php' command." >&2; exit 1; }
+{ php-fpm -v | php -r 'exit((int)version_compare(preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin")), "5.5.11", "<"));'; } || { echo "This program requires PHP 5.5.11 or newer; check your 'php-fpm' command." >&2; exit 1; }
+{ { httpd -v | php -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.8", "<"));'; } && { httpd -t -D DUMP_MODULES | awk '/proxy_fcgi_module/ {f1=1} /rewrite_module/ {f2=1} END {exit !(f1 && f2)}'; }; } || { echo "This program requires Apache 2.4.8 or newer with mod_proxy, mod_proxy_fcgi and mod_rewrite enabled; check your 'httpd' command." >&2; exit 1; }
+{ { httpd -v | php -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.10", "<"));'; } || { httpd -t -D DUMP_MODULES | grep 'proxy_handler_module' > /dev/null; }; } || { echo "This program requires mod_proxy_handler for Apache versions before 2.4.10; you may install it from https://gist.github.com/progandy/6ed4eeea60f6277c3e39"; exit 1; }
 
 echo "Booting on port $PORT..." >&2
 

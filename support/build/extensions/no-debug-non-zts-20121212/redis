@@ -15,7 +15,7 @@ dep_dirname=redis-${dep_version}
 dep_archive_name=${dep_dirname}.tgz
 dep_url=http://pecl.php.net/get/${dep_archive_name}
 
-echo "-----> Building ext/mongo ${dep_version}..."
+echo "-----> Building ext/redis ${dep_version}..."
 
 curl -L ${dep_url} | tar xz
 
