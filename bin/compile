@@ -132,7 +132,7 @@ Defaulting to HHVM ${HHVM_VERSION}; install may fail!"
     fi
 fi
 
-status "Setting up runtime environment..."
+status "Installing system packages..."
 
 # we need to run things in here, set it up!
 ln -s $BUILD_DIR/.heroku /app/.heroku
@@ -253,7 +253,7 @@ unset COMPOSER_GITHUB_OAUTH_TOKEN
 # install dependencies
 composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
 
-status "Building runtime environment..."
+status "Preparing runtime environment..."
 
 # install this buildpack like a composer package
 # it will contain the apache/nginx/php configs and the boot script
