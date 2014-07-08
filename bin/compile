@@ -127,7 +127,7 @@ print json.dumps(ret)
         else
             error "Could not resolve $runtime_source requirement for ${runtime_name^^} $runtime_constraint,
 please adjust the version selector. The following runtimes are available:
-$runtimes"
+$(echo $runtimes | fold -s -w 73)"
         fi
     done <<<"$solver_result"
 fi
