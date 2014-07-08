@@ -82,12 +82,9 @@ mkdir -p .heroku/php
 export COMPOSER_HOME=$CACHE_DIR/.composer
 mkdir -p $COMPOSER_HOME
 
-PHP_VERSIONS="5.5.14 5.5.13 5.5.12 5.5.11"
-PHP_VERSIONS_ARR=($PHP_VERSIONS)
 PHP_VERSION=
-HHVM_VERSIONS="3.1.0 3.0.1"
-HHVM_VERSIONS_ARR=($HHVM_VERSIONS)
 HHVM_VERSION=
+runtimes=$(cd $BP_DIR/support/build; ls {php,hhvm}-*)
 engine="php"
 if [[ -f "composer.json" ]]; then
     if [[ ! -f "composer.lock" ]]; then
@@ -98,33 +95,41 @@ was found, please check it into your repository along with composer.json!"
         fi
     fi
     
-    # FIXME: this would be, of course, very basic and doesn't support expressions; migrate to semver.org
-    phpver=$(cat composer.json | python -c 'import sys, json; print json.load(sys.stdin)["require"]["php"]' 2> /dev/null || true)
-    if [[ -n "$phpver" ]]; then
-        if [[ $PHP_VERSIONS =~ "$phpver" ]]; then
-            status "Detected request for PHP $phpver in composer.json."
-            PHP_VERSION=$phpver
+    solver_payload=$(echo -n "$runtimes" | python -c '
+import sys, json
+ret = {}
+c_json = dict(json.load(open("composer.json"))) # wrap in dict() to prevent simple errors with {} vs []
+try:
+    c_lock = json.load(open("composer.lock"))
+except IOError:
+    c_lock = {}
+ret["packages"] = sys.stdin.read().splitlines()
+ret["json"] = {k: c_json.get(k, None) for k in ["minimum-stability", "prefer-stable"]}
+ret["json"]["platform"] = {k: dict(c_json.get("require", {})).get(k, None) for k in ["php", "hhvm"]} # wrap in dict() to prevent simple errors with {} vs []
+ret["lock"] = {k: c_lock.get(k, None) for k in ["minimum-stability", "prefer-stable", "stability-flags"]}
+ret["lock"]["platform"] = {k: dict(c_lock.get("platform", {})).get(k, None) for k in ["php", "hhvm"]} # wrap in dict() to prevent simple errors with {} vs []
+print json.dumps(ret)
+') || error "Could not parse composer.json; make sure it's valid!"
+    solver_result=$(echo -n "$solver_payload" | curl --silent --location --fail -H'Content-Type: application/json' -d @- "http://php-runtime-version-selector.herokuapp.com/resolve?default_runtime=php" || error "Could not resolve runtime requirements.")
+    while IFS="|" read runtime_name runtime_source runtime_constraint runtime_result; do
+        if [[ $runtime_result ]]; then
+            if [[ $runtime_source == "default" ]]; then
+                status "Defaulting to ${runtime_name^^} $runtime_result."
+            else
+                status "Resolved $runtime_source requirement for ${runtime_name^^} $runtime_constraint to version $runtime_result."
+            fi
+            if [[ $runtime_name == "php" ]]; then
+                PHP_VERSION="$runtime_result"
+            elif [[ $runtime_name == "hhvm" ]]; then
+                HHVM_VERSION="$runtime_result"
+                engine=hhvm
+            fi
         else
-            # TODO: fail harder?
-            PHP_VERSION=${PHP_VERSIONS_ARR[0]}
-            warning "Your composer.json requires an unknown PHP version.
-Defaulting to PHP ${PHP_VERSION}; install may fail!"
+            error "Could not resolve $runtime_source requirement for ${runtime_name^^} $runtime_constraint,
+please adjust the version selector. The following runtimes are available:
+$runtimes"
         fi
-    fi
-    # FIXME: this would be, of course, very basic and doesn't support expressions; migrate to semver.org
-    hhvmver=$(cat composer.json | python -c 'import sys, json; print json.load(sys.stdin)["require"]["hhvm"]' 2> /dev/null || true)
-    if [[ -n "$hhvmver" ]]; then
-        if [[ $HHVM_VERSIONS =~ "$hhvmver" ]]; then
-            status "Detected request for HHVM $hhvmver in composer.json."
-            HHVM_VERSION=$hhvmver
-        else
-            # TODO: fail harder?
-            HHVM_VERSION=${HHVM_VERSIONS_ARR[0]}
-            warning "Your composer.json requires an unknown HHVM version.
-Defaulting to HHVM ${HHVM_VERSION}; install may fail!"
-        fi
-        engine="hhvm"
-    fi
+    done <<<"$solver_result"
 fi
 
 status "Installing system packages..."
@@ -133,8 +138,7 @@ status "Installing system packages..."
 ln -s $BUILD_DIR/.heroku /app/.heroku
 export PATH=/app/.heroku/php/bin:$PATH
 
-if [[ "${PHP_VERSION:-}" || ! "${HHVM_VERSION:-}" ]]; then
-    PHP_VERSION=${PHP_VERSION:-${PHP_VERSIONS_ARR[0]}}
+if [[ "${PHP_VERSION}" ]]; then
     PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tar.gz"
     echo "- PHP $PHP_VERSION" | indent
     curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
@@ -147,7 +151,7 @@ if [[ "${PHP_VERSION:-}" || ! "${HHVM_VERSION:-}" ]]; then
     # remember the version for future upgrade handling
     echo $PHP_VERSION > $CACHE_DIR/php_version
 fi
-if [[ "${HHVM_VERSION:-}" ]]; then
+if [[ "${HHVM_VERSION}" ]]; then
     HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
     echo "- HHVM $HHVM_VERSION" | indent
     curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
