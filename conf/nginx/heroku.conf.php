@@ -37,6 +37,11 @@ http {
         error_log stderr;
         access_log /tmp/heroku.nginx_access.<?=getenv('PORT')?:'8080'?>.log;
         
+        # fix REMOTE_ADDR by walking X-Forwarded-For with trusted IPs
+        real_ip_header X-Forwarded-For;
+        real_ip_recursive on;
+        set_real_ip_from 10.0.0.0/8;
+        
         include <?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>;
         
         # restrict access to hidden files, just in case
