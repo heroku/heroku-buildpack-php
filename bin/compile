@@ -114,7 +114,7 @@ print json.dumps(ret)
     while IFS="|" read runtime_name runtime_source runtime_constraint runtime_result; do
         if [[ $runtime_result ]]; then
             if [[ $runtime_source == "default" ]]; then
-                status "Defaulting to ${runtime_name^^} $runtime_result."
+                status "No runtime requirements in composer.json, defaulting to ${runtime_name^^} $runtime_result."
             else
                 status "Resolved $runtime_source requirement for ${runtime_name^^} $runtime_constraint to version $runtime_result."
             fi
