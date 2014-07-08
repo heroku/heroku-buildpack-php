@@ -98,16 +98,16 @@ was found, please check it into your repository along with composer.json!"
     solver_payload=$(echo -n "$runtimes" | python -c '
 import sys, json
 ret = {}
-c_json = dict(json.load(open("composer.json"))) # wrap in dict() to prevent simple errors with {} vs []
-try:
-    c_lock = json.load(open("composer.lock"))
-except IOError:
-    c_lock = {}
 ret["packages"] = sys.stdin.read().splitlines()
+c_json = dict(json.load(open("composer.json"))) # wrap in dict() to prevent simple errors with {} vs []
 ret["json"] = {k: c_json.get(k, None) for k in ["minimum-stability", "prefer-stable"]}
 ret["json"]["platform"] = {k: dict(c_json.get("require", {})).get(k, None) for k in ["php", "hhvm"]} # wrap in dict() to prevent simple errors with {} vs []
-ret["lock"] = {k: c_lock.get(k, None) for k in ["minimum-stability", "prefer-stable", "stability-flags"]}
-ret["lock"]["platform"] = {k: dict(c_lock.get("platform", {})).get(k, None) for k in ["php", "hhvm"]} # wrap in dict() to prevent simple errors with {} vs []
+try:
+    c_lock = json.load(open("composer.lock"))
+    ret["lock"] = {k: c_lock.get(k, None) for k in ["minimum-stability", "prefer-stable", "stability-flags"]}
+    ret["lock"]["platform"] = {k: dict(c_lock.get("platform", {})).get(k, None) for k in ["php", "hhvm"]} # wrap in dict() to prevent simple errors with {} vs []
+except IOError:
+    ret["lock"] = None
 print json.dumps(ret)
 ') || error "Could not parse composer.json; make sure it's valid!"
     solver_result=$(echo -n "$solver_payload" | curl --silent --location --fail -H'Content-Type: application/json' -d @- "http://php-runtime-version-selector.herokuapp.com/resolve?default_runtime=php" || error "Could not resolve runtime requirements.")
