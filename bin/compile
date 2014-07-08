@@ -202,7 +202,16 @@ if [[ $engine == "php" ]]; then
     # otherwise users would have to have it in their require section, which is annoying in development environments
     NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
     if [[ $newrelic_installed == false && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
+        newrelic_installed=true
         install_ext "newrelic" "add-on detected"
+    fi
+    
+    if [[ $newrelic_installed == true ]]; then
+        # newrelic logs to stderr, and that mangles our build output and seems to cause calls to Composer to potentially hang, so we disable it for the duration of this build
+        echo "newrelic.enabled = 0
+newrelic.loglevel = error
+newrelic.daemon.dont_launch = 3
+newrelic.daemon.loglevel = error" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-newrelic-off.ini"
     fi
 fi
 
@@ -310,7 +319,7 @@ fi
 cat > $BUILD_DIR/.profile.d/newrelic.sh <<"EOF"
 if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
     export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-"PHP Application on Heroku"}
-    export NEW_RELIC_LOG=${NEW_RELIC_LOG:-"stdout"}
+    export NEW_RELIC_LOG=${NEW_RELIC_LOG:-"stderr"}
 fi
 EOF
 
@@ -319,3 +328,7 @@ if [[ ! -f "Procfile" ]]; then
     echo "web: $bindir/heroku-$engine-apache2" > Procfile
     notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-$engine-apache2'"
 fi
+
+# cleanup
+# re-enable newrelic in case we installed but disabled it for the duration of the build
+rm -f "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-newrelic-off.ini"
