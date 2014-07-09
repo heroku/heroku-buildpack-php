@@ -109,7 +109,8 @@ try:
 except IOError:
     ret["lock"] = None
 print json.dumps(ret)
-') || error "Could not parse composer.json; make sure it's valid!"
+') || error "Failed to parse composer.lock; it must be non-empty and valid JSON.
+Run 'composer update' to have it re-generated or removed by Composer."
     solver_result=$(echo -n "$solver_payload" | curl --silent --location --fail -H'Content-Type: application/json' -d @- "http://php-runtime-version-selector.herokuapp.com/resolve?default_runtime=php" || error "Could not resolve runtime requirements.")
     while IFS="|" read runtime_name runtime_source runtime_constraint runtime_result; do
         if [[ $runtime_result ]]; then
