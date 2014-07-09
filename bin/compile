@@ -109,9 +109,10 @@ try:
 except IOError:
     ret["lock"] = None
 print json.dumps(ret)
-') || error "Failed to parse composer.lock; it must be non-empty and valid JSON.
+' 2> /dev/null) || error "Failed parsing composer.lock; it must be non-empty and valid JSON.
 Run 'composer update' to have it re-generated or removed by Composer."
-    solver_result=$(echo -n "$solver_payload" | curl --silent --location --fail -H'Content-Type: application/json' -d @- "http://php-runtime-version-selector.herokuapp.com/resolve?default_runtime=php" || error "Could not resolve runtime requirements.")
+    solver_result=$(echo -n "$solver_payload" | curl --silent --location --fail -H'Content-Type: application/json' -d @- "http://php-runtime-version-selector.herokuapp.com/resolve?default_runtime=php") || error "Failed to resolve runtime requirements.
+If the issue persists, please contact support."
     while IFS="|" read runtime_name runtime_source runtime_constraint runtime_result; do
         if [[ $runtime_result ]]; then
             if [[ $runtime_source == "default" ]]; then
@@ -262,7 +263,7 @@ unset COMPOSER_GITHUB_OAUTH_TOKEN
 # install dependencies
 composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
 
-composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your composer.json requires 'heroku/heroku-buildpack-php'.
+composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your composer.json requires package 'heroku/heroku-buildpack-php'.
 This package may only be used as a dev dependency (in 'require-dev')!"
 
 status "Preparing runtime environment..."
