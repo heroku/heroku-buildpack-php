@@ -184,7 +184,7 @@ echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 
 # handle extensions for PHP
 if [[ $engine == "php" ]]; then
-    status "Installing PHP extensions:"
+    status "Installing PHP extensions..."
     install_ext "opcache" "automatic"
     exts=
     if [[ -f "composer.json" ]]; then
