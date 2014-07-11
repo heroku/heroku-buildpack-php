@@ -8,7 +8,6 @@ error() {
 warning() {
   echo
   echo " !     WARNING: $*" | indent no_first_line_indent
-  echo "See https://devcenter.heroku.com/categories/php" | indent
   echo
 }
 
@@ -23,7 +22,6 @@ status() {
 notice() {
   echo
   echo "NOTICE: $*" | indent
-  echo "See https://devcenter.heroku.com/categories/php" | indent
   echo
 }
 
