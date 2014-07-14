@@ -238,6 +238,16 @@ fi
 # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 composer --version 2> /dev/null | tail -n 1 | indent
 
+# throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
+if [[ -e "$(composer config vendor-dir)" ]]; then
+    warning "You have put Composer's vendor directory under version control.
+That directory should not be in your Git repository; only composer.json
+and composer.lock should be added, with Composer handling installation.
+Please 'git rm --cached $(composer config vendor-dir)/' to remove the folder from your index,
+then add '/$(composer config vendor-dir)/' to your '.gitignore' list to remove this notice.
+For more information, refer to the Composer FAQ: http://bit.ly/1rlCSZU"
+fi
+
 # handle custom oauth keys
 COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
 if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
