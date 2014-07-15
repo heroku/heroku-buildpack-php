@@ -164,10 +164,12 @@ LoadModule dir_module libexec/mod_dir.so
 LoadModule alias_module libexec/mod_alias.so
 LoadModule rewrite_module libexec/mod_rewrite.so
 
-# special Heroku treatment
-# taken from https://gist.github.com/progandy/6ed4eeea60f6277c3e39
-# will be included in Apache 2.4.10+, most likely
-LoadModule proxy_handler_module libexec/mod_proxy_handler.so
+<IfVersion < 2.4.10>
+    # special treatment for Apache < 2.4.10 so we can SetHandler to mod_proxy_fcgi
+    # taken from https://gist.github.com/progandy/6ed4eeea60f6277c3e39
+    # the functionality is included in Apache 2.4.10+
+    LoadModule proxy_handler_module libexec/mod_proxy_handler.so
+</IfVersion>
 
 <IfModule unixd_module>
 #

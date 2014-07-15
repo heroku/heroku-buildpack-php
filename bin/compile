@@ -165,7 +165,7 @@ if [[ "${HHVM_VERSION}" ]]; then
     export -f hhvm
 fi
 
-APACHE_VERSION="2.4.9"
+APACHE_VERSION="2.4.10"
 APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
 echo "- Apache $APACHE_VERSION" | indent
 curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
