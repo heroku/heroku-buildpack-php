@@ -20,7 +20,7 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
         dep_url=http://downloads.php.net/tyrael/${dep_archive_name}
     fi
 else
-    dep_url=http://us1.php.net/get/${dep_archive_name}/from/www.php.net/mirror
+    dep_url=http://us1.php.net/get/${dep_archive_name}/from/this/mirror
 fi
 
 echo "-----> Building PHP ${dep_version}..."
