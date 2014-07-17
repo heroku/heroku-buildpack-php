@@ -35,6 +35,7 @@ VAR=${OUT_PREFIX}/var
     --http-scgi-temp-path=${VAR}/run/nginx/scgi_temp \
     --http-log-path=${VAR}/log/nginx/access.log \
     --error-log-path=${VAR}/log/nginx/error.log \
+    --with-http_realip_module \
     --with-pcre=pcre-8.34 \
     --with-zlib=zlib-1.2.8
 make -s -j 9
