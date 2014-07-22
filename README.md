@@ -25,7 +25,7 @@ The folder `support/build` contains [Bob](http://github.com/kennethreitz/bob-bui
 To get started with it, create an app on Heroku inside a clone of this repository, and set your S3 config vars:
 
 ```term
-$ heroku create --buildpack https://github.com/heroku/heroku-buildpack-python#not-heroku
+$ heroku create --buildpack https://github.com/heroku/heroku-buildpack-python
 $ heroku ps:scale web=0
 $ heroku config:set WORKSPACE_DIR=/app/support/build
 $ heroku config:set AWS_ACCESS_KEY_ID=<your_aws_key>
