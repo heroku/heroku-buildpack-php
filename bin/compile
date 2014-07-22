@@ -188,7 +188,7 @@ cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.
 echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 
 # handle extensions for PHP
-if [[ $engine == "php" ]]; then
+if [[ "${PHP_VERSION}" ]]; then
     status "Installing PHP extensions..."
     install_ext "opcache" "automatic"
     exts=
