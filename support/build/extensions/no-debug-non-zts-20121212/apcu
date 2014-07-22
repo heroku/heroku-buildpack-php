@@ -9,7 +9,7 @@ set -o pipefail
 # fail harder
 set -eux
 
-DEFAULT_VERSION="4.0.4"
+DEFAULT_VERSION="4.0.6"
 dep_version=${VERSION:-$DEFAULT_VERSION}
 dep_dirname=apcu-${dep_version}
 dep_archive_name=${dep_dirname}.tgz
