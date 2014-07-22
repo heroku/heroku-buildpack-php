@@ -174,7 +174,7 @@ cp $BP_DIR/conf/apache2/httpd.conf.default $BUILD_DIR/.heroku/php/etc/apache2/ht
 # remember the version for future upgrade handling
 echo $APACHE_VERSION > $CACHE_DIR/apache2_version
 
-NGINX_VERSION="1.4.6"
+NGINX_VERSION="1.6.0"
 NGINX_DIST_URL="$S3_URL/nginx-$NGINX_VERSION.tar.gz"
 echo "- Nginx $NGINX_VERSION" | indent
 curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
