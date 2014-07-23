@@ -86,7 +86,7 @@ fi
 engine="php"
 if [[ -f "composer.json" ]]; then
     if [[ ! -f "composer.lock" ]]; then
-        cat composer.json | python -c 'import sys, json; print sys.exit(any(key.count("/") for key in json.load(sys.stdin)["require"]))' 2> /dev/null || error "Your composer.json specifies dependencies, but no composer.lock
+        cat composer.json | python -c 'import sys, json; print sys.exit(any(key.count("/") for key in json.load(sys.stdin).get("require", {})))' 2> /dev/null || error "Your composer.json specifies dependencies, but no composer.lock
 was found, please check it into your repository along with composer.json!"
     fi
     
