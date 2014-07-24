@@ -57,23 +57,17 @@ S3_URL="https://lang-php.s3.amazonaws.com/dist-${STACK}-${S3_URL}"
 
 cd $BUILD_DIR
 
-json_empty=true
 if [[ -s "composer.json" ]]; then
-    json_empty=false
-    json_invalid=false
-    cat composer.json | python -mjson.tool &> /dev/null || json_invalid=true
-    if [[ $json_invalid == true ]]; then
-        error "Could not parse composer.json; make sure it's valid!"
-    fi
-elif [[ ! -f "composer.json" ]]; then
-    warning 'No composer.json found.
+    cat composer.json | python -mjson.tool &> /dev/null || error "Could not parse composer.json; make sure it's valid!"
+else
+    if [[ ! -f "composer.json" ]]; then
+        warning 'No composer.json found.
 Using index.php to declare PHP applications is considered legacy
 functionality and may lead to unexpected behavior.'
-else
-    notice 'Your composer.json is completely empty.
-Consider putting at least "{}" in there to make it valid JSON.'
-fi
-if [[ $json_empty == true ]]; then
+    else
+        notice 'Your composer.json is completely empty.
+Please change its contents to at least "{}" so it is valid JSON.'
+    fi
     echo "{}" > composer.json
 fi
 
@@ -85,14 +79,15 @@ mkdir -p $COMPOSER_HOME
 PHP_VERSION=
 HHVM_VERSION=
 runtimes=$(cd $BP_DIR/support/build; ls {php,hhvm}-*)
+if [[ $STACK == "cedar-14" ]]; then
+    # FIXME: remove once HHVM works on cedar-14
+    runtimes=$(cd $BP_DIR/support/build; ls php-*)
+fi
 engine="php"
 if [[ -f "composer.json" ]]; then
     if [[ ! -f "composer.lock" ]]; then
-        has_packages=$(cat composer.json | python -c 'import sys, json; print any(key.count("/") for key in json.load(sys.stdin)["require"])' 2> /dev/null || true) # might fail, set -e would stop execution
-        if [ "$has_packages" == "True" ]; then
-            error "Your composer.json specifies dependencies, but no composer.lock
+        cat composer.json | python -c 'import sys, json; print sys.exit(any(key.count("/") for key in json.load(sys.stdin).get("require", {})))' 2> /dev/null || error "Your composer.json specifies dependencies, but no composer.lock
 was found, please check it into your repository along with composer.json!"
-        fi
     fi
     
     solver_payload=$(echo -n "$runtimes" | python -c '
@@ -165,7 +160,7 @@ if [[ "${HHVM_VERSION}" ]]; then
     export -f hhvm
 fi
 
-APACHE_VERSION="2.4.9"
+APACHE_VERSION="2.4.10"
 APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
 echo "- Apache $APACHE_VERSION" | indent
 curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
@@ -174,7 +169,7 @@ cp $BP_DIR/conf/apache2/httpd.conf.default $BUILD_DIR/.heroku/php/etc/apache2/ht
 # remember the version for future upgrade handling
 echo $APACHE_VERSION > $CACHE_DIR/apache2_version
 
-NGINX_VERSION="1.4.6"
+NGINX_VERSION="1.6.0"
 NGINX_DIST_URL="$S3_URL/nginx-$NGINX_VERSION.tar.gz"
 echo "- Nginx $NGINX_VERSION" | indent
 curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
@@ -184,7 +179,7 @@ cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.
 echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 
 # handle extensions for PHP
-if [[ $engine == "php" ]]; then
+if [[ "${PHP_VERSION}" ]]; then
     status "Installing PHP extensions..."
     install_ext "opcache" "automatic"
     exts=

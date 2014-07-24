@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+DEFAULT_VERSION="1.6.0"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=nginx-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
+dep_url=http://nginx.org/download/${dep_archive_name}
+
+echo "-----> Building Nginx ${dep_version}..."
+
+curl -L ${dep_url} | tar xz
+curl -L http://zlib.net/zlib-1.2.8.tar.gz | tar xz -C ${dep_dirname}
+curl -L http://sourceforge.net/projects/pcre/files/pcre/8.34/pcre-8.34.tar.gz | tar xz -C ${dep_dirname}
+
+pushd ${dep_dirname}
+ETC=${OUT_PREFIX}/etc
+VAR=${OUT_PREFIX}/var
+./configure \
+    --prefix=${OUT_PREFIX} \
+    --conf-path=${ETC}/nginx/nginx.conf \
+    --pid-path=${VAR}/run/nginx.pid \
+    --lock-path=${VAR}/run/nginx.lock \
+    --http-client-body-temp-path=${VAR}/run/nginx/client_body_temp \
+    --http-proxy-temp-path=${VAR}/run/nginx/proxy_temp \
+    --http-fastcgi-temp-path=${VAR}/run/nginx/fastcgi_temp \
+    --http-uwsgi-temp-path=${VAR}/run/nginx/uwsgi_temp \
+    --http-scgi-temp-path=${VAR}/run/nginx/scgi_temp \
+    --http-log-path=${VAR}/log/nginx/access.log \
+    --error-log-path=${VAR}/log/nginx/error.log \
+    --with-http_realip_module \
+    --with-pcre=pcre-8.34 \
+    --with-zlib=zlib-1.2.8
+make -s -j 9
+make install -s
+# this doesn't get created
+mkdir -p ${VAR}/run/nginx
+popd
+
+echo "-----> Done."
