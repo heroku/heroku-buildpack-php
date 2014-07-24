@@ -22,7 +22,7 @@ curl -L ${dep_url} | tar xz
 pushd ${dep_dirname}
 export PATH=${OUT_PREFIX}/bin:${PATH}
 phpize
-LD_LIBRARY_PATH=${OUT_PREFIX} LIBRARY_PATH=${OUT_PREFIX} ./configure --prefix=${OUT_PREFIX}
+./configure --prefix=${OUT_PREFIX} --with-imagick=${OUT_PREFIX}
 make -s -j 9
 # php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
 rm -rf ${OUT_PREFIX}/*
