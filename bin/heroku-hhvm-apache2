@@ -154,15 +154,14 @@ trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -
 
 # redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
 echo "Starting log redirection..." >&2
-( touch "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log"; tail -qF -n 0 /tmp/heroku.*.$PORT.log 1>&2; echo "tail heroku.*.$PORT.log"; ) > $wait_pipe &
+( touch "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log"; tail -qF -n 0 /tmp/heroku.*.$PORT.log 1>&2; echo "tail heroku.*.$PORT.log" >&3; ) 3> $wait_pipe &
 # start HHVM; write "hhvm" to the shared pipe if it exits
-# (it writes to STDOUT, we need to redirect to STDERR)
 echo "Starting hhvm..." >&2
-( hhvm --mode server -vServer.Type=fastcgi -vServer.FileSocket=/tmp/heroku.fcgi.$PORT.sock -c "$php_config" >&2; echo "hhvm"; ) > $wait_pipe &
+( hhvm --mode server -vServer.Type=fastcgi -vServer.FileSocket=/tmp/heroku.fcgi.$PORT.sock -c "$php_config"; echo "hhvm" >&3; ) 3> $wait_pipe &
 # wait a few seconds for HHVM to finish initializing; otherwise an early request might break Apache with the FastCGI pipe not being ready
 # start apache; write "httpd" to the shared pipe if it exits
 echo "Starting httpd..." >&2
-( sleep 2; httpd -D NO_DETACH -c "Include $httpd_config" || true; echo "httpd"; ) > $wait_pipe &
+( sleep 2; httpd -D NO_DETACH -c "Include $httpd_config" || true; echo "httpd" >&3; ) 3> $wait_pipe &
 
 # wait for something to come from the shared pipe, which means that the given process was killed or has failed
 # we'll only reach this if one of the processes above has terminated
