@@ -153,6 +153,7 @@ mkfifo $wait_pipe
 trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -p | xargs -n1 pkill -TERM -P || true; jobs -p | xargs -n1 kill -TERM 2> /dev/null || true; exit' SIGINT SIGQUIT SIGTERM EXIT
 
 # launch processes. all run using || true to prevent premature exit of the subshell (from set -e) regardless of exit status
+# after a subprocess terminates (because it was killed or because it crashed or because it quit voluntarily), we write the name to FD 3 (because programs could output something on FD 1 (STDOUT) or FD 2 (STDERR)) and send that to the shared pipe (mkfifo) above, and a read command further down waits for something to come in on the shared pipe
 
 # redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
 echo "Starting log redirection..." >&2
@@ -166,8 +167,8 @@ echo "Starting nginx..." >&2
 ( sleep 2; nginx -g "daemon off; include $nginx_config;" || true; echo "nginx" >&3; ) 3> $wait_pipe &
 
 # wait for something to come from the shared pipe, which means that the given process was killed or has failed
-# we'll only reach this if one of the processes above has terminated
 read exitproc < $wait_pipe
+# we'll only reach this if one of the processes above has terminated
 echo "Process exited unexpectedly: $exitproc"
 
 # this will trigger the trap and kill all remaining children
