@@ -183,34 +183,32 @@ echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 # handle extensions for PHP
 if [[ "${PHP_VERSION}" ]]; then
     status "Installing PHP extensions..."
-    install_ext "zend-opcache" "automatic"
-    exts=
+    exts=()
     if [[ -f "composer.json" ]]; then
-        exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:].lower()) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
+        exts=($(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:].lower()) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)) # convert to array
     fi
-    newrelic_installed=false
-    if [[ -n "$exts" ]]; then
-        while read -r ext; do
-            if [[ "$ext" == "newrelic" ]]; then
-                newrelic_installed=true
-            fi
-            install_ext "$ext" "composer.json"
-        done <<< "$exts"
-    fi
+    for ext in "${!exts[@]}"; do # loop over keys in case the array is empty or else it'll error out
+        install_ext "${exts[$ext]}" "composer.json"
+    done
     # special treatment for New Relic; we enable it if we detect a license key for it
     # otherwise users would have to have it in their require section, which is annoying in development environments
     NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
-    if [[ $newrelic_installed == false && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
-        newrelic_installed=true
+    if [[ ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "newrelic" ) && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
         install_ext "newrelic" "add-on detected"
+        exts+=("newrelic")
     fi
     
-    if [[ $newrelic_installed == true ]]; then
+    if [[ ${#exts[@]} -gt 0 && ${exts[*]} =~ "newrelic" ]]; then
         # newrelic logs to stderr, and that mangles our build output and seems to cause calls to Composer to potentially hang, so we disable it for the duration of this build (write to zzz-ext-newrelic.ini so the file is loaded last and overwrites the regular config)
         echo "newrelic.enabled = 0
 newrelic.loglevel = error
 newrelic.daemon.dont_launch = 3
 newrelic.daemon.loglevel = error" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/zzz-ext-newrelic.ini"
+    fi
+    
+    if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
+        install_ext "zend-opcache" "automatic"
+        exts+=("zend-opcache")
     fi
 fi
 
