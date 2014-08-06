@@ -206,11 +206,11 @@ if [[ "${PHP_VERSION}" ]]; then
     fi
     
     if [[ $newrelic_installed == true ]]; then
-        # newrelic logs to stderr, and that mangles our build output and seems to cause calls to Composer to potentially hang, so we disable it for the duration of this build
+        # newrelic logs to stderr, and that mangles our build output and seems to cause calls to Composer to potentially hang, so we disable it for the duration of this build (write to zzz-ext-newrelic.ini so the file is loaded last and overwrites the regular config)
         echo "newrelic.enabled = 0
 newrelic.loglevel = error
 newrelic.daemon.dont_launch = 3
-newrelic.daemon.loglevel = error" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-newrelic-off.ini"
+newrelic.daemon.loglevel = error" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/zzz-ext-newrelic.ini"
     fi
 fi
 
@@ -341,4 +341,4 @@ fi
 
 # cleanup
 # re-enable newrelic in case we installed but disabled it for the duration of the build
-rm -f "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-newrelic-off.ini"
+rm -f "${BUILD_DIR}/.heroku/php/etc/php/conf.d/zzz-ext-newrelic.ini"
