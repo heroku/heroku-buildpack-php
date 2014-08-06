@@ -186,7 +186,7 @@ if [[ "${PHP_VERSION}" ]]; then
     install_ext "zend-opcache" "automatic"
     exts=
     if [[ -f "composer.json" ]]; then
-        exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:]) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
+        exts=$(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:].lower()) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)
     fi
     newrelic_installed=false
     if [[ -n "$exts" ]]; then
