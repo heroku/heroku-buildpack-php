@@ -180,15 +180,16 @@ cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.
 # remember the version for future upgrade handling
 echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 
-# the newrelic extension logs to stderr which pollutes our build output on each invocation of PHP, and the daemon it launches will prevent the build from finishing, so we disable it for the duration of this build (write to zzz-ext-newrelic.ini so the file is loaded last and overwrites the regular config). we can do this unconditionally here, no harm done if extension or add-on aren't enabled
-echo "newrelic.enabled = 0
-newrelic.loglevel = error
-newrelic.daemon.dont_launch = 3
-newrelic.daemon.loglevel = error" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/zzz-ext-newrelic.ini"
-
 # handle extensions for PHP
 if [[ "${PHP_VERSION}" ]]; then
     status "Installing PHP extensions..."
+    
+    # the newrelic extension logs to stderr which pollutes our build output on each invocation of PHP, and the daemon it launches will prevent the build from finishing, so we disable it for the duration of this build (write to zzz-ext-newrelic.ini so the file is loaded last and overwrites the regular config). we can do this unconditionally here, no harm done if extension or add-on aren't enabled
+    echo "newrelic.enabled = 0
+    newrelic.loglevel = error
+    newrelic.daemon.dont_launch = 3
+    newrelic.daemon.loglevel = error" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/zzz-ext-newrelic.ini"
+    
     exts=()
     if [[ -f "composer.json" ]]; then
         exts=($(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:].lower()) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)) # convert to array
