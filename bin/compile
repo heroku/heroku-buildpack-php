@@ -81,10 +81,6 @@ mkdir -p $COMPOSER_HOME
 PHP_VERSION=
 HHVM_VERSION=
 runtimes=$(cd $BP_DIR/support/build; ls {php,hhvm}-*)
-if [[ $STACK == "cedar-14" ]]; then
-    # FIXME: remove once HHVM works on cedar-14
-    runtimes=$(cd $BP_DIR/support/build; ls php-* hhvm-3.2.0)
-fi
 engine="php"
 if [[ -f "composer.json" ]]; then
     if [[ ! -f "composer.lock" ]]; then
