@@ -116,6 +116,18 @@ If the issue persists, please contact support."
                 status "No runtime requirements in composer.json, defaulting to ${runtime_name^^} $runtime_result."
             else
                 status "Resolved $runtime_source requirement for ${runtime_name^^} $runtime_constraint to version $runtime_result."
+                if [[ "$runtime_constraint" == "$runtime_result" || "$runtime_constraint" == "=$runtime_result" ]]; then
+                    recommended_selector="~$runtime_result"
+                    if [[ $runtime_name == "hhvm" ]]; then
+                        recommended_selector="${recommended_selector%.*}" # strip "3.2.0" to just "3.2"; HHVM has different versioning
+                    fi
+                    warning "Your composer.json requires version '$runtime_constraint' for runtime '$runtime_name'.
+This exact-match version constraint means you will not automatically get
+more recent compatible versions of ${runtime_name^^} on push once they are released.
+Such new versions may contain security updates, so we strongly suggest
+you use a more lenient selector like '$recommended_selector' instead.
+See https://devcenter.heroku.com/articles/php-support for more details."
+                fi
             fi
             if [[ $runtime_name == "php" ]]; then
                 PHP_VERSION="$runtime_result"
