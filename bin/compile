@@ -83,7 +83,7 @@ HHVM_VERSION=
 runtimes=$(cd $BP_DIR/support/build; ls {php,hhvm}-*)
 if [[ $STACK == "cedar-14" ]]; then
     # FIXME: remove once HHVM works on cedar-14
-    runtimes=$(cd $BP_DIR/support/build; ls php-*)
+    runtimes=$(cd $BP_DIR/support/build; ls php-* hhvm-3.2.0)
 fi
 engine="php"
 if [[ -f "composer.json" ]]; then
@@ -158,7 +158,7 @@ if [[ "${HHVM_VERSION}" ]]; then
     # make HHVM accessible
     export PATH=$PATH:/app/.heroku/php/usr/bin
     # so it'll start. remember to use the full path to the binary, or we'll get an infinite loop
-    hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib `which hhvm` "$@"; }
+    hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/x86_64-linux-gnu:/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib `which hhvm` "$@"; }
     export -f hhvm
 fi
 
@@ -302,7 +302,7 @@ EOF
 if [[ $engine == "hhvm" ]]; then
     cat > $BUILD_DIR/.profile.d/hhvm.sh <<"EOF"
 export PATH="$PATH:$HOME/.heroku/php/usr/bin"
-hhvm() { LD_LIBRARY_PATH=$HOME/.heroku/php/usr/lib/hhvm:$HOME/.heroku/php/usr/lib `which hhvm` "$@"; }
+hhvm() { LD_LIBRARY_PATH=$HOME/.heroku/php/usr/lib/x86_64-linux-gnu:$HOME/.heroku/php/usr/lib/hhvm:$HOME/.heroku/php/usr/lib `which hhvm` "$@"; }
 export -f hhvm
 EOF
 fi
