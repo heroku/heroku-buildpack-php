@@ -224,11 +224,13 @@ status "Installing dependencies..."
 
 # check if we should use a composer.phar version bundled with the project
 if [[ -f "composer.phar" ]]; then
+    php -r 'new Phar("composer.phar");' &> /dev/null || error "Found composer.phar in root directory, but it appears corrupted!"
     composer() {
         $engine composer.phar "$@"
     }
     export -f composer
-    notice_inline "Found a composer.phar in root directory, will use it for install."
+    composer --version 2>&1 | grep "^Composer version" > /dev/null || error "composer.phar in root directory doesn't seem to contain Composer!"
+    notice_inline "Using custom composer.phar (in root dir) to install dependencies."
 else
     curl --silent --location "$S3_URL/composer.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
     composer() {
