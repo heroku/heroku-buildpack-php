@@ -336,7 +336,6 @@ fi
 cat > $BUILD_DIR/.profile.d/newrelic.sh <<"EOF"
 if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
     export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-"PHP Application on Heroku"}
-    export NEW_RELIC_LOG=${NEW_RELIC_LOG:-"stderr"}
     export NEW_RELIC_LOG_LEVEL=${NEW_RELIC_LOG_LEVEL:-"warning"}
 fi
 EOF
