@@ -216,6 +216,16 @@ if [[ "${PHP_VERSION}" ]]; then
         install_ext "newrelic" "add-on detected"
         exts+=("newrelic")
     fi
+
+    # special treatment for Codizy; we enable it on demand
+    # otherwise users would have to have it in their require section, which is annoying in development environments
+    CODIZY_INSTALL=${CODIZY_INSTALL:-}
+    if [[ ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "codizy" ) && -n "$CODIZY_INSTALL" ]]; then
+        install_ext "codizy" "add-on detected"
+        exts+=("codizy")
+        exts+=("ioncube")
+        exts+=("xhprof")
+    fi
     
     if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
         install_ext "zend-opcache" "automatic"

@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+DEFAULT_VERSION="1.3"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=codizy-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
+dep_url=https://www.codizy.com/download/module/${dep_archive_name}
+
+echo "-----> Packaging ext/codizy ${dep_version} (for Zend module API version ${ZEND_MODULE_API_VERSION:=20121212})..."
+
+curl -L ${dep_url} | tar xz
+
+pushd ${dep_dirname}
+ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-${ZEND_MODULE_API_VERSION}
+bin_dir=${OUT_PREFIX}/bin
+mkdir -p ${ext_dir}
+mkdir -p ${bin_dir}
+cp codizy-${ZEND_MODULE_API_VERSION}.so ${ext_dir}/codizy.so
+popd
+
+echo "-----> Done."
