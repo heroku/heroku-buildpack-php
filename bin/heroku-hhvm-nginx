@@ -38,7 +38,7 @@ touch_log() {
 
 print_help() {
 echo "\
-Boots HHVM together with Nginx on Heroku and for local development.
+${1:-Boots HHVM together with Nginx on Heroku and for local development.}
 
 Usage:
   heroku-hhvm-nginx [options] [<DOCUMENT_ROOT>]
@@ -135,7 +135,8 @@ done
 shift $((OPTIND-1))
 
 if [[ "$#" -gt "1" ]]; then
-    print_help
+    print_help "$0: too many arguments. If you're using options,
+make sure to list them before any document root argument you're providing."
     exit 2
 fi
 
