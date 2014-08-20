@@ -8,16 +8,16 @@ set -eu
 shopt -s extglob
 
 php_passthrough() {
-    local dir=$(dirname $1)
-    local file=$(basename $1)
-    local out=$(basename $file .php)
+    local dir=$(dirname "$1")
+    local file=$(basename "$1")
+    local out=$(basename "$file" .php)
     if [[ "$out" != "$file" ]]; then
         echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
         out="$dir/$out"
-        hhvm $1 > $out
-        echo $out
+        hhvm "$1" > "$out"
+        echo "$out"
     else
-        echo $1
+        echo "$1"
     fi
 }
 
