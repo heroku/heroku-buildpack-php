@@ -4,8 +4,10 @@
 set -o pipefail
 # fail harder
 set -eu
-# for patterns further down
+# for ${DOCUMENT_ROOT%%*(/)} pattern further down
 shopt -s extglob
+# for detecting when -l 'logs/*.log' matches nothing
+shopt -s nullglob
 
 php_passthrough() {
     local dir=$(dirname "$1")
@@ -28,6 +30,10 @@ check_exists() {
     else
         echo "$HEROKU_APP_DIR/$1"
     fi
+}
+
+touch_log() {
+    mkdir -p $(dirname "$1") && touch "$1"
 }
 
 print_help() {
@@ -62,12 +68,18 @@ Options:
   -h                      Display this help screen and exit.
   -i <php.ini>            The path to the php.ini file to use.
                           [default: $COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/php/php.ini]
+  -l <tailme.log>         Path to additional log file to tail to STDERR so its
+                          contents appear in 'heroku logs'. If the file does not
+                          exist, it will be created. Wildcards are allowed, but
+                          must be quoted and must match already existing files.
+                          Note: this option can be repeated multiple times.
+
+All file paths must be relative to '$HEROKU_APP_DIR'.
 
 Any file name that ends in '.php' will be run through the PHP interpreter first.
 You may use this for templating although this is less useful than e.g. for Nginx
 where unlike in Apache2, you cannot reference environment variables in config
 files using a '\${VARNAME}' syntax.
-All file paths must be relative to '$HEROKU_APP_DIR'.
 
 If you would like to use the -C and -c or -F and -f options together, make sure
 you retain the appropriate include mechanisms (see default configs for details).
@@ -82,7 +94,10 @@ export PORT=${PORT:-$(( $RANDOM+1024 ))}
 export COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
 export COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
 
-while getopts ":C:c:F:f:i:h" opt; do
+# our standard logs
+logs=( "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log" )
+
+while getopts ":C:c:F:f:i:l:h" opt; do
     case $opt in
         C)
             httpd_config_include=$(check_exists "$OPTARG" "C")
@@ -98,6 +113,21 @@ while getopts ":C:c:F:f:i:h" opt; do
             ;;
         i)
             php_config=$(check_exists "$OPTARG" "i")
+            ;;
+        l)
+            logarg=( $OPTARG ) # must not quote this or wildcards won't get expanded into individual values
+            if [[ ${#logarg[@]} -eq 0 ]]; then # we set nullglob to detect if a pattern matched nothing (then the array is empty)
+                echo "Pattern '$OPTARG' passed to option -l matched no files" >&2
+                exit 1
+            fi
+            for logfile in "${logarg[@]}"; do
+                if [[ -d "$logfile" ]]; then
+                    echo "-l '$logfile': is a directory" >&2
+                    exit 1
+                fi
+                touch_log "$logfile" || { echo "Could not touch '$logfile'; permissions problem?" >&2; exit 1; }
+                logs+=("$logfile") # must quote here in case a wildcard matched a file with a space in the name
+            done
             ;;
         h)
             print_help 2>&1
@@ -134,7 +164,7 @@ if [[ "$#" == "1" ]]; then
         exit 1
     else
         # strip trailing slashes if present
-        DOCUMENT_ROOT=${DOCUMENT_ROOT%%*(/)}
+        DOCUMENT_ROOT=${DOCUMENT_ROOT%%*(/)} # powered by extglob
         echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
     fi
 fi
@@ -182,7 +212,7 @@ trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -
 
 # redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
 echo "Starting log redirection..." >&2
-( touch "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log"; tail -qF -n 0 /tmp/heroku.*.$PORT.log 1>&2 || true; echo "tail heroku.*.$PORT.log" >&3; ) 3> $wait_pipe &
+( touch "${logs[@]}"; tail -qF -n 0 "${logs[@]}" 1>&2 || true; echo 'tail "${logs[@]}"' >&3; ) 3> $wait_pipe &
 # start FPM; write "php-fpm" to the shared pipe if it exits
 echo "Starting php-fpm..." >&2
 ( php-fpm --nodaemonize -y "$fpm_config" -c "$php_config" || true; echo "php-fpm" >&3; ) 3> $wait_pipe &
