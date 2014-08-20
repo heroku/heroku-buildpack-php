@@ -147,7 +147,7 @@ echo "Booting on port $PORT..." >&2
 if [[ "$#" == "1" ]]; then
     DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
     if [[ ! -d "$DOCUMENT_ROOT" ]]; then
-        echo "DOCUMENT_ROOT '$1' does not exist"
+        echo "DOCUMENT_ROOT '$1' does not exist" >&2
         exit 1
     else
         # strip trailing slashes if present
@@ -200,7 +200,7 @@ echo "Starting httpd..." >&2
 # wait for something to come from the shared pipe, which means that the given process was killed or has failed
 read exitproc < $wait_pipe
 # we'll only reach this if one of the processes above has terminated
-echo "Process exited unexpectedly: $exitproc"
+echo "Process exited unexpectedly: $exitproc" >&2
 
 # this will trigger the trap and kill all remaining children
 exit 1
