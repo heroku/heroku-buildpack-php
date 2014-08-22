@@ -9,12 +9,14 @@ shopt -s extglob
 # for detecting when -l 'logs/*.log' matches nothing
 shopt -s nullglob
 
+verbose=
+
 php_passthrough() {
     local dir=$(dirname "$1")
     local file=$(basename "$1")
     local out=$(basename "$file" .php)
     if [[ "$out" != "$file" ]]; then
-        echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
+        [[ $verbose ]] && echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
         out="$dir/$out"
         hhvm "$1" > "$out"
         echo "$out"
@@ -68,6 +70,7 @@ Options:
                           exist, it will be created. Wildcards are allowed, but
                           must be quoted and must match already existing files.
                           Note: this option can be repeated multiple times.
+  -v                      Be more verbose during startup.
 
 All file paths must be relative to '$HEROKU_APP_DIR'.
 
@@ -91,7 +94,7 @@ export COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) # ta
 # our standard logs
 logs=( "/tmp/heroku.nginx_access.$PORT.log" )
 
-while getopts ":C:c:i:l:h" opt; do
+while getopts ":C:c:i:l:vh" opt; do
     case $opt in
         C)
             nginx_config_include=$(check_exists "$OPTARG" "C")
@@ -116,6 +119,9 @@ while getopts ":C:c:i:l:h" opt; do
                 touch_log "$logfile" || { echo "Could not touch '$logfile'; permissions problem?" >&2; exit 1; }
                 logs+=("$logfile") # must quote here in case a wildcard matched a file with a space in the name
             done
+            ;;
+        v)
+            verbose=1
             ;;
         h)
             print_help 2>&1
@@ -142,7 +148,7 @@ fi
 
 hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { echo "This program requires HHVM 3.0.1 or newer" >&2; exit 1; }
 
-echo "Booting on port $PORT..." >&2
+[[ -z ${DYNO:-} || $verbose ]] && echo "Booting on port $PORT..." >&2
 
 if [[ "$#" == "1" ]]; then
     DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
@@ -152,21 +158,28 @@ if [[ "$#" == "1" ]]; then
     else
         # strip trailing slashes if present
         DOCUMENT_ROOT=${DOCUMENT_ROOT%%*(/)} # powered by extglob
-        echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
+        if [[ $verbose ]]; then
+            echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
+        else
+            echo "DOCUMENT_ROOT changed to '${1%%*(/)}/'" >&2
+        fi
     fi
 fi
 
-php_config=${php_config:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini"}
-echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
+if [[ -n ${php_config:-} || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini"} && $verbose ) ]]; then
+    echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
+fi
 php_config=$(php_passthrough "$php_config")
 
-nginx_config_include=${nginx_config_include:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf.php"}
-echo "Using Nginx server-level configuration include '${nginx_config_include#$HEROKU_APP_DIR/}'" >&2
+if [[ -n ${nginx_config_include:-} || ( ${nginx_config_include:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf.php"} && $verbose ) ]]; then
+    echo "Using Nginx server-level configuration include '${nginx_config_include#$HEROKU_APP_DIR/}'" >&2
+fi
 nginx_config_include=$(php_passthrough "$nginx_config_include")
 export HEROKU_PHP_NGINX_CONFIG_INCLUDE="$nginx_config_include"
 
-nginx_config=${nginx_config:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php"}
-echo "Using Nginx configuration file '${nginx_config#$HEROKU_APP_DIR/}'" >&2
+if [[ -n ${nginx_config:-} || ( ${nginx_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php"} && $verbose) ]]; then
+    echo "Using Nginx configuration file '${nginx_config#$HEROKU_APP_DIR/}'" >&2
+fi
 nginx_config=$(php_passthrough "$nginx_config")
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
@@ -187,7 +200,7 @@ trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -
 # after a subprocess terminates (because it was killed or because it crashed or because it quit voluntarily), we write the name to FD 3 (because programs could output something on FD 1 (STDOUT) or FD 2 (STDERR)) and send that to the shared pipe (mkfifo) above, and a read command further down waits for something to come in on the shared pipe
 
 # redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
-echo "Starting log redirection..." >&2
+[[ $verbose ]] && echo "Starting log redirection..." >&2
 ( touch "${logs[@]}"; tail -qF -n 0 "${logs[@]}" 1>&2 || true; echo 'tail "${logs[@]}"' >&3; ) 3> $wait_pipe &
 # start HHVM; write "hhvm" to the shared pipe if it exits
 echo "Starting hhvm..." >&2

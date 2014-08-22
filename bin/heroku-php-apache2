@@ -9,12 +9,14 @@ shopt -s extglob
 # for detecting when -l 'logs/*.log' matches nothing
 shopt -s nullglob
 
+verbose=
+
 php_passthrough() {
     local dir=$(dirname "$1")
     local file=$(basename "$1")
     local out=$(basename "$file" .php)
     if [[ "$out" != "$file" ]]; then
-        echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
+        [[ $verbose ]] && echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
         out="$dir/$out"
         php "$1" > "$out"
         echo "$out"
@@ -73,6 +75,7 @@ Options:
                           exist, it will be created. Wildcards are allowed, but
                           must be quoted and must match already existing files.
                           Note: this option can be repeated multiple times.
+  -v                      Be more verbose during startup.
 
 All file paths must be relative to '$HEROKU_APP_DIR'.
 
@@ -97,7 +100,7 @@ export COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) # ta
 # our standard logs
 logs=( "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log" )
 
-while getopts ":C:c:F:f:i:l:h" opt; do
+while getopts ":C:c:F:f:i:l:vh" opt; do
     case $opt in
         C)
             httpd_config_include=$(check_exists "$OPTARG" "C")
@@ -129,6 +132,9 @@ while getopts ":C:c:F:f:i:l:h" opt; do
                 logs+=("$logfile") # must quote here in case a wildcard matched a file with a space in the name
             done
             ;;
+        v)
+            verbose=1
+            ;;
         h)
             print_help 2>&1
             exit
@@ -156,7 +162,7 @@ php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This
 { php-fpm -v | php -r 'exit((int)version_compare(preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin")), "5.5.11", "<"));'; } || { echo "This program requires PHP 5.5.11 or newer; check your 'php-fpm' command." >&2; exit 1; }
 { { httpd -v | php -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.10", "<"));'; } && { httpd -t -D DUMP_MODULES | grep 'proxy_fcgi_module' > /dev/null; }; } || { echo "This program requires Apache 2.4.10 or newer with mod_proxy and mod_proxy_fcgi enabled; check your 'httpd' command." >&2; exit 1; }
 
-echo "Booting on port $PORT..." >&2
+[[ -z ${DYNO:-} || $verbose ]] && echo "Booting on port $PORT..." >&2
 
 if [[ "$#" == "1" ]]; then
     DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
@@ -166,32 +172,39 @@ if [[ "$#" == "1" ]]; then
     else
         # strip trailing slashes if present
         DOCUMENT_ROOT=${DOCUMENT_ROOT%%*(/)} # powered by extglob
-        echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
+        if [[ $verbose ]]; then
+            echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
+        else
+            echo "DOCUMENT_ROOT changed to '${1%%*(/)}/'" >&2
+        fi
     fi
 fi
 
-fpm_config_include=${fpm_config_include:-}
-if [[ -n "$fpm_config_include" ]]; then
+if [[ -n ${fpm_config_include:-} ]]; then
     echo "Using PHP-FPM configuration include '${fpm_config_include#$HEROKU_APP_DIR/}'" >&2
     fpm_config_include=$(php_passthrough "$fpm_config_include")
     export HEROKU_PHP_FPM_CONFIG_INCLUDE="$fpm_config_include"
 fi
 
-fpm_config=${fpm_config:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/php/php-fpm.conf"}
-echo "Using PHP-FPM configuration file '${fpm_config#$HEROKU_APP_DIR/}'" >&2
+if [[ -n ${fpm_config:-} || ( ${fpm_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/php/php-fpm.conf"} && $verbose ) ]]; then
+    echo "Using PHP-FPM configuration file '${fpm_config#$HEROKU_APP_DIR/}'" >&2
+fi
 fpm_config=$(php_passthrough "$fpm_config")
 
-php_config=${php_config:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/php/php.ini"}
-echo "Using PHP configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
+if [[ -n ${php_config:-} || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/php/php.ini"} && $verbose ) ]]; then
+    echo "Using PHP configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
+fi
 php_config=$(php_passthrough "$php_config")
 
-httpd_config_include=${httpd_config_include:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/default_include.conf"}
-echo "Using Apache2 VirtualHost-level configuration include '${httpd_config_include#$HEROKU_APP_DIR/}'" >&2
+if [[ -n ${httpd_config_include:-} || ( ${httpd_config_include:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/default_include.conf"} && $verbose ) ]]; then
+    echo "Using Apache2 VirtualHost-level configuration include '${httpd_config_include#$HEROKU_APP_DIR/}'" >&2
+fi
 httpd_config_include=$(php_passthrough "$httpd_config_include")
 export HEROKU_PHP_HTTPD_CONFIG_INCLUDE="$httpd_config_include"
 
-httpd_config=${httpd_config:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/heroku.conf"}
-echo "Using Apache2 configuration file '${httpd_config#$HEROKU_APP_DIR/}'" >&2
+if [[ -n ${httpd_config:-} || ( ${httpd_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/heroku.conf"} && $verbose) ]]; then
+    echo "Using Apache2 configuration file '${httpd_config#$HEROKU_APP_DIR/}'" >&2
+fi
 httpd_config=$(php_passthrough "$httpd_config")
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
@@ -212,7 +225,7 @@ trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -
 # after a subprocess terminates (because it was killed or because it crashed or because it quit voluntarily), we write the name to FD 3 (because programs could output something on FD 1 (STDOUT) or FD 2 (STDERR)) and send that to the shared pipe (mkfifo) above, and a read command further down waits for something to come in on the shared pipe
 
 # redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
-echo "Starting log redirection..." >&2
+[[ $verbose ]] && echo "Starting log redirection..." >&2
 ( touch "${logs[@]}"; tail -qF -n 0 "${logs[@]}" 1>&2 || true; echo 'tail "${logs[@]}"' >&3; ) 3> $wait_pipe &
 # start FPM; write "php-fpm" to the shared pipe if it exits
 echo "Starting php-fpm..." >&2
