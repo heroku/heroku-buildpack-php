@@ -88,8 +88,6 @@ export HEROKU_APP_DIR=$(pwd)
 export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 # set a default port if none is given
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
-export COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
-export COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
 
 # our standard logs
 logs=( "/tmp/heroku.nginx_access.$PORT.log" )
@@ -147,6 +145,13 @@ make sure to list them before any document root argument you're providing."
 fi
 
 hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { echo "This program requires HHVM 3.0.1 or newer" >&2; exit 1; }
+
+# make sure we run a local composer.phar if present, or global composer if not
+composer() {
+    hhvm $(which ./composer.phar composer | head -n1) "$@"
+}
+COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?"; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
+COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?"; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 
 [[ -z ${DYNO:-} || $verbose ]] && echo "Booting on port $PORT..." >&2
 

@@ -94,8 +94,6 @@ export HEROKU_APP_DIR=$(pwd)
 export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 # set a default port if none is given
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
-export COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
-export COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
 
 # our standard logs
 logs=( "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log" )
@@ -158,9 +156,20 @@ make sure to list them before any document root argument you're providing."
     exit 2
 fi
 
+php() {
+    # the newrelic extension logs to stderr which would pollute boot output with each invocation of PHP, and each call to PHP would be logged to NR as non-web traffic, so we disable it for the next few CLI calls
+    `which php` -dnewrelic.enabled=0 -dnewrelic.loglevel=error -dnewrelic.daemon.dont_launch=3 -dnewrelic.daemon.loglevel=error "$@"
+}
 php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This program requires PHP 5.5.11 or newer; check your 'php' command." >&2; exit 1; }
 { php-fpm -v | php -r 'exit((int)version_compare(preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin")), "5.5.11", "<"));'; } || { echo "This program requires PHP 5.5.11 or newer; check your 'php-fpm' command." >&2; exit 1; }
 { { httpd -v | php -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.10", "<"));'; } && { httpd -t -D DUMP_MODULES | grep 'proxy_fcgi_module' > /dev/null; }; } || { echo "This program requires Apache 2.4.10 or newer with mod_proxy and mod_proxy_fcgi enabled; check your 'httpd' command." >&2; exit 1; }
+
+# make sure we run a local composer.phar if present, or global composer if not
+composer() {
+    php $(which ./composer.phar composer | head -n1) "$@"
+}
+COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?"; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
+COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?"; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 
 [[ -z ${DYNO:-} || $verbose ]] && echo "Booting on port $PORT..." >&2
 
