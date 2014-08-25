@@ -341,6 +341,15 @@ if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
 fi
 EOF
 
+if [[ -n "${NEW_RELIC_CONFIG_FILE:-}" ]]; then
+    if [[ ! -f "${NEW_RELIC_CONFIG_FILE}" ]]; then
+        error "Config var 'NEW_RELIC_CONFIG_FILE' points to non existing file
+'${NEW_RELIC_CONFIG_FILE}'"
+    fi
+    notice_inline "Using custom New Relic config '${NEW_RELIC_CONFIG_FILE}'"
+    ( cd $BUILD_DIR/.heroku/php/etc/php/conf.d; ln -s "../../../../../${NEW_RELIC_CONFIG_FILE}" "ext-newrelic.user.ini" )
+fi
+
 if [[ ! -f "Procfile" ]]; then
     bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
     echo "web: $bindir/heroku-$engine-apache2" > Procfile
