@@ -192,11 +192,10 @@ echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 if [[ "${PHP_VERSION}" ]]; then
     status "Installing PHP extensions..."
     
-    # the newrelic extension logs to stderr which pollutes our build output on each invocation of PHP, and the daemon it launches will prevent the build from finishing, so we disable it for the duration of this build (write to zzz-ext-newrelic.ini so the file is loaded last and overwrites the regular config). we can do this unconditionally here, no harm done if extension or add-on aren't enabled
-    echo "newrelic.enabled = 0
-    newrelic.loglevel = error
-    newrelic.daemon.dont_launch = 3
-    newrelic.daemon.loglevel = error" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/zzz-ext-newrelic.ini"
+    php() {
+        # the newrelic extension logs to stderr which pollutes our build output on each invocation of PHP, the daemon it launches will prevent the build from finishing, and each call to PHP would be logged to NR as non-web traffic, so we disable it for the duration of this build
+        `which php` -dnewrelic.enabled=0 -dnewrelic.loglevel=error -dnewrelic.daemon.dont_launch=3 -dnewrelic.daemon.loglevel=error "$@"
+    }
     
     exts=()
     if [[ -f "composer.json" ]]; then
@@ -365,7 +364,3 @@ if [[ ! -f "Procfile" ]]; then
     echo "web: $bindir/heroku-$engine-apache2" > Procfile
     notice_inline "No Procfile, defaulting to 'web: $bindir/heroku-$engine-apache2'"
 fi
-
-# cleanup
-# re-enable newrelic in case we installed but disabled it for the duration of the build
-rm -f "${BUILD_DIR}/.heroku/php/etc/php/conf.d/zzz-ext-newrelic.ini"
