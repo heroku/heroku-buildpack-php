@@ -22,7 +22,7 @@ Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for fu
 
 The folder `support/build` contains [Bob](http://github.com/kennethreitz/bob-builder) build scripts for all binaries and dependencies.
 
-To get started with it, create an app on Heroku inside a clone of this repository, and set your S3 config vars:
+To get started with it, create a Python app (*Bob* is a Python application) on Heroku inside a clone of this repository, and set your S3 config vars:
 
 ```term
 $ heroku create --buildpack https://github.com/heroku/heroku-buildpack-python
