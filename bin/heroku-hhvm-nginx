@@ -62,7 +62,7 @@ Options:
                           directives (globals are read from the system's default
                           Nginx configuration files).
                           [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php]
-  -h                      Display this help screen and exit.
+  -h, --help              Display this help screen and exit.
   -i <php.ini>            The path to the php.ini file to use.
                           [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini]
   -l <tailme.log>         Path to additional log file to tail to STDERR so its
@@ -70,7 +70,7 @@ Options:
                           exist, it will be created. Wildcards are allowed, but
                           must be quoted and must match already existing files.
                           Note: this option can be repeated multiple times.
-  -v                      Be more verbose during startup.
+  -v, --verbose           Be more verbose during startup.
 
 All file paths must be relative to '$HEROKU_APP_DIR'.
 
@@ -92,11 +92,26 @@ export PORT=${PORT:-$(( $RANDOM+1024 ))}
 # our standard logs
 logs=( "/tmp/heroku.nginx_access.$PORT.log" )
 
-optstring=":C:c:i:l:vh"
+optstring=":-:C:c:i:l:vh"
 
 # process flags first
 while getopts "$optstring" opt; do
     case $opt in
+        -)
+            case "$OPTARG" in
+                verbose)
+                    verbose=1
+                    ;;
+                help)
+                    print_help 2>&1
+                    exit
+                    ;;
+                *)
+                    echo "Invalid option: --$OPTARG" >&2
+                    exit
+                    ;;
+            esac
+            ;;
         v)
             verbose=1
             ;;
