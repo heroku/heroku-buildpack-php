@@ -91,7 +91,23 @@ export PORT=${PORT:-$(( $RANDOM+1024 ))}
 # our standard logs
 logs=( "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log" )
 
-while getopts ":C:c:i:l:vh" opt; do
+optstring=":C:c:i:l:vh"
+
+# process flags first
+while getopts "$optstring" opt; do
+    case $opt in
+        v)
+            verbose=1
+            ;;
+        h)
+            print_help 2>&1
+            exit
+            ;;
+    esac
+done
+
+OPTIND=1 # start over with options parsing
+while getopts "$optstring" opt; do
     case $opt in
         C)
             httpd_config_include=$(check_exists "$OPTARG" "C")
@@ -114,15 +130,9 @@ while getopts ":C:c:i:l:vh" opt; do
                     exit 1
                 fi
                 touch_log "$logfile" || { echo "Could not touch '$logfile'; permissions problem?" >&2; exit 1; }
+                [[ $verbose ]] && echo "Tailing '$logfile' to stderr" >&2
                 logs+=("$logfile") # must quote here in case a wildcard matched a file with a space in the name
             done
-            ;;
-        v)
-            verbose=1
-            ;;
-        h)
-            print_help 2>&1
-            exit
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
