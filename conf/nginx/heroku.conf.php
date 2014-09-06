@@ -18,6 +18,9 @@ http {
 
     fastcgi_buffers 256 4k;
 
+    # define a disk cache for this nginx instance
+    proxy_cache_path /var/tmp/nginx_cache levels=1:2 keys_zone=DYNOCACHE:16m inactive=24h max_size=512m;
+
     # define an easy to reference name that can be used in fastgi_pass
     upstream heroku-fcgi {
         #server 127.0.0.1:4999 max_fails=3 fail_timeout=3s;
