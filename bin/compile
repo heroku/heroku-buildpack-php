@@ -53,8 +53,10 @@ BUILDPACK_OWNER=$(expr "$BUILDPACK_URL" : '^.*/\(..*\)/heroku-buildpack-php' || 
 
 if [[ "$BUILDPACK_BRANCH" != v* && "$BUILDPACK_BRANCH" != "master" ]]; then
     S3_URL="develop"
+    RTVS_URL="14" # develop branches use the version selector service that runs on cedar-14
 fi
 S3_URL="https://lang-php.s3.amazonaws.com/dist-${STACK}-${S3_URL:-"master"}"
+RTVS_URL="http://php-runtime-version-selector${RTVS_URL:-}.herokuapp.com"
 
 cd $BUILD_DIR
 
@@ -103,7 +105,7 @@ except IOError:
 print json.dumps(ret)
 ' 2> /dev/null) || error "Couldn't parse composer.lock; it must be non-empty and valid JSON.
 Run 'composer update' to have it re-generated or removed by Composer."
-    solver_result=$(echo -n "$solver_payload" | curl --silent --location --fail -H'Content-Type: application/json' -d @- "http://php-runtime-version-selector.herokuapp.com/resolve?default_runtime=php") || error "Failed to resolve runtime requirements.
+    solver_result=$(echo -n "$solver_payload" | curl --silent --location --fail -H'Content-Type: application/json' -d @- "${RTVS_URL}/resolve?default_runtime=php") || error "Failed to resolve runtime requirements.
 If the issue persists, please contact support."
     while IFS="|" read runtime_name runtime_source runtime_constraint runtime_result; do
         if [[ $runtime_result ]]; then
