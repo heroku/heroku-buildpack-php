@@ -4,20 +4,24 @@
 set -o pipefail
 # fail harder
 set -eu
-# for patterns further down
+# for ${DOCUMENT_ROOT%%*(/)} pattern further down
 shopt -s extglob
+# for detecting when -l 'logs/*.log' matches nothing
+shopt -s nullglob
+
+verbose=
 
 php_passthrough() {
-    local dir=$(dirname $1)
-    local file=$(basename $1)
-    local out=$(basename $file .php)
+    local dir=$(dirname "$1")
+    local file=$(basename "$1")
+    local out=$(basename "$file" .php)
     if [[ "$out" != "$file" ]]; then
-        echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
+        [[ $verbose ]] && echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
         out="$dir/$out"
-        hhvm $1 > $out
-        echo $out
+        hhvm "$1" > "$out"
+        echo "$out"
     else
-        echo $1
+        echo "$1"
     fi
 }
 
@@ -30,9 +34,13 @@ check_exists() {
     fi
 }
 
+touch_log() {
+    mkdir -p $(dirname "$1") && touch "$1"
+}
+
 print_help() {
 echo "\
-Boots HHVM together with Nginx on Heroku and for local development.
+${1:-Boots HHVM together with Nginx on Heroku and for local development.}
 
 Usage:
   heroku-hhvm-nginx [options] [<DOCUMENT_ROOT>]
@@ -45,7 +53,7 @@ Options:
                           Recommended approach when customizing Nginx's config
                           in most cases, unless you need to set http or
                           fundamental server level options.
-                          [default: $COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf.php]
+                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf.php]
   -c <nginx.conf>         The path to the full configuration file that is
                           included after Heroku's (or your local) Nginx config
                           is loaded. It must contain an 'http { ... }' block
@@ -53,15 +61,22 @@ Options:
                           and 'root' (see option -C above), but no global,
                           directives (globals are read from the system's default
                           Nginx configuration files).
-                          [default: $COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php]
-  -h                      Display this help screen and exit.
+                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php]
+  -h, --help              Display this help screen and exit.
   -i <php.ini>            The path to the php.ini file to use.
-                          [default: $COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini]
+                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini]
+  -l <tailme.log>         Path to additional log file to tail to STDERR so its
+                          contents appear in 'heroku logs'. If the file does not
+                          exist, it will be created. Wildcards are allowed, but
+                          must be quoted and must match already existing files.
+                          Note: this option can be repeated multiple times.
+  -v, --verbose           Be more verbose during startup.
+
+All file paths must be relative to '$HEROKU_APP_DIR'.
 
 Any file name that ends in '.php' will be run through the PHP interpreter first.
 You may use this for templating; this is, for instance, necessary for Nginx,
 where environment variables cannot be referenced in configuration files.
-All file paths must be relative to '$HEROKU_APP_DIR'.
 
 If you would like to use the -C and -c options together, make sure you retain
 the appropriate include mechanisms (see default configs for details).
@@ -73,10 +88,42 @@ export HEROKU_APP_DIR=$(pwd)
 export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 # set a default port if none is given
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
-export COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
-export COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
 
-while getopts ":C:c:i:h" opt; do
+# our standard logs
+logs=( "/tmp/heroku.nginx_access.$PORT.log" )
+
+optstring=":-:C:c:i:l:vh"
+
+# process flags first
+while getopts "$optstring" opt; do
+    case $opt in
+        -)
+            case "$OPTARG" in
+                verbose)
+                    verbose=1
+                    ;;
+                help)
+                    print_help 2>&1
+                    exit
+                    ;;
+                *)
+                    echo "Invalid option: --$OPTARG" >&2
+                    exit
+                    ;;
+            esac
+            ;;
+        v)
+            verbose=1
+            ;;
+        h)
+            print_help 2>&1
+            exit
+            ;;
+    esac
+done
+
+OPTIND=1 # start over with options parsing
+while getopts "$optstring" opt; do
     case $opt in
         C)
             nginx_config_include=$(check_exists "$OPTARG" "C")
@@ -87,9 +134,21 @@ while getopts ":C:c:i:h" opt; do
         i)
             php_config=$(check_exists "$OPTARG" "i")
             ;;
-        h)
-            print_help 2>&1
-            exit
+        l)
+            logarg=( $OPTARG ) # must not quote this or wildcards won't get expanded into individual values
+            if [[ ${#logarg[@]} -eq 0 ]]; then # we set nullglob to detect if a pattern matched nothing (then the array is empty)
+                echo "Pattern '$OPTARG' passed to option -l matched no files" >&2
+                exit 1
+            fi
+            for logfile in "${logarg[@]}"; do
+                if [[ -d "$logfile" ]]; then
+                    echo "-l '$logfile': is a directory" >&2
+                    exit 1
+                fi
+                touch_log "$logfile" || { echo "Could not touch '$logfile'; permissions problem?" >&2; exit 1; }
+                [[ $verbose ]] && echo "Tailing '$logfile' to stderr" >&2
+                logs+=("$logfile") # must quote here in case a wildcard matched a file with a space in the name
+            done
             ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
@@ -105,37 +164,52 @@ done
 shift $((OPTIND-1))
 
 if [[ "$#" -gt "1" ]]; then
-    print_help
+    print_help "$0: too many arguments. If you're using options,
+make sure to list them before any document root argument you're providing."
     exit 2
 fi
 
 hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { echo "This program requires HHVM 3.0.1 or newer" >&2; exit 1; }
 
-echo "Booting on port $PORT..." >&2
+# make sure we run a local composer.phar if present, or global composer if not
+composer() {
+    hhvm $(which ./composer.phar composer | head -n1) "$@"
+}
+COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?"; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
+COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?"; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
+
+[[ -z ${DYNO:-} || $verbose ]] && echo "Booting on port $PORT..." >&2
 
 if [[ "$#" == "1" ]]; then
     DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
     if [[ ! -d "$DOCUMENT_ROOT" ]]; then
-        echo "DOCUMENT_ROOT '$1' does not exist"
+        echo "DOCUMENT_ROOT '$1' does not exist" >&2
         exit 1
     else
         # strip trailing slashes if present
-        DOCUMENT_ROOT=${DOCUMENT_ROOT%%*(/)}
-        echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
+        DOCUMENT_ROOT=${DOCUMENT_ROOT%%*(/)} # powered by extglob
+        if [[ $verbose ]]; then
+            echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
+        else
+            echo "DOCUMENT_ROOT changed to '${1%%*(/)}/'" >&2
+        fi
     fi
 fi
 
-php_config=${php_config:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini"}
-echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
+if [[ -n ${php_config:-} || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini"} && $verbose ) ]]; then
+    echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
+fi
 php_config=$(php_passthrough "$php_config")
 
-nginx_config_include=${nginx_config_include:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf.php"}
-echo "Using Nginx server-level configuration include '${nginx_config_include#$HEROKU_APP_DIR/}'" >&2
+if [[ -n ${nginx_config_include:-} || ( ${nginx_config_include:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf.php"} && $verbose ) ]]; then
+    echo "Using Nginx server-level configuration include '${nginx_config_include#$HEROKU_APP_DIR/}'" >&2
+fi
 nginx_config_include=$(php_passthrough "$nginx_config_include")
 export HEROKU_PHP_NGINX_CONFIG_INCLUDE="$nginx_config_include"
 
-nginx_config=${nginx_config:-"$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php"}
-echo "Using Nginx configuration file '${nginx_config#$HEROKU_APP_DIR/}'" >&2
+if [[ -n ${nginx_config:-} || ( ${nginx_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php"} && $verbose) ]]; then
+    echo "Using Nginx configuration file '${nginx_config#$HEROKU_APP_DIR/}'" >&2
+fi
 nginx_config=$(php_passthrough "$nginx_config")
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
@@ -146,28 +220,30 @@ mkfifo $wait_pipe
 
 # trap SIGINT/SIGQUIT (ctrl+c or ctrl+\ on the console), SIGTERM, and EXIT (upon failure of any command due to set -e, or because of the exit 1 at the very end), kill subshell child processes, then subshells
 # 1) restore EXIT trap immediately, or the exit at the end of the line will trigger this trap again
-# 2) kill childrens' child processes (the stuff running inside the sub-shells) using xargs because this is easier (-P expects a comma separated list); the || true prevents premature exit (set -e) if one of those doesn't have children anymore (it's likely that's why we're hitting this bit of code in the first place)
+# 2) kill childrens' child processes (the stuff running inside the sub-shells) using xargs because this is easier (-P expects a comma separated list); the || true prevents premature exit (set -e) if one of those doesn't have children anymore (it's likely that's why we're hitting this bit of code in the first place), and redirect all to /dev/null as usage help when no args given (because jobs -p was empty) is sometimes (Linux) printed to STDOUT
 # 3) kill child processes (that's the sub-shells); it's likely that some of them have already disappeared, so xarg || true it too and suppress "no such process" complaints by sending them to /dev/null
-# FIXME: this doesn't currently fire when the subshells themselves are terminated, and apparently also not when killing the tail command
+# FIXME: this doesn't currently fire when the subshells themselves are terminated
 # TODO: for extra brownie points, move to a function and curry for each given signal, passing the signal in as an arg, so we can use different exit codes or messages
-trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -p | xargs -n1 pkill -TERM -P || true; jobs -p | xargs -n1 kill -TERM 2> /dev/null || true; exit' SIGINT SIGQUIT SIGTERM EXIT
+trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -p | xargs -n1 pkill -TERM -P &> /dev/null || true; jobs -p | xargs -n1 kill -TERM 2> /dev/null || true; exit' SIGINT SIGQUIT SIGTERM EXIT
+
+# launch processes. all run using || true to prevent premature exit of the subshell (from set -e) regardless of exit status
+# after a subprocess terminates (because it was killed or because it crashed or because it quit voluntarily), we write the name to FD 3 (because programs could output something on FD 1 (STDOUT) or FD 2 (STDERR)) and send that to the shared pipe (mkfifo) above, and a read command further down waits for something to come in on the shared pipe
 
 # redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
-echo "Starting log redirection..." >&2
-( touch "/tmp/heroku.nginx_access.$PORT.log"; tail -qF -n 0 /tmp/heroku.*.$PORT.log 1>&2; echo "tail heroku.*.$PORT.log"; ) > $wait_pipe &
+[[ $verbose ]] && echo "Starting log redirection..." >&2
+( touch "${logs[@]}"; tail -qF -n 0 "${logs[@]}" 1>&2 || true; echo 'tail "${logs[@]}"' >&3; ) 3> $wait_pipe &
 # start HHVM; write "hhvm" to the shared pipe if it exits
-# (it writes to STDOUT, we need to redirect to STDERR)
 echo "Starting hhvm..." >&2
-( hhvm --mode server -vServer.Type=fastcgi -vServer.FileSocket=/tmp/heroku.fcgi.$PORT.sock -c "$php_config" >&2; echo "hhvm"; ) > $wait_pipe &
+( hhvm --mode server -vServer.Type=fastcgi -vServer.FileSocket=/tmp/heroku.fcgi.$PORT.sock -c "$php_config" || true; echo "hhvm" >&3; ) 3> $wait_pipe &
 # wait a few seconds for HHVM to finish initializing; otherwise an early request might break nginx with the FastCGI pipe not being ready
 # start nginx; write "nginx" to the shared pipe if it exits
 echo "Starting nginx..." >&2
-( sleep 2; nginx -g "daemon off; include $nginx_config;"; echo "nginx"; ) > $wait_pipe &
+( sleep 2; nginx -g "daemon off; include $nginx_config;" || true; echo "nginx" >&3; ) 3> $wait_pipe &
 
 # wait for something to come from the shared pipe, which means that the given process was killed or has failed
-# we'll only reach this if one of the processes above has terminated
 read exitproc < $wait_pipe
-echo "Process exited unexpectedly: $exitproc"
+# we'll only reach this if one of the processes above has terminated
+echo "Process exited unexpectedly: $exitproc" >&2
 
 # this will trigger the trap and kill all remaining children
 exit 1

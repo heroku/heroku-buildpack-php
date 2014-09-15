@@ -8,7 +8,7 @@ set -o pipefail
 # fail harder
 set -eux
 
-DEFAULT_VERSION="4.10.1.62"
+DEFAULT_VERSION="4.13.0.70"
 dep_version=${VERSION:-$DEFAULT_VERSION}
 dep_dirname=newrelic-php5-${dep_version}-linux
 dep_archive_name=${dep_dirname}.tar.gz

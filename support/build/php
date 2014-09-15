@@ -56,7 +56,9 @@ LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
     --with-zlib \
     --with-zlib-dir=${OUT_PREFIX} \
     --enable-bcmath=shared \
+    --enable-calendar=shared \
     --enable-exif=shared \
+    --enable-ftp=shared \
     --with-gd=shared \
         --enable-gd-native-ttf \
         --with-freetype-dir=/usr \

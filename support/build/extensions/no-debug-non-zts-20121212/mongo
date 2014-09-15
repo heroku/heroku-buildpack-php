@@ -9,7 +9,7 @@ set -o pipefail
 # fail harder
 set -eux
 
-DEFAULT_VERSION="1.5.4"
+DEFAULT_VERSION="1.5.5"
 dep_version=${VERSION:-$DEFAULT_VERSION}
 dep_dirname=mongo-${dep_version}
 dep_archive_name=${dep_dirname}.tgz
