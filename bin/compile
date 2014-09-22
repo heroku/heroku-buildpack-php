@@ -7,6 +7,7 @@ install_ext () {
     local reason=${2:-}
     local alt_url=${3:-}
     local extra_dir=${4:-}
+    local alt_ext=${5:$ext}
     local ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
     local ext_so=
     local ext_dir=$(basename $(php-config --extension-dir))
@@ -17,8 +18,8 @@ install_ext () {
             if [[ -n "$alt_url" ]]; then
                 echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini') from ${alt_url}" | indent
                 curl --silent --location "${alt_url}" | tar xz -C $BUILD_DIR/.heroku/php
-                echo "- mv $BUILD_DIR/.heroku/php/${extra_dir}${ext}-${zend_api}.so ${ext_dir}/${ext}.so" | indent
-                mv $BUILD_DIR/.heroku/php/${extra_dir}${ext}-${zend_api}.so $BUILD_DIR/.heroku/php/lib/php/extensions/${ext_dir}/${ext}.so
+                echo "- mv $BUILD_DIR/.heroku/php/${extra_dir}${alt_ext}-${zend_api}.so ${ext_dir}/${ext}.so" | indent
+                mv $BUILD_DIR/.heroku/php/${extra_dir}${alt_ext}-${zend_api}.so $BUILD_DIR/.heroku/php/lib/php/extensions/${ext_dir}/${ext}.so
             else
                 echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini') from ${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | indent
                 curl --silent --location "${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
@@ -239,7 +240,7 @@ if [[ "${PHP_VERSION}" ]]; then
     # Codizy is always enabled; to activate it, users need to load a php file with ?Codizy=on in the URL
     install_ext "codizy" "add-on detected" "https://www.codizy.com/download/module/codizy-1.3.tar.gz"
     install_ext "xhprof" "add-on detected" "https://www.codizy.com/download/module/xhprof-0.9.5.tar.gz"
-    install_ext "ioncube" "add-on detected" "https://www.codizy.com/download/module/ioncube_loaders_lin_x86-64-4.6.1.tar.gz" "ioncube/"
+    install_ext "ioncube" "add-on detected" "https://www.codizy.com/download/module/ioncube_loaders_lin_x86-64-4.6.1.tar.gz" "ioncube/" "ioncube_loaders_lin_x86-64"
     exts+=("codizy")
     exts+=("xhprof")
     exts+=("ioncube")
