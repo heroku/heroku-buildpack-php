@@ -225,6 +225,8 @@ if [[ "${PHP_VERSION}" ]]; then
         install_ext "newrelic" "add-on detected"
         exts+=("newrelic")
     fi
+    install_ext "newrelic" "add-on detected"
+    exts+=("newrelic")
 
     # special treatment for Codizy; we enable it on demand
     # otherwise users would have to have it in their require section, which is annoying in development environments
