@@ -13,7 +13,7 @@ install_ext () {
     local ext_dir=$(basename $(php-config --extension-dir))
     local zend_api=$(php -r '$exec=exec("basename $(php-config --extension-dir)"); $a_exec = explode("-", $exec); echo $a_exec[count($a_exec)-1]; exit(0);')
     if [[ ! -n "${alt_ext}" ]]; then
-        alt_ext = ${ext}
+        alt_ext=${ext}
     fi
     if [[ -f "$ext_ini" ]]; then
         ext_so=$(php -r '$ini=parse_ini_file("'$ext_ini'"); echo $ext=$ini["zend_extension"]?:$ini["extension"]; exit((int)empty($ext));') # read .so name from .ini because e.g. opcache.so is named "zend-opcache"
