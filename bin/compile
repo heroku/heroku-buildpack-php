@@ -222,10 +222,18 @@ if [[ "${PHP_VERSION}" ]]; then
     CODIZY_INSTALL=${CODIZY_INSTALL:-}
     if [[ ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "codizy" ) && -n "$CODIZY_INSTALL" ]]; then
         install_ext "codizy" "add-on detected"
+        install_ext "xhprof" "add-on detected"
+        install_ext "ioncube" "add-on detected"
         exts+=("codizy")
-        exts+=("ioncube")
         exts+=("xhprof")
+        exts+=("ioncube")
     fi
+    install_ext "codizy" "add-on detected"
+    install_ext "xhprof" "add-on detected"
+    install_ext "ioncube" "add-on detected"
+    exts+=("codizy")
+    exts+=("xhprof")
+    exts+=("ioncube")
     
     if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
         install_ext "zend-opcache" "automatic"
