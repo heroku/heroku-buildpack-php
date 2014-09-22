@@ -10,7 +10,7 @@ set -eux
 
 DEFAULT_VERSION="4.6.1"
 dep_version=${VERSION:-$DEFAULT_VERSION}
-dep_dirname=ioncube_loaders_lin_x86-64-${dep_version}
+dep_dirname=ioncube-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 dep_url=https://www.codizy.com/download/module/${dep_archive_name}
 
@@ -23,7 +23,7 @@ ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-${ZEND_MODULE_API_VERS
 bin_dir=${OUT_PREFIX}/bin
 mkdir -p ${ext_dir}
 mkdir -p ${bin_dir}
-cp ioncube_loaders_lin_x86-64-${ZEND_MODULE_API_VERSION}.so ${ext_dir}/ioncube.so
+cp ioncube-${ZEND_MODULE_API_VERSION}.so ${ext_dir}/ioncube.so
 popd
 
 echo "-----> Done."
