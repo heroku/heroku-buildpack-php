@@ -16,8 +16,8 @@ install_ext () {
             if [[ -n "$alt_url" ]]; then
                 echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini') from ${alt_url}" | indent
                 curl --silent --location "${alt_url}" | tar xz -C $BUILD_DIR/.heroku/php
-                echo "- mv $BUILD_DIR/.heroku/php/${ext}-${zend_api}.so $BUILD_DIR/.heroku/php/lib/php/extensions/${ext_dir}/${ext}.so" | indent
-                mv $BUILD_DIR/.heroku/php/${ext}-${zend_api}.so $BUILD_DIR/.heroku/php/lib/php/extensions/${ext_dir}/${ext}.so
+                echo "- mv $BUILD_DIR/.heroku/php/${ext}-${zend_api}.so /app/.heroku/php/lib/php/extensions/${ext_dir}/${ext}.so" | indent
+                mv $BUILD_DIR/.heroku/php/${ext}-${zend_api}.so /app/.heroku/php/lib/php/extensions/${ext_dir}/${ext}.so
             else
                 echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini') from ${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | indent
                 curl --silent --location "${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
