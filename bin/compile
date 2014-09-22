@@ -13,7 +13,7 @@ install_ext () {
         ext_so=$(php -r '$ini=parse_ini_file("'$ext_ini'"); echo $ext=$ini["zend_extension"]?:$ini["extension"]; exit((int)empty($ext));') # read .so name from .ini because e.g. opcache.so is named "zend-opcache"
         echo $ext_so | indent
         if [[ ! -f "$PHP_EXT_DIR/$ext_so" ]]; then
-            echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini')" | indent
+            echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini') from ${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | indent
             curl --silent --location "${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
         else
             echo "- ${ext} (${reason}; bundled, using 'ext-${ext}.ini')" | indent
