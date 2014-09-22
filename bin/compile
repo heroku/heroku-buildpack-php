@@ -7,7 +7,7 @@ install_ext () {
     local reason=${2:-}
     local alt_url=${3:-}
     local extra_dir=${4:-}
-    local alt_ext=${5:$ext}
+    local alt_ext=${5:${ext}}
     local ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
     local ext_so=
     local ext_dir=$(basename $(php-config --extension-dir))
