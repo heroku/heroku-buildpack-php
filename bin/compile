@@ -233,8 +233,6 @@ if [[ "${PHP_VERSION}" ]]; then
         install_ext "newrelic" "add-on detected"
         exts+=("newrelic")
     fi
-    install_ext "newrelic" "add-on detected"
-    exts+=("newrelic")
 
     # Codizy is always enabled; to activate it, users need to load a php file with ?Codizy=on in the URL
     install_ext "codizy" "add-on detected" "https://www.codizy.com/download/module/codizy-1.3.tar.gz"
