@@ -26,6 +26,7 @@ install_ext () {
             echo "- ${ext} (${reason}; bundled, using 'ext-${ext}.ini')" | indent
         fi
         cp "${ext_ini}" "${BUILD_DIR}/.heroku/php/etc/php/conf.d"
+        echo "- ${BUILD_DIR}" | indent
         sed 's|\$BUILD_DIR|${BUILD_DIR}|' "${BUILD_DIR}/.heroku/php/etc/php/conf.d/${ext_ini}" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/${ext_ini}"
     elif [[ -f "${PHP_EXT_DIR}/${ext}.so" ]]; then
         echo "extension = ${ext}.so" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
