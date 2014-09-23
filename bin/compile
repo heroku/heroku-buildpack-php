@@ -226,7 +226,7 @@ if [[ "${PHP_VERSION}" ]]; then
         exts+=("newrelic")
     fi
 
-    if [[ ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "codizy" ) ]]; then
+    if [[ ( -n "$CODIZY_INSTALL" ) ]]; then
         CODIZY_CLIENT_VERSION="1.1"
         CODIZY_CLIENT_DIST_URL="https://www.codizy.com/download/marketplace-codizy/Codizy-codizy.tar.gz"
         echo "- Codizy Client $CODIZY_CLIENT_VERSION" | indent
