@@ -249,10 +249,7 @@ if [[ "${PHP_VERSION}" ]]; then
         exts+=("gettext")
     fi
 
-    if [[ 0 && (${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache") ]]; then
-        install_ext "zend-opcache" "automatic"
-        exts+=("zend-opcache")
-    fi
+
 fi
 
 status "Installing dependencies..."
