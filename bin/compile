@@ -245,7 +245,7 @@ if [[ "${PHP_VERSION}" ]]; then
         exts+=("ioncube")
         exts+=("mbstring")
         exts+=("gettext")
-    }
+    fi
 
     if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
         install_ext "zend-opcache" "automatic"
