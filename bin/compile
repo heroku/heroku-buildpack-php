@@ -250,8 +250,8 @@ if [[ "${PHP_VERSION}" ]]; then
     fi
 
     if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
-        install_ext "zend-opcache" "automatic"
-        exts+=("zend-opcache")
+        #install_ext "zend-opcache" "automatic"
+        #exts+=("zend-opcache")
     fi
 fi
 
