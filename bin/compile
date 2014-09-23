@@ -201,6 +201,15 @@ cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.
 # remember the version for future upgrade handling
 echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 
+if [[ ( 1 ) ]]; then
+    CODIZY_CLIENT_VERSION="1.1"
+    CODIZY_CLIENT_DIST_URL="https://www.codizy.com/download/marketplace-codizy/Codizy-codizy.tar.gz"
+    echo "- Codizy Client $CODIZY_CLIENT_VERSION" | indent
+    curl --silent --location "$CODIZY_CLIENT_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+    # remember the version for future upgrade handling
+    echo CODIZY_CLIENT_VERSION > $CACHE_DIR/codizy_client_version
+fi
+
 # handle extensions for PHP
 if [[ "${PHP_VERSION}" ]]; then
     status "Installing PHP extensions..."
@@ -226,15 +235,8 @@ if [[ "${PHP_VERSION}" ]]; then
         exts+=("newrelic")
     fi
 
-    if [[ ( -n "$CODIZY_INSTALL" ) ]]; then
-        CODIZY_CLIENT_VERSION="1.1"
-        CODIZY_CLIENT_DIST_URL="https://www.codizy.com/download/marketplace-codizy/Codizy-codizy.tar.gz"
-        echo "- Codizy Client $CODIZY_CLIENT_VERSION" | indent
-        curl --silent --location "$CODIZY_CLIENT_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
-        # remember the version for future upgrade handling
-        echo CODIZY_CLIENT_VERSION > $CACHE_DIR/codizy_client_version
-
-        # Codizy is always if ext codizy is specified; to activate it, users need to load a php file with ?Codizy=on in the URL
+    if [[ ( 1 || ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "codizy" ) ]]; then
+        # Codizy is always enabled; to activate it, users need to load a php file with ?Codizy=on in the URL
         install_ext "codizy" "add-on detected" "https://www.codizy.com/download/module/codizy-1.3.tar.gz"
         install_ext "xhprof" "add-on detected" "https://www.codizy.com/download/module/xhprof-0.9.5.tar.gz"
         install_ext "ioncube" "add-on detected" "https://www.codizy.com/download/module/ioncube-4.6.1.tar.gz"
