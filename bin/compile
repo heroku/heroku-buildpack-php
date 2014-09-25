@@ -240,13 +240,13 @@ if [[ "${PHP_VERSION}" ]]; then
         #install_ext "codizy" "add-on detected" "https://www.codizy.com/download/module/codizy-1.4.tar.gz"
         install_ext "xhprof" "add-on detected" "https://www.codizy.com/download/module/xhprof-0.9.6.tar.gz"
         #install_ext "ioncube" "add-on detected" "https://www.codizy.com/download/module/ioncube-4.6.1.tar.gz"
-        #install_ext "mbstring" "automatic"
-        #install_ext "gettext" "automatic"
+        install_ext "mbstring" "automatic"
+        install_ext "gettext" "automatic"
         # exts+=("codizy")
         exts+=("xhprof")
         #exts+=("ioncube")
-        #exts+=("mbstring")
-        #exts+=("gettext")
+        exts+=("mbstring")
+        exts+=("gettext")
     fi
 
     if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
