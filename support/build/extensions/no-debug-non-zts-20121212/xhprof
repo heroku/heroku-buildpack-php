@@ -10,20 +10,22 @@ set -eux
 
 DEFAULT_VERSION="0.9.5"
 dep_version=${VERSION:-$DEFAULT_VERSION}
-dep_dirname=xhprof-${dep_version}
+dep_dirname=${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
-dep_url=https://www.codizy.com/download/module/${dep_archive_name}
+dep_url=https://github.com/codizy-software/xhprof/archive/${dep_archive_name}
 
-echo "-----> Packaging ext/xhprof ${dep_version} (for Zend module API version ${ZEND_MODULE_API_VERSION:=20121212})..."
+echo "-----> Building ext/xhprof ${dep_version}..."
 
 curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
-ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-${ZEND_MODULE_API_VERSION}
-bin_dir=${OUT_PREFIX}/bin
-mkdir -p ${ext_dir}
-mkdir -p ${bin_dir}
-cp xhprof-${ZEND_MODULE_API_VERSION}.so ${ext_dir}/xhprof.so
+export PATH=${OUT_PREFIX}/bin:${PATH}
+phpize
+./configure --prefix=${OUT_PREFIX} --with-xhprof=${OUT_PREFIX}
+make -s -j 9
+# php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
+rm -rf ${OUT_PREFIX}/*
+make install -s
 popd
 
 echo "-----> Done."
