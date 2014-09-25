@@ -18,7 +18,7 @@ echo "-----> Building ext/xhprof ${dep_version}..."
 
 curl -L ${dep_url} | tar xz
 
-pushd ${dep_dirname}
+pushd xhprof-${dep_dirname}/extension
 export PATH=${OUT_PREFIX}/bin:${PATH}
 phpize
 ./configure --prefix=${OUT_PREFIX} --enable-xhprof
