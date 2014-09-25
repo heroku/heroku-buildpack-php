@@ -238,12 +238,12 @@ if [[ "${PHP_VERSION}" ]]; then
     if [[ ( 1 || ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "codizy" ) ]]; then
         # Codizy is always enabled; to activate it, users need to load a php file with ?Codizy=on in the URL
         install_ext "codizy" "add-on detected" "https://www.codizy.com/download/module/codizy-1.4.tar.gz"
-        install_ext "xhprof" "add-on detected" "https://www.codizy.com/download/module/xhprof-0.9.6.tar.gz"
+        #install_ext "xhprof" "add-on detected" "https://www.codizy.com/download/module/xhprof-0.9.6.tar.gz"
         #install_ext "ioncube" "add-on detected" "https://www.codizy.com/download/module/ioncube-4.6.1.tar.gz"
         #install_ext "mbstring" "automatic"
         #install_ext "gettext" "automatic"
         exts+=("codizy")
-        exts+=("xhprof")
+        #exts+=("xhprof")
         #exts+=("ioncube")
         #exts+=("mbstring")
         #exts+=("gettext")
