@@ -8,22 +8,24 @@ set -o pipefail
 # fail harder
 set -eux
 
-DEFAULT_VERSION="1.3"
+DEFAULT_VERSION="1.4"
 dep_version=${VERSION:-$DEFAULT_VERSION}
-dep_dirname=codizy-${dep_version}
+dep_dirname=${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
-dep_url=https://www.codizy.com/download/module/${dep_archive_name}
+dep_url=https://github.com/codizy-software/codizy-extension/archive/${dep_archive_name}
 
-echo "-----> Packaging ext/codizy ${dep_version} (for Zend module API version ${ZEND_MODULE_API_VERSION:=20121212})..."
+echo "-----> Building ext/codizy ${dep_version}..."
 
 curl -L ${dep_url} | tar xz
 
-pushd ${dep_dirname}
-ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-${ZEND_MODULE_API_VERSION}
-bin_dir=${OUT_PREFIX}/bin
-mkdir -p ${ext_dir}
-mkdir -p ${bin_dir}
-cp codizy-${ZEND_MODULE_API_VERSION}.so ${ext_dir}/codizy.so
+pushd codizy-extension-${dep_dirname}/
+export PATH=${OUT_PREFIX}/bin:${PATH}
+phpize
+./conficd /gure --prefix=${OUT_PREFIX} --enable-codizy
+make -s -j 9
+# php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
+rm -rf ${OUT_PREFIX}/*
+make install -s
 popd
 
 echo "-----> Done."
