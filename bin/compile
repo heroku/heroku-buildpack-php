@@ -16,7 +16,6 @@ install_ext () {
             if [[ -n "$alt_url" ]]; then
                 echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini') from ${alt_url}" | indent
                 curl --silent --location "${alt_url}" | tar xz -C $BUILD_DIR/.heroku/php
-                echo "- cp $BUILD_DIR/.heroku/php/${ext}-${zend_api}.so $BUILD_DIR/.heroku/php/lib/php/extensions/${ext_dir}/${ext}.so" | indent
                 cp $BUILD_DIR/.heroku/php/${ext}-${zend_api}.so $BUILD_DIR/.heroku/php/lib/php/extensions/${ext_dir}/${ext}.so
             else
                 echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini') from ${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | indent
@@ -201,7 +200,7 @@ cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.
 # remember the version for future upgrade handling
 echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 
-if [[ ( 1 ) ]]; then
+if [[ ( 0 ) ]]; then
     CODIZY_CLIENT_VERSION="1.1"
     CODIZY_CLIENT_DIST_URL="https://www.codizy.com/download/marketplace-codizy/Codizy-codizy.tar.gz"
     echo "- Codizy Client $CODIZY_CLIENT_VERSION" | indent
@@ -235,7 +234,7 @@ if [[ "${PHP_VERSION}" ]]; then
         exts+=("newrelic")
     fi
 
-    if [[ ( 1 || ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "codizy" ) ]]; then
+    if [[ ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "codizy" ) ]]; then
         # Codizy is always enabled; to activate it, users need to load a php file with ?Codizy=on in the URL
         install_ext "xhprof" "add-on detected" "https://www.codizy.com/download/module/xhprof-0.9.6.tar.gz"
         install_ext "codizy" "add-on detected" "https://www.codizy.com/download/module/codizy-1.4.tar.gz"
