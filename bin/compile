@@ -200,7 +200,9 @@ cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.
 # remember the version for future upgrade handling
 echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 
-if [[ ( 0 ) ]]; then
+# download & install codizy client when we have a license
+$CODIZY_KEY_AUTH=${CODIZY_KEY_AUTH:-}
+if [[ ( -n "$CODIZY_KEY_AUTH" ) ]]; then
     CODIZY_CLIENT_VERSION="1.1"
     CODIZY_CLIENT_DIST_URL="https://www.codizy.com/download/marketplace-codizy/Codizy-codizy.tar.gz"
     echo "- Codizy Client $CODIZY_CLIENT_VERSION" | indent
@@ -234,8 +236,8 @@ if [[ "${PHP_VERSION}" ]]; then
         exts+=("newrelic")
     fi
 
-    if [[ ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "codizy" ) ]]; then
-        # Codizy is always enabled; to activate it, users need to load a php file with ?Codizy=on in the URL
+    # special treatment for Codizy; we enable it if we detect a license key for it
+    if [[ ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "codizy" ) && -n "$CODIZY_KEY_AUTH" ]]; then
         install_ext "xhprof" "add-on detected" "https://www.codizy.com/download/module/xhprof-0.9.6.tar.gz"
         install_ext "codizy" "add-on detected" "https://www.codizy.com/download/module/codizy-1.4.tar.gz"
         install_ext "ioncube" "add-on detected" "https://www.codizy.com/download/module/ioncube-4.6.1.tar.gz"
