@@ -59,6 +59,7 @@ if [[ "$STACK" == "cedar-14" ]]; then
     RTVS_URL="14" # cedar-14 apps use the version selector service that runs on cedar-14
 fi
 S3_URL="https://heroku-buildpack-php-eresults2.s3.amazonaws.com/dist-${STACK}-${S3_URL:-"master"}"
+echo $S3_URL
 RTVS_URL="http://php-runtime-version-selector${RTVS_URL:-}.herokuapp.com"
 
 cd $BUILD_DIR
