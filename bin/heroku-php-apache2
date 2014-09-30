@@ -38,6 +38,14 @@ touch_log() {
     mkdir -p $(dirname "$1") && touch "$1"
 }
 
+strip_fpm_child_said() {
+  local sedcmd='s/^\[[^]]+\] WARNING: \[pool [^]]+\] child [0-9]+ said into std(err|out): "(.*)"$/\2/'
+  case $(uname) in
+    Darwin) sed -l -E "$sedcmd";; # mac/bsd sed: -l buffers on line boundaries
+    *)      sed -u -E "$sedcmd";; # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
+  esac
+}
+
 print_help() {
 echo "\
 ${1:-Boots PHP-FPM together with Apache2 on Heroku and for local development.}
@@ -271,7 +279,7 @@ trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -
 
 # redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
 [[ $verbose ]] && echo "Starting log redirection..." >&2
-( touch "${logs[@]}"; tail -qF -n 0 "${logs[@]}" 1>&2 || true; echo 'tail "${logs[@]}"' >&3; ) 3> $wait_pipe &
+( touch "${logs[@]}"; tail -qF -n 0 "${logs[@]}" | strip_fpm_child_said 1>&2 || true; echo 'tail "${logs[@]}"' >&3; ) 3> $wait_pipe &
 # start FPM; write "php-fpm" to the shared pipe if it exits
 echo "Starting php-fpm..." >&2
 unset -f php-fpm # remove the alias we made earlier that would prevent newrelic from starting on php-fpm -v
