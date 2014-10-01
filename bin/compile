@@ -201,7 +201,7 @@ cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.
 echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 
 # download & install codizy client when we have a license
-$CODIZY_KEY_AUTH=${CODIZY_KEY_AUTH:-}
+CODIZY_KEY_AUTH=${CODIZY_KEY_AUTH:-}
 if [[ ( -n "$CODIZY_KEY_AUTH" ) ]]; then
     CODIZY_CLIENT_VERSION="1.1"
     CODIZY_CLIENT_DIST_URL="https://www.codizy.com/download/marketplace-codizy/Codizy-codizy.tar.gz"
