@@ -8,15 +8,11 @@ set -o pipefail
 # fail harder
 set -eux
 
-DEFAULT_VERSION="6.8.9-5"
+DEFAULT_VERSION="6.8.9-8" # let's see if this -8 release gets removed at some point; if so, refactor to something like this to determine the version to install: curl http://www.imagemagick.org/download/releases/digest.rdf | grep -o -E '(ImageMagick-6\.8\.9-[0-9]+\.tar.gz)' | sort -k3n -t- | tail -n1
 dep_version=${VERSION:-$DEFAULT_VERSION}
 dep_dirname=ImageMagick-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
-if [[ "$dep_version" == "$DEFAULT_VERSION" ]]; then
-    dep_url=http://www.imagemagick.org/download/${dep_archive_name}
-else
-    dep_url=http://www.imagemagick.org/download/legacy/${dep_archive_name}
-fi
+dep_url=http://www.imagemagick.org/download/releases/${dep_archive_name}
 
 echo "-----> Building ImageMagick ${dep_version}..."
 
