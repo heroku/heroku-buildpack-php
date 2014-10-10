@@ -200,21 +200,22 @@ cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.
 # remember the version for future upgrade handling
 echo $NGINX_VERSION > $CACHE_DIR/nginx_version
 
-# download & install codizy client when we have a license
-CODIZY_KEY_AUTH=${CODIZY_KEY_AUTH:-}
-if [[ ( -n "$CODIZY_KEY_AUTH" ) ]]; then
-    CODIZY_CLIENT_VERSION="1.1"
-    CODIZY_CLIENT_DIST_URL="https://www.codizy.com/download/marketplace-codizy/Codizy-codizy.tar.gz"
-    echo "- Codizy Client $CODIZY_CLIENT_VERSION" | indent
-    curl --silent --location "$CODIZY_CLIENT_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
-    # remember the version for future upgrade handling
-    echo CODIZY_CLIENT_VERSION > $CACHE_DIR/codizy_client_version
-fi
-
 # handle extensions for PHP
 if [[ "${PHP_VERSION}" ]]; then
     status "Installing PHP extensions..."
-    
+
+    # download & install codizy client when we have a license
+    CODIZY_KEY_AUTH=${CODIZY_KEY_AUTH:-}
+    if [[ ( -n "$CODIZY_KEY_AUTH" ) ]]; then
+        CODIZY_CLIENT_VERSION="1.1"
+        CODIZY_CLIENT_DIST_URL="https://www.codizy.com/download/marketplace-codizy/Codizy-codizy.tar.gz"
+        echo "- Codizy Client $CODIZY_CLIENT_VERSION" | indent
+        curl --silent --location "$CODIZY_CLIENT_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+        # remember the version for future upgrade handling
+        echo CODIZY_CLIENT_VERSION > $CACHE_DIR/codizy_client_version
+    fi
+
+
     php() {
         # the newrelic extension logs to stderr which pollutes our build output on each invocation of PHP, the daemon it launches will prevent the build from finishing, and each call to PHP would be logged to NR as non-web traffic, so we disable it for the duration of this build
         `which php` -dnewrelic.enabled=0 -dnewrelic.loglevel=error -dnewrelic.daemon.dont_launch=3 -dnewrelic.daemon.loglevel=error "$@"
