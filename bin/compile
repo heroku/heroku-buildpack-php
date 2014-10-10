@@ -206,8 +206,6 @@ if [[ "${PHP_VERSION}" ]]; then
     # download & install codizy client when we have a license
     CODIZY_KEY_AUTH=${CODIZY_KEY_AUTH:-}
     CODIZY_INSTALL=${CODIZY_INSTALL:-}
-    echo "key_auth $CODIZY_KEY_AUTH" | indent
-    echo "install $CODIZY_INSTALL" | indent
     if [[ ( -n "$CODIZY_KEY_AUTH" || -n "$CODIZY_INSTALL" ) ]]; then
         CODIZY_CLIENT_VERSION="1.1"
         CODIZY_CLIENT_DIST_URL="https://www.codizy.com/download/marketplace-codizy/Codizy-codizy.tar.gz"
