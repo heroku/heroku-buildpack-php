@@ -38,6 +38,14 @@ touch_log() {
     mkdir -p $(dirname "$1") && touch "$1"
 }
 
+strip_fpm_child_said() {
+  local sedcmd='s/^\[[^]]+\] WARNING: \[pool [^]]+\] child [0-9]+ said into std(err|out): "(.*)"$/\2/'
+  case $(uname) in
+    Darwin) sed -l -E "$sedcmd";; # mac/bsd sed: -l buffers on line boundaries
+    *)      sed -u -E "$sedcmd";; # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
+  esac
+}
+
 print_help() {
 echo "\
 ${1:-Boots PHP-FPM together with Nginx on Heroku and for local development.}
@@ -97,7 +105,7 @@ export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
 
 # our standard logs
-logs=( "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.nginx_access.$PORT.log" )
+logs=( "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.php-fpm.www.$PORT.log" "/tmp/heroku.nginx_access.$PORT.log" )
 
 optstring=":-:C:c:F:f:i:l:vh"
 
@@ -195,7 +203,14 @@ php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This
 
 # make sure we run a local composer.phar if present, or global composer if not
 composer() {
-    php $(which ./composer.phar composer | head -n1) "$@"
+    local composer_bin=$(which ./composer.phar composer | head -n1)
+    # check if we the composer binary is executable by PHP
+    if file --brief $composer_bin | grep "php" > /dev/null ; then
+        php $composer_bin "$@"
+    else
+        # run it directly; it's probably a bash script or similar (homebrew-php does this)
+        $composer_bin "$@"
+    fi
 }
 COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?"; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?"; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
@@ -264,7 +279,7 @@ trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -
 
 # redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
 [[ $verbose ]] && echo "Starting log redirection..." >&2
-( touch "${logs[@]}"; tail -qF -n 0 "${logs[@]}" 1>&2 || true; echo 'tail "${logs[@]}"' >&3; ) 3> $wait_pipe &
+( touch "${logs[@]}"; tail -qF -n 0 "${logs[@]}" | strip_fpm_child_said 1>&2 || true; echo 'tail "${logs[@]}"' >&3; ) 3> $wait_pipe &
 # start FPM; write "php-fpm" to the shared pipe if it exits
 echo "Starting php-fpm..." >&2
 unset -f php-fpm # remove the alias we made earlier that would prevent newrelic from starting on php-fpm -v
