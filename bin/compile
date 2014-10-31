@@ -159,14 +159,15 @@ if [[ "${PHP_VERSION}" ]]; then
     cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc/php
     cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc/php
     mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
-    # remember the version for future upgrade handling
-    echo $PHP_VERSION > $CACHE_DIR/php_version
+    # store PHP version in the slug for possible later evaluation
+    echo $PHP_VERSION > $BUILD_DIR/.heroku/php/.versions/php/php
 fi
 if [[ "${HHVM_VERSION}" ]]; then
     HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
     echo "- HHVM $HHVM_VERSION" | indent
     curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
-    echo $HHVM_VERSION > $CACHE_DIR/hhvm_version
+    # store HHVM version in the slug for possible later evaluation
+    echo $HHVM_VERSION > $BUILD_DIR/.heroku/php/.versions/hhvm/hhvm
     # make HHVM accessible
     export PATH=$PATH:/app/.heroku/php/usr/bin
     # so it'll start. remember to use the full path to the binary, or we'll get an infinite loop
@@ -180,8 +181,8 @@ echo "- Apache $APACHE_VERSION" | indent
 curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # Apache; copy in our config
 cp $BP_DIR/conf/apache2/httpd.conf.default $BUILD_DIR/.heroku/php/etc/apache2/httpd.conf
-# remember the version for future upgrade handling
-echo $APACHE_VERSION > $CACHE_DIR/apache2_version
+# store Apache version in the slug for possible later evaluation
+echo $APACHE_VERSION > $BUILD_DIR/.heroku/php/.versions/apache2/apache2
 
 NGINX_VERSION="1.6.0"
 NGINX_DIST_URL="$S3_URL/nginx-$NGINX_VERSION.tar.gz"
@@ -189,8 +190,8 @@ echo "- Nginx $NGINX_VERSION" | indent
 curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # nginx; copy in our config
 cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.conf
-# remember the version for future upgrade handling
-echo $NGINX_VERSION > $CACHE_DIR/nginx_version
+# store Nginx version in the slug for possible later evaluation
+echo $NGINX_VERSION > $BUILD_DIR/.heroku/php/.versions/nginx/nginx
 
 # handle extensions for PHP
 if [[ "${PHP_VERSION}" ]]; then
