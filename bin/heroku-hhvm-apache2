@@ -175,11 +175,11 @@ hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { ech
 composer() {
     local composer_bin=$(which ./composer.phar composer | head -n1)
     # check if we the composer binary is executable by PHP
-    if file --brief --dereference $composer_bin | grep "php" > /dev/null ; then
-        hhvm $composer_bin "$@"
-    else
+    if file --brief --dereference $composer_bin | grep "bash" > /dev/null ; then # newer versions of file return "data" for .phar
         # run it directly; it's probably a bash script or similar (homebrew-php does this)
         $composer_bin "$@"
+    else
+        hhvm $composer_bin "$@"
     fi
 }
 COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?"; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
