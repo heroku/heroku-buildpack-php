@@ -205,7 +205,7 @@ php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This
 composer() {
     local composer_bin=$(which ./composer.phar composer | head -n1)
     # check if we the composer binary is executable by PHP
-    if file --brief $composer_bin | grep "php" > /dev/null ; then
+    if file --brief --dereference $composer_bin | grep "php" > /dev/null ; then
         php $composer_bin "$@"
     else
         # run it directly; it's probably a bash script or similar (homebrew-php does this)
