@@ -84,7 +84,11 @@ mkdir -p $COMPOSER_HOME
 
 PHP_VERSION=
 HHVM_VERSION=
-runtimes=$(cd $BP_DIR/support/build; ls {php,hhvm}-*)
+if [[ "$STACK" == "cedar" ]]; then
+    runtimes=$(cd $BP_DIR/support/build; ls {php-*,hhvm-3.2.0}) # cedar only has HHVM 3.2
+else
+    runtimes=$(cd $BP_DIR/support/build; ls {php,hhvm}-*)
+fi
 engine="php"
 engine_r="php -r"
 if [[ -f "composer.json" ]]; then
@@ -136,6 +140,12 @@ See https://devcenter.heroku.com/articles/php-support for more details."
                 HHVM_VERSION="$runtime_result"
                 engine="hhvm"
                 engine_r="hhvm --php -r"
+                if [[ "$STACK" == "cedar" ]]; then
+                    notice_inline "Support for HHVM on the cedar stack is deprecated and will be
+removed soon. Please upgrade to cedar-14 to continue using HHVM and get
+access to new releases. For more information on migrating to cedar-14,
+please refer to https://devcenter.heroku.com/articles/cedar-14-migration"
+                fi
             fi
         else
             error "Could not resolve $runtime_source requirement for ${runtime_name^^} $runtime_constraint,
