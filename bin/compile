@@ -86,6 +86,7 @@ PHP_VERSION=
 HHVM_VERSION=
 runtimes=$(cd $BP_DIR/support/build; ls {php,hhvm}-*)
 engine="php"
+engine_r="php -r"
 if [[ -f "composer.json" ]]; then
     if [[ ! -f "composer.lock" ]]; then
         cat composer.json | python -c 'import sys, json; print sys.exit(any(key.count("/") for key in json.load(sys.stdin).get("require", {})))' 2> /dev/null || error "Your composer.json specifies dependencies, but no composer.lock
@@ -133,7 +134,8 @@ See https://devcenter.heroku.com/articles/php-support for more details."
                 PHP_VERSION="$runtime_result"
             elif [[ $runtime_name == "hhvm" ]]; then
                 HHVM_VERSION="$runtime_result"
-                engine=hhvm
+                engine="hhvm"
+                engine_r="hhvm --php -r"
             fi
         else
             error "Could not resolve $runtime_source requirement for ${runtime_name^^} $runtime_constraint,
@@ -232,7 +234,7 @@ status "Installing dependencies..."
 
 # check if we should use a composer.phar version bundled with the project
 if [[ -f "composer.phar" ]]; then
-    php -r 'new Phar("composer.phar");' &> /dev/null || error "Found composer.phar in root directory, but it appears corrupted!"
+    $engine_r 'new Phar("composer.phar");' &> /dev/null || error "Found composer.phar in root directory, but it appears corrupted!"
     composer() {
         $engine composer.phar "$@"
     }
