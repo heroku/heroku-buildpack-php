@@ -26,6 +26,24 @@ http {
     }
     
     server {
+        # define an easy to reference name that can be used in try_files
+        location @heroku-fcgi {
+            include fastcgi_params;
+            
+            fastcgi_split_path_info ^(.+\.php)(/.*)$;
+            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+            # try_files resets $fastcgi_path_info, see http://trac.nginx.org/nginx/ticket/321, so we use the if instead
+            fastcgi_param PATH_INFO $fastcgi_path_info if_not_empty;
+            
+            if (!-f $document_root$fastcgi_script_name) {
+                # check if the script exists
+                # otherwise, /foo.jpg/bar.php would get passed to FPM, which wouldn't run it as it's not in the list of allowed extensions, but this check is a good idea anyway, just in case
+                return 404;
+            }
+            
+            fastcgi_pass heroku-fcgi;
+        }
+        
         # TODO: use X-Forwarded-Host? http://comments.gmane.org/gmane.comp.web.nginx.english/2170
         server_name localhost;
         listen <?=getenv('PORT')?:'8080'?>;
@@ -46,20 +64,7 @@ http {
         
         # default handling of .php
         location ~ \.php {
-            include fastcgi_params;
-            
-            fastcgi_split_path_info ^(.+\.php)(/.*)$;
-            fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-            # try_files resets $fastcgi_path_info, see http://trac.nginx.org/nginx/ticket/321, so we use the if instead
-            fastcgi_param PATH_INFO $fastcgi_path_info if_not_empty;
-            
-            if (!-f $document_root$fastcgi_script_name) {
-                # check if the script exists
-                # otherwise, /foo.jpg/bar.php would get passed to FPM, which wouldn't run it as it's not in the list of allowed extensions, but this check is a good idea anyway, just in case
-                return 404;
-            }
-            
-            fastcgi_pass heroku-fcgi;
+            try_files @heroku-fcgi @heroku-fcgi;
         }
     }
 }
