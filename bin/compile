@@ -219,11 +219,15 @@ if [[ "${PHP_VERSION}" ]]; then
     }
     
     exts=()
-    if [[ -f "composer.json" ]]; then
+    if [[ -f "composer.lock" ]]; then
+        exts=($(cat composer.lock | python -c 'import sys, json, itertools; l=json.load(sys.stdin); print "\n".join(list(set(itertools.chain([plat[4:].lower() for plat in l["platform"] if plat.startswith("ext-")], *[ [ pkg[4:].lower() for pkg in p["require"] if pkg.startswith("ext-") ] for p in l["packages"] ]))))' 2> /dev/null || true)) # convert to array
+        ext_source="composer.lock"
+    else
         exts=($(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:].lower()) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)) # convert to array
+        ext_source="composer.json"
     fi
     for ext in "${!exts[@]}"; do # loop over keys in case the array is empty or else it'll error out
-        install_ext "${exts[$ext]}" "composer.json"
+        install_ext "${exts[$ext]}" $ext_source
     done
     
     # special treatment for New Relic; we enable it if we detect a license key for it
