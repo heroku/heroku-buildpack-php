@@ -5,14 +5,22 @@
 install_ext () {
     local ext=$1
     local reason=${2:-}
+    local alt_url=${3:-}
     local ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
     local ext_so=
     local ext_dir=$(basename $(php-config --extension-dir))
+    local zend_api=$(php -r '$exec=exec("basename $(php-config --extension-dir)"); $a_exec = explode("-", $exec); echo $a_exec[count($a_exec)-1]; exit(0);')
     if [[ -f "$ext_ini" ]]; then
         ext_so=$(php -r '$ini=parse_ini_file("'$ext_ini'"); echo $ext=$ini["zend_extension"]?:$ini["extension"]; exit((int)empty($ext));') # read .so name from .ini because e.g. opcache.so is named "zend-opcache"
         if [[ ! -f "$PHP_EXT_DIR/$ext_so" ]]; then
-            curl --silent --location "${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
-            echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini')" | indent
+            if [[ -n "$alt_url" ]]; then
+                echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini') from ${alt_url}" | indent
+                curl --silent --location "${alt_url}" | tar xz -C $BUILD_DIR/.heroku/php
+                cp $BUILD_DIR/.heroku/php/${ext}-${zend_api}.so $BUILD_DIR/.heroku/php/lib/php/extensions/${ext_dir}/${ext}.so
+            else
+                echo "- ${ext} (${reason}; downloaded, using 'ext-${ext}.ini') from ${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | indent
+                curl --silent --location "${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
+            fi
         else
             echo "- ${ext} (${reason}; bundled, using 'ext-${ext}.ini')" | indent
         fi
@@ -209,10 +217,23 @@ cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.
 mkdir -p $BUILD_DIR/.heroku/php/.versions/nginx
 echo $NGINX_VERSION > $BUILD_DIR/.heroku/php/.versions/nginx/nginx
 
+
 # handle extensions for PHP
 if [[ "${PHP_VERSION}" ]]; then
+    # download & install codizy client when we have a license
+    CODIZY_KEY_AUTH=${CODIZY_KEY_AUTH:-}
+    CODIZY_INSTALL=${CODIZY_INSTALL:-}
+    if [[ ( -n "$CODIZY_KEY_AUTH" || -n "$CODIZY_INSTALL" ) ]]; then
+        CODIZY_CLIENT_VERSION="1.1"
+        CODIZY_CLIENT_DIST_URL="https://www.codizy.com/download/marketplace-codizy/Codizy-codizy.tar.gz"
+        echo "- Codizy Client $CODIZY_CLIENT_VERSION" | indent
+        curl --silent --location "$CODIZY_CLIENT_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+        # remember the version for future upgrade handling
+        echo CODIZY_CLIENT_VERSION > $CACHE_DIR/codizy_client_version
+    fi
+
     status "Installing PHP extensions..."
-    
+
     php() {
         # the newrelic extension logs to stderr which pollutes our build output on each invocation of PHP, the daemon it launches will prevent the build from finishing, and each call to PHP would be logged to NR as non-web traffic, so we disable it for the duration of this build
         `which php` -dnewrelic.enabled=0 -dnewrelic.loglevel=error -dnewrelic.daemon.dont_launch=3 -dnewrelic.daemon.loglevel=error "$@"
@@ -237,7 +258,21 @@ if [[ "${PHP_VERSION}" ]]; then
         install_ext "newrelic" "add-on detected"
         exts+=("newrelic")
     fi
-    
+
+    # special treatment for Codizy; we enable it if we detect a license key for it
+    if [[ ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "codizy" ) && ( -n "$CODIZY_KEY_AUTH" || -n "$CODIZY_INSTALL" ) ]]; then
+        install_ext "xhprof" "add-on detected" "https://www.codizy.com/download/module/xhprof-0.9.6.tar.gz"
+        install_ext "codizy" "add-on detected" "https://www.codizy.com/download/module/codizy-1.4.tar.gz"
+        install_ext "ioncube" "add-on detected" "https://www.codizy.com/download/module/ioncube-4.6.1.tar.gz"
+        install_ext "mbstring" "automatic"
+        install_ext "gettext" "automatic"
+        exts+=("xhprof")
+        exts+=("codizy")
+        exts+=("ioncube")
+        exts+=("mbstring")
+        exts+=("gettext")
+    fi
+
     if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
         install_ext "zend-opcache" "automatic"
         exts+=("zend-opcache")
