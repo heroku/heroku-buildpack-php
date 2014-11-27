@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+
+ZEND_MODULE_API_VERSION=20131226
+PHP_MINOR_VERSION=6
+
+source $(dirname $0)/../no-debug-non-zts-20121212/$(basename $0)

@@ -46,6 +46,7 @@ source $BP_DIR/bin/util/common.sh
 
 # for extensions that need special treatment
 source $BP_DIR/bin/util/newrelic.sh
+source $BP_DIR/bin/util/blackfire.sh
 
 export_env_dir "$ENV_DIR" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|S3_URL|RTVS_URL)$'
 
@@ -235,7 +236,10 @@ if [[ "${PHP_VERSION}" ]]; then
     
     # special treatment for New Relic; we enable it if we detect a license key for it
     install_newrelic_ext
-    
+
+    # special treatment for Blackfire; we enable it if we detect a server id and a server token for it
+    install_blackfire_ext
+
     if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
         install_ext "zend-opcache" "automatic"
         exts+=("zend-opcache")
@@ -358,6 +362,8 @@ fi
 
 install_newrelic_daemon
 install_newrelic_userini
+
+install_blackfire_agent
 
 if [[ ! -f "Procfile" ]]; then
     bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
