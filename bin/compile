@@ -234,7 +234,7 @@ if [[ "${PHP_VERSION}" ]]; then
     done
     
     # special treatment for New Relic; we enable it if we detect a license key for it
-    install_ext_newrelic $exts
+    install_newrelic_ext
     
     if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
         install_ext "zend-opcache" "automatic"
