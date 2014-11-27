@@ -246,7 +246,8 @@ status "Installing dependencies..."
 
 # check if we should use a composer.phar version bundled with the project
 if [[ -f "composer.phar" ]]; then
-    $engine_r 'new Phar("composer.phar");' &> /dev/null || error "Found composer.phar in root directory, but it appears corrupted!"
+    [[ -x "composer.phar" ]] || error "composer.phar in root directory is not executable; 'chmod a+x' it!"
+    $engine_r 'new Phar("composer.phar");' &> /dev/null || error "ERROR: Found composer.phar in root directory, but it appears corrupted!"
     composer() {
         $engine composer.phar "$@"
     }
