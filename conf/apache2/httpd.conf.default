@@ -121,7 +121,7 @@ LoadModule headers_module libexec/mod_headers.so
 #LoadModule unique_id_module libexec/mod_unique_id.so
 LoadModule setenvif_module libexec/mod_setenvif.so
 LoadModule version_module libexec/mod_version.so
-#LoadModule remoteip_module libexec/mod_remoteip.so
+LoadModule remoteip_module libexec/mod_remoteip.so
 LoadModule proxy_module libexec/mod_proxy.so
 #LoadModule proxy_connect_module libexec/mod_proxy_connect.so
 #LoadModule proxy_ftp_module libexec/mod_proxy_ftp.so
@@ -164,10 +164,12 @@ LoadModule dir_module libexec/mod_dir.so
 LoadModule alias_module libexec/mod_alias.so
 LoadModule rewrite_module libexec/mod_rewrite.so
 
-# special Heroku treatment
-# taken from https://gist.github.com/progandy/6ed4eeea60f6277c3e39
-# will be included in Apache 2.4.10+, most likely
-LoadModule proxy_handler_module libexec/mod_proxy_handler.so
+<IfVersion < 2.4.10>
+    # special treatment for Apache < 2.4.10 so we can SetHandler to mod_proxy_fcgi
+    # taken from https://gist.github.com/progandy/6ed4eeea60f6277c3e39
+    # the functionality is included in Apache 2.4.10+
+    LoadModule proxy_handler_module libexec/mod_proxy_handler.so
+</IfVersion>
 
 <IfModule unixd_module>
 #

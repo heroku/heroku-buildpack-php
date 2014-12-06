@@ -8,22 +8,22 @@ set -o pipefail
 # fail harder
 set -eux
 
-DEFAULT_VERSION="4.9.0.54"
+DEFAULT_VERSION="4.15.0.74"
 dep_version=${VERSION:-$DEFAULT_VERSION}
 dep_dirname=newrelic-php5-${dep_version}-linux
 dep_archive_name=${dep_dirname}.tar.gz
 dep_url=https://download.newrelic.com/php_agent/archive/${dep_version}/${dep_archive_name}
 
-echo "-----> Packaging ext/newrelic ${dep_version}..."
+echo "-----> Packaging ext/newrelic ${dep_version} (for Zend module API version ${ZEND_MODULE_API_VERSION:=20121212})..."
 
 curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
-ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-20121212
+ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-${ZEND_MODULE_API_VERSION}
 bin_dir=${OUT_PREFIX}/bin
 mkdir -p ${ext_dir}
 mkdir -p ${bin_dir}
-cp agent/x64/newrelic-20121212.so ${ext_dir}/newrelic.so
+cp agent/x64/newrelic-${ZEND_MODULE_API_VERSION}.so ${ext_dir}/newrelic.so
 cp daemon/newrelic-daemon.x64 ${bin_dir}/newrelic-daemon
 popd
 

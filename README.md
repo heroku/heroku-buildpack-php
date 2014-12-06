@@ -22,10 +22,10 @@ Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for fu
 
 The folder `support/build` contains [Bob](http://github.com/kennethreitz/bob-builder) build scripts for all binaries and dependencies.
 
-To get started with it, create an app on Heroku inside a clone of this repository, and set your S3 config vars:
+To get started with it, create a Python app (*Bob* is a Python application) on Heroku inside a clone of this repository, and set your S3 config vars:
 
 ```term
-$ heroku create --buildpack https://github.com/heroku/heroku-buildpack-python#not-heroku
+$ heroku create --buildpack https://github.com/heroku/heroku-buildpack-python
 $ heroku ps:scale web=0
 $ heroku config:set WORKSPACE_DIR=/app/support/build
 $ heroku config:set AWS_ACCESS_KEY_ID=<your_aws_key>
@@ -58,6 +58,6 @@ If the dependencies are not yet deployed, you can do so by e.g. running `bob dep
 
 ### Hacking
 
-To work on this buildpack, fork it on Github. You can then use [Anvil with a local buildpack](https://github.com/heroku/anvil-cli#iterate-on-buildpacks-without-pushing-to-github) to easily iterate on changes without pushing each time.
+To work on this buildpack, fork it on Github. You can then use [Anvil with a local buildpack](https://github.com/ddollar/anvil-cli#iterate-on-buildpacks-without-pushing-to-github) to easily iterate on changes without pushing each time.
 
 Alternatively, you may push changes to your fork (ideally in a branch if you'd like to submit pull requests), then create a test app with `heroku create --buildpack <your-github-url#branch>` and push to it.

@@ -26,26 +26,8 @@ http {
     }
     
     server {
-        # TODO: use X-Forwarded-Host? http://comments.gmane.org/gmane.comp.web.nginx.english/2170
-        server_name localhost;
-        listen <?=getenv('PORT')?:'8080'?>;
-        # FIXME: breaks redirects with foreman
-        port_in_redirect off;
-        
-        root <?=getenv('DOCUMENT_ROOT')?:getenv('HEROKU_APP_DIR')?:getcwd()?>;
-        
-        error_log stderr;
-        access_log /tmp/heroku.nginx_access.<?=getenv('PORT')?:'8080'?>.log;
-        
-        include <?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>;
-        
-        # restrict access to hidden files, just in case
-        location ~ /\. {
-            deny all;
-        }
-        
-        # default handling of .php
-        location ~ \.php {
+        # define an easy to reference name that can be used in try_files
+        location @heroku-fcgi {
             include fastcgi_params;
             
             fastcgi_split_path_info ^(.+\.php)(/.*)$;
@@ -60,6 +42,29 @@ http {
             }
             
             fastcgi_pass heroku-fcgi;
+        }
+        
+        # TODO: use X-Forwarded-Host? http://comments.gmane.org/gmane.comp.web.nginx.english/2170
+        server_name localhost;
+        listen <?=getenv('PORT')?:'8080'?>;
+        # FIXME: breaks redirects with foreman
+        port_in_redirect off;
+        
+        root "<?=getenv('DOCUMENT_ROOT')?:getenv('HEROKU_APP_DIR')?:getcwd()?>";
+        
+        error_log stderr;
+        access_log /tmp/heroku.nginx_access.<?=getenv('PORT')?:'8080'?>.log;
+        
+        include "<?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>";
+        
+        # restrict access to hidden files, just in case
+        location ~ /\. {
+            deny all;
+        }
+        
+        # default handling of .php
+        location ~ \.php {
+            try_files @heroku-fcgi @heroku-fcgi;
         }
     }
 }
