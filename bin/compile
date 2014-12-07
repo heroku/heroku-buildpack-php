@@ -264,7 +264,6 @@ else
         $engine `which composer` "$@"
     }
     export -f composer
-    composer self-update --no-interaction --quiet # TODO: specify a version once composer has stable releases
 fi
 # echo composer version for info purposes
 # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)

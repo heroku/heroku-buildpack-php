@@ -13,7 +13,7 @@ echo "-----> Bundling Composer (latest)..."
 
 export PATH=${OUT_PREFIX}/bin:$PATH
 
-curl -sS https://getcomposer.org/installer | php
+curl -sS https://getcomposer.org/installer | php -- --version=1.0.0-alpha9
 
 rm -rf ${OUT_PREFIX}/*
 mkdir -p ${OUT_PREFIX}/bin
