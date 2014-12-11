@@ -21,7 +21,7 @@ install_ext () {
         echo "extension = ${ext}.so" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
         echo "- ${ext} (${reason}; bundled)" | indent
     elif echo -n ${ext} | php -r 'exit((int)!extension_loaded(file_get_contents("php://stdin")));'; then
-        echo "- ${ext} (${reason}; enabled by default)" | indent
+        : # echo "- ${ext} (${reason}; enabled by default)" | indent
     else
         warning_inline "Unknown extension ${ext} (${reason}), install may fail!"
     fi
