@@ -83,6 +83,10 @@ Options:
                           exist, it will be created. Wildcards are allowed, but
                           must be quoted and must match already existing files.
                           Note: this option can be repeated multiple times.
+  -p <PORT>               Port to listen on for HTTP traffic. If this argument
+                          is not given, then the port number to use is read from
+                          the \$PORT environment variable, or a random port is
+                          chosen if that variable does not exist.
   -v, --verbose           Be more verbose during startup.
 
 All file paths must be relative to '$HEROKU_APP_DIR'.
@@ -106,7 +110,7 @@ export PORT=${PORT:-$(( $RANDOM+1024 ))}
 # our standard logs
 logs=( "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.php-fpm.www.$PORT.log" "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log" )
 
-optstring=":-:C:c:F:f:i:l:vh"
+optstring=":-:C:c:F:f:i:l:p:vh"
 
 # process flags first
 while getopts "$optstring" opt; do
@@ -170,6 +174,9 @@ while getopts "$optstring" opt; do
                 logs+=("$logfile") # must quote here in case a wildcard matched a file with a space in the name
             done
             ;;
+        p)
+            PORT="$OPTARG"
+            ;;
         \?)
             echo "Invalid option: -$OPTARG" >&2
             exit 2
@@ -205,15 +212,15 @@ php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This
 composer() {
     local composer_bin=$(which ./composer.phar composer | head -n1)
     # check if we the composer binary is executable by PHP
-    if file --brief $composer_bin | grep "php" > /dev/null ; then
-        php $composer_bin "$@"
-    else
+    if file --brief --dereference $composer_bin | grep "bash" > /dev/null ; then # newer versions of file return "data" for .phar
         # run it directly; it's probably a bash script or similar (homebrew-php does this)
         $composer_bin "$@"
+    else
+        php $composer_bin "$@"
     fi
 }
-COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?"; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
-COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?"; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
+COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
+COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 
 [[ -z ${DYNO:-} || $verbose ]] && echo "Booting on port $PORT..." >&2
 

@@ -42,7 +42,11 @@ ENV_DIR=${3:-} # Anvil has none
 BP_DIR=$(cd $(dirname $0); cd ..; pwd)
 
 # convenience functions
-source $BP_DIR/bin/common.sh
+source $BP_DIR/bin/util/common.sh
+
+# for extensions that need special treatment
+source $BP_DIR/bin/util/newrelic.sh
+source $BP_DIR/bin/util/blackfire.sh
 
 export_env_dir "$ENV_DIR" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|S3_URL|RTVS_URL)$'
 
@@ -85,8 +89,13 @@ mkdir -p $COMPOSER_HOME
 
 PHP_VERSION=
 HHVM_VERSION=
-runtimes=$(cd $BP_DIR/support/build; ls {php,hhvm}-*)
+if [[ "$STACK" == "cedar" ]]; then
+    runtimes=$(cd $BP_DIR/support/build; ls {php-*,hhvm-3.2.0}) # cedar only has HHVM 3.2
+else
+    runtimes=$(cd $BP_DIR/support/build; ls {php,hhvm}-*)
+fi
 engine="php"
+engine_r="php -r"
 if [[ -f "composer.json" ]]; then
     if [[ ! -f "composer.lock" ]]; then
         cat composer.json | python -c 'import sys, json; print sys.exit(any(key.count("/") for key in json.load(sys.stdin).get("require", {})))' 2> /dev/null || error "Your composer.json specifies dependencies, but no composer.lock
@@ -134,7 +143,14 @@ See https://devcenter.heroku.com/articles/php-support for more details."
                 PHP_VERSION="$runtime_result"
             elif [[ $runtime_name == "hhvm" ]]; then
                 HHVM_VERSION="$runtime_result"
-                engine=hhvm
+                engine="hhvm"
+                engine_r="hhvm --php -r"
+                if [[ "$STACK" == "cedar" ]]; then
+                    notice_inline "Support for HHVM on the cedar stack is deprecated and will be
+removed soon. Please upgrade to cedar-14 to continue using HHVM and get
+access to new releases. For more information on migrating to cedar-14,
+please refer to https://devcenter.heroku.com/articles/cedar-14-migration"
+                fi
             fi
         else
             error "Could not resolve $runtime_source requirement for ${runtime_name^^} $runtime_constraint,
@@ -160,14 +176,17 @@ if [[ "${PHP_VERSION}" ]]; then
     cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc/php
     cp $BP_DIR/conf/php/php-fpm.conf $BUILD_DIR/.heroku/php/etc/php
     mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
-    # remember the version for future upgrade handling
-    echo $PHP_VERSION > $CACHE_DIR/php_version
+    # store PHP version in the slug for possible later evaluation
+    mkdir -p $BUILD_DIR/.heroku/php/.versions/php
+    echo $PHP_VERSION > $BUILD_DIR/.heroku/php/.versions/php/php
 fi
 if [[ "${HHVM_VERSION}" ]]; then
     HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
     echo "- HHVM $HHVM_VERSION" | indent
     curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
-    echo $HHVM_VERSION > $CACHE_DIR/hhvm_version
+    # store HHVM version in the slug for possible later evaluation
+    mkdir -p $BUILD_DIR/.heroku/php/.versions/hhvm
+    echo $HHVM_VERSION > $BUILD_DIR/.heroku/php/.versions/hhvm/hhvm
     # make HHVM accessible
     export PATH=$PATH:/app/.heroku/php/usr/bin
     # so it'll start. remember to use the full path to the binary, or we'll get an infinite loop
@@ -181,8 +200,9 @@ echo "- Apache $APACHE_VERSION" | indent
 curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # Apache; copy in our config
 cp $BP_DIR/conf/apache2/httpd.conf.default $BUILD_DIR/.heroku/php/etc/apache2/httpd.conf
-# remember the version for future upgrade handling
-echo $APACHE_VERSION > $CACHE_DIR/apache2_version
+# store Apache version in the slug for possible later evaluation
+mkdir -p $BUILD_DIR/.heroku/php/.versions/apache2
+echo $APACHE_VERSION > $BUILD_DIR/.heroku/php/.versions/apache2/apache2
 
 NGINX_VERSION="1.6.0"
 NGINX_DIST_URL="$S3_URL/nginx-$NGINX_VERSION.tar.gz"
@@ -190,8 +210,9 @@ echo "- Nginx $NGINX_VERSION" | indent
 curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # nginx; copy in our config
 cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.conf
-# remember the version for future upgrade handling
-echo $NGINX_VERSION > $CACHE_DIR/nginx_version
+# store Nginx version in the slug for possible later evaluation
+mkdir -p $BUILD_DIR/.heroku/php/.versions/nginx
+echo $NGINX_VERSION > $BUILD_DIR/.heroku/php/.versions/nginx/nginx
 
 # handle extensions for PHP
 if [[ "${PHP_VERSION}" ]]; then
@@ -203,21 +224,23 @@ if [[ "${PHP_VERSION}" ]]; then
     }
     
     exts=()
-    if [[ -f "composer.json" ]]; then
+    if [[ -f "composer.lock" ]]; then
+        exts=($(cat composer.lock | python -c 'import sys, json, itertools; l=json.load(sys.stdin); print "\n".join(list(set(itertools.chain([plat[4:].lower() for plat in l.get("platform", []) if plat.startswith("ext-")], *[ [ pkg[4:].lower() for pkg in p.get("require", []) if pkg.startswith("ext-") ] for p in l.get("packages", []) ]))))' 2> /dev/null || true)) # convert to array
+        ext_source="composer.lock"
+    else
         exts=($(cat composer.json | python -c 'from __future__ import print_function; import sys, json; { print(key[4:].lower()) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)) # convert to array
+        ext_source="composer.json"
     fi
     for ext in "${!exts[@]}"; do # loop over keys in case the array is empty or else it'll error out
-        install_ext "${exts[$ext]}" "composer.json"
+        install_ext "${exts[$ext]}" $ext_source
     done
     
     # special treatment for New Relic; we enable it if we detect a license key for it
-    # otherwise users would have to have it in their require section, which is annoying in development environments
-    NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
-    if [[ ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "newrelic" ) && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
-        install_ext "newrelic" "add-on detected"
-        exts+=("newrelic")
-    fi
-    
+    install_newrelic_ext
+
+    # special treatment for Blackfire; we enable it if we detect a server id and a server token for it
+    install_blackfire_ext
+
     if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
         install_ext "zend-opcache" "automatic"
         exts+=("zend-opcache")
@@ -228,7 +251,8 @@ status "Installing dependencies..."
 
 # check if we should use a composer.phar version bundled with the project
 if [[ -f "composer.phar" ]]; then
-    php -r 'new Phar("composer.phar");' &> /dev/null || error "Found composer.phar in root directory, but it appears corrupted!"
+    [[ -x "composer.phar" ]] || error "composer.phar in root directory is not executable; 'chmod a+x' it!"
+    $engine_r 'new Phar("composer.phar");' &> /dev/null || error "ERROR: Found composer.phar in root directory, but it appears corrupted!"
     composer() {
         $engine composer.phar "$@"
     }
@@ -336,33 +360,11 @@ composer() {
 export -f composer
 EOF
 fi
-# new relic defaults
-cat > $BUILD_DIR/.profile.d/newrelic.sh <<"EOF"
-if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
-    export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-"PHP Application on Heroku"}
-    export NEW_RELIC_LOG_LEVEL=${NEW_RELIC_LOG_LEVEL:-"warning"}
 
-    # The daemon is a spawned process, invoked by the PHP agent, which is truly
-    # daemonized (i.e., it is disassociated from the controlling TTY and
-    # running in the background). Therefore, the daemon is configured to write
-    # its log output to a file instead of to STDIO 
-    # (see .heroku/php/etc/php/conf.d/ext-newrelic.ini).
-    #
-    # Perpetually tail and redirect the daemon log file to stderr so that it
-    # may be observed via 'heroku logs'.
-    touch /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log
-    tail -qF -n 0 /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log 1>&2 &
-fi
-EOF
-if [[ -n "${NEW_RELIC_CONFIG_FILE:-}" ]]; then
+install_newrelic_daemon
+install_newrelic_userini
 
-    if [[ ! -f "${NEW_RELIC_CONFIG_FILE}" ]]; then
-        error "Config var 'NEW_RELIC_CONFIG_FILE' points to non existing file
-'${NEW_RELIC_CONFIG_FILE}'"
-    fi
-    notice_inline "Using custom New Relic config '${NEW_RELIC_CONFIG_FILE}'"
-    ( cd $BUILD_DIR/.heroku/php/etc/php/conf.d; ln -s "../../../../../${NEW_RELIC_CONFIG_FILE}" "ext-newrelic.user.ini" )
-fi
+install_blackfire_agent
 
 if [[ ! -f "Procfile" ]]; then
     bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
