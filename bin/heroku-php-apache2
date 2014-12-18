@@ -263,6 +263,36 @@ if [[ -n ${httpd_config:-} || ( ${httpd_config:="$HEROKU_APP_DIR/$COMPOSER_VENDO
 fi
 httpd_config=$(php_passthrough "$httpd_config")
 
+if [[ -z ${WEB_CONCURRENCY:-} ]]; then
+    maxprocs=$(ulimit -u)
+    ram="512M"
+    if [[ -z ${DYNO:-} ]]; then
+        # not on a dyno
+        [[ $verbose ]] && echo "Assuming settings for 1X dyno..." >&2
+    elif [[ "$maxprocs" == "32768" ]]; then
+        echo "Optimizing settings for PX dyno..." >&2
+        ram="6G"
+    elif [[ "$maxprocs" == "512" ]]; then
+        echo "Optimizing settings for 2X dyno..." >&2
+        ram="1G"
+    else
+        if [[ "$maxprocs" == "256" ]]; then
+            echo "Optimizing settings for 1X dyno..." >&2
+        else
+            echo "Falling back to settings for 1X dyno..." >&2
+        fi
+    fi
+
+    # determine number of FPM processes to run
+    read WEB_CONCURRENCY php_memory_limit <<<$(php -c "$php_config" $(composer config vendor-dir)/heroku/heroku-buildpack-php/bin/util/autotune.php -y "$fpm_config" -t "$DOCUMENT_ROOT" "$ram")
+    [[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
+    export WEB_CONCURRENCY
+    
+    echo "Running ${WEB_CONCURRENCY} workers at ${php_memory_limit}B memory limit."
+else
+    echo "Running ${WEB_CONCURRENCY} workers as per \$WEB_CONCURRENCY"
+fi
+
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
 # this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).
 wait_pipe=$(mktemp -t "heroku.waitpipe-$PORT.XXXXXX" -u)
