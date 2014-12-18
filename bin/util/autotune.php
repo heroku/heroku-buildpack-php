@@ -75,6 +75,7 @@ $limit = ini_get('memory_limit');
 $ram = stringtobytes($argv[$argc-1]); // last arg is the available memory
 
 // assume 64 MB base overhead for web server and FPM, and 1 MB overhead for each worker
-echo floor(($ram-stringtobytes('64M'))/(stringtobytes($limit)+stringtobytes('1M'))) . " " . $limit;
+// echo floor(($ram-stringtobytes('64M'))/(stringtobytes($limit)+stringtobytes('1M'))) . " " . $limit;
+echo floor($ram / (stringtobytes($limit)?:-1)) . " " . $limit;
 
 ?>
