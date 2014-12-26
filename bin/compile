@@ -151,6 +151,14 @@ will be removed soon. Please upgrade to cedar-14 to continue to
 use HHVM and get access to new releases. For more information,
 see https://devcenter.heroku.com/articles/cedar-14-migration"
                 fi
+                if [[ -f "composer.lock" ]] && python -c 'import sys, json; print sys.exit(any(key.count("hhvm") for key in json.load(open("composer.lock")).get("platform", {})))' 2> /dev/null; then
+                    warning_inline "Support for requiring HHVM in 'composer.json' but not in
+'composer.lock' is deprecated and will be removed soon. Please
+update 'composer.lock' to contain the requirement. If you do not
+have HHVM installed, you can re-generate the lock file using the
+'composer update --ignore-platform-reqs' command; the same switch
+may be used with 'composer install' under the same circumstances."
+                fi
             fi
         else
             error "Could not resolve $runtime_source requirement for ${runtime_name^^} $runtime_constraint,
