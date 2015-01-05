@@ -109,7 +109,7 @@ export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
 
 # our standard logs
-logs=( "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.php-fpm.www.$PORT.log" "/tmp/heroku.nginx_access.$PORT.log" )
+logs=( "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.php-fpm.www.$PORT.log" "/tmp/heroku.php-fpm.$PORT.www.slowlog" "/tmp/heroku.nginx_access.$PORT.log" )
 
 optstring=":-:C:c:F:f:i:l:p:vh"
 
