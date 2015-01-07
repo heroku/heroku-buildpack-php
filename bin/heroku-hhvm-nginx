@@ -93,8 +93,8 @@ export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 # set a default port if none is given
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
 
-# our standard logs
-logs=( "/tmp/heroku.nginx_access.$PORT.log" )
+# init logs array here as empty before parsing options; -l could append to it, but the default list gets added later since we use $PORT in there and that can be set using -p
+declare -a logs
 
 optstring=":-:C:c:i:l:p:vh"
 
@@ -175,6 +175,9 @@ if [[ "$#" -gt "1" ]]; then
 make sure to list them before any document root argument you're providing."
     exit 2
 fi
+
+# our standard logs
+logs+=( "/tmp/heroku.nginx_access.$PORT.log" )
 
 hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { echo "This program requires HHVM 3.0.1 or newer" >&2; exit 1; }
 
