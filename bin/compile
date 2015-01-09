@@ -319,6 +319,11 @@ composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction |
 composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your composer.json requires 'heroku/heroku-buildpack-php'.
 This package may only be used as a dependency in 'require-dev'!"
 
+if cat composer.json | python -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
+    status "Running 'composer compile'..."
+    composer run-script --no-interaction compile | indent
+fi
+
 status "Preparing runtime environment..."
 
 # install this buildpack like a composer package
