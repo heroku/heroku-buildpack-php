@@ -321,7 +321,7 @@ This package may only be used as a dependency in 'require-dev'!"
 
 if cat composer.json | python -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
     status "Running 'composer compile'..."
-    composer run-script --no-interaction compile | indent
+    composer run-script --no-dev --no-interaction compile | indent
 fi
 
 status "Preparing runtime environment..."
