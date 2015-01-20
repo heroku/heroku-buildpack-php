@@ -25,9 +25,12 @@ LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
 function download_and_install_ibm_db() {
 
-
-  # Extracting and Cleaning DS Driver
-  rm -rf clidriver
+ CLI_URL="http://myphpapp13.mybluemix.net/db2_driver_for_odbc_cli.tar.gz"
+echo "Downloading IBM Data Server Driver...."
+curl -LO "$CLI_URL"
+# Extracting and Cleaning DS Driver
+rm -rf clidriver
+tar -xzf db2_driver_for_odbc_cli.tar.gz
   
 
   echo "Downloading autoconf..."
