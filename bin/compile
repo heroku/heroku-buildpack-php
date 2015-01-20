@@ -24,14 +24,11 @@ CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
 function download_and_install_ibm_db() {
-  CLI_URL="ftp://hotel77.torolab.ibm.com/db2_driver_for_odbc_cli.tar.gz"
 
-  echo "Downloading IBM Data Server Driver...."
-  curl -LO -u vnkbabu:Temp5here#  "$CLI_URL"
 
   # Extracting and Cleaning DS Driver
   rm -rf clidriver
-  tar -xzf linuxx64_odbc_cli.tar.gz
+  tar -xzf db2_driver_for_odbc_cli.tar.gz
 
   echo "Downloading autoconf..."
   curl -LO http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
