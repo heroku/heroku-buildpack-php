@@ -25,7 +25,7 @@ LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
 function download_and_install_ibm_db() {
 
- CLI_URL="http://myphpapp13.mybluemix.net/db2_driver_for_odbc_cli.tar.gz"
+ CLI_URL="http://dashdbphpsample.stage1.mybluemix.net/db2_driver_for_odbc_cli.tar.gz"
 echo "Downloading IBM Data Server Driver...."
 curl -LO "$CLI_URL"
 # Extracting and Cleaning DS Driver
