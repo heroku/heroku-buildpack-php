@@ -27,10 +27,10 @@ function download_and_install_ibm_db() {
 
  CLI_URL="http://dashdbphpsample.stage1.mybluemix.net/db2_driver_for_odbc_cli.tar.gz"
 echo "Downloading IBM Data Server Driver...."
-curl -LO "$CLI_URL"
+
 # Extracting and Cleaning DS Driver
 rm -rf clidriver
-tar -xzf db2_driver_for_odbc_cli.tar.gz
+tar -xzf /app/www/db2_driver_for_odbc_cli.tar.gz
   
 
   echo "Downloading autoconf..."
