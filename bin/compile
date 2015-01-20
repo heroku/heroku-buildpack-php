@@ -30,7 +30,7 @@ echo "Downloading IBM Data Server Driver...."
 
 # Extracting and Cleaning DS Driver
 rm -rf clidriver
-tar -xzf /app/www/db2_driver_for_odbc_cli.tar.gz
+tar -xzf db2_driver_for_odbc_cli.tar.gz
   
 
   echo "Downloading autoconf..."
