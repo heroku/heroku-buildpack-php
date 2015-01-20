@@ -28,7 +28,7 @@ function download_and_install_ibm_db() {
 
   # Extracting and Cleaning DS Driver
   rm -rf clidriver
-  tar -xzf db2_driver_for_odbc_cli.tar.gz
+  
 
   echo "Downloading autoconf..."
   curl -LO http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
