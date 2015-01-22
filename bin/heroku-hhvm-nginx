@@ -255,7 +255,7 @@ echo "Starting hhvm..." >&2
 # wait a few seconds for HHVM to finish initializing; otherwise an early request might break nginx with the FastCGI pipe not being ready
 # start nginx; write "nginx" to the shared pipe if it exits
 echo "Starting nginx..." >&2
-( sleep 2; nginx -g "daemon off; include $nginx_config;" || true; echo "nginx" >&3; ) 3> $wait_pipe &
+( sleep 2; nginx -g "error_log stderr; daemon off; include $nginx_config;" || true; echo "nginx" >&3; ) 3> $wait_pipe &
 
 # wait for something to come from the shared pipe, which means that the given process was killed or has failed
 read exitproc < $wait_pipe
