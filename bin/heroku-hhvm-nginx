@@ -286,7 +286,7 @@ echo "Starting hhvm..." >&2
 (
     trap 'echo "hhvm" >&3;' EXIT
     trap 'kill -TERM $!' TERM
-    hhvm --mode server -d "hhvm.server.type=fastcgi" -d "hhvm.server.file_socket=/tmp/heroku.fcgi.${PORT}.sock" "${php_config[@]}" &
+    hhvm --mode server "${php_config[@]}" &
     wait
 ) & pids+=($!)
 
