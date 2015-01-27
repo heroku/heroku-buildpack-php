@@ -65,7 +65,7 @@ Options:
                           default HHVM php.ini (see option -i below).
   -i <php.ini>            The path to the php.ini file to use. It is highly
                           recommended to use the -I option (see above) instead.
-                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini]
+                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php]
   -l <tailme.log>         Path to additional log file to tail to STDERR so its
                           contents appear in 'heroku logs'. If the file does not
                           exist, it will be created. Wildcards are allowed, but
@@ -219,7 +219,7 @@ if [[ "$#" == "1" ]]; then
     fi
 fi
 
-if [[ -n ${php_config:-} || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini"} && $verbose ) ]]; then
+if [[ -n ${php_config:-} || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php"} && $verbose ) ]]; then
     echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 fi
 php_config=( "-c" "$(php_passthrough "$php_config")" )
