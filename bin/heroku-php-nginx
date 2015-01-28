@@ -296,9 +296,10 @@ echo "Starting php-fpm..." >&2
 unset -f php-fpm # remove the alias we made earlier that would prevent newrelic from starting on php-fpm -v
 ( php-fpm --nodaemonize -y "$fpm_config" -c "$php_config" || true; echo "php-fpm" >&3; ) &
 # wait a few seconds for FPM to finish initializing; otherwise an early request might break nginx with the FastCGI pipe not being ready
+sleep 2
 # start nginx; write "nginx" to the shared pipe if it exits
 echo "Starting nginx..." >&2
-( sleep 2; nginx -g "daemon off; include $nginx_config;" || true; echo "nginx" >&3; ) &
+( nginx -g "daemon off; include $nginx_config;" || true; echo "nginx" >&3; ) &
 
 # wait for something to come from the shared pipe, which means that the given process was killed or has failed
 read exitproc <&3

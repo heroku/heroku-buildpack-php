@@ -254,9 +254,10 @@ trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; rm -f 
 echo "Starting hhvm..." >&2
 ( hhvm --mode server -vServer.Type=fastcgi -vServer.FileSocket=/tmp/heroku.fcgi.$PORT.sock -c "$php_config" || true; echo "hhvm" >&3; ) &
 # wait a few seconds for HHVM to finish initializing; otherwise an early request might break Apache with the FastCGI pipe not being ready
+sleep 2
 # start apache; write "httpd" to the shared pipe if it exits
 echo "Starting httpd..." >&2
-( sleep 2; httpd -D NO_DETACH -c "Include $httpd_config" || true; echo "httpd" >&3; ) &
+( httpd -D NO_DETACH -c "Include $httpd_config" || true; echo "httpd" >&3; ) &
 
 # wait for something to come from the shared pipe, which means that the given process was killed or has failed
 read exitproc <&3
