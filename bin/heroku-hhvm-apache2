@@ -61,8 +61,11 @@ Options:
                           '<Directory>' section (see option -C above).
                           [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/heroku.conf]
   -h, --help              Display this help screen and exit.
-  -i <php.ini>            The path to the php.ini file to use.
-                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini]
+  -I <php.extra.ini>      The path to an extra php.ini to use in addition to the
+                          default HHVM php.ini (see option -i below).
+  -i <php.ini>            The path to the php.ini file to use. It is highly
+                          recommended to use the -I option (see above) instead.
+                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php]
   -l <tailme.log>         Path to additional log file to tail to STDERR so its
                           contents appear in 'heroku logs'. If the file does not
                           exist, it will be created. Wildcards are allowed, but
@@ -95,7 +98,7 @@ export PORT=${PORT:-$(( $RANDOM+1024 ))}
 # init logs array here as empty before parsing options; -l could append to it, but the default list gets added later since we use $PORT in there and that can be set using -p
 declare -a logs
 
-optstring=":-:C:c:i:l:p:vh"
+optstring=":-:C:c:I:i:l:p:vh"
 
 # process flags first
 while getopts "$optstring" opt; do
@@ -133,6 +136,9 @@ while getopts "$optstring" opt; do
             ;;
         c)
             httpd_config=$(check_exists "$OPTARG" "c")
+            ;;
+        I)
+            hhvm_config_extra=$(check_exists "$OPTARG" "I")
             ;;
         i)
             php_config=$(check_exists "$OPTARG" "i")
@@ -213,10 +219,15 @@ if [[ "$#" == "1" ]]; then
     fi
 fi
 
-if [[ -n ${php_config:-} || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini"} && $verbose ) ]]; then
+if [[ -n ${php_config:-} || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php"} && $verbose ) ]]; then
     echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 fi
-php_config=$(php_passthrough "$php_config")
+php_config=( "-c" "$(php_passthrough "$php_config")" )
+
+if [[ -n ${hhvm_config_extra:-} ]]; then
+    echo "Using additional HHVM configuration (php.ini) file '${hhvm_config_extra#$HEROKU_APP_DIR/}'" >&2
+    php_config+=( "-c" "$(php_passthrough "$hhvm_config_extra")" )
+fi
 
 if [[ -n ${httpd_config_include:-} || ( ${httpd_config_include:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/default_include.conf"} && $verbose ) ]]; then
     echo "Using Apache2 VirtualHost-level configuration include '${httpd_config_include#$HEROKU_APP_DIR/}'" >&2
@@ -275,7 +286,7 @@ echo "Starting hhvm..." >&2
 (
     trap 'echo "hhvm" >&3;' EXIT
     trap 'kill -TERM $!' TERM
-    hhvm --mode server -vServer.Type=fastcgi -vServer.FileSocket=/tmp/heroku.fcgi.$PORT.sock -c "$php_config" &
+    hhvm --mode server "${php_config[@]}" &
     wait
 ) & pids+=($!)
 
