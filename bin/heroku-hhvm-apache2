@@ -312,7 +312,7 @@ trap 'trap - INT; kill -INT $$; exit' INT
 [[ $verbose ]] && echo "Starting log redirection..." >&2
 (
     trap 'echo "tail" >&3;' EXIT
-    trap 'kill -TERM $!' TERM
+    trap 'kill -TERM $! 2> /dev/null' TERM
     touch "${logs[@]}"
     tail -qF -n 0 "${logs[@]}" 1>&2 &
     wait
@@ -321,7 +321,7 @@ trap 'trap - INT; kill -INT $$; exit' INT
 echo "Starting hhvm..." >&2
 (
     trap 'echo "hhvm" >&3;' EXIT
-    trap 'kill -TERM $!' TERM
+    trap 'kill -TERM $! 2> /dev/null' TERM
     hhvm --mode server "${php_configs[@]}" &
     wait
 ) & pids+=($!)
@@ -332,7 +332,7 @@ sleep 2
 echo "Starting httpd..." >&2
 (
     trap 'echo "httpd" >&3;' EXIT
-    trap 'kill -TERM $!' TERM
+    trap 'kill -TERM $! 2> /dev/null' TERM
     httpd -D NO_DETACH -c "Include $httpd_config" &
     wait
 ) & pids+=($!)

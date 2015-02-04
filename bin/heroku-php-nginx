@@ -352,7 +352,7 @@ trap 'trap - INT; kill -INT $$; exit' INT
 echo "Starting php-fpm..." >&2
 (
     trap 'echo "php-fpm" >&3;' EXIT
-    trap 'kill -TERM $!' TERM
+    trap 'kill -TERM $! 2> /dev/null' TERM
     php-fpm --nodaemonize -y "$fpm_config" -c "$php_config" &
     wait
 ) & pids+=($!)
@@ -363,7 +363,7 @@ sleep 2
 echo "Starting nginx..." >&2
 (
     trap 'echo "nginx" >&3;' EXIT
-    trap 'kill -TERM $!' TERM
+    trap 'kill -TERM $! 2> /dev/null' TERM
     nginx -g "daemon off; include $nginx_config;" &
     wait
 ) & pids+=($!)
