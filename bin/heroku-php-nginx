@@ -288,9 +288,9 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
     [[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
     export WEB_CONCURRENCY
     
-    echo "Running ${WEB_CONCURRENCY} workers at ${php_memory_limit}B memory limit."
+    echo "Running ${WEB_CONCURRENCY} workers at ${php_memory_limit}B memory limit." >&2
 else
-    echo "Running ${WEB_CONCURRENCY} workers as per \$WEB_CONCURRENCY"
+    echo "Running ${WEB_CONCURRENCY} workers as per \$WEB_CONCURRENCY" >&2
 fi
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below

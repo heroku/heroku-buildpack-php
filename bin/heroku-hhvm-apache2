@@ -268,9 +268,9 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
     [[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
     export WEB_CONCURRENCY
     
-    echo "Running ${WEB_CONCURRENCY} threads at ${php_memory_limit}B memory limit."
+    echo "Running ${WEB_CONCURRENCY} threads at ${php_memory_limit}B memory limit." >&2
 else
-    echo "Running ${WEB_CONCURRENCY} threads as per \$WEB_CONCURRENCY"
+    echo "Running ${WEB_CONCURRENCY} threads as per \$WEB_CONCURRENCY" >&2
 fi
 
 # we changed WEB_CONCURRENCY; now we need to re-evaluate the configs as HHVM doesn't support ${...} syntax, so the configs contain PHP getenv() calls and are templated
