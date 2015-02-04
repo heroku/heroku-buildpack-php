@@ -219,15 +219,18 @@ if [[ "$#" == "1" ]]; then
     fi
 fi
 
+function prepare_hhvm_ini() { # we have to do this twice, as the WEB_CONCURRENCY setting is evaluated using PHP code, not ${...} syntax which HHVM does not support
 if [[ -n ${php_config:-} || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php"} && $verbose ) ]]; then
     echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 fi
-php_config=( "-c" "$(php_passthrough "$php_config")" )
+php_configs=( "-c" "$(php_passthrough "$php_config")" )
 
 if [[ -n ${hhvm_config_extra:-} ]]; then
     echo "Using additional HHVM configuration (php.ini) file '${hhvm_config_extra#$HEROKU_APP_DIR/}'" >&2
-    php_config+=( "-c" "$(php_passthrough "$hhvm_config_extra")" )
+    php_configs+=( "-c" "$(php_passthrough "$hhvm_config_extra")" )
 fi
+}
+prepare_hhvm_ini
 
 if [[ -n ${httpd_config_include:-} || ( ${httpd_config_include:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/default_include.conf"} && $verbose ) ]]; then
     echo "Using Apache2 VirtualHost-level configuration include '${httpd_config_include#$HEROKU_APP_DIR/}'" >&2
@@ -239,6 +242,39 @@ if [[ -n ${httpd_config:-} || ( ${httpd_config:="$HEROKU_APP_DIR/$COMPOSER_VENDO
     echo "Using Apache2 configuration file '${httpd_config#$HEROKU_APP_DIR/}'" >&2
 fi
 httpd_config=$(php_passthrough "$httpd_config")
+
+if [[ -z ${WEB_CONCURRENCY:-} ]]; then
+    maxprocs=$(ulimit -u)
+    ram="512M"
+    if [[ -z ${DYNO:-} ]]; then
+        # not on a dyno
+        [[ $verbose ]] && echo "Assuming settings for 1X dyno..." >&2
+    elif [[ "$maxprocs" == "32768" ]]; then
+        echo "Optimizing settings for PX dyno..." >&2
+        ram="6G"
+    elif [[ "$maxprocs" == "512" ]]; then
+        echo "Optimizing settings for 2X dyno..." >&2
+        ram="1G"
+    else
+        if [[ "$maxprocs" == "256" ]]; then
+            echo "Optimizing settings for 1X dyno..." >&2
+        else
+            echo "Falling back to settings for 1X dyno..." >&2
+        fi
+    fi
+
+    # determine number of FPM processes to run
+    read WEB_CONCURRENCY php_memory_limit <<<$(hhvm "${php_configs[@]}" $(composer config vendor-dir)/heroku/heroku-buildpack-php/bin/util/autotune.php "$ram")
+    [[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
+    export WEB_CONCURRENCY
+    
+    echo "Running ${WEB_CONCURRENCY} threads at ${php_memory_limit}B memory limit."
+else
+    echo "Running ${WEB_CONCURRENCY} threads as per \$WEB_CONCURRENCY"
+fi
+
+# we changed WEB_CONCURRENCY; now we need to re-evaluate the configs as HHVM doesn't support ${...} syntax, so the configs contain PHP getenv() calls and are templated
+prepare_hhvm_ini
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
 # this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).
@@ -286,7 +322,7 @@ echo "Starting hhvm..." >&2
 (
     trap 'echo "hhvm" >&3;' EXIT
     trap 'kill -TERM $!' TERM
-    hhvm --mode server "${php_config[@]}" &
+    hhvm --mode server "${php_configs[@]}" &
     wait
 ) & pids+=($!)
 
