@@ -263,7 +263,7 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
         fi
     fi
 
-    # determine number of FPM processes to run
+    # determine number of HHVM threads to run
     read WEB_CONCURRENCY php_memory_limit <<<$(hhvm "${php_configs[@]}" $(composer config vendor-dir)/heroku/heroku-buildpack-php/bin/util/autotune.php "$ram")
     [[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
     export WEB_CONCURRENCY
@@ -326,7 +326,7 @@ echo "Starting hhvm..." >&2
     wait
 ) & pids+=($!)
 
-# wait a few seconds for FPM to finish initializing; otherwise an early request might break Apache with the FastCGI pipe not being ready
+# wait a few seconds for HHVM to finish initializing; otherwise an early request might break Apache with the FastCGI pipe not being ready
 sleep 2
 
 echo "Starting httpd..." >&2
