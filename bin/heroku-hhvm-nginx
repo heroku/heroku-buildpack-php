@@ -219,14 +219,14 @@ if [[ "$#" == "1" ]]; then
     fi
 fi
 
-function prepare_hhvm_ini() { # we have to do this twice, as the WEB_CONCURRENCY setting is evaluated using PHP code, not ${...} syntax which HHVM does not support
-if [[ -n ${php_config:-} || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php"} && $verbose ) ]]; then
+function prepare_hhvm_ini() { # we have to do this twice, as the WEB_CONCURRENCY setting is evaluated using PHP code, not ${...} syntax which HHVM does not support; if a value for $1 is passed then it won't echo messages upon second invocation
+if [[ ( -n ${php_config:-} && ! ${1:-} ) || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php"} && $verbose && ! ${1:-} ) ]]; then
     echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 fi
 php_configs=( "-c" "$(php_passthrough "$php_config")" )
 
 if [[ -n ${hhvm_config_extra:-} ]]; then
-    echo "Using additional HHVM configuration (php.ini) file '${hhvm_config_extra#$HEROKU_APP_DIR/}'" >&2
+    [[ ${1:-} ]] || echo "Using additional HHVM configuration (php.ini) file '${hhvm_config_extra#$HEROKU_APP_DIR/}'" >&2
     php_configs+=( "-c" "$(php_passthrough "$hhvm_config_extra")" )
 fi
 }
@@ -273,8 +273,8 @@ else
     echo "Running ${WEB_CONCURRENCY} threads as per \$WEB_CONCURRENCY" >&2
 fi
 
-# we changed WEB_CONCURRENCY; now we need to re-evaluate the configs as HHVM doesn't support ${...} syntax, so the configs contain PHP getenv() calls and are templated
-prepare_hhvm_ini
+# we changed WEB_CONCURRENCY; now we need to re-evaluate the configs as HHVM doesn't support ${...} syntax, so the configs contain PHP getenv() calls and are templated; we pass an argument to it to avoid it echoing "using HHVM config ..." messages again because that already happened
+prepare_hhvm_ini no_messages
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
 # this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).
