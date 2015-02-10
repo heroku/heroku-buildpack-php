@@ -244,21 +244,16 @@ httpd_config=$(php_passthrough "$httpd_config")
 if [[ -z ${WEB_CONCURRENCY:-} ]]; then
     maxprocs=$(ulimit -u)
     ram="512M"
-    if [[ -z ${DYNO:-} ]]; then
-        # not on a dyno
-        [[ $verbose ]] && echo "Assuming settings for 1X dyno..." >&2
-    elif [[ "$maxprocs" == "32768" ]]; then
-        echo "Optimizing settings for PX dyno..." >&2
+    if [[ -n ${DYNO:-} && "$maxprocs" == "32768" ]]; then
+        echo "Optimizing defaults for PX dyno...." >&2
         ram="6G"
-    elif [[ "$maxprocs" == "512" ]]; then
-        echo "Optimizing settings for 2X dyno..." >&2
+    elif [[ -n ${DYNO:-} && "$maxprocs" == "512" ]]; then
+        echo "Optimizing defaults for 2X dyno..." >&2
         ram="1G"
-    else
-        if [[ "$maxprocs" == "256" ]]; then
-            echo "Optimizing settings for 1X dyno..." >&2
-        else
-            echo "Falling back to settings for 1X dyno..." >&2
-        fi
+    elif [[ -n ${DYNO:-} && "$maxprocs" == "256" ]]; then
+        echo "Optimzing defaults for 1X dyno..." >&2
+    elif [[ -n ${DYNO:-} || $verbose ]]; then
+        echo "No dyno detected; using defaults for 1X..." >&2
     fi
 
     # determine number of HHVM threads to run
@@ -266,9 +261,9 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
     [[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
     export WEB_CONCURRENCY
     
-    echo "Running ${WEB_CONCURRENCY} threads at ${php_memory_limit}B memory limit." >&2
+    echo "${WEB_CONCURRENCY} threads at ${php_memory_limit}B memory limit." >&2
 else
-    echo "Running ${WEB_CONCURRENCY} threads as per \$WEB_CONCURRENCY" >&2
+    echo "Using WEB_CONCURRENCY=${WEB_CONCURRENCY} threads." >&2
 fi
 
 # we changed WEB_CONCURRENCY; now we need to re-evaluate the configs as HHVM doesn't support ${...} syntax, so the configs contain PHP getenv() calls and are templated; we pass an argument to it to avoid it echoing "using HHVM config ..." messages again because that already happened
