@@ -218,8 +218,6 @@ composer() {
 COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 
-[[ -z ${DYNO:-} || $verbose ]] && echo "Booting on port $PORT..." >&2
-
 if [[ "$#" == "1" ]]; then
     DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
     if [[ ! -d "$DOCUMENT_ROOT" ]]; then
@@ -372,6 +370,9 @@ echo "Starting nginx..." >&2
     nginx -g "daemon off; include $nginx_config;" &
     wait
 ) & pids+=($!)
+
+# on Heroku, there is a "state changed from starting to up", but for local execution, we want a "ready" message
+[[ -z ${DYNO:-} || $verbose ]] && echo "Application ready for connections on port $PORT." >&2
 
 # wait for something to come from the FIFO attached to FD 3, which means that the given process was killed or has failed
 # this will be interrupted by a SIGTERM or SIGINT in the traps further up
