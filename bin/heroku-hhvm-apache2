@@ -286,18 +286,23 @@ exec 3<> $wait_pipe
 pids=()
 
 # trap SIGQUIT (ctrl+\ on the console), SIGTERM (when we get killed) and EXIT (upon failure of any command due to set -e, or because of the exit 1 at the very end), we then
-# 1) restore the EXIT trap so it doesn't fire again a loop due to the exit at the end (if we're handling SIGQUIT or SIGTERM)
+# 1) restore the trap so it doesn't fire again a loop due to the exit at the end (if we're handling SIGQUIT or SIGTERM) or another signal
 # 2) remove our FIFO from above
 # 3) kill all the subshells we've spawned - they in turn have their own traps to kill their respective subprocesses
 # 3a) send STDERR to /dev/null so we don't see "no such process" errors - after all, one of the subshells may be gone
 # 3b) || true so that set -e doesn't cause a mess if the kill returns 1 on "no such process" cases (which is likely)
 # 4) exit in case we're handling SIGQUIT or SIGTERM
-trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; rm -f ${wait_pipe} || true; kill -TERM "${pids[@]}" 2> /dev/null || true; exit' QUIT TERM EXIT
-# trap SIGINT (ctrl+c on the console)
+trap 'trap - QUIT TERM EXIT; echo "Going down, terminating child processes..." >&2; rm -f ${wait_pipe} || true; kill -TERM "${pids[@]}" 2> /dev/null || true; exit' QUIT TERM EXIT
+# if FD 1 is a TTY (that's the -t 1 check), trap SIGINT/Ctrl+C
 # 1) restore the INT trap so it doesn't fire in a loop due to 2)
 # 2) be nice to the caller and send SIGINT to ourselves (http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT)
 # 3) *do* exit after all to run the cleanup code from above (avoids duplication)
-trap 'trap - INT; kill -INT $$; exit' INT
+if [[ -t 1 ]]; then
+    trap 'trap - INT; kill -INT $$; exit' INT;
+# if FD 1 is not a TTY (e.g. when we're run through 'foreman start'), do nothing on SIGINT; the assumption is that the parent will send us a SIGTERM or something when this happens. With the trap above, Ctrl+C-ing out of a 'foreman start' run would trigger the INT trap both in Foreman and here (because Ctrl+C sends SIGINT to the entire process group, but there is no way to tell the two cases apart), and while the trap is still doing its shutdown work triggered by the SIGTERM from the Ctrl+C, Foreman would then send a SIGTERM because that's what it does when it receives a SIGINT itself.
+else
+    trap '' INT;
+fi
 
 # we are now launching a subshell for each of the tasks (log tail, app server, web server)
 # 1) each subshell has a trap on EXIT that echos the command name to FD 3 (see the FIFO set up above)
