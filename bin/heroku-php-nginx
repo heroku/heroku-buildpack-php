@@ -345,7 +345,7 @@ trap 'trap - INT; kill -INT $$; exit' INT
     else
         sedbufarg="-u" # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
     fi
-    tail -qF -n 0 "${logs[@]}" | sed $sedbufarg -E 's/^\[[^]]+\] WARNING: \[pool [^]]+\] child [0-9]+ said into std(err|out): "(.*)"$/\2/' 1>&2 &
+    tail -qF -n 0 "${logs[@]}" | sed $sedbufarg -E -e 's/^\[[^]]+\] WARNING: \[pool [^]]+\] child [0-9]+ said into std(err|out): "(.*)("|...)$/\2\3/' -e 's/"$//' 1>&2 & # messages that are too long are cut off using "..." by FPM instead of closing double quotation marks; we want to preserve those three dots but not the closing double quotes
     wait
 ) & pids+=($!)
 
