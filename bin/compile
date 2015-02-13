@@ -386,3 +386,7 @@ if [[ ! -f "Procfile" ]]; then
     echo "web: $bindir/heroku-$engine-apache2" > Procfile
     notice_inline "No Procfile, using 'web: $bindir/heroku-$engine-apache2'."
 fi
+
+# Install pear mail and smtp for use with email addons
+/app/.heroku/php/bin/pear install mail
+/app/.heroku/php/bin/pear install Net_SMTP
