@@ -15,7 +15,7 @@ dep_dirname=php-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_version == *RC* ]]; then
     if [[ $dep_version == 5.5.* ]]; then
-        dep_url=http://server.famillecollet.com/php/${dep_archive_name}
+        dep_url=http://downloads.php.net/~jpauli/${dep_archive_name}
     elif [[ $dep_version == 5.6.* ]]; then
         dep_url=http://downloads.php.net/~tyrael/${dep_archive_name}
     fi

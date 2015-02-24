@@ -61,8 +61,11 @@ Options:
                           '<Directory>' section (see option -C above).
                           [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/heroku.conf]
   -h, --help              Display this help screen and exit.
-  -i <php.ini>            The path to the php.ini file to use.
-                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini]
+  -I <php.extra.ini>      The path to an extra php.ini to use in addition to the
+                          default HHVM php.ini (see option -i below).
+  -i <php.ini>            The path to the php.ini file to use. It is highly
+                          recommended to use the -I option (see above) instead.
+                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php]
   -l <tailme.log>         Path to additional log file to tail to STDERR so its
                           contents appear in 'heroku logs'. If the file does not
                           exist, it will be created. Wildcards are allowed, but
@@ -92,10 +95,10 @@ export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 # set a default port if none is given
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
 
-# our standard logs
-logs=( "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log" )
+# init logs array here as empty before parsing options; -l could append to it, but the default list gets added later since we use $PORT in there and that can be set using -p
+declare -a logs
 
-optstring=":-:C:c:i:l:p:vh"
+optstring=":-:C:c:I:i:l:p:vh"
 
 # process flags first
 while getopts "$optstring" opt; do
@@ -133,6 +136,9 @@ while getopts "$optstring" opt; do
             ;;
         c)
             httpd_config=$(check_exists "$OPTARG" "c")
+            ;;
+        I)
+            hhvm_config_extra=$(check_exists "$OPTARG" "I")
             ;;
         i)
             php_config=$(check_exists "$OPTARG" "i")
@@ -175,6 +181,9 @@ make sure to list them before any document root argument you're providing."
     exit 2
 fi
 
+# our standard logs
+logs+=( "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log" )
+
 hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { echo "This program requires HHVM 3.0.1 or newer" >&2; exit 1; }
 { { httpd -v | hhvm --php -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.10", "<"));'; } && { httpd -t -D DUMP_MODULES | grep 'proxy_fcgi_module' > /dev/null; }; } || { echo "This program requires Apache 2.4.10 or newer with mod_proxy and mod_proxy_fcgi enabled; check your 'httpd' command." >&2; exit 1; }
 
@@ -192,8 +201,6 @@ composer() {
 COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 
-[[ -z ${DYNO:-} || $verbose ]] && echo "Booting on port $PORT..." >&2
-
 if [[ "$#" == "1" ]]; then
     DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
     if [[ ! -d "$DOCUMENT_ROOT" ]]; then
@@ -210,10 +217,18 @@ if [[ "$#" == "1" ]]; then
     fi
 fi
 
-if [[ -n ${php_config:-} || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini"} && $verbose ) ]]; then
+function prepare_hhvm_ini() { # we have to do this twice, as the WEB_CONCURRENCY setting is evaluated using PHP code, not ${...} syntax which HHVM does not support; if a value for $1 is passed then it won't echo messages upon second invocation
+if [[ ( -n ${php_config:-} && ! ${1:-} ) || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php"} && $verbose && ! ${1:-} ) ]]; then
     echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 fi
-php_config=$(php_passthrough "$php_config")
+php_configs=( "-c" "$(php_passthrough "$php_config")" )
+
+if [[ -n ${hhvm_config_extra:-} ]]; then
+    [[ ${1:-} ]] || echo "Using additional HHVM configuration (php.ini) file '${hhvm_config_extra#$HEROKU_APP_DIR/}'" >&2
+    php_configs+=( "-c" "$(php_passthrough "$hhvm_config_extra")" )
+fi
+}
+prepare_hhvm_ini
 
 if [[ -n ${httpd_config_include:-} || ( ${httpd_config_include:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/default_include.conf"} && $verbose ) ]]; then
     echo "Using Apache2 VirtualHost-level configuration include '${httpd_config_include#$HEROKU_APP_DIR/}'" >&2
@@ -226,38 +241,109 @@ if [[ -n ${httpd_config:-} || ( ${httpd_config:="$HEROKU_APP_DIR/$COMPOSER_VENDO
 fi
 httpd_config=$(php_passthrough "$httpd_config")
 
+if [[ -z ${WEB_CONCURRENCY:-} ]]; then
+    maxprocs=$(ulimit -u)
+    ram="512M"
+    if [[ -n ${DYNO:-} && "$maxprocs" == "32768" ]]; then
+        echo "Optimizing defaults for PX dyno...." >&2
+        ram="6G"
+    elif [[ -n ${DYNO:-} && "$maxprocs" == "512" ]]; then
+        echo "Optimizing defaults for 2X dyno..." >&2
+        ram="1G"
+    elif [[ -n ${DYNO:-} && "$maxprocs" == "256" ]]; then
+        echo "Optimzing defaults for 1X dyno..." >&2
+    elif [[ -n ${DYNO:-} || $verbose ]]; then
+        echo "No dyno detected; using defaults for 1X..." >&2
+    fi
+
+    # determine number of HHVM threads to run
+    read WEB_CONCURRENCY php_memory_limit <<<$(hhvm "${php_configs[@]}" $(composer config vendor-dir 2> /dev/null | tail -n 1)/heroku/heroku-buildpack-php/bin/util/autotune.php "$ram") # tail, as composer echos outdated version warnings to STDOUT
+    [[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
+    export WEB_CONCURRENCY
+    
+    echo "${WEB_CONCURRENCY} threads at ${php_memory_limit}B memory limit." >&2
+else
+    echo "Using WEB_CONCURRENCY=${WEB_CONCURRENCY} threads." >&2
+fi
+
+# we changed WEB_CONCURRENCY; now we need to re-evaluate the configs as HHVM doesn't support ${...} syntax, so the configs contain PHP getenv() calls and are templated; we pass an argument to it to avoid it echoing "using HHVM config ..." messages again because that already happened
+prepare_hhvm_ini no_messages
+
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
 # this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).
 wait_pipe=$(mktemp -t "heroku.waitpipe-$PORT.XXXXXX" -u)
-rm -rf $wait_pipe
+rm -f $wait_pipe
 mkfifo $wait_pipe
+exec 3<> $wait_pipe
 
-# trap SIGINT/SIGQUIT (ctrl+c or ctrl+\ on the console), SIGTERM, and EXIT (upon failure of any command due to set -e, or because of the exit 1 at the very end), kill subshell child processes, then subshells
-# 1) restore EXIT trap immediately, or the exit at the end of the line will trigger this trap again
-# 2) kill childrens' child processes (the stuff running inside the sub-shells) using xargs because this is easier (-P expects a comma separated list); the || true prevents premature exit (set -e) if one of those doesn't have children anymore (it's likely that's why we're hitting this bit of code in the first place), and redirect all to /dev/null as usage help when no args given (because jobs -p was empty) is sometimes (Linux) printed to STDOUT
-# 3) kill child processes (that's the sub-shells); it's likely that some of them have already disappeared, so xarg || true it too and suppress "no such process" complaints by sending them to /dev/null
-# FIXME: this doesn't currently fire when the subshells themselves are terminated
-# TODO: for extra brownie points, move to a function and curry for each given signal, passing the signal in as an arg, so we can use different exit codes or messages
-trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; jobs -p | xargs -n1 pkill -TERM -P &> /dev/null || true; jobs -p | xargs -n1 kill -TERM 2> /dev/null || true; exit' SIGINT SIGQUIT SIGTERM EXIT
+pids=()
 
-# launch processes. all run using || true to prevent premature exit of the subshell (from set -e) regardless of exit status
-# after a subprocess terminates (because it was killed or because it crashed or because it quit voluntarily), we write the name to FD 3 (because programs could output something on FD 1 (STDOUT) or FD 2 (STDERR)) and send that to the shared pipe (mkfifo) above, and a read command further down waits for something to come in on the shared pipe
+# trap SIGQUIT (ctrl+\ on the console), SIGTERM (when we get killed) and EXIT (upon failure of any command due to set -e, or because of the exit 1 at the very end), we then
+# 1) restore the trap so it doesn't fire again a loop due to the exit at the end (if we're handling SIGQUIT or SIGTERM) or another signal
+# 2) remove our FIFO from above
+# 3) kill all the subshells we've spawned - they in turn have their own traps to kill their respective subprocesses
+# 3a) send STDERR to /dev/null so we don't see "no such process" errors - after all, one of the subshells may be gone
+# 3b) || true so that set -e doesn't cause a mess if the kill returns 1 on "no such process" cases (which is likely)
+# 4) exit in case we're handling SIGQUIT or SIGTERM
+trap 'trap - QUIT TERM EXIT; echo "Going down, terminating child processes..." >&2; rm -f ${wait_pipe} || true; kill -TERM "${pids[@]}" 2> /dev/null || true; exit' QUIT TERM EXIT
+# if FD 1 is a TTY (that's the -t 1 check), trap SIGINT/Ctrl+C
+# 1) restore the INT trap so it doesn't fire in a loop due to 2)
+# 2) be nice to the caller and send SIGINT to ourselves (http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT)
+# 3) *do* exit after all to run the cleanup code from above (avoids duplication)
+if [[ -t 1 ]]; then
+    trap 'trap - INT; kill -INT $$; exit' INT;
+# if FD 1 is not a TTY (e.g. when we're run through 'foreman start'), do nothing on SIGINT; the assumption is that the parent will send us a SIGTERM or something when this happens. With the trap above, Ctrl+C-ing out of a 'foreman start' run would trigger the INT trap both in Foreman and here (because Ctrl+C sends SIGINT to the entire process group, but there is no way to tell the two cases apart), and while the trap is still doing its shutdown work triggered by the SIGTERM from the Ctrl+C, Foreman would then send a SIGTERM because that's what it does when it receives a SIGINT itself.
+else
+    trap '' INT;
+fi
 
-# redirect logs to STDERR; write "tail ..." to the shared pipe if it exits
+# we are now launching a subshell for each of the tasks (log tail, app server, web server)
+# 1) each subshell has a trap on EXIT that echos the command name to FD 3 (see the FIFO set up above)
+# 1a) a 'read' at the end of the script will block on reading from that FD and then trigger the exit trap above, which does the cleanup
+# 2) each subshell also has a trap on TERM that
+# 2a) kills $! (the last process executed)
+# 2b) ... which in turn will unblock the 'wait' in 4)
+# 3) execute the command in the background
+# 4) 'wait' on the command (wait is interrupted by an incoming TERM to the subshell, whereas running 3) in the foreground would wait for that 3) to finish before triggering the trap)
+# 5) add the PID of the subshell to the array that the EXIT trap further above uses to clean everything up
+
 [[ $verbose ]] && echo "Starting log redirection..." >&2
-( touch "${logs[@]}"; tail -qF -n 0 "${logs[@]}" 1>&2 || true; echo 'tail "${logs[@]}"' >&3; ) 3> $wait_pipe &
-# start HHVM; write "hhvm" to the shared pipe if it exits
-echo "Starting hhvm..." >&2
-( hhvm --mode server -vServer.Type=fastcgi -vServer.FileSocket=/tmp/heroku.fcgi.$PORT.sock -c "$php_config" || true; echo "hhvm" >&3; ) 3> $wait_pipe &
-# wait a few seconds for HHVM to finish initializing; otherwise an early request might break Apache with the FastCGI pipe not being ready
-# start apache; write "httpd" to the shared pipe if it exits
-echo "Starting httpd..." >&2
-( sleep 2; httpd -D NO_DETACH -c "Include $httpd_config" || true; echo "httpd" >&3; ) 3> $wait_pipe &
+(
+    trap 'echo "tail" >&3;' EXIT
+    trap 'kill -TERM $! 2> /dev/null' TERM
+    touch "${logs[@]}"
+    tail -qF -n 0 "${logs[@]}" 1>&2 &
+    wait
+) & pids+=($!)
 
-# wait for something to come from the shared pipe, which means that the given process was killed or has failed
-read exitproc < $wait_pipe
+echo "Starting hhvm..." >&2
+(
+    trap 'echo "hhvm" >&3;' EXIT
+    trap 'kill -TERM $! 2> /dev/null' TERM
+    hhvm --mode server "${php_configs[@]}" &
+    wait
+) & pids+=($!)
+
+# wait a few seconds for HHVM to finish initializing; otherwise an early request might break Apache with the FastCGI pipe not being ready
+sleep 2
+
+echo "Starting httpd..." >&2
+(
+    trap 'echo "httpd" >&3;' EXIT
+    trap 'kill -TERM $! 2> /dev/null' TERM
+    httpd -D NO_DETACH -c "Include $httpd_config" &
+    wait
+) & pids+=($!)
+
+# on Heroku, there is a "state changed from starting to up", but for local execution, we want a "ready" message
+[[ -z ${DYNO:-} || $verbose ]] && echo "Application ready for connections on port $PORT." >&2
+
+# wait for something to come from the FIFO attached to FD 3, which means that the given process was killed or has failed
+# this will be interrupted by a SIGTERM or SIGINT in the traps further up
+# if the pipe unblocks and this executes, then we won't read it again, so if the traps further up kill the remaining subshells above, their writing to FD 3 will have no effect
+read exitproc <&3
 # we'll only reach this if one of the processes above has terminated
 echo "Process exited unexpectedly: $exitproc" >&2
 
-# this will trigger the trap and kill all remaining children
+# this will trigger the EXIT trap further up and kill all remaining children
 exit 1
