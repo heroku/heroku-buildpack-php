@@ -314,14 +314,14 @@ fi
 unset COMPOSER_GITHUB_OAUTH_TOKEN
 
 # install dependencies
-composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction | indent
+composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction 2>&1 | indent
 
 composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your composer.json requires 'heroku/heroku-buildpack-php'.
 This package may only be used as a dependency in 'require-dev'!"
 
 if cat composer.json | python -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
     status "Running 'composer compile'..."
-    composer run-script --no-dev --no-interaction compile | indent
+    composer run-script --no-dev --no-interaction compile 2>&1 | indent
 fi
 
 status "Preparing runtime environment..."
