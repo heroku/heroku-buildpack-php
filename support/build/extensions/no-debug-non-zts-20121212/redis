@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: php-5.5.11
+# Build Deps: php-5.5.22
 
 OUT_PREFIX=$1
 
@@ -9,7 +9,7 @@ set -o pipefail
 # fail harder
 set -eux
 
-DEFAULT_VERSION="2.2.5"
+DEFAULT_VERSION="2.2.7"
 dep_version=${VERSION:-$DEFAULT_VERSION}
 dep_dirname=redis-${dep_version}
 dep_archive_name=${dep_dirname}.tgz
