@@ -218,8 +218,6 @@ composer() {
 COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 
-[[ -z ${DYNO:-} || $verbose ]] && echo "Booting on port $PORT..." >&2
-
 if [[ "$#" == "1" ]]; then
     DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
     if [[ ! -d "$DOCUMENT_ROOT" ]]; then
@@ -263,6 +261,31 @@ if [[ -n ${nginx_config:-} || ( ${nginx_config:="$HEROKU_APP_DIR/$COMPOSER_VENDO
 fi
 nginx_config=$(php_passthrough "$nginx_config")
 
+if [[ -z ${WEB_CONCURRENCY:-} ]]; then
+    maxprocs=$(ulimit -u)
+    ram="512M"
+    if [[ -n ${DYNO:-} && "$maxprocs" == "32768" ]]; then
+        echo "Optimizing defaults for PX dyno...." >&2
+        ram="6G"
+    elif [[ -n ${DYNO:-} && "$maxprocs" == "512" ]]; then
+        echo "Optimizing defaults for 2X dyno..." >&2
+        ram="1G"
+    elif [[ -n ${DYNO:-} && "$maxprocs" == "256" ]]; then
+        echo "Optimzing defaults for 1X dyno..." >&2
+    elif [[ -n ${DYNO:-} || $verbose ]]; then
+        echo "No dyno detected; using defaults for 1X..." >&2
+    fi
+
+    # determine number of FPM processes to run
+    read WEB_CONCURRENCY php_memory_limit <<<$(php -c "$php_config" $(composer config vendor-dir 2> /dev/null | tail -n 1)/heroku/heroku-buildpack-php/bin/util/autotune.php -y "$fpm_config" -t "$DOCUMENT_ROOT" "$ram") # tail, as composer echos outdated version warnings to STDOUT
+    [[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
+    export WEB_CONCURRENCY
+    
+    echo "${WEB_CONCURRENCY} processes at ${php_memory_limit}B memory limit." >&2
+else
+    echo "Using WEB_CONCURRENCY=${WEB_CONCURRENCY} processes." >&2
+fi
+
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
 # this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).
 wait_pipe=$(mktemp -t "heroku.waitpipe-$PORT.XXXXXX" -u)
@@ -273,18 +296,23 @@ exec 3<> $wait_pipe
 pids=()
 
 # trap SIGQUIT (ctrl+\ on the console), SIGTERM (when we get killed) and EXIT (upon failure of any command due to set -e, or because of the exit 1 at the very end), we then
-# 1) restore the EXIT trap so it doesn't fire again a loop due to the exit at the end (if we're handling SIGQUIT or SIGTERM)
+# 1) restore the trap so it doesn't fire again a loop due to the exit at the end (if we're handling SIGQUIT or SIGTERM) or another signal
 # 2) remove our FIFO from above
 # 3) kill all the subshells we've spawned - they in turn have their own traps to kill their respective subprocesses
 # 3a) send STDERR to /dev/null so we don't see "no such process" errors - after all, one of the subshells may be gone
 # 3b) || true so that set -e doesn't cause a mess if the kill returns 1 on "no such process" cases (which is likely)
 # 4) exit in case we're handling SIGQUIT or SIGTERM
-trap 'trap - EXIT; echo "Going down, terminating child processes..." >&2; rm -f ${wait_pipe} || true; kill -TERM "${pids[@]}" 2> /dev/null || true; exit' QUIT TERM EXIT
-# trap SIGINT (ctrl+c on the console)
+trap 'trap - QUIT TERM EXIT; echo "Going down, terminating child processes..." >&2; rm -f ${wait_pipe} || true; kill -TERM "${pids[@]}" 2> /dev/null || true; exit' QUIT TERM EXIT
+# if FD 1 is a TTY (that's the -t 1 check), trap SIGINT/Ctrl+C
 # 1) restore the INT trap so it doesn't fire in a loop due to 2)
 # 2) be nice to the caller and send SIGINT to ourselves (http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT)
 # 3) *do* exit after all to run the cleanup code from above (avoids duplication)
-trap 'trap - INT; kill -INT $$; exit' INT
+if [[ -t 1 ]]; then
+    trap 'trap - INT; kill -INT $$; exit' INT;
+# if FD 1 is not a TTY (e.g. when we're run through 'foreman start'), do nothing on SIGINT; the assumption is that the parent will send us a SIGTERM or something when this happens. With the trap above, Ctrl+C-ing out of a 'foreman start' run would trigger the INT trap both in Foreman and here (because Ctrl+C sends SIGINT to the entire process group, but there is no way to tell the two cases apart), and while the trap is still doing its shutdown work triggered by the SIGTERM from the Ctrl+C, Foreman would then send a SIGTERM because that's what it does when it receives a SIGINT itself.
+else
+    trap '' INT;
+fi
 
 # we are now launching a subshell for each of the tasks (log tail, app server, web server)
 # 1) each subshell has a trap on EXIT that echos the command name to FD 3 (see the FIFO set up above)
@@ -315,14 +343,14 @@ trap 'trap - INT; kill -INT $$; exit' INT
     else
         sedbufarg="-u" # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
     fi
-    tail -qF -n 0 "${logs[@]}" | sed $sedbufarg -E 's/^\[[^]]+\] WARNING: \[pool [^]]+\] child [0-9]+ said into std(err|out): "(.*)"$/\2/' 1>&2 &
+    tail -qF -n 0 "${logs[@]}" | sed $sedbufarg -E -e 's/^\[[^]]+\] WARNING: \[pool [^]]+\] child [0-9]+ said into std(err|out): "(.*)("|...)$/\2\3/' -e 's/"$//' 1>&2 & # messages that are too long are cut off using "..." by FPM instead of closing double quotation marks; we want to preserve those three dots but not the closing double quotes
     wait
 ) & pids+=($!)
 
 echo "Starting php-fpm..." >&2
 (
     trap 'echo "php-fpm" >&3;' EXIT
-    trap 'kill -TERM $!' TERM
+    trap 'kill -TERM $! 2> /dev/null' TERM
     php-fpm --nodaemonize -y "$fpm_config" -c "$php_config" &
     wait
 ) & pids+=($!)
@@ -333,10 +361,13 @@ sleep 2
 echo "Starting nginx..." >&2
 (
     trap 'echo "nginx" >&3;' EXIT
-    trap 'kill -TERM $!' TERM
+    trap 'kill -TERM $! 2> /dev/null' TERM
     nginx -g "daemon off; include $nginx_config;" &
     wait
 ) & pids+=($!)
+
+# on Heroku, there is a "state changed from starting to up", but for local execution, we want a "ready" message
+[[ -z ${DYNO:-} || $verbose ]] && echo "Application ready for connections on port $PORT." >&2
 
 # wait for something to come from the FIFO attached to FD 3, which means that the given process was killed or has failed
 # this will be interrupted by a SIGTERM or SIGINT in the traps further up
