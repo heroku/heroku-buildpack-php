@@ -48,6 +48,9 @@ source $BP_DIR/bin/util/common.sh
 source $BP_DIR/bin/util/newrelic.sh
 source $BP_DIR/bin/util/blackfire.sh
 
+# if this is set it prevents Git clones (e.g. for Composer installs from source) during the build in some circumstances, and it is set in SSH Git deploys to Heroku
+unset GIT_DIR
+
 export_env_dir "$ENV_DIR" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|S3_URL|RTVS_URL|REQUEST_ID)$'
 
 BUILDPACK_URL=${BUILDPACK_URL:-} # Anvil has none
