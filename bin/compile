@@ -312,8 +312,8 @@ fi
 # no need for the token to stay around in the env
 unset COMPOSER_GITHUB_OAUTH_TOKEN
 
-# install dependencies
-composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction 2>&1 | indent
+# install dependencies unless composer.json is completely empty (in which case it'd talk to packagist.org which may be slow and is unnecessary)
+cat composer.json | python -c 'import sys,json; sys.exit(not json.load(sys.stdin));' && composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction 2>&1 | indent
 
 composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your composer.json requires 'heroku/heroku-buildpack-php'.
 This package may only be used as a dependency in 'require-dev'!"
