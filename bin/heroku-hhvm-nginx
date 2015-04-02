@@ -251,7 +251,7 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
         echo "Optimizing defaults for 2X dyno..." >&2
         ram="1G"
     elif [[ -n ${DYNO:-} && "$maxprocs" == "256" ]]; then
-        echo "Optimzing defaults for 1X dyno..." >&2
+        echo "Optimizing defaults for 1X dyno..." >&2
     elif [[ -n ${DYNO:-} || $verbose ]]; then
         echo "No dyno detected; using defaults for 1X..." >&2
     fi
