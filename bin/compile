@@ -170,7 +170,8 @@ fi
 status "Installing system packages..."
 
 # we need to run things in here, set it up!
-ln -s $BUILD_DIR/.heroku /app/.heroku
+mkdir -p /app/.heroku
+ln -s $BUILD_DIR/.heroku/php /app/.heroku/php
 export PATH=/app/.heroku/php/bin:$PATH
 
 if [[ "${PHP_VERSION}" ]]; then
