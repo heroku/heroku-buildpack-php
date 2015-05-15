@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: php-5.6.7, libraries/zeromq
+# Build Deps: extensions/no-debug-non-zts-20131226/zmq-bare, libraries/zeromq
 
-source $(dirname $0)/../no-debug-non-zts-20121212/$(basename $0)
+# That's it - we're combining the dep build and the extension build here
+
+echo "-----> Merging dependencies..."
+echo "-----> Done."
