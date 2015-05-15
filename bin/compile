@@ -6,17 +6,25 @@ install_ext () {
     local ext=$1
     local reason=${2:-}
     local ext_ini="$BP_DIR/conf/php/conf.d/ext-$ext.ini"
+    local cust_ini="$BP_DIR/conf/php/conf.d/cust-ext-$ext.ini"
     local ext_so=
     local ext_dir=$(basename $(php-config --extension-dir))
-    if [[ -f "$ext_ini" ]]; then
+    local ext_url=
+    if [[ -f "$ext_ini" || -f "$cust_ini" ]]; then
+	if [[ -f "$cust_ini" ]]; then
+	    ext_ini=$cust_ini
+	    ext_url="https://s3.amazonaws.com/${S3_BUCKET}${S3_PREFIX}"
+	else
+	    ext_url="${S3_URL}"
+	fi
         ext_so=$(php -r '$ini=parse_ini_file("'$ext_ini'"); echo $ext=$ini["zend_extension"]?:$ini["extension"]; exit((int)empty($ext));') # read .so name from .ini because e.g. opcache.so is named "zend-opcache"
         if [[ ! -f "$PHP_EXT_DIR/$ext_so" ]]; then
-            curl --silent --location "${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
+            curl --silent --location "${ext_url}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
             echo "- ${ext} (${reason}; downloaded)" | indent
         else
             echo "- ${ext} (${reason}; bundled)" | indent
         fi
-        cp "${ext_ini}" "${BUILD_DIR}/.heroku/php/etc/php/conf.d"
+        cp "${ext_ini}" "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
     elif [[ -f "${PHP_EXT_DIR}/${ext}.so" ]]; then
         echo "extension = ${ext}.so" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
         echo "- ${ext} (${reason}; bundled)" | indent
