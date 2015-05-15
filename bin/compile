@@ -13,7 +13,7 @@ install_ext () {
     if [[ -f "$ext_ini" || -f "$cust_ini" ]]; then
 	if [[ -f "$cust_ini" ]]; then
 	    ext_ini=$cust_ini
-	    ext_url="https://s3.amazonaws.com/${S3_BUCKET}${S3_PREFIX}"
+	    ext_url="https://s3.amazonaws.com/${S3_BUCKET}${S3_PREFIX:-/}"
 	else
 	    ext_url="${S3_URL}"
 	fi
