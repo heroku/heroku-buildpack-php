@@ -385,3 +385,9 @@ if [[ ! -f "Procfile" ]]; then
     echo "web: $bindir/heroku-$engine-apache2" > Procfile
     notice_inline "No Procfile, using 'web: $bindir/heroku-$engine-apache2'."
 fi
+
+if [ -f $BUILD_DIR/bin/post_compile ]; then
+    echo "-----> Running post-compile hook"
+    chmod +x $BUILD_DIR/bin/post_compile
+    sub-env $BUILD_DIR/bin/post_compile
+fi
