@@ -6,6 +6,7 @@
 
 - PHP/5.5.26 [David Zuelke]
 - PHP/5.6.10 [David Zuelke]
+- ext-newrelic/4.22.0.99 [David Zuelke]
 
 ## v68 (2015-05-18)
 
