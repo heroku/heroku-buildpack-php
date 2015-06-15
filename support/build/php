@@ -18,6 +18,8 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
         dep_url=http://downloads.php.net/~jpauli/${dep_archive_name}
     elif [[ $dep_version == 5.6.* ]]; then
         dep_url=http://downloads.php.net/~tyrael/${dep_archive_name}
+    elif [[ $dep_version == 7.0.* ]]; then
+        dep_url=https://downloads.php.net/~ab/${dep_archive_name}
     fi
 else
     dep_url=http://us1.php.net/get/${dep_archive_name}/from/this/mirror
@@ -32,6 +34,13 @@ pushd ${dep_dirname}
 if echo -n $dep_version | python -c "import sys, pkg_resources; ver=pkg_resources.parse_version(sys.stdin.read()); sys.exit(ver >= pkg_resources.parse_version('5.6.0RC2') || ver >= pkg_resources.parse_version('5.5.17RC1'));"; then
     echo "-----> Applying https://github.com/php/php-src/pull/694..."
     curl -L https://github.com/php/php-src/pull/694.diff | patch -p1
+fi
+
+configureopts=
+if [[ $dep_version == 7.* ]]; then
+    configureopts="\
+--enable-opcache-file\
+"
 fi
 
 export PATH=${OUT_PREFIX}/bin:$PATH
@@ -74,7 +83,8 @@ LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
     --with-sqlite3=shared \
     --with-pdo-sqlite=shared \
     --with-xmlrpc=shared \
-    --with-xsl=shared
+    --with-xsl=shared \
+    $configureopts
 make -s -j 9
 make install -s
 popd
