@@ -14,7 +14,7 @@ install_blackfire_ext() {
 install_blackfire_agent() {
     # blackfire defaults
     cat > $BUILD_DIR/.profile.d/blackfire.sh <<"EOF"
-if [[ -n "$BLACKFIRE_SERVER_TOKEN" && -n "$BLACKFIRE_SERVER_TOKEN" ]]; then
+if [[ -n "$BLACKFIRE_SERVER_TOKEN" && -n "$BLACKFIRE_SERVER_ID" ]]; then
     touch /app/.heroku/php/var/blackfire/run/agent.sock
     /app/.heroku/php/bin/blackfire-agent -config=/app/.heroku/php/etc/blackfire/agent.ini -socket="unix:///app/.heroku/php/var/blackfire/run/agent.sock" &
 fi
