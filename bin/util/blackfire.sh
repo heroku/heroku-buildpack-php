@@ -15,8 +15,12 @@ install_blackfire_agent() {
     # blackfire defaults
     cat > $BUILD_DIR/.profile.d/blackfire.sh <<"EOF"
 if [[ -n "$BLACKFIRE_SERVER_TOKEN" && -n "$BLACKFIRE_SERVER_ID" ]]; then
-    touch /app/.heroku/php/var/blackfire/run/agent.sock
-    /app/.heroku/php/bin/blackfire-agent -config=/app/.heroku/php/etc/blackfire/agent.ini -socket="unix:///app/.heroku/php/var/blackfire/run/agent.sock" &
+    if [[ -f "/app/.heroku/php/bin/blackfire-agent" ]]; then
+        touch /app/.heroku/php/var/blackfire/run/agent.sock
+        /app/.heroku/php/bin/blackfire-agent -config=/app/.heroku/php/etc/blackfire/agent.ini -socket="unix:///app/.heroku/php/var/blackfire/run/agent.sock" &
+    else
+        echo >&2 "WARNING: Add-on 'blackfire' detected, but PHP extension not yet installed. Push an update to the application to finish installation of the add-on; an empty change ('git commit --allow-empty') is sufficient."
+    fi
 fi
 EOF
 }
