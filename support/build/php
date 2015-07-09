@@ -45,6 +45,7 @@ if [[ $dep_version == 7.* ]]; then
 else
     configureopts="\
 --with-mcrypt=${OUT_PREFIX} \
+--with-mysql=shared \
 "
 fi
 
@@ -80,7 +81,6 @@ LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
     --with-gettext=shared,${OUT_PREFIX} \
     --enable-intl=shared \
     --enable-mbstring=shared \
-    --with-mysql=shared \
     --enable-pcntl=shared \
     --enable-shmop=shared \
     --enable-soap=shared \
