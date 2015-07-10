@@ -1,5 +1,20 @@
 # heroku-buildpack-php CHANGELOG
 
+## v70 (2016-07-10)
+
+### ADD
+
+- PHP/7.0.0beta1 [David Zuelke]
+- PHP/5.6.11 [David Zuelke]
+- PHP/5.5.27 [David Zuelke]
+- ext-newrelic/4.23.0.102 [David Zuelke]
+- ext-mongo/1.6.10 [David Zuelke]
+- Support auto-tuning for IX dyno type [David Zuelke]
+
+### CHG
+
+- Warn about missing extensions for "blackfire" and "newrelic" add-ons during startup [David Zuelke]
+
 ## v69 (2015-06-12)
 
 ### ADD
