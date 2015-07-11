@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v71 (2016-07-??)
+
+### ADD
+
+- ext-newrelic/4.23.1.107 [David Zuelke]
+
 ## v70 (2016-07-10)
 
 ### ADD
