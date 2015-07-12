@@ -6,6 +6,10 @@
 
 - ext-newrelic/4.23.1.107 [David Zuelke]
 
+### FIX
+
+- Apache `mod_proxy_fgci`'s "disablereuse=off" config flag causes intermittent blank pages with HTTPD 2.4.11+
+
 ## v70 (2016-07-10)
 
 ### ADD
