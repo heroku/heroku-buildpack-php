@@ -93,7 +93,7 @@ mkdir -p $COMPOSER_HOME
 PHP_VERSION=
 HHVM_VERSION=
 if [[ "$STACK" == "cedar" ]]; then
-    runtimes=$(cd $BP_DIR/support/build; ls {php-*,hhvm-3.2.0}) # cedar only has HHVM 3.2
+    runtimes=$(cd $BP_DIR/support/build; ls {php-5*,hhvm-3.2.0}) # cedar only has HHVM 3.2 and no PHP 7
 else
     runtimes=$(cd $BP_DIR/support/build; ls {php,hhvm}-*)
 fi
