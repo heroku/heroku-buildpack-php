@@ -1,6 +1,6 @@
 # heroku-buildpack-php CHANGELOG
 
-## v71 (2016-07-14)
+## v71 (2015-07-14)
 
 ### ADD
 
@@ -11,7 +11,7 @@
 - Apache `mod_proxy_fgci`'s "disablereuse=off" config flag causes intermittent blank pages with HTTPD 2.4.11+
 - Applications on cedar-10 can select non-existing PHP 7.0.0beta1 package via composer.json
 
-## v70 (2016-07-10)
+## v70 (2015-07-10)
 
 ### ADD
 
