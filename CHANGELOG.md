@@ -8,8 +8,8 @@
 
 ### FIX
 
-- Apache `mod_proxy_fgci`'s "disablereuse=off" config flag causes intermittent blank pages with HTTPD 2.4.11+
-- Applications on cedar-10 can select non-existing PHP 7.0.0beta1 package via composer.json
+- Apache `mod_proxy_fgci`'s "disablereuse=off" config flag causes intermittent blank pages with HTTPD 2.4.11+ [David Zuelke]
+- Applications on cedar-10 can select non-existing PHP 7.0.0beta1 package via composer.json [David Zuelke]
 
 ## v70 (2015-07-10)
 
