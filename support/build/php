@@ -59,6 +59,7 @@ LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
     --enable-fpm \
     --with-bz2 \
     --with-curl \
+    --with-gmp=${OUT_PREFIX} \
     --with-pdo-mysql \
     --with-mysqli \
     --with-openssl \
