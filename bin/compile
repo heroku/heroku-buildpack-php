@@ -13,6 +13,7 @@ install_ext () {
         ext_so=$(php -r '$ini=parse_ini_file("'$ext_ini'"); echo $ext=$ini["zend_extension"]?:$ini["extension"]; exit((int)empty($ext));') # read .so name from .ini because e.g. opcache.so is named "zend-opcache"
         if [[ ! -f "$PHP_EXT_DIR/$ext_so" ]]; then
             if [[ -f "$ext_build" ]]; then
+                echo "- Downloading extension from ${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | indent
                 curl --silent --location "${S3_URL}/extensions/${ext_dir}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
                 echo "- ${ext} (${reason}; downloaded)" | indent
                 cp "${ext_ini}" "${BUILD_DIR}/.heroku/php/etc/php/conf.d"
@@ -104,7 +105,7 @@ if [[ -f "composer.json" ]]; then
         cat composer.json | python -c 'import sys, json; print sys.exit(any(key.count("/") for key in json.load(sys.stdin).get("require", {})))' 2> /dev/null || error "Your composer.json has dependencies, but no composer.lock
 was found, check it into your repository alongside composer.json!"
     fi
-    
+
     solver_payload=$(echo -n "$runtimes" | python -c '
 import sys, json
 ret = {}
@@ -230,12 +231,12 @@ echo $NGINX_VERSION > $BUILD_DIR/.heroku/php/.versions/nginx/nginx
 # handle extensions for PHP
 if [[ "${PHP_VERSION}" ]]; then
     status "Installing PHP extensions..."
-    
+
     php() {
         # the newrelic extension logs to stderr which pollutes our build output on each invocation of PHP, the daemon it launches will prevent the build from finishing, and each call to PHP would be logged to NR as non-web traffic, so we disable it for the duration of this build
         `which php` -dnewrelic.enabled=0 -dnewrelic.loglevel=error -dnewrelic.daemon.dont_launch=3 -dnewrelic.daemon.loglevel=error "$@"
     }
-    
+
     exts=()
     if [[ -f "composer.lock" ]]; then
         exts=($(cat composer.lock | python -c 'import sys, json, itertools; l=json.load(sys.stdin); print "\n".join(list(set(itertools.chain([plat[4:].lower() for plat in l.get("platform", []) if plat.startswith("ext-")], *[ [ pkg[4:].lower() for pkg in p.get("require", []) if pkg.startswith("ext-") ] for p in l.get("packages", []) ]))))' 2> /dev/null || true)) # convert to array
@@ -247,7 +248,7 @@ if [[ "${PHP_VERSION}" ]]; then
     for ext in "${!exts[@]}"; do # loop over keys in case the array is empty or else it'll error out
         install_ext "${exts[$ext]}" $ext_source
     done
-    
+
     # special treatment for New Relic; we enable it if we detect a license key for it
     install_newrelic_ext
 
