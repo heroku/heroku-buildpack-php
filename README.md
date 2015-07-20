@@ -1,5 +1,7 @@
 # Heroku buildpack: PHP
 
+![buildpack_banner_php](https://cloud.githubusercontent.com/assets/51578/8779887/b85660f2-2ed3-11e5-9545-5694626ac85e.jpg)
+
 This is the official [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) for PHP applications.
 
 It uses Composer for dependency management, supports PHP or HHVM (experimental) as runtimes, and offers a choice of Apache2 or Nginx web servers.
