@@ -8,6 +8,7 @@
 - PHP/5.5.28 [David Zuelke]
 - ext-newrelic/4.23.4.113 [David Zuelke]
 - PHP/7.0.0RC1 [David Zuelke]
+- Support custom `composer.json`/`composer.lock` file names via `$COMPOSER` env var [David Zuelke]
 
 ### CHG
 
