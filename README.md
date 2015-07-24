@@ -1,6 +1,7 @@
 # Heroku buildpack: PHP
 
-![buildpack_banner_php](https://cloud.githubusercontent.com/assets/51578/8779887/b85660f2-2ed3-11e5-9545-5694626ac85e.jpg)
+![php](https://cloud.githubusercontent.com/assets/51578/8882982/73ea501a-3219-11e5-8f87-311e6b8a86fc.jpg)
+
 
 This is the official [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) for PHP applications.
 
