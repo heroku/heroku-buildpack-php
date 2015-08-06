@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/5.6.12 [David Zuelke]
+- ext-newrelic/4.23.4.113 [David Zuelke]
 
 ## v71 (2015-07-14)
 
