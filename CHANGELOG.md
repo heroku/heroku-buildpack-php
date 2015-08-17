@@ -8,6 +8,10 @@
 - PHP/5.5.28 [David Zuelke]
 - ext-newrelic/4.23.4.113 [David Zuelke]
 
+### CHG
+
+- A composer.lock is now required if there is any entry in the "require" section of composer.json [David Zuelke]
+
 ## v71 (2015-07-14)
 
 ### ADD

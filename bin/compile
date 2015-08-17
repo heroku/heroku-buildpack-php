@@ -101,17 +101,17 @@ engine="php"
 engine_r="php -r"
 if [[ -f "composer.json" ]]; then
     if [[ ! -f "composer.lock" ]]; then
-        cat composer.json | python -c 'import sys, json; print sys.exit(any(key.count("/") for key in json.load(sys.stdin).get("require", {})))' 2> /dev/null || error "Your composer.json has dependencies, but no composer.lock
-was found, check it into your repository alongside composer.json!"
+        cat composer.json | python -c 'import sys, json; print sys.exit(json.load(sys.stdin).get("require", {}))' 2> /dev/null || error "Your 'composer.json' lists dependencies inside 'require',
+but no 'composer.lock' was found. Please run 'composer update' to
+re-generate 'composer.lock' if necessary, and commit it into your
+repository. For more information, please refer to the docs at
+https://devcenter.heroku.com/articles/php-support#activation"
     fi
     
     solver_payload=$(echo -n "$runtimes" | python -c '
 import sys, json
 ret = {}
 ret["packages"] = sys.stdin.read().splitlines()
-c_json = dict(json.load(open("composer.json"))) # wrap in dict() to prevent simple errors with {} vs []
-ret["json"] = {k: c_json.get(k, None) for k in ["minimum-stability", "prefer-stable"]}
-ret["json"]["platform"] = {k: dict(c_json.get("require", {})).get(k, None) for k in ["php", "hhvm"]} # wrap in dict() to prevent simple errors with {} vs []
 try:
     c_lock = json.load(open("composer.lock"))
     ret["lock"] = {k: c_lock.get(k, None) for k in ["minimum-stability", "prefer-stable", "stability-flags"]}
@@ -154,14 +154,6 @@ See https://devcenter.heroku.com/articles/php-support for info."
 will be removed soon. Please upgrade to cedar-14 to continue to
 use HHVM and get access to new releases. For more information,
 see https://devcenter.heroku.com/articles/cedar-14-migration"
-                fi
-                if [[ -f "composer.lock" ]] && python -c 'import sys, json; print sys.exit(any(key.count("hhvm") for key in json.load(open("composer.lock")).get("platform", {})))' 2> /dev/null; then
-                    warning_inline "Support for requiring HHVM in 'composer.json' but not in
-'composer.lock' is deprecated and will be removed soon. Please
-update 'composer.lock' to contain the requirement. If you do not
-have HHVM installed, you can re-generate the lock file using the
-'composer update --ignore-platform-reqs' command; the same switch
-may be used with 'composer install' under the same circumstances."
                 fi
             fi
         else
