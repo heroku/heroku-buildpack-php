@@ -101,7 +101,7 @@ engine="php"
 engine_r="php -r"
 if [[ -f "composer.json" ]]; then
     if [[ ! -f "composer.lock" ]]; then
-        cat composer.json | python -c 'import sys, json; print sys.exit(json.load(sys.stdin).get("require", {}))' 2> /dev/null || error "Your 'composer.json' lists dependencies inside 'require',
+        cat composer.json | python -c 'import sys, json; sys.exit(json.load(sys.stdin).get("require", {}))' 2> /dev/null || error "Your 'composer.json' lists dependencies inside 'require',
 but no 'composer.lock' was found. Please run 'composer update' to
 re-generate 'composer.lock' if necessary, and commit it into your
 repository. For more information, please refer to the docs at
