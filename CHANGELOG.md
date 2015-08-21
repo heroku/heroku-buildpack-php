@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v75 (2015-08-21)
+
+### FIX
+
+- Prevent potential (benign) Python notice during builds
+
 ## v74 (2015-08-21)
 
 ### FIX
