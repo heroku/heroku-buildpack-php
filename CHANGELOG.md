@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v73 (2015-08-21)
+
+### FIX
+
+- Warning about missing composer.lock is thrown incorrectly for some composer.json files
+
 ## v72 (2015-08-21)
 
 ### ADD

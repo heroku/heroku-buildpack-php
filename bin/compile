@@ -109,7 +109,7 @@ engine="php"
 engine_r="php -r"
 if [[ -f "$COMPOSER" ]]; then
     if [[ ! -f "$COMPOSER_LOCK" ]]; then
-        cat composer.json | python -c 'import sys, json; sys.exit(json.load(sys.stdin).get("require", {}))' 2> /dev/null || error "Your '$COMPOSER' lists dependencies inside 'require',
+        cat composer.json | python -c 'import sys, json; sys.exit(bool(json.load(sys.stdin).get("require", {})))' 2> /dev/null || error "Your '$COMPOSER' lists dependencies inside 'require',
 but no '$COMPOSER_LOCK' was found. Please run 'composer update' to
 re-generate '$COMPOSER_LOCK' if necessary, and commit it into your
 repository. For more information, please refer to the docs at
