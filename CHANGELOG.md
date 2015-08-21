@@ -1,6 +1,6 @@
 # heroku-buildpack-php CHANGELOG
 
-## v73 (2015-08-21)
+## v74 (2015-08-21)
 
 ### FIX
 
