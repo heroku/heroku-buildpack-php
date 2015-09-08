@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v76 (2015-09-08)
+
+### ADD
+
+- ext-mongo/1.6.11 [David Zuelke]
+
 ## v75 (2015-08-21)
 
 ### FIX
