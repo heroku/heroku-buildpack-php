@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-mongo/1.6.11 [David Zuelke]
+- PHP/7.0.0RC2 [David Zuelke]
 
 ## v75 (2015-08-21)
 
