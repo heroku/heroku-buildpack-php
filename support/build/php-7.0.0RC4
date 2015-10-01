@@ -2,6 +2,6 @@
 # Build Path: /app/.heroku/php/
 # Build Deps: libraries/zlib, libraries/libmcrypt, libraries/icu, libraries/gettext
 
-VERSION=7.0.0RC3
+VERSION=7.0.0RC4
 
 source $(dirname $0)/php
