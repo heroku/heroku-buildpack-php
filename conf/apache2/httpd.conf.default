@@ -106,8 +106,8 @@ LoadModule filter_module libexec/mod_filter.so
 #LoadModule sed_module libexec/mod_sed.so
 #LoadModule charset_lite_module libexec/mod_charset_lite.so
 LoadModule deflate_module libexec/mod_deflate.so
-#LoadModule xml2enc_module libexec/mod_xml2enc.so
-#LoadModule proxy_html_module libexec/mod_proxy_html.so
+LoadModule xml2enc_module libexec/mod_xml2enc.so
+LoadModule proxy_html_module libexec/mod_proxy_html.so
 LoadModule mime_module libexec/mod_mime.so
 LoadModule log_config_module libexec/mod_log_config.so
 #LoadModule log_debug_module libexec/mod_log_debug.so
@@ -138,7 +138,7 @@ LoadModule proxy_fcgi_module libexec/mod_proxy_fcgi.so
 #LoadModule session_dbd_module libexec/mod_session_dbd.so
 #LoadModule slotmem_shm_module libexec/mod_slotmem_shm.so
 #LoadModule slotmem_plain_module libexec/mod_slotmem_plain.so
-#LoadModule ssl_module libexec/mod_ssl.so
+LoadModule ssl_module libexec/mod_ssl.so
 #LoadModule dialup_module libexec/mod_dialup.so
 LoadModule lbmethod_byrequests_module libexec/mod_lbmethod_byrequests.so
 LoadModule lbmethod_bytraffic_module libexec/mod_lbmethod_bytraffic.so
