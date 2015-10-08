@@ -17,7 +17,7 @@ You'll need to use at least an empty `composer.json` in your application.
 
 If you also have files from other frameworks or languages that could trigger another buildpack to detect your application as one of its own, e.g. a `package.json` which might cause your code to be detected as a Node.js application even if it is a PHP application, then you need to manually set your application to use this buildpack:
 
-    heroku buildpacks:set https://github.com/heroku/heroku-buildpack-php
+    heroku buildpack:set https://github.com/heroku/heroku-buildpack-php
 
 Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for further usage instructions.
 
