@@ -245,10 +245,10 @@ if [[ -n ${fpm_config:-} || ( ${fpm_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DI
 fi
 fpm_config=$(php_passthrough "$fpm_config")
 
-if [[ -n ${php_config:-} || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/php/php.ini"} && $verbose ) ]]; then
+if [[ -n ${php_config:-} ]]; then
     echo "Using PHP configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
+    php_config=$(php_passthrough "$php_config")
 fi
-php_config=$(php_passthrough "$php_config")
 
 if [[ -n ${nginx_config_include:-} || ( ${nginx_config_include:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf.php"} && $verbose ) ]]; then
     echo "Using Nginx server-level configuration include '${nginx_config_include#$HEROKU_APP_DIR/}'" >&2
@@ -280,7 +280,7 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
     fi
 
     # determine number of FPM processes to run
-    read WEB_CONCURRENCY php_memory_limit <<<$(php -c "$php_config" $(composer config vendor-dir 2> /dev/null | tail -n 1)/heroku/heroku-buildpack-php/bin/util/autotune.php -y "$fpm_config" -t "$DOCUMENT_ROOT" "$ram") # tail, as composer echos outdated version warnings to STDOUT
+    read WEB_CONCURRENCY php_memory_limit <<<$(php ${php_config:+-c "$php_config"} $(composer config vendor-dir 2> /dev/null | tail -n 1)/heroku/heroku-buildpack-php/bin/util/autotune.php -y "$fpm_config" -t "$DOCUMENT_ROOT" "$ram") # tail, as composer echos outdated version warnings to STDOUT
     [[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
     export WEB_CONCURRENCY
     
@@ -354,7 +354,7 @@ echo "Starting php-fpm..." >&2
 (
     trap 'echo "php-fpm" >&3;' EXIT
     trap 'kill -TERM $! 2> /dev/null' TERM
-    php-fpm --nodaemonize -y "$fpm_config" -c "$php_config" &
+    php-fpm --nodaemonize -y "$fpm_config" ${php_config:+-c "$php_config"} &
     wait
 ) & pids+=($!)
 

@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v80 (2015-10-15)
+
+### CHG
+
+- Use system default php.ini config instead of buildpacks' if no custom config given [David Zuelke]
+
 ## v79 (2015-10-08)
 
 ### CHG
