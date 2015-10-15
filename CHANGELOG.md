@@ -6,6 +6,7 @@
 
 - Nginx/1.8.0 [David Zuelke]
 - Apache/2.4.17 [David Zuelke]
+- PHP/7.0.0RC5 [David Zuelke]
 
 ### CHG
 
