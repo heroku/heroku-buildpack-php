@@ -18,7 +18,7 @@ echo "-----> Building Nginx ${dep_version}..."
 
 curl -L ${dep_url} | tar xz
 curl -L http://zlib.net/zlib-1.2.8.tar.gz | tar xz -C ${dep_dirname}
-curl -L http://sourceforge.net/projects/pcre/files/pcre/8.34/pcre-8.34.tar.gz | tar xz -C ${dep_dirname}
+curl -L http://sourceforge.net/projects/pcre/files/pcre/8.37/pcre-8.37.tar.gz | tar xz -C ${dep_dirname}
 
 pushd ${dep_dirname}
 ETC=${OUT_PREFIX}/etc
@@ -36,7 +36,7 @@ VAR=${OUT_PREFIX}/var
     --http-log-path=${VAR}/log/nginx/access.log \
     --error-log-path=${VAR}/log/nginx/error.log \
     --with-http_realip_module \
-    --with-pcre=pcre-8.34 \
+    --with-pcre=pcre-8.37 \
     --with-zlib=zlib-1.2.8
 make -s -j 9
 make install -s

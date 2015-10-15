@@ -2,6 +2,10 @@
 
 ## v80 (2015-10-15)
 
+### ADD
+
+- Nginx/1.8.0 [David Zuelke]
+
 ### CHG
 
 - Use system default php.ini config instead of buildpacks' if no custom config given [David Zuelke]
