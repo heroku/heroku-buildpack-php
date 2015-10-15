@@ -5,6 +5,7 @@
 ### ADD
 
 - Nginx/1.8.0 [David Zuelke]
+- Apache/2.4.17 [David Zuelke]
 
 ### CHG
 
