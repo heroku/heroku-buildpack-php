@@ -263,6 +263,13 @@ if [[ "${PHP_VERSION}" ]]; then
         exts=($(cat "$COMPOSER" | python -c 'from __future__ import print_function; import sys, json; { print(key[4:].lower()) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)) # convert to array
         ext_source="$COMPOSER"
     fi
+
+    # adds Heroku only ext-* requirements
+    HEROKU_COMPOSER_SUPPORT="heroku.json"
+    if [[ -f "$HEROKU_COMPOSER_SUPPORT" ]]; then
+        exts+=($(cat "$HEROKU_COMPOSER_SUPPORT" | python -c 'from __future__ import print_function; import sys, json; { print(key[4:].lower()) for key in json.load(sys.stdin).get("require", {}) if key.startswith("ext-")}' 2> /dev/null || true)) # convert to array
+    fi
+    
     for ext in "${!exts[@]}"; do # loop over keys in case the array is empty or else it'll error out
         install_ext "${exts[$ext]}" $ext_source
     done
