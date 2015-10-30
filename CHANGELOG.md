@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/7.0.0RC6 [David Zuelke]
+- PHP/5.6.15 [David Zuelke]
 
 ## v80 (2015-10-15)
 
