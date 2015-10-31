@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v82 (2015-10-31)
+
+### CHG
+
+- Downgrade Apache 2.4.17 to Apache 2.4.16 due to `REDIRECT_URL` regression [David Zuelke]
+
 ## v81 (2015-10-30)
 
 ### ADD
