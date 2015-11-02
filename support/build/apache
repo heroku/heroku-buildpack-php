@@ -14,7 +14,7 @@ dep_version=${VERSION:-$DEFAULT_VERSION}
 dep_dirname=httpd-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 depdeps_archive_name=${dep_dirname}-deps.tar.gz
-if echo -n $dep_version | python -c "import sys, pkg_resources; sys.exit(pkg_resources.parse_version(sys.stdin.read()) >= pkg_resources.parse_version('2.4.11'));"; then
+if echo -n $dep_version | python -c "import sys, pkg_resources; sys.exit(pkg_resources.parse_version(sys.stdin.read()) >= pkg_resources.parse_version('2.4.17'));"; then
     dep_url=http://archive.apache.org/dist/httpd/${dep_archive_name}
     depdeps_url=http://archive.apache.org/dist/httpd/${depdeps_archive_name}
 else

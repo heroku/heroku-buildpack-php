@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v83 (2015-11-??)
+
+### FIX
+
+- Wrong Apache dist URL in support/build [David Zuelke]
+
 ## v82 (2015-10-31)
 
 ### CHG
