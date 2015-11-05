@@ -376,7 +376,7 @@ relbin=$(python -c "import os.path; print os.path.relpath('$hbpdir', '$composer_
 relbins=$(cat $BP_DIR/composer.json | python -c 'from __future__ import print_function; import sys, json; { print(sys.argv[1]+"/"+bin) for bin in json.load(sys.stdin)["bin"] }' $relbin)
 # link to bins
 cd $BUILD_DIR/$composer_bindir
-ln -s $relbins .
+ln -fs $relbins .
 cd $BUILD_DIR
 
 # Update the PATH
