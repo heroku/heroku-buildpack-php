@@ -2,6 +2,10 @@
 
 ## v83 (2015-11-??)
 
+### CHG
+
+- Improve Composer vendor and bin dir detection in build sources [David Zuelke]
+
 ### FIX
 
 - Wrong Apache dist URL in support/build [David Zuelke]

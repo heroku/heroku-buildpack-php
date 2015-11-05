@@ -302,16 +302,26 @@ fi
 # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 composer --version 2> /dev/null | tail -n 1 | indent
 
+composer_vendordir=$(composer config vendor-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+composer_bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
+
 # throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
-if [[ -e "$(composer config vendor-dir 2> /dev/null | tail -n 1)" ]]; then # tail, as composer echos outdated version warnings to STDOUT
+if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer" ]]; then
+    # we should not do this check separately; there is no reliable way of telling whether or not it really is the real Composer bin dir or if it comes from somewhere else
+    composer_warn_bindir=""
+    if [[ ! "$composer_bindir/" == "$composer_vendordir"/* && -d "$composer_bindir" ]]; then
+        composer_warn_bindir="
+Your Composer bin dir is configured to reside outside of vendor
+dir, so please repeat the two steps above for '$composer_bindir/'."
+    fi
     warning "Your Composer vendor dir is part of your Git repository.
-That directory should not be under version control; only your
+This directory should not be under version control; only your
 '$COMPOSER' and '$COMPOSER_LOCK' files should be added, which
 will let Composer handle installation of dependencies on deploy.
 To suppress this notice, first remove the folder from your index
-by running 'git rm --cached $(composer config vendor-dir 2> /dev/null | tail -n 1)/'.
+by running 'git rm --cached $composer_vendordir/'.
 Next, edit your project's '.gitignore' file and add the folder
-'/$(composer config vendor-dir 2> /dev/null | tail -n 1)/' to the list.
+'/$composer_vendordir/' to the list.$composer_warn_bindir
 For more info, refer to the Composer FAQ: http://bit.ly/1rlCSZU"
 fi
 
@@ -354,8 +364,6 @@ status "Preparing runtime environment..."
 # it will contain the apache/nginx/php configs and the boot script
 # TODO: warn if require-dev has the package using a different branch
 shopt -u dotglob # we don't want .git, .gitignore et al
-composer_vendordir=$(composer config vendor-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
-composer_bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
 # figure out the package dir name to write to and copy to it
 hbpdir="$composer_vendordir/$(cat $BP_DIR/composer.json | python -c 'import sys, json; print json.load(sys.stdin)["name"]')"
 mkdir -p "$BUILD_DIR/$hbpdir"
