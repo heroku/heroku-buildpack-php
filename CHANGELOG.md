@@ -5,6 +5,7 @@
 ### CHG
 
 - Improve Composer vendor and bin dir detection in build sources [David Zuelke]
+- Deprecate concurrent installs of HHVM and PHP [David Zuelke]
 
 ### FIX
 

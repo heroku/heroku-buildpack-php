@@ -224,6 +224,14 @@ if [[ "${HHVM_VERSION}" ]]; then
     # so it'll start. remember to use the full path to the binary, or we'll get an infinite loop
     hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/x86_64-linux-gnu:/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib `which hhvm` "$@"; }
     export -f hhvm
+    if [[ "${PHP_VERSION}" ]]; then
+        warning "Your composer.json specifies a requirement for both 'php' and
+'hhvm' packages, and both PHP and HHVM runtimes have been
+installed. This behavior may change after the release of PHP 7,
+and only the HHVM runtime will be installed. Please ensure that
+all process types ('web', any workers, Heroku Scheduler etc.)
+use the 'hhvm' command to ensure uninterrupted service."
+    fi
 fi
 
 APACHE_VERSION="2.4.16"
