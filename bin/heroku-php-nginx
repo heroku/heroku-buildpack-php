@@ -299,19 +299,20 @@ exec 3<> $wait_pipe
 pids=()
 
 # trap SIGQUIT (ctrl+\ on the console), SIGTERM (when we get killed) and EXIT (upon failure of any command due to set -e, or because of the exit 1 at the very end), we then
-# 1) restore the trap so it doesn't fire again a loop due to the exit at the end (if we're handling SIGQUIT or SIGTERM) or another signal
-# 2) remove our FIFO from above
-# 3) kill all the subshells we've spawned - they in turn have their own traps to kill their respective subprocesses
-# 3a) send STDERR to /dev/null so we don't see "no such process" errors - after all, one of the subshells may be gone
-# 3b) || true so that set -e doesn't cause a mess if the kill returns 1 on "no such process" cases (which is likely)
-# 4) exit in case we're handling SIGQUIT or SIGTERM
-trap 'trap - QUIT TERM EXIT; echo "Going down, terminating child processes..." >&2; rm -f ${wait_pipe} || true; kill -TERM "${pids[@]}" 2> /dev/null || true; exit' QUIT TERM EXIT
-# if FD 1 is a TTY (that's the -t 1 check), trap SIGINT/Ctrl+C
-# 1) restore the INT trap so it doesn't fire in a loop due to 2)
-# 2) be nice to the caller and send SIGINT to ourselves (http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT)
-# 3) *do* exit after all to run the cleanup code from above (avoids duplication)
+# 1) restore the trap for the signal in question so it doesn't fire again due to the kill at the end of the trap, as well as for EXIT, because that would fire too
+# 2) call cleanup() to
+# 2a) remove our FIFO from above
+# 2b) kill all the subshells we've spawned - they in turn have their own traps to kill their respective subprocesses, and because we use SIGUSR1, they know it's the parent's cleanup and can handle it differently from an external SIGKILL
+# 2c) send STDERR to /dev/null so we don't see "no such process" errors - after all, one of the subshells may be gone
+# 2d) || true so that set -e doesn't cause a mess if the kill returns 1 on "no such process" cases (which is likely)
+# 3) kill ourselves with the correct signal in case we're handling SIGQUIT or SIGTERM (http://www.cons.org/cracauer/sigint.html and http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT1)
+cleanup() { echo "Going down, terminating child processes..." >&2; rm -f ${wait_pipe} || true; kill -USR1 "${pids[@]}" 2> /dev/null || true; }
+trap 'trap - QUIT EXIT; cleanup; kill -QUIT $$' QUIT
+trap 'trap - TERM EXIT; cleanup; kill -TERM $$' TERM
+trap 'trap - EXIT; cleanup' EXIT
+# if FD 1 is a TTY (that's the -t 1 check), trap SIGINT/Ctrl+C, then same procedure as for QUIT and TERM above
 if [[ -t 1 ]]; then
-    trap 'trap - INT; kill -INT $$; exit' INT;
+    trap 'trap - INT EXIT; cleanup; kill -INT $$' INT;
 # if FD 1 is not a TTY (e.g. when we're run through 'foreman start'), do nothing on SIGINT; the assumption is that the parent will send us a SIGTERM or something when this happens. With the trap above, Ctrl+C-ing out of a 'foreman start' run would trigger the INT trap both in Foreman and here (because Ctrl+C sends SIGINT to the entire process group, but there is no way to tell the two cases apart), and while the trap is still doing its shutdown work triggered by the SIGTERM from the Ctrl+C, Foreman would then send a SIGTERM because that's what it does when it receives a SIGINT itself.
 else
     trap '' INT;
@@ -322,10 +323,12 @@ fi
 # 1a) a 'read' at the end of the script will block on reading from that FD and then trigger the exit trap above, which does the cleanup
 # 2) each subshell also has a trap on TERM that
 # 2a) kills $! (the last process executed)
-# 2b) ... which in turn will unblock the 'wait' in 4)
-# 3) execute the command in the background
-# 4) 'wait' on the command (wait is interrupted by an incoming TERM to the subshell, whereas running 3) in the foreground would wait for that 3) to finish before triggering the trap)
-# 5) add the PID of the subshell to the array that the EXIT trap further above uses to clean everything up
+# 2b) ... which in turn will hit the EXIT trap and that unblocks the 'wait' in 5) which will cause the parent to clean up when the exit at the end of the script is hit
+# 2c) finally, if $BASHPID exists, the subshell kills itself using the right signal for maximum compliance ($$ doesn't work in subshells, and $BASHPID is not available in Bash 3, but unlike with the parent, it's not that critical to have this)
+# 3) each subshell has another trap on USR1 which gets sent when the parent is cleaning up; it works like 2a) but doesn't trigger the EXIT trap to avoid multiple cleanup runs by the parent
+# 4) execute the command in the background
+# 5) 'wait' on the command (wait is interrupted by an incoming TERM to the subshell, whereas running 4) in the foreground would wait for that process to finish before triggering the trap)
+# 6) add the PID of the subshell to the array that the EXIT trap further above uses to clean everything up
 
 [[ $verbose ]] && echo "Starting log redirection..." >&2
 (
@@ -337,9 +340,11 @@ fi
     # 5) so we try to kill all currently running jobs
     # 5a) gracefully, by redirecting STDERR to /dev/null - one of the children will already be gone
     # 6) the sed with the Darwin/GNU sed arg case used to be a function, but that was even worse with an extra wrapping subshell for sed
-    # FIXME: fires when the subshell or the tail is killed, but not when the sed is killed, because... pipes :(
+    # FIXME: fires when the subshell or the tail is killed, but not when the sed is killed, because... pipes :( maybe we can do http://mywiki.wooledge.org/ProcessManagement#My_script_runs_a_pipeline.__When_the_script_is_killed.2C_I_want_the_pipeline_to_die_too.
+    trap '' INT;
     trap 'echo "tail" >&3;' EXIT
-    trap 'jobs -p | xargs -n1 kill -TERM 2> /dev/null' TERM
+    trap 'trap - TERM; jobs -p | xargs -n1 kill -TERM 2> /dev/null; [[ $BASHPID ]] && kill -TERM $BASHPID' TERM
+    trap 'trap - USR1 EXIT; jobs -p | xargs -n1 kill -TERM 2> /dev/null; [[ $BASHPID ]] && kill -USR1 $BASHPID' USR1
     touch "${logs[@]}"
     if [[ $(uname) == "Darwin" ]]; then
         sedbufarg="-l" # mac/bsd sed: -l buffers on line boundaries
@@ -352,8 +357,10 @@ fi
 
 echo "Starting php-fpm..." >&2
 (
+    trap '' INT;
     trap 'echo "php-fpm" >&3;' EXIT
-    trap 'kill -TERM $! 2> /dev/null' TERM
+    trap 'trap - TERM; kill -TERM $! 2> /dev/null; [[ $BASHPID ]] && kill -TERM $BASHPID' TERM
+    trap 'trap - USR1 EXIT; kill -TERM $! 2> /dev/null; [[ $BASHPID ]] && kill -USR1 $BASHPID' USR1
     php-fpm --nodaemonize -y "$fpm_config" ${php_config:+-c "$php_config"} &
     wait
 ) & pids+=($!)
@@ -363,8 +370,10 @@ sleep 2
 
 echo "Starting nginx..." >&2
 (
+    trap '' INT;
     trap 'echo "nginx" >&3;' EXIT
-    trap 'kill -TERM $! 2> /dev/null' TERM
+    trap 'trap - TERM; kill -TERM $! 2> /dev/null; [[ $BASHPID ]] && kill -TERM $BASHPID' TERM
+    trap 'trap - USR1 EXIT; kill -TERM $! 2> /dev/null; [[ $BASHPID ]] && kill -USR1 $BASHPID' USR1
     nginx -g "daemon off; include $nginx_config;" &
     wait
 ) & pids+=($!)

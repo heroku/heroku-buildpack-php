@@ -12,6 +12,7 @@
 
 - Wrong Apache dist URL in support/build [David Zuelke]
 - Build failure if `heroku-*-*` boot scripts are committed to Git in Composer bin dir [David Zuelke]
+- Broken signal handling in boot scripts on Linux [David Zuelke]
 
 ## v82 (2015-10-31)
 
