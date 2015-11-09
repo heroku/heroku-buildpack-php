@@ -6,6 +6,7 @@
 
 - Improve Composer vendor and bin dir detection in build sources [David Zuelke]
 - Deprecate concurrent installs of HHVM and PHP [David Zuelke]
+- Start New Relic daemon manually on Dyno boot to ensure correct behavior with non web PHP programs [David Zuelke]
 
 ### FIX
 
