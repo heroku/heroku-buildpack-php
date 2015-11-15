@@ -1,0 +1,41 @@
+#!/bin/bash
+# Build Path: /app/.heroku/php/
+# Build Deps: libraries/icu
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+DEFAULT_VERSION="4.7.80.25"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=v8
+
+echo "-----> Building v8 ${dep_version}..."
+
+git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+export PATH=`pwd`/depot_tools:${OUT_PREFIX}/bin:${PATH}
+fetch v8
+
+pushd ${dep_dirname}
+git checkout ${dep_version}
+gclient sync
+
+export GYP_DEFINES="use_system_icu=1"
+export CXXFLAGS="-I${OUT_PREFIX}/include/"
+export CFLAGS="-I${OUT_PREFIX}/include/"
+
+make native library=shared snapshot=off -j8
+
+# icu was a build dep, and it's in $OUT_PREFIX. nuke that first
+rm -rf ${OUT_PREFIX}/*
+
+mkdir -p ${OUT_PREFIX}/lib ${OUT_PREFIX}/include
+cp out/native/lib.target/lib*.so ${OUT_PREFIX}/lib/
+cp -R include/* ${OUT_PREFIX}/include/
+echo -e "create	${OUT_PREFIX}/lib/libv8_libplatform.a\naddlib out/native/obj.target/tools/gyp/libv8_libplatform.a\nsave\nend" | ar -M
+popd
+
+echo "-----> Done."
