@@ -5,6 +5,7 @@
 ### ADD
 
 - Composer/1.0.0-alpha11 [David Zuelke]
+- PHP/7.0.0RC7 [David Zuelke]
 
 ### CHG
 
