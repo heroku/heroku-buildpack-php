@@ -2,6 +2,10 @@
 
 ## v83 (2015-11-??)
 
+### ADD
+
+- Composer/1.0.0-alpha11 [David Zuelke]
+
 ### CHG
 
 - Improve Composer vendor and bin dir detection in build sources [David Zuelke]
