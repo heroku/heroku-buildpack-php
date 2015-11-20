@@ -287,7 +287,8 @@ pids=()
 # 2a) remove our FIFO from above
 # 2b) kill all the subshells we've spawned - they in turn have their own traps to kill their respective subprocesses, and because we use SIGUSR1, they know it's the parent's cleanup and can handle it differently from an external SIGKILL
 # 2c) send STDERR to /dev/null so we don't see "no such process" errors - after all, one of the subshells may be gone
-# 2d) || true so that set -e doesn't cause a mess if the kill returns 1 on "no such process" cases (which is likely)
+# 2d) || true so that set -e doesn't cause a mess if the kill returns 1 on "no such process" cases (which is likely on Heroku where all processes get killed and not just this top level one)
+# 2e) do that in the background and 'wait' on those processes, sending wait's output to /dev/null - this prevents the logs getting cluttered with "vendor/bin/heroku-...: line 309:    96 Terminated" messages (we can't use 'disown' after launching programs for that purpose because that removes the jobs from the shell's jobs table and the we can no longer 'wait' on the program)
 # 3) kill ourselves with the correct signal in case we're handling SIGQUIT or SIGTERM (http://www.cons.org/cracauer/sigint.html and http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT1)
 cleanup() { echo "Going down, terminating child processes..." >&2; rm -f ${wait_pipe} || true; kill -USR1 "${pids[@]}" 2> /dev/null || true; }
 trap 'trap - QUIT EXIT; cleanup; kill -QUIT $$' QUIT
@@ -303,11 +304,12 @@ fi
 
 # we are now launching a subshell for each of the tasks (log tail, app server, web server)
 # 1) each subshell has a trap on EXIT that echos the command name to FD 3 (see the FIFO set up above)
-# 1a) a 'read' at the end of the script will block on reading from that FD and then trigger the exit trap above, which does the cleanup
+# 1a) a 'read' at the end of the script will block on reading from that FD and then trigger the exit trap further above, which does the cleanup
 # 2) each subshell also has a trap on TERM that
 # 2a) kills $! (the last process executed)
 # 2b) ... which in turn will hit the EXIT trap and that unblocks the 'wait' in 5) which will cause the parent to clean up when the exit at the end of the script is hit
-# 2c) finally, if $BASHPID exists, the subshell kills itself using the right signal for maximum compliance ($$ doesn't work in subshells, and $BASHPID is not available in Bash 3, but unlike with the parent, it's not that critical to have this)
+# 2c) the 'kill' is done in the background and we immediately 'wait' on $!, sending wait's output to /dev/null - this prevents the logs getting cluttered with "vendor/bin/heroku-...: line 309:    96 Terminated" messages (we can't use 'disown' after launching programs for that purpose because that removes the jobs from the shell's jobs table and the we can no longer 'wait' on the program)
+# 2d) finally, if $BASHPID exists, the subshell kills itself using the right signal for maximum compliance ($$ doesn't work in subshells, and $BASHPID is not available in Bash 3, but unlike with the parent, it's not that critical to have this)
 # 3) each subshell has another trap on USR1 which gets sent when the parent is cleaning up; it works like 2a) but doesn't trigger the EXIT trap to avoid multiple cleanup runs by the parent
 # 4) execute the command in the background
 # 5) 'wait' on the command (wait is interrupted by an incoming TERM to the subshell, whereas running 4) in the foreground would wait for that process to finish before triggering the trap)
@@ -317,22 +319,29 @@ fi
 (
     trap '' INT;
     trap 'echo "tail" >&3;' EXIT
-    trap 'trap - TERM; kill -TERM $! 2> /dev/null; [[ $BASHPID ]] && kill -TERM $BASHPID' TERM
-    trap 'trap - USR1 EXIT; kill -TERM $! 2> /dev/null; [[ $BASHPID ]] && kill -USR1 $BASHPID' USR1
+    trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
+    trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
+    
     touch "${logs[@]}"
-    tail -qF -n 0 "${logs[@]}" 1>&2 &
+    
+    tail -qF -n 0 "${logs[@]}" 1>&2 & pid=$!
+    
     wait
 ) & pids+=($!)
+disown $!
 
 echo "Starting hhvm..." >&2
 (
     trap '' INT;
     trap 'echo "hhvm" >&3;' EXIT
-    trap 'trap - TERM; kill -TERM $! 2> /dev/null; [[ $BASHPID ]] && kill -TERM $BASHPID' TERM
-    trap 'trap - USR1 EXIT; kill -TERM $! 2> /dev/null; [[ $BASHPID ]] && kill -USR1 $BASHPID' USR1
-    hhvm --mode server "${php_configs[@]}" &
+    trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
+    trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
+    
+    hhvm --mode server "${php_configs[@]}" & pid=$!
+    
     wait
 ) & pids+=($!)
+disown $!
 
 # wait a few seconds for HHVM to finish initializing; otherwise an early request might break Apache with the FastCGI pipe not being ready
 sleep 2
@@ -341,11 +350,14 @@ echo "Starting nginx..." >&2
 (
     trap '' INT;
     trap 'echo "nginx" >&3;' EXIT
-    trap 'trap - TERM; kill -TERM $! 2> /dev/null; [[ $BASHPID ]] && kill -TERM $BASHPID' TERM
-    trap 'trap - USR1 EXIT; kill -TERM $! 2> /dev/null; [[ $BASHPID ]] && kill -USR1 $BASHPID' USR1
-    nginx -g "daemon off; include $nginx_config;" &
+    trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
+    trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
+    
+    nginx -g "daemon off; include $nginx_config;" & pid=$!
+    
     wait
 ) & pids+=($!)
+disown $!
 
 # on Heroku, there is a "state changed from starting to up", but for local execution, we want a "ready" message
 [[ -z ${DYNO:-} || $verbose ]] && echo "Application ready for connections on port $PORT." >&2

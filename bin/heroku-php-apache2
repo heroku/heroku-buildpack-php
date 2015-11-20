@@ -363,6 +363,7 @@ fi
     
     tail -qF -n 0 "${logs[@]}" > "$logs_pipe" & logs_procs+=($!)
     sed $sedbufarg -E -e 's/^\[[^]]+\] WARNING: \[pool [^]]+\] child [0-9]+ said into std(err|out): "(.*)("|...)$/\2\3/' -e 's/"$//' < "$logs_pipe" 1>&2 & logs_procs+=($!) # messages that are too long are cut off using "..." by FPM instead of closing double quotation marks; we want to preserve those three dots but not the closing double quotes
+    
     wait
 ) & pids+=($!)
 disown $!
@@ -373,7 +374,9 @@ echo "Starting php-fpm..." >&2
     trap 'echo "php-fpm" >&3;' EXIT
     trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
     trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
+    
     php-fpm --nodaemonize -y "$fpm_config" ${php_config:+-c "$php_config"} & pid=$!
+    
     wait
 ) & pids+=($!)
 disown $!
@@ -387,7 +390,9 @@ echo "Starting httpd..." >&2
     trap 'echo "httpd" >&3;' EXIT
     trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
     trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
+    
     httpd -D NO_DETACH -c "Include $httpd_config" & pid=$!
+    
     wait
 ) & pids+=($!)
 disown $!
