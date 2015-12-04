@@ -15,29 +15,7 @@ http {
     keepalive_timeout  65;
 
     # Enable Gzip compression.
-    gzip on;
-    gzip_http_version 1.0;
-    gzip_comp_level 5;
-    gzip_min_length 256;
-    gzip_proxied any;
-    gzip_vary on;
-    gzip_types
-      application/atom+xml
-      application/javascript
-      application/x-javascript
-      application/json
-      application/rss+xml
-      application/vnd.ms-fontobject
-      application/x-font-ttf
-      application/x-web-app-manifest+json
-      application/xhtml+xml
-      application/xml
-      font/opentype
-      image/svg+xml
-      image/x-icon
-      text/css
-      text/plain
-      text/x-component;
+    #gzip on;
 
     fastcgi_buffers 256 4k;
 
