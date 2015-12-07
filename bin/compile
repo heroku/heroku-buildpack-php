@@ -234,6 +234,57 @@ use the 'hhvm' command to ensure uninterrupted service."
     fi
 fi
 
+curl --silent --location "$S3_URL/composer-1.0.0alpha11.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
+
+# check if the user will get PHP 7 soon
+if [[ -f "$COMPOSER_LOCK" ]]; then
+    # extract requirements from composer.lock
+    cat "$COMPOSER_LOCK" | $engine_r '
+array_shift($argv);
+$platform = [];
+foreach($argv as $json) $platform[] = json_decode(file_get_contents($json), true);
+$repositories = [
+    ["packagist" => false],
+    ["type" => "package", "package" => $platform],
+];
+$lock = json_decode(file_get_contents("php://stdin"), true);
+$require = $lock["platform"];
+foreach($lock["packages"] as $package) {
+    $require = array_merge_recursive($require, array_intersect_key(isset($package["require"])?$package["require"]:[], array_flip(array_filter(array_keys(isset($package["require"])?$package["require"]:[]), function($v) { return preg_match("#^(hhvm$|php(-64bit)?$|ext-)#", $v); }))));
+}
+$require = array_map(function($v) { return implode(",", array_unique((array)$v)); }, $require);
+if(!isset($require["php"]) && !isset($require["hhvm"])) $require["php"] = isset($require["php-64bit"])?
+    $require["php-64bit"]:"^5.5.17";
+$json = [
+    "config" => ["cache-files-ttl" => 0, "discard-changes" => true],
+    "minimum-stability" => $lock["minimum-stability"],
+    "prefer-stable" => $lock["prefer-stable"],
+    "repositories" => $repositories,
+    "require" => array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require),
+];
+echo json_encode($json);
+' $BP_DIR/support/dist/*.json > $BUILD_DIR/.heroku/php/composer.json
+    dry_run=$(cd $BUILD_DIR/.heroku/php/; composer install --no-dev --dry-run 2>&1 || true)
+    if echo "$dry_run" | grep -i "Installing heroku-sys/php (7.0.0)" > /dev/null; then
+        notice "PHP 7 will be available soon on Heroku.
+
+The version selectors for package 'php' in your '$COMPOSER'
+and/or in your dependencies are currently lenient enough to
+allow the installation of PHP 7.0.0, and all required extensions
+are available for PHP 7 as well. This means that your application
+will be built and run using PHP 7.0.0 once PHP 7 is available.
+
+If you are not yet certain that your application will function
+correctly when run using PHP 7, please add or modify the version
+selector for 'php' in the 'require' section of '$COMPOSER' to
+e.g. '^5.6.15' in order to remain on the latest version of PHP 5.
+
+For more information, refer to section 'Selecting a Runtime' in
+https://devcenter.heroku.com/articles/php-support on Dev Center."
+    fi
+    rm $BUILD_DIR/.heroku/php/composer.json
+fi
+
 APACHE_VERSION="2.4.16"
 APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
 echo "- Apache $APACHE_VERSION" | indent
@@ -300,7 +351,6 @@ if [[ -f "composer.phar" ]]; then
     composer --version 2>&1 | grep "^Composer version" > /dev/null || error "File '/composer.phar' is not a Composer executable!"
     notice_inline "Using '/composer.phar' to install dependencies."
 else
-    curl --silent --location "$S3_URL/composer-1.0.0alpha11.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
     composer() {
         $engine `which composer` "$@"
     }
