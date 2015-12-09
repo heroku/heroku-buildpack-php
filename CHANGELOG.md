@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/7.0.0 [David Zuelke]
+- PHP/5.6.16 [David Zuelke]
 
 ### CHG
 
