@@ -263,8 +263,8 @@ $json = [
     "require" => array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require),
 ];
 echo json_encode($json);
-' $BP_DIR/support/dist/*.json > $BUILD_DIR/.heroku/php/composer.json
-    dry_run=$(cd $BUILD_DIR/.heroku/php/; composer install --no-dev --dry-run 2>&1 || true)
+' -- $BP_DIR/support/dist/*.json > $BUILD_DIR/.heroku/php/composer.json
+    dry_run=$(cd $BUILD_DIR/.heroku/php/; $engine $(which composer) install --no-dev --dry-run 2>&1 || true)
     if echo "$dry_run" | grep -i "Installing heroku-sys/php (7.0.0)" > /dev/null; then
         notice "PHP 7 will be available soon on Heroku.
 
