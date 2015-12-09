@@ -2,6 +2,10 @@
 
 ## v86 (2015-12-10)
 
+### ADD
+
+- PHP/7.0.0 [David Zuelke]
+
 ### CHG
 
 - Rewrite most of the build process; system packages are now installed using a custom Composer installer and Composer repository [David Zuelke]
