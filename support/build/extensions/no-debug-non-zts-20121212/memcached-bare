@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: php-5.5.11, libraries/libmemcached
+# Build Deps: php-5.5.30, libraries/libmemcached
 
 OUT_PREFIX=$1
 
