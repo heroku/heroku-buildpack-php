@@ -12,20 +12,14 @@ install_ext () {
     if [[ -f "$ext_ini" ]]; then
         ext_so=$(php -r '$ini=parse_ini_file("'$ext_ini'"); echo $ext=$ini["zend_extension"]?:$ini["extension"]; exit((int)empty($ext));') # read .so name from .ini because e.g. opcache.so is named "zend-opcache"
         if [[ ! -f "$ext_dir/$ext_so" ]]; then
-            if [[ -f "$BP_DIR/support/build/extensions/$ext_api/$ext" ]]; then
-                curl --silent --location "${S3_URL}/extensions/${ext_api}/${ext}.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
-                echo "- ${ext} (${reason}; downloaded)" | indent
-                cp "${ext_ini}" "${BUILD_DIR}/.heroku/php/etc/php/conf.d"
-            else
-                warning_inline "Unknown extension ${ext} (${reason}), install may fail!"
-            fi
+            warning_inline "Unknown extension ${ext} (${reason}), install may fail!"
         else
-            echo "- ${ext} (${reason}; bundled)" | indent
+            echo "- ext-${ext} (${reason})" | indent
             cp "${ext_ini}" "${BUILD_DIR}/.heroku/php/etc/php/conf.d"
         fi
     elif [[ -f "${ext_dir}/${ext}.so" ]]; then
         echo "extension = ${ext}.so" > "${BUILD_DIR}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
-        echo "- ${ext} (${reason}; bundled)" | indent
+        echo "- ext-${ext} (${reason})" | indent
     elif echo -n ${ext} | php -r 'exit((int)!extension_loaded(file_get_contents("php://stdin")));'; then
         : # echo "- ${ext} (${reason}; enabled by default)" | indent
     else
@@ -57,7 +51,7 @@ source $BP_DIR/bin/util/blackfire.sh
 # if this is set it prevents Git clones (e.g. for Composer installs from source) during the build in some circumstances, and it is set in SSH Git deploys to Heroku
 unset GIT_DIR
 
-export_env_dir "$ENV_DIR" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|S3_URL|RTVS_URL|REQUEST_ID)$'
+export_env_dir "$ENV_DIR" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|S3_URL|REQUEST_ID)$'
 
 BUILDPACK_URL=${BUILDPACK_URL:-} # Anvil has none
 BUILDPACK_BRANCH=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' || expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php\.git#\(..*\)$' || true) # POSIX expr doesn't understand ".+" or "(\.git)?"
@@ -67,7 +61,6 @@ if [[ "$BUILDPACK_BRANCH" != v* && "$BUILDPACK_BRANCH" != "master" ]]; then
     S3_URL="develop"
 fi
 S3_URL="https://lang-php.s3.amazonaws.com/dist-${STACK}-${S3_URL:-"master"}"
-RTVS_URL="https://php-runtime-version-selector.herokuapp.com"
 
 cd $BUILD_DIR
 
@@ -76,11 +69,25 @@ if [[ -n ${COMPOSER:-} ]]; then
 else
     export COMPOSER="composer.json"
 fi
-COMPOSER_LOCK=$(basename "$COMPOSER" ".json")".lock" # replace .json with .lock if it exists, append .lock otherwise
+export COMPOSER_LOCK=$(basename "$COMPOSER" ".json")".lock" # replace .json with .lock if it exists, append .lock otherwise
 
-
+# a bunch of sanity checks first
 if [[ -s "$COMPOSER" ]]; then
     cat "$COMPOSER" | python -mjson.tool &> /dev/null || error "Could not parse '$COMPOSER'; make sure it's valid!"
+    if [[ ! -f "$COMPOSER_LOCK" ]]; then
+        cat "$COMPOSER" | python -c 'import sys, json; sys.exit(bool(json.load(sys.stdin).get("require", {})))' 2> /dev/null || error "Your '$COMPOSER' lists dependencies inside 'require',
+but no '$COMPOSER_LOCK' was found. Please run 'composer update' to
+re-generate '$COMPOSER_LOCK' if necessary, and commit it into your
+repository. For more information, please refer to the docs at
+https://devcenter.heroku.com/articles/php-support#activation"
+    else
+        cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); sys.exit(not(l["minimum-stability"] == "stable"));' 2> /dev/null || warning "Your '$COMPOSER' contains a non-'stable' setting
+for 'minimum-stability'. This may cause the installation of
+unstable versions of runtimes and extensions during this deploy.
+It is recommended that you always use stability flags instead,
+even if you have 'prefer-stable' enabled. For more information,
+see https://getcomposer.org/doc/01-basic-usage.md#stability"
+    fi
 else
     if [[ ! -f "$COMPOSER" ]]; then
         warning "No '$COMPOSER' found.
@@ -93,116 +100,88 @@ Please change its contents to at least '{}' so it is valid JSON."
     echo "{}" > $COMPOSER
 fi
 
-mkdir -p .heroku/php
-
+# all system packages live in there
+mkdir -p $BUILD_DIR/.heroku/php
+# set up Composer
 export COMPOSER_HOME=$CACHE_DIR/.composer
 mkdir -p $COMPOSER_HOME
-
-PHP_VERSION=
-HHVM_VERSION=
-if [[ "$STACK" == "cedar" ]]; then
-    runtimes=$(cd $BP_DIR/support/build; ls {php-5*,hhvm-3.2.0}) # cedar only has HHVM 3.2 and no PHP 7
-else
-    runtimes=$(cd $BP_DIR/support/build; ls {php,hhvm}-*)
-fi
-engine="php"
-engine_r="php -r"
-if [[ -f "$COMPOSER" ]]; then
-    if [[ ! -f "$COMPOSER_LOCK" ]]; then
-        cat "$COMPOSER" | python -c 'import sys, json; sys.exit(bool(json.load(sys.stdin).get("require", {})))' 2> /dev/null || error "Your '$COMPOSER' lists dependencies inside 'require',
-but no '$COMPOSER_LOCK' was found. Please run 'composer update' to
-re-generate '$COMPOSER_LOCK' if necessary, and commit it into your
-repository. For more information, please refer to the docs at
-https://devcenter.heroku.com/articles/php-support#activation"
-    fi
-    
-    solver_payload=$(echo -n "$runtimes" | python -c '
-import sys, json
-ret = {}
-ret["packages"] = sys.stdin.read().splitlines()
-try:
-    c_lock = json.load(open(sys.argv[1]))
-    ret["lock"] = {k: c_lock.get(k, None) for k in ["minimum-stability", "prefer-stable", "stability-flags"]}
-    ret["lock"]["platform"] = {k: dict(c_lock.get("platform", {})).get(k, None) for k in ["php", "hhvm"]} # wrap in dict() to prevent simple errors with {} vs []
-except IOError:
-    ret["lock"] = None
-print json.dumps(ret)
-' "$COMPOSER_LOCK" 2> /dev/null) || error "Couldn't parse '$COMPOSER_LOCK'; it must be valid JSON.
-Run 'composer update' to have it re-generated by Composer."
-
-    # warn if minimum-stability is set to non-stable (regardless of whether prefer-stable is used)
-    if echo -n "$solver_payload" | python -c 'import sys, json; p = json.load(sys.stdin); sys.exit(p["lock"] == None or p["lock"]["minimum-stability"] == "stable");' 2> /dev/null; then
-        warning "Your '$COMPOSER' contains a non-'stable' setting
-for 'minimum-stability'. This may cause the installation of
-unstable versions of runtimes and extensions during this deploy.
-It is recommended that you always use stability flags instead,
-even if you have 'prefer-stable' enabled. For more information,
-see https://getcomposer.org/doc/01-basic-usage.md#stability"
-    fi
-    
-    solver_result=$(echo -n "$solver_payload" | curl --silent --location --fail -H'Content-Type: application/json' -H"X-Build-Request-Id: ${REQUEST_ID:-}" -d @- "${RTVS_URL}/resolve?default_runtime=php") || error "Failed to resolve runtime requirements.
-If the issue persists, please contact support."
-    while IFS="|" read runtime_name runtime_source runtime_constraint runtime_result; do
-        # make sure we use the correct names for "composer.json" and "composer.lock"
-        case "$runtime_source" in
-            "composer.json")
-                runtime_source="$COMPOSER"
-                ;;
-            "composer.lock")
-                runtime_source="$COMPOSER_LOCK"
-                ;;
-        esac
-        if [[ $runtime_result ]]; then
-            if [[ $runtime_source == "default" ]]; then
-                status "No runtime required in '$COMPOSER', defaulting to ${runtime_name^^} $runtime_result."
-            else
-                status "Resolved '$runtime_source' requirement for ${runtime_name^^} to version ${runtime_result}."
-                if [[ "$runtime_constraint" == "$runtime_result" || "$runtime_constraint" == "=$runtime_result" ]]; then
-                    recommended_selector="~$runtime_result"
-                    if [[ $runtime_name == "hhvm" ]]; then
-                        recommended_selector="${recommended_selector%.*}" # strip "3.2.0" to just "3.2"; HHVM has different versioning
-                    fi
-                    warning "Your '$COMPOSER' requirement for runtime '$runtime_name'
-specifies an exact-match constraint of '$runtime_constraint'.
-This means you will not automatically get more recent compatible
-versions of ${runtime_name^^} on push once they are available. As any such
-new version may contain security updates, we strongly suggest
-you use a more lenient selector like '$recommended_selector' instead.
-See https://devcenter.heroku.com/articles/php-support for info."
-                fi
-            fi
-            if [[ $runtime_name == "php" ]]; then
-                PHP_VERSION="$runtime_result"
-            elif [[ $runtime_name == "hhvm" ]]; then
-                HHVM_VERSION="$runtime_result"
-                engine="hhvm"
-                engine_r="hhvm --php -r"
-                if [[ "$STACK" == "cedar" ]]; then
-                    warning_inline "Support for HHVM on the cedar stack is deprecated and
-will be removed soon. Please upgrade to cedar-14 to continue to
-use HHVM and get access to new releases. For more information,
-see https://devcenter.heroku.com/articles/cedar-14-migration"
-                fi
-            fi
-        else
-            error "Could not resolve '$runtime_source' requirement for ${runtime_name^^} $runtime_constraint,
-please adjust the selector. The following runtimes are available:
-$(echo $runtimes | fold -s -w 65)"
-        fi
-    done <<<"$solver_result"
-fi
-
-status "Installing system packages..."
-
-# we need to run things in here, set it up!
+# we need to run things in /app because of compiled paths, set that up!
 mkdir -p /app/.heroku
 ln -s $BUILD_DIR/.heroku/php /app/.heroku/php
 export PATH=/app/.heroku/php/bin:$PATH
 
-if [[ "${PHP_VERSION}" ]]; then
-    PHP_DIST_URL="$S3_URL/php-$PHP_VERSION.tar.gz"
-    echo "- PHP $PHP_VERSION" | indent
-    curl --silent --location "$PHP_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+status "Bootstrapping..."
+
+# minimal PHP needed for installs, and make "composer" invocations use that for now
+mkdir -p $BUILD_DIR/.heroku/php-min
+ln -s $BUILD_DIR/.heroku/php-min
+curl --silent --location "$S3_URL/php-min.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php-min
+curl --silent --location "$S3_URL/composer-1.0.0alpha11.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
+composer() {
+    $BUILD_DIR/.heroku/php-min/bin/php $(which composer) "$@"
+}
+export -f composer
+
+status "Installing system packages..."
+
+# extract requirements from composer.lock
+$BUILD_DIR/.heroku/php-min/bin/php -r '
+array_shift($argv);
+$repositories = [
+    ["packagist" => false],
+    ["type" => "path", "url" => array_shift($argv)],
+];
+foreach($argv as $repo) $repositories[] = ["type" => "composer", "url" => $repo];
+if(file_exists(getenv("COMPOSER_LOCK"))) {
+    $lock = json_decode(file_get_contents(getenv("COMPOSER_LOCK")), true);
+    $require = $lock["platform"];
+    foreach($lock["packages"] as $package) {
+        $require = array_merge_recursive($require, array_intersect_key($package["require"] ?? [], array_flip(array_filter(array_keys($package["require"] ?? []), function($v) { return preg_match("#^(hhvm$|php(-64bit)?$|ext-)#", $v); }))));
+    }
+    $require = array_map(function($v) { return implode(",", array_unique((array)$v)); }, $require);
+}
+if(!isset($require["php"]) && !isset($require["hhvm"])) $require["php"] = $require["php-64bit"] ?? "^5.5.17";
+$json = [
+    "config" => ["cache-files-ttl" => 0, "discard-changes" => true],
+    "minimum-stability" => $lock["minimum-stability"] ?? "stable",
+    "prefer-stable" => $lock["prefer-stable"] ?? false,
+    "provide" => ["heroku-sys/".getenv("STACK") => "1.0.0"],
+    "repositories" => $repositories,
+    "require" => array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require),
+];
+echo json_encode($json);
+' -- "$BP_DIR/support/installer/" "$S3_URL" > $BUILD_DIR/.heroku/php/composer.json || error "Couldn't parse '$COMPOSER_LOCK'; it must be valid JSON.
+Run 'composer update' to have it re-generated by Composer."
+
+if [[ ! -f "$COMPOSER_LOCK" ]]; then
+    notice_inline "No runtime required in '$COMPOSER', using PHP ^5.5.17"
+fi
+
+if composer install -d "$BUILD_DIR/.heroku/php" --no-dev 2>&1 | tee $BUILD_DIR/.heroku/php/install.log | grep --line-buffered '  - Installing heroku-sys/' | sed -u 's/  - Installing heroku-sys\//- /' | indent; then
+    :
+else
+    error "Failed to install system dependencies.
+Your requirements could not be resolved to a set of dependencies,
+or a repository was unreachable. Full progress output follows:
+
+$(cat $BUILD_DIR/.heroku/php/install.log | sed -e 's/heroku-sys\///g' -e 's/Loading composer repositories/Loading repositories/' -e 's/^/> /')
+
+The following runtimes are currently available:
+
+PHP $(composer show -d "$BUILD_DIR/.heroku/php" --available heroku-sys/php 2>&1 | grep versions | fold -s -w 60 || true)
+HHVM $(composer show -d "$BUILD_DIR/.heroku/php" --available heroku-sys/hhvm 2>&1 | grep versions | fold -s -w 60 || true)
+
+Please verify that your '$COMPOSER_LOCK' requirements are matching
+the versions above and that any required extensions are available
+for the versions you intend to use.
+
+For a list of supported runtimes and extensions on Heroku, please
+refer to: https://devcenter.heroku.com/articles/php-support"
+fi
+
+if composer show -d "$BUILD_DIR/.heroku/php" --installed --quiet heroku-sys/php; then
+    engine="php"
+    engine_r="php -r"
     # update config files
     mkdir -p $BUILD_DIR/.heroku/php/etc/php
     cp $BP_DIR/conf/php/php.ini $BUILD_DIR/.heroku/php/etc/php
@@ -210,84 +189,23 @@ if [[ "${PHP_VERSION}" ]]; then
     mkdir -p $BUILD_DIR/.heroku/php/etc/php/conf.d
     # store PHP version in the slug for possible later evaluation
     mkdir -p $BUILD_DIR/.heroku/php/.versions/php
-    echo $PHP_VERSION > $BUILD_DIR/.heroku/php/.versions/php/php
-fi
-if [[ "${HHVM_VERSION}" ]]; then
-    HHVM_DIST_URL="$S3_URL/hhvm-$HHVM_VERSION.tar.gz"
-    echo "- HHVM $HHVM_VERSION" | indent
-    curl --silent --location "$HHVM_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
+    composer show -d "$BUILD_DIR/.heroku/php" --installed heroku-sys/php 2> /dev/null | sed -n -e 's/^versions : \* //p' > $BUILD_DIR/.heroku/php/.versions/php/php
+elif composer show -d "$BUILD_DIR/.heroku/php" --installed --quiet heroku-sys/hhvm; then
+    engine="hhvm"
+    engine_r="hhvm --php -r"
     # store HHVM version in the slug for possible later evaluation
     mkdir -p $BUILD_DIR/.heroku/php/.versions/hhvm
-    echo $HHVM_VERSION > $BUILD_DIR/.heroku/php/.versions/hhvm/hhvm
     # make HHVM accessible
     export PATH=$PATH:/app/.heroku/php/usr/bin
     # so it'll start. remember to use the full path to the binary, or we'll get an infinite loop
     hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/x86_64-linux-gnu:/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib `which hhvm` "$@"; }
     export -f hhvm
-    if [[ "${PHP_VERSION}" ]]; then
-        warning "Your $COMPOSER specifies a requirement for both 'php' and
-'hhvm' packages, and both PHP and HHVM runtimes have been
-installed. This behavior may change after the release of PHP 7,
-and only the HHVM runtime will be installed. Please ensure that
-all process types ('web', any workers, Heroku Scheduler etc.)
-use the 'hhvm' command to ensure uninterrupted service."
-    fi
-fi
-
-curl --silent --location "$S3_URL/composer-1.0.0alpha11.tar.gz" | tar xz -C $BUILD_DIR/.heroku/php
-
-# check if the user will get PHP 7 soon
-if [[ -f "$COMPOSER_LOCK" ]]; then
-    # extract requirements from composer.lock
-    cat "$COMPOSER_LOCK" | $engine_r '
-array_shift($argv);
-$platform = [];
-foreach($argv as $json) $platform[] = json_decode(file_get_contents($json), true);
-$repositories = [
-    ["packagist" => false],
-    ["type" => "package", "package" => $platform],
-];
-$lock = json_decode(file_get_contents("php://stdin"), true);
-$require = $lock["platform"];
-foreach($lock["packages"] as $package) {
-    $require = array_merge_recursive($require, array_intersect_key(isset($package["require"])?$package["require"]:[], array_flip(array_filter(array_keys(isset($package["require"])?$package["require"]:[]), function($v) { return preg_match("#^(hhvm$|php(-64bit)?$|ext-)#", $v); }))));
-}
-$require = array_map(function($v) { return implode(",", array_unique((array)$v)); }, $require);
-if(!isset($require["php"]) && !isset($require["hhvm"])) $require["php"] = isset($require["php-64bit"])?
-    $require["php-64bit"]:"^5.5.17";
-$json = [
-    "config" => ["cache-files-ttl" => 0, "discard-changes" => true],
-    "minimum-stability" => $lock["minimum-stability"],
-    "prefer-stable" => $lock["prefer-stable"],
-    "repositories" => $repositories,
-    "require" => array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require),
-];
-echo json_encode($json);
-' -- $BP_DIR/support/dist/*.json > $BUILD_DIR/.heroku/php/composer.json
-    dry_run=$(cd $BUILD_DIR/.heroku/php/; $engine $(which composer) install --no-dev --dry-run 2>&1 || true)
-    if echo "$dry_run" | grep -i "Installing heroku-sys/php (7.0.0)" > /dev/null; then
-        notice "PHP 7 will be available soon on Heroku.
-
-The version selectors for package 'php' in your '$COMPOSER'
-and/or in your dependencies are currently lenient enough to
-allow the installation of PHP 7.0.0, and all required extensions
-are available for PHP 7 as well. This means that your application
-will be built and run using PHP 7.0.0 once PHP 7 is available.
-
-If you are not yet certain that your application will function
-correctly when run using PHP 7, please add or modify the version
-selector for 'php' in the 'require' section of '$COMPOSER' to
-e.g. '^5.6.15' in order to remain on the latest version of PHP 5.
-
-For more information, refer to section 'Selecting a Runtime' in
-https://devcenter.heroku.com/articles/php-support on Dev Center."
-    fi
-    rm $BUILD_DIR/.heroku/php/composer.json
+    composer show -d "$BUILD_DIR/.heroku/php" --installed heroku-sys/hhvm 2> /dev/null | sed -n -e 's/^versions : \* //p' > $BUILD_DIR/.heroku/php/.versions/hhvm/hhvm
 fi
 
 APACHE_VERSION="2.4.16"
 APACHE_DIST_URL="$S3_URL/apache-$APACHE_VERSION.tar.gz"
-echo "- Apache $APACHE_VERSION" | indent
+echo "- Apache ($APACHE_VERSION)" | indent
 curl --silent --location "$APACHE_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # Apache; copy in our config
 cp $BP_DIR/conf/apache2/httpd.conf.default $BUILD_DIR/.heroku/php/etc/apache2/httpd.conf
@@ -297,7 +215,7 @@ echo $APACHE_VERSION > $BUILD_DIR/.heroku/php/.versions/apache2/apache2
 
 NGINX_VERSION="1.8.0"
 NGINX_DIST_URL="$S3_URL/nginx-$NGINX_VERSION.tar.gz"
-echo "- Nginx $NGINX_VERSION" | indent
+echo "- Nginx ($NGINX_VERSION)" | indent
 curl --silent --location "$NGINX_DIST_URL" | tar xz -C $BUILD_DIR/.heroku/php
 # nginx; copy in our config
 cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.conf
@@ -305,22 +223,29 @@ cp $BP_DIR/conf/nginx/nginx.conf.default $BUILD_DIR/.heroku/php/etc/nginx/nginx.
 mkdir -p $BUILD_DIR/.heroku/php/.versions/nginx
 echo $NGINX_VERSION > $BUILD_DIR/.heroku/php/.versions/nginx/nginx
 
+# clean up
+rm -rf /app/.heroku/php-min $BUILD_DIR/.heroku/php-min
+unset -f composer
+
+composer() {
+    $engine `which composer` "$@"
+}
+export -f composer
+
 # handle extensions for PHP
-if [[ "${PHP_VERSION}" ]]; then
-    status "Installing PHP extensions..."
+if [[ "$engine" == "php" ]]; then
+    status "Enabling PHP extensions..."
     
     php() {
         # the newrelic extension logs to stderr which pollutes our build output on each invocation of PHP, the daemon it launches will prevent the build from finishing, and each call to PHP would be logged to NR as non-web traffic, so we disable it for the duration of this build
         `which php` -dnewrelic.enabled=0 -dnewrelic.loglevel=error -dnewrelic.daemon.dont_launch=3 -dnewrelic.daemon.loglevel=error "$@"
     }
+    export -f php
     
     exts=()
     if [[ -f "$COMPOSER_LOCK" ]]; then
         exts=($(cat "$COMPOSER_LOCK" | python -c 'import sys, json, itertools; l=json.load(sys.stdin); print "\n".join(list(set(itertools.chain([plat[4:].lower() for plat in l.get("platform", []) if plat.startswith("ext-")], *[ [ pkg[4:].lower() for pkg in p.get("require", []) if pkg.startswith("ext-") ] for p in l.get("packages", []) ]))))' 2> /dev/null || true)) # convert to array
         ext_source="$COMPOSER_LOCK"
-    else
-        exts=($(cat "$COMPOSER" | python -c 'from __future__ import print_function; import sys, json; { print(key[4:].lower()) for key in json.load(sys.stdin)["require"] if key.startswith("ext-")}' 2> /dev/null || true)) # convert to array
-        ext_source="$COMPOSER"
     fi
     for ext in "${!exts[@]}"; do # loop over keys in case the array is empty or else it'll error out
         install_ext "${exts[$ext]}" $ext_source
@@ -350,11 +275,6 @@ if [[ -f "composer.phar" ]]; then
     export -f composer
     composer --version 2>&1 | grep "^Composer version" > /dev/null || error "File '/composer.phar' is not a Composer executable!"
     notice_inline "Using '/composer.phar' to install dependencies."
-else
-    composer() {
-        $engine `which composer` "$@"
-    }
-    export -f composer
 fi
 # echo composer version for info purposes
 # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
@@ -468,11 +388,10 @@ fi
 
 install_newrelic_daemon
 install_newrelic_userini
-
+#
 install_blackfire_agent
 
 if [[ ! -f "Procfile" ]]; then
-    bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
-    echo "web: $bindir/heroku-$engine-apache2" > Procfile
-    notice_inline "No Procfile, using 'web: $bindir/heroku-$engine-apache2'."
+    echo "web: $composer_bindir/heroku-$engine-apache2" > Procfile
+    notice_inline "No Procfile, using 'web: $composer_bindir/heroku-$engine-apache2'."
 fi

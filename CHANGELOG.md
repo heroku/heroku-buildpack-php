@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v86 (2015-12-10)
+
+### CHG
+
+- Rewrite most of the build process; system packages are now installed using a custom Composer installer and Composer repository [David Zuelke]
+
 ## v83 (2015-11-16)
 
 ### ADD
