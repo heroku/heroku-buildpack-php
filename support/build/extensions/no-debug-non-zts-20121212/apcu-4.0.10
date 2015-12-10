@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+# Build Deps: php-5.5.30
+
+VERSION=4.0.10
+
+source $(dirname $0)/apcu
