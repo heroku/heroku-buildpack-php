@@ -9,6 +9,7 @@
 - ext-apcu/4.0.10 [David Zuelke]
 - ext-mongo/1.6.12 [David Zuelke]
 - ext-imagick/3.3.0 [David Zuelke]
+- ext-blackfire/1.7.0 [David Zuelke]
 
 ### CHG
 

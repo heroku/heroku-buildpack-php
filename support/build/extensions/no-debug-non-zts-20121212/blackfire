@@ -8,10 +8,24 @@ set -o pipefail
 # fail harder
 set -eux
 
-ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-${ZEND_MODULE_API_VERSION:=20121212}
+ZEND_MODULE_API_VERSION=$(basename $(dirname $0))
+ZEND_MODULE_API_VERSION=${ZEND_MODULE_API_VERSION#no-debug-non-zts-}
+
+case ${ZEND_MODULE_API_VERSION} in
+	20121212)
+		series=5.5
+		;;
+	20131226)
+		series=5.6
+		;;
+	*)
+		series=7.0
+esac
+
+ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-${ZEND_MODULE_API_VERSION}
 bin_dir=${OUT_PREFIX}/bin
 
-probe_version=`curl -A "Heroku" -o probe.tar.gz -D - -L -s https://blackfire.io/api/v1/releases/probe/php/linux/amd64/${PHP_MAJOR_VERSION:=5}${PHP_MINOR_VERSION:=5} | grep 'X-Blackfire-Release-Version: ' | sed "s%X-Blackfire-Release-Version: %%" | sed s%.$%%`
+probe_version=`curl -A "Heroku" -o probe.tar.gz -D - -L -s https://blackfire.io/api/v1/releases/probe/php/linux/amd64/${series/\./} | grep 'X-Blackfire-Release-Version: ' | sed "s%X-Blackfire-Release-Version: %%" | sed s%.$%%`
 echo "-----> Packaging ext/blackfire ${probe_version} (for Zend module API version ${ZEND_MODULE_API_VERSION})..."
 
 mkdir -p ${ext_dir}
@@ -34,4 +48,9 @@ chmod +x agent
 cp agent ${bin_dir}/blackfire-agent
 rm agent.tar.gz agent agent.sha1
 
-echo "-----> Done."
+package=${0#$WORKSPACE_DIR/}
+package_with_version="blackfire-${probe_version}"
+
+PHPREQ="$series.*" python -c 'import os, sys, json; print json.dumps({ "name": sys.argv[1], "version": sys.argv[2], "type": sys.argv[4], "conflict": dict(item.split(":") for item in sys.argv[5:]), "require": {"heroku-sys/"+os.getenv("STACK"):"^1.0.0","heroku/installer-plugin":"^1.0.0","heroku-sys/php":os.getenv("PHPREQ")}, "dist": {"type":"heroku-sys-tar","url":"https://"+os.getenv("S3_BUCKET")+".s3.amazonaws.com/"+os.getenv("S3_PREFIX")+"/"+sys.argv[3]+".tar.gz"} })' "heroku-sys/ext-blackfire" "$probe_version" "$package" "heroku-sys-php-extension" "heroku-sys/hhvm:*" > ext-${package_with_version}_php-$series.composer.json
+
+echo "-----> Done. Run 's3cmd --ssl --access_key=\$AWS_ACCESS_KEY_ID --secret_key=\$AWS_SECRET_ACCESS_KEY --acl-public put $(pwd)/ext-${package_with_version}_php-$series.composer.json s3://$S3_BUCKET/$S3_PREFIX/ext-${package_with_version}_php-$series.composer.json' to upload manifest."
