@@ -41,16 +41,16 @@ http://mirrors.kernel.org/ubuntu/pool/main/b/boost1.54/libboost-regex1.54.0_1.54
 http://mirrors.kernel.org/ubuntu/pool/main/b/boost1.54/libboost-system1.54.0_1.54.0-4ubuntu3.1_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/main/b/boost1.54/libboost-thread1.54.0_1.54.0-4ubuntu3.1_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/universe/u/uw-imap/libc-client2007e_2007f~dfsg-4_amd64.deb
-http://mirrors.kernel.org/ubuntu/pool/main/e/elfutils/libelf1_0.160-0ubuntu2_amd64.deb
-http://mirrors.kernel.org/ubuntu/pool/main/g/gflags/libgflags2_2.0-2.1_amd64.deb
-http://mirrors.kernel.org/ubuntu/pool/main/g/google-glog/libgoogle-glog0_0.3.3-2_amd64.deb
-http://mirrors.kernel.org/ubuntu/pool/main/i/icu/libicu52_52.1-6_amd64.deb
-http://mirrors.kernel.org/ubuntu/pool/universe/j/jemalloc/libjemalloc1_3.6.0-3_amd64.deb
+http://mirrors.kernel.org/ubuntu/pool/main/e/elfutils/libelf1_0.160-0ubuntu3_amd64.deb
+http://mirrors.kernel.org/ubuntu/pool/main/g/gflags/libgflags2_2.0-2.1build1_amd64.deb
+http://mirrors.kernel.org/ubuntu/pool/main/g/google-glog/libgoogle-glog0_0.3.3-2build1_amd64.deb
+http://mirrors.kernel.org/ubuntu/pool/main/i/icu/libicu52_52.1-8_amd64.deb
+http://mirrors.kernel.org/ubuntu/pool/universe/j/jemalloc/libjemalloc1_3.6.0-4_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/universe/libm/libmcrypt/libmcrypt4_2.5.8-3.3_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/main/libm/libmemcached/libmemcached10_1.0.8-1ubuntu2_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/universe/libo/libonig/libonig2_5.9.6-1_amd64.deb
-http://mirrors.kernel.org/ubuntu/pool/main/g/gcc-4.9/libstdc%2b%2b6_4.9.2-10ubuntu7_amd64.deb
-http://mirrors.kernel.org/ubuntu/pool/universe/t/tbb/libtbb2_4.2~20140122-5_amd64.deb
+http://mirrors.kernel.org/ubuntu/pool/main/g/gcc-4.9/libstdc%2b%2b6_4.9.2-10ubuntu13_amd64.deb
+http://mirrors.kernel.org/ubuntu/pool/universe/t/tbb/libtbb2_4.3~20150316-0ubuntu1_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/main/libu/libunwind/libunwind8_1.1-3.2_amd64.deb"
 fi
 
@@ -61,4 +61,12 @@ for dep in $deps; do
     dpkg -x $depb ${OUT_PREFIX}
 done
 
-echo "-----> Done."
+export LD_LIBRARY_PATH=$HOME/.heroku/php/usr/lib/x86_64-linux-gnu:$HOME/.heroku/php/usr/lib/hhvm:$HOME/.heroku/php/usr/lib
+export PATH=$HOME/.heroku/php/usr/bin:$PATH
+echo "-----> Generating manifest..."
+curl -sS https://getcomposer.org/installer | hhvm --php
+replace=$(hhvm --php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b|php\b)' | tr -s " " | cut -d " " -f1,2 | sed -e "s/ $dep_version\$/ self.version/" -e 's/^/heroku-sys\//')
+package=${0#$WORKSPACE_DIR/}
+echo "$replace" | python -c 'import os, sys, json; print json.dumps({ "name": sys.argv[1], "version": sys.argv[2], "type": sys.argv[4], "conflict": dict(item.split(":") for item in sys.argv[5:]), "replace": dict(item.rstrip("\n").split(" ") for item in tuple(sys.stdin)), "require": {"heroku-sys/"+os.getenv("STACK"):"^1.0.0","heroku/installer-plugin":"^1.0.0"}, "dist": {"type":"heroku-sys-tar","url":"https://"+os.getenv("S3_BUCKET")+".s3.amazonaws.com/"+os.getenv("S3_PREFIX")+"/"+sys.argv[3]+".tar.gz"} })' "heroku-sys/hhvm" "$dep_version" "$package" "heroku-sys-hhvm" "heroku-sys/php:*" > $package.composer.json
+
+echo "-----> Done. Run 's3cmd --ssl --access_key=\$AWS_ACCESS_KEY_ID --secret_key=\$AWS_SECRET_ACCESS_KEY --acl-public put $(pwd)/$package.composer.json s3://$S3_BUCKET/$S3_PREFIX/$package.composer.json' to upload manifest."
