@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+# Build Deps: extensions/no-debug-non-zts-20131226/imagick-bare-3.3.0, libraries/imagemagick
+
+# That's it - we're combining the dep build and the extension build here
+
+echo "-----> Merging dependencies..."
+
+package=${0#$WORKSPACE_DIR/}
+dep_version=3.3.0
+dep_dirname=imagick-3.3.0
+series=5.6
+
+PHPREQ="$series.*" python -c 'import os, sys, json; print json.dumps({ "name": sys.argv[1], "version": sys.argv[2], "type": sys.argv[4], "conflict": dict(item.split(":") for item in sys.argv[5:]), "require": {"heroku-sys/"+os.getenv("STACK"):"^1.0.0","heroku/installer-plugin":"^1.0.0","heroku-sys/php":os.getenv("PHPREQ")}, "dist": {"type":"heroku-sys-tar","url":"https://"+os.getenv("S3_BUCKET")+".s3.amazonaws.com/"+os.getenv("S3_PREFIX")+"/"+sys.argv[3]+".tar.gz"} })' "heroku-sys/ext-imagick" "$dep_version" "$package" "heroku-sys-php-extension" "heroku-sys/hhvm:*" > ext-${dep_dirname}_php-$series.composer.json
+
+echo "-----> Done. Run 's3cmd --ssl --access_key=\$AWS_ACCESS_KEY_ID --secret_key=\$AWS_SECRET_ACCESS_KEY --acl-public put $(pwd)/ext-${dep_dirname}_php-$series.composer.json s3://$S3_BUCKET/$S3_PREFIX/ext-${dep_dirname}_php-$series.composer.json' to upload manifest."

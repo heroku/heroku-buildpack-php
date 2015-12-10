@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: php-5.5.11, libraries/imagemagick
+# Build Deps: php-5.5.30, libraries/imagemagick
 
 OUT_PREFIX=$1
 

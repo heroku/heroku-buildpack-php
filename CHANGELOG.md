@@ -8,6 +8,7 @@
 - PHP/5.6.16 [David Zuelke]
 - ext-apcu/4.0.10 [David Zuelke]
 - ext-mongo/1.6.12 [David Zuelke]
+- ext-imagick/3.3.0 [David Zuelke]
 
 ### CHG
 
