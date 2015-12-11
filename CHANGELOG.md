@@ -2,6 +2,10 @@
 
 ## v87 (2015-12-11)
 
+### CHG
+
+- Further improve error information on failed system package install [David Zuelke]
+
 ### FIX
 
 - "`|`" operators in `composer.lock` platform package requirements break system package dependency resolution [David Zuelke]
