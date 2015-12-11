@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v87 (2015-12-11)
+
+### FIX
+
+- "`|`" operators in `composer.lock` platform package requirements break system package dependency resolution [David Zuelke]
+
 ## v86 (2015-12-10)
 
 ### ADD

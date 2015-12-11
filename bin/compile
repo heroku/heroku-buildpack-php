@@ -126,28 +126,56 @@ status "Installing system packages..."
 
 # extract requirements from composer.lock
 $BUILD_DIR/.heroku/php-min/bin/php -r '
+// prefix keys with "heroku-sys/"
+function mkreq($require) { return array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require); }
+// check if require section demands a runtime
+function hasreq($require) { return isset($require["php"]) || isset($require["hhvm"]); }
+
+// remove first arg (0)
 array_shift($argv);
+// base repos we need - no packagist, and the installer plugin path (first arg)
 $repositories = [
     ["packagist" => false],
     ["type" => "path", "url" => array_shift($argv)],
 ];
+// all other args are repo URLs
 foreach($argv as $repo) $repositories[] = ["type" => "composer", "url" => $repo];
+
+$have_runtime_req = false;
 if(file_exists(getenv("COMPOSER_LOCK"))) {
     $lock = json_decode(file_get_contents(getenv("COMPOSER_LOCK")), true);
-    $require = $lock["platform"];
+    // our main require will be what is in the lock "platform" key
+    $have_runtime_req |= hasreq($lock["platform"]);
+    $require = mkreq($lock["platform"]);
+    // for each package that has platform requirements we build a meta-package that we then depend on
+    // we cannot simply join all those requirements together with " " or "," because of the precedence of the "|" operator: requirements "5.*," and "^5.3.9|^7.0", which should lead to a PHP 5 install, would combine into "5.*,^5.3.9|^7.0" (there is no way to group requirements), and that would give PHP 7
+    $metapaks = [];
     foreach($lock["packages"] as $package) {
-        $require = array_merge_recursive($require, array_intersect_key($package["require"] ?? [], array_flip(array_filter(array_keys($package["require"] ?? []), function($v) { return preg_match("#^(hhvm$|php(-64bit)?$|ext-)#", $v); }))));
+        // extract only platform reqs
+        $preq = array_intersect_key(isset($package["require"]) ? $package["require"] : [], array_flip(array_filter(array_keys(isset($package["require"]) ? $package["require"] : []), function($v) { return preg_match("#^(hhvm$|php(-64bit)?$|ext-)#", $v); })));
+        if(!$preq) continue;
+        $have_runtime_req |= hasreq($preq);
+        $metapaks[] = [
+            "type" => "metapackage",
+            // we re-use the dep name and version, makes for nice error messages if dependencies cannot be fulfilled :)
+            "name" => $package["name"],
+            "version" => $package["version"],
+            "require" => mkreq($preq),
+        ];
+        $require[$package["name"]] = $package["version"];
     }
-    $require = array_map(function($v) { return implode(",", array_unique((array)$v)); }, $require);
+    // add all meta-packages to one local package repo
+    $repositories[] = ["type" => "package", "package" => $metapaks];
 }
-if(!isset($require["php"]) && !isset($require["hhvm"])) $require["php"] = $require["php-64bit"] ?? "^5.5.17";
+// if no PHP or HHVM is required anywhere, we need to add something
+if(!$have_runtime_req) $require["heroku-sys/php"] = isset($require["heroku-sys/php-64bit"]) ? $require["heroku-sys/php-64bit"] : "^5.5.17";
 $json = [
     "config" => ["cache-files-ttl" => 0, "discard-changes" => true],
-    "minimum-stability" => $lock["minimum-stability"] ?? "stable",
-    "prefer-stable" => $lock["prefer-stable"] ?? false,
+    "minimum-stability" => isset($lock["minimum-stability"]) ? $lock["minimum-stability"] : "stable",
+    "prefer-stable" => isset($lock["prefer-stable"]) ? $lock["prefer-stable"] : false,
     "provide" => ["heroku-sys/".getenv("STACK") => "1.0.0"],
     "repositories" => $repositories,
-    "require" => array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require),
+    "require" => $require,
 ];
 echo json_encode($json);
 ' -- "$BP_DIR/support/installer/" "$S3_URL" > $BUILD_DIR/.heroku/php/composer.json || error "Couldn't parse '$COMPOSER_LOCK'; it must be valid JSON.
