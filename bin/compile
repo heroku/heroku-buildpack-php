@@ -169,7 +169,9 @@ if(file_exists(getenv("COMPOSER_LOCK"))) {
 }
 // if no PHP or HHVM is required anywhere, we need to add something
 if(!$have_runtime_req) {
-    file_put_contents("php://stderr", "NOTICE: No PHP version required in ".getenv("COMPOSER_LOCK")."; using ". ($require["heroku-sys/php"] = "^5.5.17") . "\n");
+    file_put_contents("php://stderr", "NOTICE: No runtime required in ".getenv("COMPOSER_LOCK")."; using PHP ". ($require["heroku-sys/php"] = "^5.5.17") . "\n");
+} elseif(!isset($require["heroku-sys/php"]) && !isset($require["heroku-sys/hhvm"])) {
+    file_put_contents("php://stderr", "NOTICE: No runtime required in ".getenv("COMPOSER")."; requirements\nfrom dependencies in ".getenv("COMPOSER_LOCK")." will be used for selection\n");
 }
 $json = [
     "config" => ["cache-files-ttl" => 0, "discard-changes" => true],

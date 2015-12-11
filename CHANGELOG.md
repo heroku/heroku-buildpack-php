@@ -5,6 +5,7 @@
 ### CHG
 
 - Further improve error information on failed system package install [David Zuelke]
+- Notice if implicit version selection based on dependencies' requirements is made [David Zuelke]
 
 ### FIX
 
