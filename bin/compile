@@ -165,7 +165,7 @@ if(file_exists(getenv("COMPOSER_LOCK"))) {
         $require[$package["name"]] = $package["version"];
     }
     // add all meta-packages to one local package repo
-    $repositories[] = ["type" => "package", "package" => $metapaks];
+    if($metapaks) $repositories[] = ["type" => "package", "package" => $metapaks];
 }
 // if no PHP or HHVM is required anywhere, we need to add something
 if(!$have_runtime_req) {
