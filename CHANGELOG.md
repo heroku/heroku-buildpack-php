@@ -5,6 +5,7 @@
 ### FIX
 
 - "`|`" operators in `composer.lock` platform package requirements break system package dependency resolution [David Zuelke]
+- Notice about missing runtime version selector does not show up in all cases [David Zuelke]
 
 ## v86 (2015-12-10)
 
