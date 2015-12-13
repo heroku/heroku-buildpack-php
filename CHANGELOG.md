@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v88 (2015-12-??)
+
+### FIX
+
+- Buildpack does not export PATH for multi-buildpack usage [David Zuelke]
+
 ## v87 (2015-12-11)
 
 ### CHG

@@ -427,3 +427,8 @@ if [[ ! -f "Procfile" ]]; then
     echo "web: $composer_bindir/heroku-$engine-apache2" > Procfile
     notice_inline "No Procfile, using 'web: $composer_bindir/heroku-$engine-apache2'."
 fi
+
+# export for multi buildpack
+cat > $BP_DIR/export <<"EOF"
+export PATH="/app/.heroku/php/bin:/app/.heroku/php/sbin:$PATH"
+EOF
