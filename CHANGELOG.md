@@ -2,6 +2,10 @@
 
 ## v88 (2015-12-??)
 
+### CHG
+
+- Big loud warnings if `composer.lock` is outdated (or even broken) [David Zuelke]
+
 ### FIX
 
 - Buildpack does not export PATH for multi-buildpack usage [David Zuelke]
