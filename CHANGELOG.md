@@ -5,6 +5,7 @@
 ### FIX
 
 - Buildpack does not export PATH for multi-buildpack usage [David Zuelke]
+- Composer limitation leads to lower than possible PHP versions getting resolved [David Zuelke]
 
 ## v87 (2015-12-11)
 
