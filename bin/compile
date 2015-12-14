@@ -275,12 +275,6 @@ export -f composer
 if [[ "$engine" == "php" ]]; then
     status "Enabling PHP extensions..."
     
-    php() {
-        # the newrelic extension logs to stderr which pollutes our build output on each invocation of PHP, the daemon it launches will prevent the build from finishing, and each call to PHP would be logged to NR as non-web traffic, so we disable it for the duration of this build
-        `which php` -dnewrelic.enabled=0 -dnewrelic.loglevel=error -dnewrelic.daemon.dont_launch=3 -dnewrelic.daemon.loglevel=error "$@"
-    }
-    export -f php
-    
     exts=()
     if [[ -f "$COMPOSER_LOCK" ]]; then
         exts=($(cat "$COMPOSER_LOCK" | python -c 'import sys, json, itertools; l=json.load(sys.stdin); print "\n".join(list(set(itertools.chain([plat[4:].lower() for plat in l.get("platform", []) if plat.startswith("ext-")], *[ [ pkg[4:].lower() for pkg in p.get("require", []) if pkg.startswith("ext-") ] for p in l.get("packages", []) ]))))' 2> /dev/null || true)) # convert to array
@@ -290,12 +284,6 @@ if [[ "$engine" == "php" ]]; then
         install_ext "${exts[$ext]}" $ext_source
     done
     
-    # special treatment for New Relic; we enable it if we detect a license key for it
-    install_newrelic_ext
-
-    # special treatment for Blackfire; we enable it if we detect a server id and a server token for it
-    install_blackfire_ext
-
     if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
         install_ext "zend-opcache" "automatic"
         exts+=("zend-opcache")
@@ -425,15 +413,19 @@ export -f composer
 EOF
 fi
 
-install_newrelic_daemon
-install_newrelic_userini
-#
-install_blackfire_agent
-
 if [[ ! -f "Procfile" ]]; then
     echo "web: $composer_bindir/heroku-$engine-apache2" > Procfile
     notice_inline "No Procfile, using 'web: $composer_bindir/heroku-$engine-apache2'."
 fi
+
+status "Checking for additional extensions to install..."
+# special treatment for Blackfire; we enable it if we detect a server id and a server token for it
+install_blackfire_ext
+install_blackfire_agent
+# special treatment for New Relic; we enable it if we detect a license key for it
+install_newrelic_ext
+install_newrelic_daemon
+install_newrelic_userini
 
 # export for multi buildpack
 cat > $BP_DIR/export <<"EOF"

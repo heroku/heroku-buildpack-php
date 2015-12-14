@@ -5,6 +5,7 @@
 ### CHG
 
 - Big loud warnings if `composer.lock` is outdated (or even broken) [David Zuelke]
+- Auto-install `ext-blackfire` and `ext-newrelic` at the very end of the build to avoid them instrumenting build steps or cluttering output with startup messages [David Zuelke]
 
 ### FIX
 
