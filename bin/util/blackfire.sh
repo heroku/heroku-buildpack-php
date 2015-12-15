@@ -5,7 +5,7 @@ install_blackfire_ext() {
     # otherwise users would have to have it in their require section, which is annoying in development environments
     BLACKFIRE_SERVER_ID=${BLACKFIRE_SERVER_ID:-}
     BLACKFIRE_SERVER_TOKEN=${BLACKFIRE_SERVER_TOKEN:-}
-    if [[ ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "blackfire" ) && -n "$BLACKFIRE_SERVER_TOKEN" && -n "$BLACKFIRE_SERVER_ID" ]]; then
+    if [[ "$engine" == "php" && ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "blackfire" ) && -n "$BLACKFIRE_SERVER_TOKEN" && -n "$BLACKFIRE_SERVER_ID" ]]; then
         if $engine $(which composer) require --quiet --update-no-dev -d "$BUILD_DIR/.heroku/php" -- "heroku-sys/ext-blackfire:*"; then
             install_ext "blackfire" "add-on detected"
             exts+=("blackfire")

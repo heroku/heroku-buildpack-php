@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v89 (2015-12-15)
+
+### FIX
+
+- HHVM builds failing when trying to install New Relic or Blackfire
+
 ## v88 (2015-12-15)
 
 ### CHG
