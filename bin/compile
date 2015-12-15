@@ -137,6 +137,8 @@ $BUILD_DIR/.heroku/php-min/bin/php -r '
 function mkreq($require) { return array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require); }
 // check if require section demands a runtime
 function hasreq($require) { return isset($require["php"]) || isset($require["hhvm"]); }
+// filter platform reqs
+$preqfilter = function($v) { return preg_match("#^(hhvm$|php(-64bit)?$|ext-)#", $v); };
 
 // remove first arg (0)
 array_shift($argv);
@@ -153,13 +155,13 @@ if(file_exists(getenv("COMPOSER_LOCK"))) {
     $lock = json_decode(file_get_contents(getenv("COMPOSER_LOCK")), true);
     // our main require will be what is in the lock "platform" key
     $have_runtime_req |= hasreq($lock["platform"]);
-    $require = mkreq($lock["platform"]);
+    $require = mkreq(array_filter($lock["platform"], $preqfilter, ARRAY_FILTER_USE_KEY));
     // for each package that has platform requirements we build a meta-package that we then depend on
     // we cannot simply join all those requirements together with " " or "," because of the precedence of the "|" operator: requirements "5.*," and "^5.3.9|^7.0", which should lead to a PHP 5 install, would combine into "5.*,^5.3.9|^7.0" (there is no way to group requirements), and that would give PHP 7
     $metapaks = [];
     foreach($lock["packages"] as $package) {
         // extract only platform reqs
-        $preq = array_intersect_key(isset($package["require"]) ? $package["require"] : [], array_flip(array_filter(array_keys(isset($package["require"]) ? $package["require"] : []), function($v) { return preg_match("#^(hhvm$|php(-64bit)?$|ext-)#", $v); })));
+        $preq = array_filter(isset($package["require"]) ? $package["require"] : [], $preqfilter, ARRAY_FILTER_USE_KEY);
         if(!$preq) continue;
         $have_runtime_req |= hasreq($preq);
         $metapaks[] = [
