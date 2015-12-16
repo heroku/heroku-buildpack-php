@@ -107,7 +107,9 @@ echo "-----> Bundling PHP version $PHP_VERSION"
 mkdir .heroku
 mkdir .heroku/php
 cd .heroku/php
+echo "`pwd`"
 curl --silent --max-time 60 --insecure --location "$PHP_URL" | tar xz
+echo "`ls -ltr`"
 cd ../..
 
 echo "`pwd; ls $BUILD_DIR/php; ls` $BUILD_DIR and $CACHE_DIR"
