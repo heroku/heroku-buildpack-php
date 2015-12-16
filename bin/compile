@@ -58,7 +58,7 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   make
   make install
   export PATH==$BUILD_DIR/readline:$PATH
-  export LD_LIBRARY_PAT=$BUILD_DIR/readline/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=$BUILD_DIR/readline/lib:$LD_LIBRARY_PATH
   
   cd $BUILD_DIR/autoconf-2.69
   ./configure --prefix=$BUILD_DIR/autoconf
