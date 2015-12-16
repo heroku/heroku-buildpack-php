@@ -74,7 +74,7 @@ tar -xzf linuxx64_odbc_cli.tar.gz
 
   ln -sf /usr/lib/libssl.so.1.0.0 /app/vendor/mcrypt/lib/libssl.so.0.9.8
   ln -sf /usr/lib/libcrypto.so.1.0.0 /app/vendor/mcrypt/lib/libcrypto.so.0.9.8
-  ls /app/php/bin
+  echo "`ls /app/php/bin`"
   echo "Installing ibm_db2 ..."
   pecl install ibm_db2
 }
