@@ -30,7 +30,7 @@ echo "Downloading IBM Data Server Driver...."
  curl -LO "$CLI_URL"
 # Extracting and Cleaning DS Driver
 rm -rf clidriver
-tar -xzf db2_driver_for_odbc_cli.tar.gz
+tar -xzf linuxx64_odbc_cli.tar.gz
   
 
   echo "Downloading autoconf..."
