@@ -66,7 +66,7 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   ln -s $BUILD_DIR/php /app/php
   ln -s $BUILD_DIR/vendor /app/vendor
 
-  export PATH=$BUILD_DIR/autoconf/bin:$BUILD_DIR/app/php/bin:$PATH
+  export PATH=$BUILD_DIR/autoconf/bin:/app/php/bin:$BUILD_DIR/app/php/bin:$PATH
   export IBM_DB_HOME=$BUILD_DIR/clidriver
   export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$BUILD_DIR/clidriver/lib:$LD_LIBRARY_PATH
   export PHP_AUTOCONF=$BUILD_DIR/autoconf/bin/autoconf
@@ -75,6 +75,7 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   ln -sf /usr/lib/libssl.so.1.0.0 /app/vendor/mcrypt/lib/libssl.so.0.9.8
   ln -sf /usr/lib/libcrypto.so.1.0.0 /app/vendor/mcrypt/lib/libcrypto.so.0.9.8
   echo "`ls /app/php/bin`"
+  echo "`ls $BUILD_DIR/app/php/bin`"
   echo "Installing ibm_db2 ..."
   pecl install ibm_db2
 }
