@@ -53,7 +53,7 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   make install
   export PATH=$BUILD_DIR/m4/bin:$PATH
 
-  cd readline-5.2
+  cd $BUILD_DIR/readline-5.2
   ./configure --prefix=$BUILD_DIR/readline
   make
   make install
