@@ -106,7 +106,7 @@ PHP_URL="https://lang-php.s3.amazonaws.com/dist-develop/php-5.5.11.tar.gz"
 echo "-----> Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
-echo "`pwd; ls php/bin` $BUILD_DIR and $CACHE_DIR"
+echo "`pwd; ls $BUILD_DIR/php/bin; ls` $BUILD_DIR and $CACHE_DIR"
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
