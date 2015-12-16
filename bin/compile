@@ -66,7 +66,7 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   ln -s $BUILD_DIR/php /app/php
   ln -s $BUILD_DIR/vendor /app/vendor
 
-  export PATH=$BUILD_DIR/autoconf/bin:/app/.heroku/php/bin:$BUILD_DIR/app/.heroku/php/bin:$PATH
+  export PATH=$BUILD_DIR/autoconf/bin:/app/php/bin:$BUILD_DIR/app/php/bin:$PATH
   export IBM_DB_HOME=$BUILD_DIR/clidriver
   export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$BUILD_DIR/clidriver/lib:$LD_LIBRARY_PATH
   export PHP_AUTOCONF=$BUILD_DIR/autoconf/bin/autoconf
@@ -74,7 +74,7 @@ tar -xzf linuxx64_odbc_cli.tar.gz
 
   ln -sf /usr/lib/libssl.so.1.0.0 /app/vendor/mcrypt/lib/libssl.so.0.9.8
   ln -sf /usr/lib/libcrypto.so.1.0.0 /app/vendor/mcrypt/lib/libcrypto.so.0.9.8
-  echo "`ls /app/.heroku/php/bin; ls $BUILD_DIR/app/.heroku/php/bin`"
+  echo "`ls /app//php/bin; ls $BUILD_DIR/app/php/bin`"
   echo "Installing ibm_db2 ..."
   pecl install ibm_db2
 }
@@ -104,13 +104,12 @@ curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
 PHP_URL="https://lang-php.s3.amazonaws.com/dist-develop/php-5.5.11.tar.gz"
 echo "-----> Bundling PHP version $PHP_VERSION"
-mkdir .heroku
-mkdir .heroku/php
-cd .heroku/php
+mkdir php
+cd php
 echo "`pwd`"
 curl --silent --max-time 60 --insecure --location "$PHP_URL" | tar xz
-echo "`ls -ltr`"
-cd ../..
+cd ..
+sed -i "s/.heroku\///g" "php/bin/pecl"
 
 echo "`pwd; ls $BUILD_DIR/php; ls` $BUILD_DIR and $CACHE_DIR"
 # update config files
