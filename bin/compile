@@ -107,7 +107,7 @@ PHP_URL="https://lang-php.s3.amazonaws.com/dist-develop/php-5.5.11.tar.gz"
 echo "-----> Bundling PHP version $PHP_VERSION"
 mkdir .heroku
 mkdir .heroku/php
-cd php
+cd .heroku/php
 curl --silent --max-time 60 --insecure --location "$PHP_URL" | tar xz
 cd ../..
 
