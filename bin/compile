@@ -38,10 +38,13 @@ tar -xzf linuxx64_odbc_cli.tar.gz
 
   echo "Downloading m4..."
   curl -LO http://ftp.gnu.org/pub/gnu/m4/m4-1.4.13.tar.gz
+  
+  curl -LO http://ftp.gnu.org/gnu/readline/readline-5.2.tar.gz
 
   # Extracting m4 and autoconf
   tar -xzf autoconf-2.69.tar.gz
   tar -xzf m4-1.4.13.tar.gz
+  tar -xzf readline-5.2.tar.gz
 
   echo "Installing m4 and autoconf ..."
   cd m4-1.4.13
@@ -50,6 +53,13 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   make install
   export PATH=$BUILD_DIR/m4/bin:$PATH
 
+  cd readline-5.2
+  ./configure --prefix=$BUILD_DIR/readline
+  make
+  make install
+  export PATH==$BUILD_DIR/readline:$PATH
+  export LD_LIBRARY_PAT=$BUILD_DIR/readline/lib:$LD_LIBRARY_PATH
+  
   cd $BUILD_DIR/autoconf-2.69
   ./configure --prefix=$BUILD_DIR/autoconf
   make
@@ -62,7 +72,8 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   rm -rf m4-1.4.13
   rm -rf autoconf-2.69.tar.gz
   rm -rf autoconf-2.69
-
+  rm -rf readline-5.2
+  rm -rf readline-5.2.tar.gz
   ln -s $BUILD_DIR/php /app/php
   ln -s $BUILD_DIR/vendor /app/vendor
 
