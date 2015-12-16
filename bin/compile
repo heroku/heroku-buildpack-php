@@ -66,7 +66,7 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   ln -s $BUILD_DIR/php /app/php
   ln -s $BUILD_DIR/vendor /app/vendor
 
-  export PATH=$BUILD_DIR/autoconf/bin:/app/php/bin:$BUILD_DIR/app/php/bin:$PATH
+  export PATH=$BUILD_DIR/autoconf/bin:/app/.heroku/php/bin:$BUILD_DIR/app/php/bin:$PATH
   export IBM_DB_HOME=$BUILD_DIR/clidriver
   export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$BUILD_DIR/clidriver/lib:$LD_LIBRARY_PATH
   export PHP_AUTOCONF=$BUILD_DIR/autoconf/bin/autoconf
@@ -105,10 +105,11 @@ curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
 PHP_URL="https://lang-php.s3.amazonaws.com/dist-develop/php-5.5.11.tar.gz"
 echo "-----> Bundling PHP version $PHP_VERSION"
-mkdir php
+mkdir .heroku
+mkdir .heroku/php
 cd php
 curl --silent --max-time 60 --insecure --location "$PHP_URL" | tar xz
-cd ..
+cd ../..
 
 echo "`pwd; ls $BUILD_DIR/php; ls` $BUILD_DIR and $CACHE_DIR"
 # update config files
