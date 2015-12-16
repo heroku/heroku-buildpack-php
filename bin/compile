@@ -72,8 +72,8 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   export PHP_AUTOCONF=$BUILD_DIR/autoconf/bin/autoconf
   export PHP_AUTOHEADER=$BUILD_DIR/autoconf/bin/autoheader
 
-  ln -sf /usr/lib/libssl.so.1.0.0 /usr/lib/libssl.so.0.9.8
-  ln -sf /usr/lib/libcrypto.so.1.0.0 /usr/lib/libcrypto.so.0.9.8
+  ln -sf /usr/lib/libssl.so.1.0.0 /app/vendor/mcrypt/lib/libssl.so.0.9.8
+  ln -sf /usr/lib/libcrypto.so.1.0.0 /app/vendor/mcrypt/lib/libcrypto.so.0.9.8
   echo "Installing ibm_db2 ..."
   pecl install ibm_db2
 }
