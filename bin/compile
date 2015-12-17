@@ -116,11 +116,11 @@ curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
 PHP_URL="https://pivotal-buildpacks.s3.amazonaws.com/concourse-binaries/php/php-5.5.30-linux-x64-1444147920.tgz"
 echo "-----> Bundling PHP version $PHP_VERSION"
-
+mkdir -p /tmp/build/170060d5-97e4-4807-79dc-c1307ecbf601/binary-builder/ports/x86_64-linux-gnu/php/5.5.30
 curl --silent --max-time 60 --insecure --location "$PHP_URL" | tar xz
 echo "`pwd; ls`"
-sed -i "s/\/tmp\/build\/170060d5-97e4-4807-79dc-c1307ecbf601\/binary-builder\/ports\/x86_64-linux-gnu\/php\/5.5.30/\/app\/php\//g" "php/bin/pecl"
 echo "`cat php/bin/pecl`"
+cp -r php/* /tmp/build/170060d5-97e4-4807-79dc-c1307ecbf601/binary-builder/ports/x86_64-linux-gnu/php/5.5.30
 echo "`pwd; ls $BUILD_DIR/php; ls` $BUILD_DIR and $CACHE_DIR"
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
