@@ -105,7 +105,7 @@ if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
 
-
+echo "`ls -ltR /tmp/build/`"
 MCRYPT_URL="https://heroku-buildpack-php.s3.amazonaws.com/mcrypt-""$MCRYPT_VERSION""$heroku_rev"".tar.gz"
 echo "-----> Bundling mcrypt version $MCRYPT_VERSION"
 curl --silent --max-time 60 --location "$MCRYPT_URL" | tar xz
