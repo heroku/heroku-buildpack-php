@@ -114,14 +114,14 @@ APACHE_URL="https://heroku-buildpack-php.s3.amazonaws.com/apache-""$APACHE_VERSI
 echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
-PHP_URL="https://lang-php.s3.amazonaws.com/dist-develop/php-5.5.11.tar.gz"
+PHP_URL="https://pivotal-buildpacks.s3.amazonaws.com/concourse-binaries/php/php-5.5.30-linux-x64-1444147920.tgz"
 echo "-----> Bundling PHP version $PHP_VERSION"
 mkdir php
 cd php
 echo "`pwd`"
 curl --silent --max-time 60 --insecure --location "$PHP_URL" | tar xz
 cd ..
-sed -i "s/.heroku\///g" "php/bin/pecl"
+sed -i "s/\/tmp\/build\/170060d5-97e4-4807-79dc-c1307ecbf601\/binary-builder\/ports\/x86_64-linux-gnu\/php\/5.5.30/\/app\/php\//g" "php/bin/pecl"
 
 echo "`pwd; ls $BUILD_DIR/php; ls` $BUILD_DIR and $CACHE_DIR"
 # update config files
