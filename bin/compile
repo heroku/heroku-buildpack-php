@@ -68,7 +68,7 @@ tar -xzf linuxx64_odbc_cli.tar.gz
    make
    make install
  
-   cd $BUILD_DIR/open/ssl/lib
+   cd $BUILD_DIR/openssl/lib
    ln -sf libcrypto.so.0.9.8 libcrypto.so.1.0.0
    ln -sf libssl.so.0.9.8 libssl.so.1.0.0
    
