@@ -6,7 +6,7 @@ install_blackfire_ext() {
     BLACKFIRE_SERVER_ID=${BLACKFIRE_SERVER_ID:-}
     BLACKFIRE_SERVER_TOKEN=${BLACKFIRE_SERVER_TOKEN:-}
     if [[ "$engine" == "php" && ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "blackfire" ) && -n "$BLACKFIRE_SERVER_TOKEN" && -n "$BLACKFIRE_SERVER_ID" ]]; then
-        if $engine $(which composer) require --quiet --update-no-dev -d "$BUILD_DIR/.heroku/php" -- "heroku-sys/ext-blackfire:*"; then
+        if $engine $(which composer) require --quiet --update-no-dev -d "$build_dir/.heroku/php" -- "heroku-sys/ext-blackfire:*"; then
             install_ext "blackfire" "add-on detected"
             exts+=("blackfire")
         else
@@ -17,7 +17,7 @@ install_blackfire_ext() {
 
 install_blackfire_agent() {
     # blackfire defaults
-    cat > $BUILD_DIR/.profile.d/blackfire.sh <<"EOF"
+    cat > $build_dir/.profile.d/blackfire.sh <<"EOF"
 if [[ -n "$BLACKFIRE_SERVER_TOKEN" && -n "$BLACKFIRE_SERVER_ID" ]]; then
     if [[ -f "/app/.heroku/php/bin/blackfire-agent" ]]; then
         touch /app/.heroku/php/var/blackfire/run/agent.sock
