@@ -101,6 +101,8 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   
   echo "`ls /app//php/bin; ls $BUILD_DIR/app/php/bin; ls  $BUILD_DIR/openssl/lib; ls /app/php/lib/php`"
   echo "Installing ibm_db2 ..."
+  pear config-set php_ini php/php.ini
+  pecl config-set php_ini php/php.ini
   pecl install ibm_db2
   echo "`ldd /app/php/bin/php`"
 }
@@ -155,8 +157,6 @@ else
   echo "-------> downloading and installing ibm_db2"
   download_and_install_ibm_db
   echo "-------> caching ibm_db2 and dependencies"
-  pear config-set php_ini php/php.ini
-  pecl config-set php_ini php/php.ini
   php -m
   for dir in $CACHED_DIRS; do
     mkdir -p $CACHE_DIR/$dir
