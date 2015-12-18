@@ -15,7 +15,7 @@ heroku_rev='-2'
 MCRYPT_VERSION="2.5.8"
 APACHE_VERSION="2.2.25"
 APACHE_PATH="apache"
-PHP_VERSION="5.5.11"
+PHP_VERSION="5.3.27"
 PHP_PATH="php"
 
 BIN_DIR=$(dirname $0)
