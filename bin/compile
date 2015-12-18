@@ -99,7 +99,7 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   echo "`ls /app//php/bin; ls $BUILD_DIR/app/php/bin; ls  $BUILD_DIR/openssl/lib; ls /app/php/lib/php`"
   echo "Installing ibm_db2 ..."
   pecl install ibm_db2
-  echo "`ldd php`"
+  echo "`ldd /app/php/bin/php`"
 }
   
 # include .files when moving things around
