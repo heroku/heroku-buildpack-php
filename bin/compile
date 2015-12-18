@@ -41,10 +41,13 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   
   curl -LO http://ftp.gnu.org/gnu/readline/readline-5.2.tar.gz
 
+   curl -LO http://www.openssl.org/source/openssl-0.9.8zh.tar.gz
+   
   # Extracting m4 and autoconf
   tar -xzf autoconf-2.69.tar.gz
   tar -xzf m4-1.4.13.tar.gz
   tar -xzf readline-5.2.tar.gz
+  tar -xzf openssl-0.9.8zh.tar.gz
 
   echo "Installing m4 and autoconf ..."
   cd m4-1.4.13
@@ -60,6 +63,11 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   export PATH==$BUILD_DIR/readline:$PATH
   export LD_LIBRARY_PATH=$BUILD_DIR/readline/lib:$LD_LIBRARY_PATH
   
+  cd $BUILD_DIR/openssl-0.9.8zh
+   ./config shared --prefix=$BUILD_DIR/openssl
+   make
+   make install
+   
   cd $BUILD_DIR/autoconf-2.69
   ./configure --prefix=$BUILD_DIR/autoconf
   make
@@ -74,17 +82,19 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   rm -rf autoconf-2.69
   rm -rf readline-5.2
   rm -rf readline-5.2.tar.gz
+  rm -rf openssl-0.9.8zh.tar.gz
+  rm -rf openssl-0.9.8zh
+  
   ln -s $BUILD_DIR/php /app/php
   ln -s $BUILD_DIR/vendor /app/vendor
 
-  export PATH=$BUILD_DIR/autoconf/bin:/app/php/bin:$BUILD_DIR/app/php/bin:$PATH
+  export PATH=$BUILD_DIR/autoconf/bin:/app/php/bin:$BUILD_DIR/app/php/bin:$BUILD_DIR/openssl:$PATH
   export IBM_DB_HOME=$BUILD_DIR/clidriver
-  export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$BUILD_DIR/clidriver/lib:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$BUILD_DIR/clidriver/lib:$BUILD_DIR/openssl:$LD_LIBRARY_PATH
   export PHP_AUTOCONF=$BUILD_DIR/autoconf/bin/autoconf
   export PHP_AUTOHEADER=$BUILD_DIR/autoconf/bin/autoheader
 
-  ln -sf /lib/x86_64-linux-gnu/libssl.so.1.0.0 /app/vendor/mcrypt/lib/libssl.so.0.9.8
-  ln -sf /lib/x86_64-linux-gnu/libcrypto.so.1.0.0 /app/vendor/mcrypt/lib/libcrypto.so.0.9.8
+  
   echo "`ls /app//php/bin; ls $BUILD_DIR/app/php/bin; ls  /lib/libreadline*`"
   echo "Installing ibm_db2 ..."
   pecl install ibm_db2
@@ -111,16 +121,13 @@ echo "-----> Bundling mcrypt version $MCRYPT_VERSION"
 curl --silent --max-time 60 --location "$MCRYPT_URL" | tar xz
 
 APACHE_URL="https://heroku-buildpack-php.s3.amazonaws.com/apache-""$APACHE_VERSION""$heroku_rev"".tar.gz"
-echo "-----> Bundling Apache version $APACHE_VERSION"
+echo "-----> Bundling Aapche version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
-PHP_URL="https://pivotal-buildpacks.s3.amazonaws.com/concourse-binaries/php/php-5.5.30-linux-x64-1444147920.tgz"
+PHP_URL="https://heroku-buildpack-php.s3.amazonaws.com/php-$PHP_VERSION""$heroku_rev"".tar.gz"
 echo "-----> Bundling PHP version $PHP_VERSION"
-mkdir -p /tmp/build/170060d5-97e4-4807-79dc-c1307ecbf601/binary-builder/ports/x86_64-linux-gnu/php/5.5.30
-curl --silent --max-time 60 --insecure --location "$PHP_URL" | tar xz
-echo "`pwd; ls`"
-echo "`cat php/bin/pecl`"
-cp -r php/* /tmp/build/170060d5-97e4-4807-79dc-c1307ecbf601/binary-builder/ports/x86_64-linux-gnu/php/5.5.30
+curl --silent --max-time 60 --location "$PHP_URL" | tar xz
+
 echo "`pwd; ls $BUILD_DIR/php; ls` $BUILD_DIR and $CACHE_DIR"
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
