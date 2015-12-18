@@ -101,9 +101,8 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   
   echo "`ls /app//php/bin; ls $BUILD_DIR/app/php/bin; ls  $BUILD_DIR/openssl/lib; ls /app/php/lib/php`"
   echo "Installing ibm_db2 ..."
-  pear config-set php_ini php/php.ini
-  pecl config-set php_ini php/php.ini
   pecl install ibm_db2
+  pecl config-set php_ini php/php.ini
   echo "`ldd /app/php/bin/php`"
 }
   
