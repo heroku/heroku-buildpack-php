@@ -64,15 +64,18 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   export LD_LIBRARY_PATH=$BUILD_DIR/readline/lib:$LD_LIBRARY_PATH
   
   cd $BUILD_DIR/openssl-0.9.8zh
-   ./config shared --prefix=$BUILD_DIR/openssl
+   ./config shared --prefix=$BUILD_DIR/openssl  zlib-dynamic enable-camellia
    make
    make install
+ 
    
   cd $BUILD_DIR/autoconf-2.69
   ./configure --prefix=$BUILD_DIR/autoconf
   make
   make install
-
+  
+  ldconfig
+  
   cd $BUILD_DIR
   #Cleaning clidriver, m4 and autoconf
   rm -rf linuxx64_odbc_cli.tar.gz
