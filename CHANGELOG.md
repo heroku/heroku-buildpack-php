@@ -4,7 +4,7 @@
 
 ### FIX
 
-- HHVM builds failing when trying to install New Relic or Blackfire
+- HHVM builds failing when trying to install New Relic or Blackfire [David Zuelke]
 
 ## v88 (2015-12-15)
 
