@@ -68,6 +68,9 @@ tar -xzf linuxx64_odbc_cli.tar.gz
    make
    make install
  
+   cd $BUILD_DIR/open/ssl/lib
+   ln -sf libcrypto.so.0.9.8 libcrypto.so.1.0.0
+   ln -sf libssl.so.0.9.8 libssl.so.1.0.0
    
   cd $BUILD_DIR/autoconf-2.69
   ./configure --prefix=$BUILD_DIR/autoconf
