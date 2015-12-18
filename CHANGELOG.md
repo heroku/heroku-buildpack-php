@@ -6,6 +6,10 @@
 
 - PHP/7.0.1 [David Zuelke]
 
+### CHG
+
+- Double default INI setting values for `opcache.memory_consumption`, `opcache.interned_strings_buffer` and `opcache.max_accelerated_files` [David Zuelke]
+
 ## v89 (2015-12-15)
 
 ### FIX
