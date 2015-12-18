@@ -74,8 +74,6 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   make
   make install
   
-  ldconfig
-  
   cd $BUILD_DIR
   #Cleaning clidriver, m4 and autoconf
   rm -rf linuxx64_odbc_cli.tar.gz
