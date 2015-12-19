@@ -18,6 +18,7 @@
 ### FIX
 
 - PHP 7 extension formulae use wrong API version in folder name [David Zuelke]
+- Composer build formula depends on removed PHP formula [Stefan Siegl]
 
 ## v91 (2016-01-08)
 
