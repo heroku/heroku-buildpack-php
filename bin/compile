@@ -151,7 +151,6 @@ if [ -f clidriver/lib/libdb2.so ]; then
   echo "-------> restoring ibm_db2 from cache"
   mv ibm_db2.so php/lib/php/extensions/no-debug-non-zts-20090626/
   echo "-------> restored ibm_db2"
-  echo "`ldd /app/apache/modules/libphp5.so`"
 else
   echo "-------> downloading and installing ibm_db2"
   download_and_install_ibm_db
@@ -175,6 +174,7 @@ cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
   echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
 done
+  echo "`ls /app/apache/modules; ldd /app/apache/modules/libphp5.so`"
 touch /app/apache/logs/error_log
 touch /app/apache/logs/access_log
 tail -F /app/apache/logs/error_log &
@@ -189,3 +189,4 @@ chmod +x boot.sh
 
 # clean the cache
 #rm -rf $CACHE_DIR
+ 
