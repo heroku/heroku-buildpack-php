@@ -144,7 +144,20 @@ for dir in $CACHED_DIRS; do
   cp -R $CACHE_DIR/$dir/* . &> /dev/null || true
 done
 
-rm -rf clidriver 
+curl -LO http://www.openssl.org/source/openssl-0.9.8zh.tar.gz
+   tar -xzf openssl-0.9.8zh.tar.gz
+    cd $BUILD_DIR/openssl-0.9.8zh   
+
+   cd $BUILD_DIR/openssl-0.9.8zh
+   ./config shared --prefix=$BUILD_DIR/openssl  zlib-dynamic enable-camellia
+   make
+   make install
+ 
+   cd $BUILD_DIR/openssl/lib
+   ln -sf libcrypto.so.0.9.8 libcrypto.so.1.0.0
+   ln -sf libssl.so.0.9.8 libssl.so.1.0.0
+
+
 
 if [ -f clidriver/lib/libdb2.so ]; then
   # we have from cache, just restore php's db2.so
@@ -179,7 +192,7 @@ touch /app/apache/logs/error_log
 touch /app/apache/logs/access_log
 tail -F /app/apache/logs/error_log &
 tail -F /app/apache/logs/access_log &
-export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$BUILD_DIR/clidriver/lib:$BUILD_DIR/openssl/lib:/app/php/lib/php:$LD_LIBRARY_PATH
+export LD_LIBRARY_PATH=$BUILD_DIR/openssl/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/app/php/lib/php:/app/clidriver/lib
 export PHP_INI_SCAN_DIR=/app/www
 echo "Launching apache"
