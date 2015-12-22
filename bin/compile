@@ -102,7 +102,6 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   echo "`ls /app//php/bin; ls $BUILD_DIR/app/php/bin; ls  $BUILD_DIR/openssl/lib; ls /app/php/lib/php`"
   echo "Installing ibm_db2 ..."
   pecl install ibm_db2
-  pecl config-set php_ini php/php.ini
   echo "`ldd /app/php/bin/php`"
 }
   
@@ -145,6 +144,7 @@ for dir in $CACHED_DIRS; do
   cp -R $CACHE_DIR/$dir/* . &> /dev/null || true
 done
 
+rm -rf clidriver 
 
 if [ -f clidriver/lib/libdb2.so ]; then
   # we have from cache, just restore php's db2.so
