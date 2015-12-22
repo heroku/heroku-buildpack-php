@@ -138,10 +138,14 @@ for dir in $CACHED_DIRS; do
 done
 
 if [ -f clidriver/lib/libdb2.so ]; then
+    curl -LO http://www.openssl.org/source/openssl-0.9.8zh.tar.gz
+    tar -xzf openssl-0.9.8zh
     cd $BUILD_DIR/openssl-0.9.8zh
    ./config shared --prefix=$BUILD_DIR/openssl  zlib-dynamic enable-camellia
    make
    make install
+   rm -rf openssl-0.9.8zh 
+   rm -rf openssl-0.9.8zh.tar.gz
  
    cd $BUILD_DIR/openssl/lib
    ln -sf libcrypto.so.0.9.8 libcrypto.so.1.0.0
