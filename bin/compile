@@ -138,6 +138,7 @@ for dir in $CACHED_DIRS; do
 done
 
 if [ -f clidriver/lib/libdb2.so ]; then
+    cd $BUILD_DIR
     curl -LO http://www.openssl.org/source/openssl-0.9.8zh.tar.gz
     tar -xzf openssl-0.9.8zh
     cd $BUILD_DIR/openssl-0.9.8zh
@@ -150,7 +151,7 @@ if [ -f clidriver/lib/libdb2.so ]; then
    cd $BUILD_DIR/openssl/lib
    ln -sf libcrypto.so.0.9.8 libcrypto.so.1.0.0
    ln -sf libssl.so.0.9.8 libssl.so.1.0.0
-   
+   cd $BUILD_DIR
   # we have from cache, just restore php's db2.so
   echo "-------> restoring ibm_db2 from cache"
   mv ibm_db2.so php/lib/php/extensions/no-debug-non-zts-20090626/
