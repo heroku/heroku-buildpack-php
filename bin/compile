@@ -56,13 +56,6 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   make install
   export PATH=$BUILD_DIR/m4/bin:$PATH
 
-  cd $BUILD_DIR/readline-5.2
-  ./configure --prefix=$BUILD_DIR/readline
-  make
-  make install
-  export PATH==$BUILD_DIR/readline:$PATH
-  export LD_LIBRARY_PATH=$BUILD_DIR/readline/lib:$LD_LIBRARY_PATH
-  
   cd $BUILD_DIR/openssl-0.9.8zh
    ./config shared --prefix=$BUILD_DIR/openssl  zlib-dynamic enable-camellia
    make
@@ -144,11 +137,8 @@ for dir in $CACHED_DIRS; do
   cp -R $CACHE_DIR/$dir/* . &> /dev/null || true
 done
 
-curl -LO http://www.openssl.org/source/openssl-0.9.8zh.tar.gz
-   tar -xzf openssl-0.9.8zh.tar.gz
-    cd $BUILD_DIR/openssl-0.9.8zh   
-
-   cd $BUILD_DIR/openssl-0.9.8zh
+if [ -f clidriver/lib/libdb2.so ]; then
+    cd $BUILD_DIR/openssl-0.9.8zh
    ./config shared --prefix=$BUILD_DIR/openssl  zlib-dynamic enable-camellia
    make
    make install
@@ -156,10 +146,7 @@ curl -LO http://www.openssl.org/source/openssl-0.9.8zh.tar.gz
    cd $BUILD_DIR/openssl/lib
    ln -sf libcrypto.so.0.9.8 libcrypto.so.1.0.0
    ln -sf libssl.so.0.9.8 libssl.so.1.0.0
-
-
-
-if [ -f clidriver/lib/libdb2.so ]; then
+   
   # we have from cache, just restore php's db2.so
   echo "-------> restoring ibm_db2 from cache"
   mv ibm_db2.so php/lib/php/extensions/no-debug-non-zts-20090626/
