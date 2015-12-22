@@ -174,7 +174,7 @@ cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
   echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
 done
-  echo "`ls /app/apache/modules; ldd /app/apache/modules/libphp5.so`"
+  echo "`ls /tmp/staged/app/apache/modules; ldd /tmp/staged/app/apache/modules/libphp5.so`"
 touch /app/apache/logs/error_log
 touch /app/apache/logs/access_log
 tail -F /app/apache/logs/error_log &
