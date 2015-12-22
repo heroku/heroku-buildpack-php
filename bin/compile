@@ -140,7 +140,7 @@ done
 if [ -f clidriver/lib/libdb2.so ]; then
     cd $BUILD_DIR
     curl -LO http://www.openssl.org/source/openssl-0.9.8zh.tar.gz
-    tar -xzf openssl-0.9.8zh
+    tar -xzf openssl-0.9.8zh.tar.gz
     cd $BUILD_DIR/openssl-0.9.8zh
    ./config shared --prefix=$BUILD_DIR/openssl  zlib-dynamic enable-camellia
    make
