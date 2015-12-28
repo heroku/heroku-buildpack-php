@@ -156,13 +156,21 @@ $have_runtime_req = false;
 if(file_exists(getenv("COMPOSER_LOCK"))) {
     $lock = json_decode(file_get_contents(getenv("COMPOSER_LOCK")), true);
     // basic lock file validity check
-    if(!$lock || !isset($lock["platform"], $lock["packages"])) exit(1);
-    // our main require will be what is in the lock "platform" key
+    if(!$lock || !isset($lock["platform"], $lock["packages"], $lock["hash"])) exit(1);
     $have_runtime_req |= hasreq($lock["platform"]);
-    $require = mkreq(array_filter($lock["platform"], $preqfilter, ARRAY_FILTER_USE_KEY));
     // for each package that has platform requirements we build a meta-package that we then depend on
     // we cannot simply join all those requirements together with " " or "," because of the precedence of the "|" operator: requirements "5.*," and "^5.3.9|^7.0", which should lead to a PHP 5 install, would combine into "5.*,^5.3.9|^7.0" (there is no way to group requirements), and that would give PHP 7
     $metapaks = [];
+    // whatever is in the lock "platform" key will be turned into a meta-package too, named "composer.json/composer.lock"
+    // this will result in an installer event for that meta-package, from which we can extract what extensions that are bundled (and hence "replace"d) with the runtime need to be enabled
+    // if we do not do this, then a require for e.g. ext-curl or ext-mbstring in the main composer.json cannot be found by the installer plugin
+    $root = [
+        "name" => getenv("COMPOSER")."/".getenv("COMPOSER_LOCK"),
+        "version" => "dev-".$lock["hash"],
+        "require" => $lock["platform"],
+    ];
+    $lock["packages"][] = $root;
+    $require[$root["name"]] = $root["version"];
     foreach($lock["packages"] as $package) {
         // extract only platform reqs
         $preq = array_filter(isset($package["require"]) ? $package["require"] : [], $preqfilter, ARRAY_FILTER_USE_KEY);
@@ -183,7 +191,7 @@ if(file_exists(getenv("COMPOSER_LOCK"))) {
 // if no PHP or HHVM is required anywhere, we need to add something
 if(!$have_runtime_req) {
     file_put_contents("php://stderr", "NOTICE: No runtime required in ".getenv("COMPOSER_LOCK")."; using PHP ". ($require["heroku-sys/php"] = "^5.5.17") . "\n");
-} elseif(!isset($require["heroku-sys/php"]) && !isset($require["heroku-sys/hhvm"])) {
+} elseif(!isset($root["require"]["php"]) && !isset($root["require"]["hhvm"])) {
     file_put_contents("php://stderr", "NOTICE: No runtime required in ".getenv("COMPOSER")."; requirements\nfrom dependencies in ".getenv("COMPOSER_LOCK")." will be used for selection\n");
 }
 $json = [
