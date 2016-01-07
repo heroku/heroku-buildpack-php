@@ -8,6 +8,7 @@
 - PHP/7.0.2 [David Zuelke]
 - PHP/5.6.17 [David Zuelke]
 - PHP/5.5.31 [David Zuelke]
+- ext-apcu/5.1.2 [David Zuelke]
 
 ## v90 (2015-12-18)
 
