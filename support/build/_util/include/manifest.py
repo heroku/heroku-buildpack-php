@@ -2,7 +2,7 @@ import os, sys, json, re, datetime
 
 require = json.loads(sys.argv[5])
 require["heroku-sys/"+os.getenv("STACK")] = "^1.0.0"
-require["heroku/installer-plugin"] = "^1.0.0"
+require["heroku/installer-plugin"] = "^1.1.0"
 
 manifest = {
     "type": sys.argv[1],
