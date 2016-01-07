@@ -2,6 +2,10 @@
 
 ## v93 (2016-02-??)
 
+### ADD
+
+- Support custom platform repositories via space separated `HEROKU_PHP_PLATFORM_REPOSITORIES` env var; leading "-" entry disables default repository [David Zuelke]
+
 ### FIX
 
 - Internal `php-min` symlink ends up in root of built apps [David Zuelke]
