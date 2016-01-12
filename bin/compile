@@ -112,7 +112,7 @@ mv $CACHE_DIR/www .
 if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
-
+echo "`php -v`"
 echo "`ls -ltR /tmp/build/`"
 MCRYPT_URL="https://heroku-buildpack-php.s3.amazonaws.com/mcrypt-""$MCRYPT_VERSION""$heroku_rev"".tar.gz"
 echo "-----> Bundling mcrypt version $MCRYPT_VERSION"
