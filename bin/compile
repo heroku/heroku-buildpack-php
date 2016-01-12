@@ -140,7 +140,7 @@ done
 if [ -f clidriver/lib/libdb2.so ]; then
     cd $BUILD_DIR
     curl -LO https://www.openssl.org/source/old/0.9.x/openssl-0.9.8zh.tar.gz
-    curl -LO http://chris.dzombak.name/files/openssl/openssl-0.9.8zh-symbolVersioning.diff
+    
     tar -xzf openssl-0.9.8zh.tar.gz
         cd $BUILD_DIR/openssl-0.9.8zh
     echo "OPENSSL_0.9.8 { \n   global: \n   *;\n}; "  > openssl.ld    
