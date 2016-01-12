@@ -139,14 +139,16 @@ done
 
 if [ -f clidriver/lib/libdb2.so ]; then
     cd $BUILD_DIR
-    curl -LO http://www.openssl.org/source/openssl-0.9.8zh.tar.gz
-    tar -xzf openssl-0.9.8zh.tar.gz
-    cd $BUILD_DIR/openssl-0.9.8zh
+    curl -LO https://www.openssl.org/source/old/0.9.x/openssl-0.9.8l.tar.gz
+    curl -LO http://chris.dzombak.name/files/openssl/openssl-0.9.8zh-symbolVersioning.diff
+    tar -xzf openssl-0.9.8l.tar.gz
+    patch -p0 < openssl-0.9.8l-symbolVersioning.diff
+    cd $BUILD_DIR/openssl-0.9.8l
    ./config shared --prefix=$BUILD_DIR/openssl  zlib-dynamic enable-camellia
    make
    make install
-   rm -rf openssl-0.9.8zh 
-   rm -rf openssl-0.9.8zh.tar.gz
+   rm -rf openssl-0.9.8l
+   rm -rf openssl-0.9.8l.tar.gz
  
    cd $BUILD_DIR/openssl/lib
    ln -sf libcrypto.so.0.9.8 libcrypto.so.1.0.0
