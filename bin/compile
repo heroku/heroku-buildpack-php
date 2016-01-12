@@ -138,12 +138,15 @@ for dir in $CACHED_DIRS; do
 done
 
 if [ -f clidriver/lib/libdb2.so ]; then
-    cd $BUILD_DIR
-    curl -LO http://www.openssl.org/source/openssl-0.9.8zh.tar.gz
+   cd $BUILD_DIR
+   curl -LO http://www.openssl.org/source/openssl-0.9.8zh.tar.gz
     
-    tar -xzf openssl-0.9.8zh.tar.gz
-        cd $BUILD_DIR/openssl-0.9.8zh
-    echo "OPENSSL_0.9.8 { \n   global: \n   *;\n}; "  > openssl.ld    
+   tar -xzf openssl-0.9.8zh.tar.gz
+   cd $BUILD_DIR/openssl-0.9.8zh
+   echo "OPENSSL_0.9.8 { \n   global: \n   *;\n}; "  > openssl.ld  
+   cd engines
+   echo "OPENSSL_0.9.8 { \n   global: \n   *;\n}; "  > openssl.ld
+   cd ..
    ./config shared --prefix=$BUILD_DIR/openssl  zlib-dynamic enable-camellia  -Wl,--version-script=openssl.ld -Wl,-Bsymbolic-functions
    make depend
    make
