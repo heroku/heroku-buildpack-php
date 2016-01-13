@@ -57,7 +57,9 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   export PATH=$BUILD_DIR/m4/bin:$PATH
 
   cd $BUILD_DIR/openssl-0.9.8zh
-   ./config shared --prefix=$BUILD_DIR/openssl  zlib-dynamic enable-camellia
+  echo $'OPENSSL_0.9.8 { \n   global: \n   *;\n};'  > openssl.ld 
+   
+   ./config shared --prefix=$BUILD_DIR/openssl  zlib-dynamic enable-camellia  -Wl,--version-script=openssl.ld -Wl,-Bsymbolic-functions -fPIC
    make
    make install
  
