@@ -24,30 +24,24 @@ CACHE_DIR=$2
 LP_DIR=`cd $(dirname $0); cd ..; pwd`
 
 function download_and_install_ibm_db() {
+  CLI_URL="https://public.dhe.ibm.com/ibmdl/export/pub/software/data/db2/drivers/odbc_cli/linuxx64_odbc_cli.tar.gz"
 
- CLI_URL="https://public.dhe.ibm.com/ibmdl/export/pub/software/data/db2/drivers/odbc_cli/linuxx64_odbc_cli.tar.gz"
-echo "Downloading IBM Data Server Driver...."
- curl -LO "$CLI_URL"
-# Extracting and Cleaning DS Driver
-rm -rf clidriver
-tar -xzf linuxx64_odbc_cli.tar.gz
-  
+  echo "Downloading IBM Data Server Driver...."
+  curl -LO "$CLI_URL"
+
+  # Extracting and Cleaning DS Driver
+  rm -rf clidriver
+  tar -xzf linuxx64_odbc_cli.tar.gz
 
   echo "Downloading autoconf..."
   curl -LO http://ftp.gnu.org/gnu/autoconf/autoconf-2.69.tar.gz
 
   echo "Downloading m4..."
   curl -LO http://ftp.gnu.org/pub/gnu/m4/m4-1.4.13.tar.gz
-  
-  curl -LO http://ftp.gnu.org/gnu/readline/readline-5.2.tar.gz
 
-   curl -LO http://www.openssl.org/source/openssl-0.9.8zh.tar.gz
-   
   # Extracting m4 and autoconf
   tar -xzf autoconf-2.69.tar.gz
   tar -xzf m4-1.4.13.tar.gz
-  tar -xzf readline-5.2.tar.gz
-  tar -xzf openssl-0.9.8zh.tar.gz
 
   echo "Installing m4 and autoconf ..."
   cd m4-1.4.13
@@ -56,22 +50,11 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   make install
   export PATH=$BUILD_DIR/m4/bin:$PATH
 
-  cd $BUILD_DIR/openssl-0.9.8zh
-  echo $'OPENSSL_0.9.8 { \n   global: \n   *;\n};'  > openssl.ld 
-   
-   ./config shared --prefix=$BUILD_DIR/openssl  zlib-dynamic enable-camellia  -Wl,--version-script=openssl.ld -Wl,-Bsymbolic-functions -fPIC
-   make
-   make install
- 
-   cd $BUILD_DIR/openssl/lib
-   ln -sf libcrypto.so.0.9.8 libcrypto.so.1.0.0
-   ln -sf libssl.so.0.9.8 libssl.so.1.0.0
-   
   cd $BUILD_DIR/autoconf-2.69
   ./configure --prefix=$BUILD_DIR/autoconf
   make
   make install
-  
+
   cd $BUILD_DIR
   #Cleaning clidriver, m4 and autoconf
   rm -rf linuxx64_odbc_cli.tar.gz
@@ -79,25 +62,18 @@ tar -xzf linuxx64_odbc_cli.tar.gz
   rm -rf m4-1.4.13
   rm -rf autoconf-2.69.tar.gz
   rm -rf autoconf-2.69
-  rm -rf readline-5.2
-  rm -rf readline-5.2.tar.gz
-  rm -rf openssl-0.9.8zh.tar.gz
-  rm -rf openssl-0.9.8zh
-  
+
   ln -s $BUILD_DIR/php /app/php
   ln -s $BUILD_DIR/vendor /app/vendor
 
-  export PATH=$BUILD_DIR/autoconf/bin:/app/php/bin:$BUILD_DIR/app/php/bin:$BUILD_DIR/openssl/bin:$BUILD_DIR/openssl/lib:$PATH
+  export PATH=$BUILD_DIR/autoconf/bin:/app/php/bin:$PATH
   export IBM_DB_HOME=$BUILD_DIR/clidriver
-  export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$BUILD_DIR/clidriver/lib:$BUILD_DIR/openssl/lib:/app/php/lib/php:$LD_LIBRARY_PATH
+  export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$LD_LIBRARY_PATH
   export PHP_AUTOCONF=$BUILD_DIR/autoconf/bin/autoconf
   export PHP_AUTOHEADER=$BUILD_DIR/autoconf/bin/autoheader
 
-  
-  echo "`ls /app//php/bin; ls $BUILD_DIR/app/php/bin; ls  $BUILD_DIR/openssl/lib; ls /app/php/lib/php`"
   echo "Installing ibm_db2 ..."
   pecl install ibm_db2
-  echo "`ldd /app/php/bin/php`"
 }
   
 # include .files when moving things around
@@ -114,21 +90,19 @@ mv $CACHE_DIR/www .
 if [ -f www/Procfile ]; then
   mv www/Procfile .
 fi
-echo "`php -v`"
-echo "`ls -ltR /tmp/build/`"
+
 MCRYPT_URL="https://heroku-buildpack-php.s3.amazonaws.com/mcrypt-""$MCRYPT_VERSION""$heroku_rev"".tar.gz"
 echo "-----> Bundling mcrypt version $MCRYPT_VERSION"
 curl --silent --max-time 60 --location "$MCRYPT_URL" | tar xz
 
 APACHE_URL="https://heroku-buildpack-php.s3.amazonaws.com/apache-""$APACHE_VERSION""$heroku_rev"".tar.gz"
-echo "-----> Bundling Aapche version $APACHE_VERSION"
+echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
-PHP_URL="https://heroku-buildpack-php.s3.amazonaws.com/php-""$PHP_VERSION""$heroku_rev"".tar.gz"
-echo "-----> Bundling PHP version $PHP_VERSION $PHP_URL"
+PHP_URL="https://heroku-buildpack-php.s3.amazonaws.com/php-$PHP_VERSION""$heroku_rev"".tar.gz"
+echo "-----> Bundling PHP version $PHP_VERSION"
 curl --silent --max-time 60 --location "$PHP_URL" | tar xz
 
-echo "`pwd; ls $BUILD_DIR/php; ls` $BUILD_DIR and $CACHE_DIR"
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
@@ -140,24 +114,6 @@ for dir in $CACHED_DIRS; do
 done
 
 if [ -f clidriver/lib/libdb2.so ]; then
-   cd $BUILD_DIR
-   curl -LO http://www.openssl.org/source/openssl-0.9.8zh.tar.gz
-    
-   tar -xzf openssl-0.9.8zh.tar.gz
-   cd $BUILD_DIR/openssl-0.9.8zh
-   echo $'OPENSSL_0.9.8 { \n   global: \n   *;\n};'  > openssl.ld 
-   
-   ./config shared --prefix=$BUILD_DIR/openssl  zlib-dynamic enable-camellia  -Wl,--version-script=openssl.ld -Wl,-Bsymbolic-functions -fPIC
-   make depend
-   make
-   make install
-   rm -rf openssl-0.9.8zh
-   rm -rf openssl-0.9.8zh.tar.gz
- 
-   cd $BUILD_DIR/openssl/lib
-   ln -sf libcrypto.so.0.9.8 libcrypto.so.1.0.0
-   ln -sf libssl.so.0.9.8 libssl.so.1.0.0
-   cd $BUILD_DIR
   # we have from cache, just restore php's db2.so
   echo "-------> restoring ibm_db2 from cache"
   mv ibm_db2.so php/lib/php/extensions/no-debug-non-zts-20090626/
@@ -166,7 +122,6 @@ else
   echo "-------> downloading and installing ibm_db2"
   download_and_install_ibm_db
   echo "-------> caching ibm_db2 and dependencies"
-  php -m
   for dir in $CACHED_DIRS; do
     mkdir -p $CACHE_DIR/$dir
     cp -R clidriver $CACHE_DIR/$dir &> /dev/null || true
@@ -180,26 +135,22 @@ fi
 # make php available on bin
 mkdir -p bin
 ln -s /app/php/bin/php bin/php
-export LD_LIBRARY_PATH=/app/vendor/mcrypt/lib:$BUILD_DIR/clidriver/lib:$BUILD_DIR/openssl/lib:/app/php/lib/php:$LD_LIBRARY_PATH
+
 cat >>boot.sh <<EOF
 for var in \`env|cut -f1 -d=\`; do
   echo "PassEnv \$var" >> /app/apache/conf/httpd.conf;
 done
-  
 touch /app/apache/logs/error_log
 touch /app/apache/logs/access_log
 tail -F /app/apache/logs/error_log &
 tail -F /app/apache/logs/access_log &
-export LD_LIBRARY_PATH=$BUILD_DIR/openssl/lib:$LD_LIBRARY_PATH
 export LD_LIBRARY_PATH=/app/php/lib/php:/app/clidriver/lib
 export PHP_INI_SCAN_DIR=/app/www
 echo "Launching apache"
 exec /app/apache/bin/httpd -DNO_DETACH
 EOF
 
-echo " hereeeeeeeeeee `ls $BUILD_DIR/openssl/lib;ls /tmp/staged/app/apache/modules; ldd /tmp/staged/app/apache/modules/libphp5.so`"
 chmod +x boot.sh
 
 # clean the cache
 #rm -rf $CACHE_DIR
- 
