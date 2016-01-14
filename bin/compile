@@ -161,3 +161,4 @@ chmod +x boot.sh
 
 # clean the cache
 #rm -rf $CACHE_DIR
+echo "`/app/php/bin/php -m`"
