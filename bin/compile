@@ -74,6 +74,7 @@ function download_and_install_ibm_db() {
 
   echo "Installing ibm_db2 ..."
   pecl install ibm_db2
+  echo "`which sed`"
 }
   
 # include .files when moving things around
@@ -102,9 +103,13 @@ curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 cp $LP_DIR/php.tar.gz .
 tar -xzf php.tar.gz
 
+echo "`pwd;  ls /tmp/staged/app/php`"
+
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
+mv $PHP_PATH/libphp5.so $APACHE_PATH/modules
+
 
 # Restore old artifacts from the cache.
 CACHED_DIRS="ibmdb2"
@@ -112,6 +117,7 @@ for dir in $CACHED_DIRS; do
   cp -R $CACHE_DIR/$dir/* . &> /dev/null || true
 done
 
+ echo "heloo `which sed`"
 if [ -f clidriver/lib/libdb2.so ]; then
   # we have from cache, just restore php's db2.so
   echo "-------> restoring ibm_db2 from cache"
