@@ -105,6 +105,8 @@ tar -xzf php.tar.gz
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
+mv /app/php/libphp5.so /app/apache/modules
+
 
 # Restore old artifacts from the cache.
 CACHED_DIRS="ibmdb2"
