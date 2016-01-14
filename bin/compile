@@ -74,6 +74,7 @@ function download_and_install_ibm_db() {
 
   echo "Installing ibm_db2 ..."
   pecl install ibm_db2
+  echo "`which sed`"
 }
   
 # include .files when moving things around
