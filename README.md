@@ -40,6 +40,7 @@ To get started with it, create a Python app (*Bob* is a Python application) on H
     $ heroku config:set AWS_SECRET_ACCESS_KEY=<your_aws_secret>
     $ heroku config:set S3_BUCKET=<your_s3_bucket_name>
     $ heroku config:set S3_PREFIX=<optional_s3_subfolder_to_upload_to>
+    $ git push heroku master
 
 Then, shell into an instance and run a build by giving the name of the formula inside `support/build`:
 
