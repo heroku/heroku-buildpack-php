@@ -119,7 +119,7 @@ for dir in $CACHED_DIRS; do
 done
 
 echo "heloo `which sed`"
-rm -rf clidriver
+
  
 if [ -f clidriver/lib/libdb2.so ]; then
   # we have from cache, just restore php's db2.so
@@ -162,4 +162,4 @@ chmod +x boot.sh
 
 # clean the cache
 #rm -rf $CACHE_DIR
-echo "`/app/php/bin/php -m; /app/php/lib/php/extensions/no-debug-zts-20121212`"
+echo "`/app/php/bin/php -m; ls /app/php/lib/php/extensions/no-debug-zts-20121212`"
