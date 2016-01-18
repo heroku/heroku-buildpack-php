@@ -124,7 +124,7 @@ echo "heloo `which sed`"
 if [ -f clidriver/lib/libdb2.so ]; then
   # we have from cache, just restore php's db2.so
   echo "-------> restoring ibm_db2 from cache"
-  mv ibm_db2.so php/lib/php/extensions/no-debug-zts-20121212/
+  mv ibm_db2.so php/lib/php/extensions/no-debug-non-zts-20121212/
   echo "-------> restored ibm_db2"
 else
   echo "-------> downloading and installing ibm_db2"
@@ -133,7 +133,7 @@ else
   for dir in $CACHED_DIRS; do
     mkdir -p $CACHE_DIR/$dir
     cp -R clidriver $CACHE_DIR/$dir &> /dev/null || true
-    cp php/lib/php/extensions/no-debug-zts-20121212/ibm_db2.so $CACHE_DIR/$dir &> /dev/null || true
+    cp php/lib/php/extensions/no-debug-non-zts-20121212/ibm_db2.so $CACHE_DIR/$dir &> /dev/null || true
     echo "-------> caching ibm_db2 done"
   done
 fi
