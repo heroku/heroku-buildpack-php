@@ -162,4 +162,4 @@ chmod +x boot.sh
 
 # clean the cache
 #rm -rf $CACHE_DIR
-echo "`/app/php/bin/php -m; ls /app/php/lib/php/extensions/no-debug-zts-20121212`"
+echo "`/app/php/bin/php -m; ls /app/php/lib/php/extensions/no-debug-non-zts-20121212`"
