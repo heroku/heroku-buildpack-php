@@ -101,7 +101,7 @@ echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
 cp $LP_DIR/php.tar.gz .
-tar -xzf php.tar.gz
+tar -xvzf php.tar.gz
 
 echo "`pwd;  ls /tmp/staged/app/php`"
 
@@ -120,6 +120,7 @@ done
 
 echo "heloo `which sed`"
 
+ rm -rf clidriver
  
 if [ -f clidriver/lib/libdb2.so ]; then
   # we have from cache, just restore php's db2.so
