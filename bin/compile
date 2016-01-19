@@ -100,8 +100,14 @@ APACHE_URL="https://heroku-buildpack-php.s3.amazonaws.com/apache-""$APACHE_VERSI
 echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
-cp $LP_DIR/php.tar.gz .
-tar -xzf php.tar.gz
+curl -LO http://au1.php.net/distributions/php-5.3.27.tar.gz
+
+echo "` perl -v; ls $APACHE_PATH/bin`"
+tar -xzf php-5.3.27.tar.gz
+cd php-5.3.27
+./configure --with-apxs2=/tmp/staged/app/apache/bin/apxs --prefix=/tmp/staged/app/php --disable-cgi --with-zlib --with-gettext --with-mysql --enable-soap --enable-libxml --with-pcre-regex --enable-session --enable-sockets --enable-xml --enable-xmlwriter --enable-xmlreader --enable-simplexml --enable-zip --with-openssl --enable-libxml
+make
+make install
 
 echo "`pwd;  ls /tmp/staged/app/php; ldd /usr/bin/openssl`"
 
@@ -109,7 +115,7 @@ echo "`pwd;  ls /tmp/staged/app/php; ldd /usr/bin/openssl`"
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
 cp $LP_DIR/conf/php.ini php/lib
-mv $PHP_PATH/libphp5.so $APACHE_PATH/modules
+
 
 
 # Restore old artifacts from the cache.
@@ -163,4 +169,4 @@ chmod +x boot.sh
 
 # clean the cache
 #rm -rf $CACHE_DIR
-echo "`/app/php/bin/php -m; ls /app/php/lib/php/extensions/no-debug-non-zts-20121212`"
+echo "`/app/php/bin/php -m; ls /app/php/lib/php/extensions/no-debug-non-zts-20121212; openssl version; ldd /app/apache/modules/libphp5.so`"
