@@ -100,8 +100,13 @@ APACHE_URL="https://heroku-buildpack-php.s3.amazonaws.com/apache-""$APACHE_VERSI
 echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
-cp $LP_DIR/php.tar.gz .
-tar -xzf php.tar.gz
+curl -LO http://au1.php.net/distributions/php-5.3.27.tar.gz
+
+tar -xzf php-5.3.27.tar.gz
+cd php-5.3.27
+configure --with-apxs2=/app/apache/bin/apxs --prefix=/app/php --disable-cgi --with-zlib --with-gettext --with-mysql --enable-soap --enable-libxml --with-pcre-regex --enable-session --enable-sockets --enable-xml --enable-xmlwriter --enable-xmlreader --enable-simplexml --enable-zip --with-openssl --enable-libxml
+make
+make install
 
 echo "`pwd;  ls /tmp/staged/app/php; ldd /usr/bin/openssl`"
 
