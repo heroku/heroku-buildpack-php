@@ -104,7 +104,7 @@ curl -LO http://au1.php.net/distributions/php-5.3.27.tar.gz
 
 tar -xzf php-5.3.27.tar.gz
 cd php-5.3.27
-configure --with-apxs2=/app/apache/bin/apxs --prefix=/app/php --disable-cgi --with-zlib --with-gettext --with-mysql --enable-soap --enable-libxml --with-pcre-regex --enable-session --enable-sockets --enable-xml --enable-xmlwriter --enable-xmlreader --enable-simplexml --enable-zip --with-openssl --enable-libxml
+./configure --with-apxs2=/app/apache/bin/apxs --prefix=/app/php --disable-cgi --with-zlib --with-gettext --with-mysql --enable-soap --enable-libxml --with-pcre-regex --enable-session --enable-sockets --enable-xml --enable-xmlwriter --enable-xmlreader --enable-simplexml --enable-zip --with-openssl --enable-libxml
 make
 make install
 
