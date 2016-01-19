@@ -114,7 +114,7 @@ echo "`pwd;  ls /tmp/staged/app/php; ldd /usr/bin/openssl`"
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
 cp $LP_DIR/conf/php.ini php/lib
-mv $PHP_PATH/libphp5.so $APACHE_PATH/modules
+
 
 
 # Restore old artifacts from the cache.
