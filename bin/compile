@@ -74,7 +74,6 @@ function download_and_install_ibm_db() {
 
   echo "Installing ibm_db2 ..."
   pecl install ibm_db2
-  echo "`which sed`"
 }
   
 # include .files when moving things around
@@ -100,20 +99,16 @@ APACHE_URL="https://heroku-buildpack-php.s3.amazonaws.com/apache-""$APACHE_VERSI
 echo "-----> Bundling Apache version $APACHE_VERSION"
 curl --silent --max-time 60 --location "$APACHE_URL" | tar xz
 
+echo "-----> Bundling PHP"
 cp $LP_DIR/php.tar.gz .
-
 tar -xzf php.tar.gz
 
 mv $PHP_PATH/libphp5.so $APACHE_PATH/modules
-
-echo "`pwd;  ls /tmp/staged/app/php; ldd /usr/bin/openssl`"
 
 # update config files
 cp $LP_DIR/conf/httpd.conf $APACHE_PATH/conf
 cp $LP_DIR/conf/php.ini php
 cp $LP_DIR/conf/php.ini php/lib
-
-
 
 # Restore old artifacts from the cache.
 CACHED_DIRS="ibmdb2"
@@ -121,14 +116,10 @@ for dir in $CACHED_DIRS; do
   cp -R $CACHE_DIR/$dir/* . &> /dev/null || true
 done
 
-echo "heloo `which sed`"
-
- rm -rf clidriver
- 
 if [ -f clidriver/lib/libdb2.so ]; then
   # we have from cache, just restore php's db2.so
   echo "-------> restoring ibm_db2 from cache"
-  mv ibm_db2.so php/lib/php/extensions/no-debug-non-zts-20121212/
+  mv ibm_db2.so php/lib/php/extensions/no-debug-non-zts-20090626/
   echo "-------> restored ibm_db2"
 else
   echo "-------> downloading and installing ibm_db2"
@@ -137,7 +128,7 @@ else
   for dir in $CACHED_DIRS; do
     mkdir -p $CACHE_DIR/$dir
     cp -R clidriver $CACHE_DIR/$dir &> /dev/null || true
-    cp php/lib/php/extensions/no-debug-non-zts-20121212/ibm_db2.so $CACHE_DIR/$dir &> /dev/null || true
+    cp php/lib/php/extensions/no-debug-non-zts-20090626/ibm_db2.so $CACHE_DIR/$dir &> /dev/null || true
     echo "-------> caching ibm_db2 done"
   done
 fi
@@ -166,4 +157,3 @@ chmod +x boot.sh
 
 # clean the cache
 #rm -rf $CACHE_DIR
-echo "`/app/php/bin/php -m; ls /app/php/lib/php/extensions/no-debug-non-zts-20121212; openssl version; ldd /app/apache/modules/libphp5.so`"
