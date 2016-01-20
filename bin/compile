@@ -116,7 +116,6 @@ for dir in $CACHED_DIRS; do
   cp -R $CACHE_DIR/$dir/* . &> /dev/null || true
 done
 
-rm -rf clidriver
 if [ -f clidriver/lib/libdb2.so ]; then
   # we have from cache, just restore php's db2.so
   echo "-------> restoring ibm_db2 from cache"
