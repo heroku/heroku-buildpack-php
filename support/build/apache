@@ -9,8 +9,10 @@ set -o pipefail
 # fail harder
 set -eux
 
-DEFAULT_VERSION="2.4.10"
-dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=$(basename $BASH_SOURCE)
+dep_version=${VERSION}
+dep_package=${dep_name}-${dep_version}
 dep_dirname=httpd-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 depdeps_archive_name=${dep_dirname}-deps.tar.gz
@@ -22,7 +24,7 @@ else
     depdeps_url=http://httpd.apache.org/dev/dist/${depdeps_archive_name}
 fi
 
-echo "-----> Building Apache ${dep_version}..."
+echo "-----> Building ${dep_package}..."
 
 curl -L ${dep_url} | tar xz
 # both of these untar to $dep_dirname

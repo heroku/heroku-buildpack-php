@@ -9,22 +9,26 @@ set -o pipefail
 # fail harder
 set -eux
 
-DEFAULT_VERSION="2.2.0"
-dep_version=${VERSION:-$DEFAULT_VERSION}
+export PATH=${OUT_PREFIX}/bin:${PATH}
+
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=memcached
+dep_version=${VERSION}
+dep_package=ext-${dep_name}-${dep_version}
 dep_dirname=php-memcached-${dep_version}
 dep_archive_name=${dep_version}.tar.gz
 dep_url=https://github.com/php-memcached-dev/php-memcached/archive/${dep_archive_name}
+series=$(php-config --version | cut -d. -f1,2) # get "5.5", "5.6", "7.0" etc for the php requirement in the manifest
 
-echo "-----> Building ext/memcached ${dep_version}..."
+echo "-----> Building ${dep_package}..."
 
 curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
-export PATH=${OUT_PREFIX}/bin:${PATH}
 phpize
 ./configure \
     --prefix=${OUT_PREFIX} \
-    --enable-memcached \
+    --enable-${dep_name} \
     --with-libmemcached-dir=${OUT_PREFIX}
 make -s -j 9
 # php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension

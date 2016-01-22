@@ -4,13 +4,22 @@
 
 # That's it - we're combining the dep build and the extension build here
 
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
+source $(dirname $BASH_SOURCE)/../../_util/include/manifest.sh
+
 echo "-----> Merging dependencies..."
 
-package=${0#$WORKSPACE_DIR/}
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=memcached
 dep_version=2.2.0
-dep_dirname=memcached-2.2.0
-series=5.6
+dep_package=ext-${dep_name}-${dep_version}
+series=5.5
+dep_manifest=${dep_package}_php-$series.composer.json
 
-PHPREQ="$series.*" python -c 'import os, sys, json; print json.dumps({ "name": sys.argv[1], "version": sys.argv[2], "type": sys.argv[4], "conflict": dict(item.split(":") for item in sys.argv[5:]), "require": {"heroku-sys/"+os.getenv("STACK"):"^1.0.0","heroku/installer-plugin":"^1.0.0","heroku-sys/php":os.getenv("PHPREQ")}, "dist": {"type":"heroku-sys-tar","url":"https://"+os.getenv("S3_BUCKET")+".s3.amazonaws.com/"+os.getenv("S3_PREFIX")+"/"+sys.argv[3]+".tar.gz"} })' "heroku-sys/ext-memcached" "$dep_version" "$package" "heroku-sys-php-extension" "heroku-sys/hhvm:*" > ext-${dep_dirname}_php-$series.composer.json
+python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "${series}.*" "heroku-sys/hhvm:*" > $dep_manifest
 
-echo "-----> Done. Run 's3cmd --ssl --access_key=\$AWS_ACCESS_KEY_ID --secret_key=\$AWS_SECRET_ACCESS_KEY --acl-public put $(pwd)/ext-${dep_dirname}_php-$series.composer.json s3://$S3_BUCKET/$S3_PREFIX/ext-${dep_dirname}_php-$series.composer.json' to upload manifest."
+print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

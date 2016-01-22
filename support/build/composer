@@ -9,8 +9,10 @@ set -o pipefail
 # fail harder
 set -eux
 
-DEFAULT_VERSION="1.0.0-alpha11"
-dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=$(basename $BASH_SOURCE)
+dep_version=${VERSION}
+dep_package=${dep_name}-${dep_version}
 
 echo "-----> Bundling Composer (${dep_version})..."
 

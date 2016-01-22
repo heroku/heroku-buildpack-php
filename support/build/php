@@ -2,15 +2,19 @@
 # Build Path: /app/.heroku/php/
 # Build Deps: libraries/zlib, libraries/libmcrypt, libraries/icu, libraries/gettext
 
-OUT_PREFIX=$1
-
 # fail hard
 set -o pipefail
 # fail harder
-set -eux
+set -eu
 
-DEFAULT_VERSION="5.5.11"
-dep_version=${VERSION:-$DEFAULT_VERSION}
+source $(dirname $BASH_SOURCE)/_util/include/manifest.sh
+
+OUT_PREFIX=$1
+
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=$(basename $BASH_SOURCE)
+dep_version=${VERSION}
+dep_package=${dep_name}-${dep_version}
 dep_dirname=php-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_version == *RC* ]]; then
@@ -24,8 +28,9 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
 else
     dep_url=http://us1.php.net/get/${dep_archive_name}/from/this/mirror
 fi
+dep_manifest=${dep_package}.composer.json
 
-echo "-----> Building PHP ${dep_version}..."
+echo "-----> Building ${dep_package}..."
 
 curl -L ${dep_url} | tar xz
 
@@ -109,7 +114,7 @@ done
 replace=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b|hhvm\b)' | tr -s " " | cut -d " " -f1,2 | sed -e "s/ $dep_version\$/ self.version/" -e 's/^/heroku-sys\//')
 # remove temporary ini file that enables all extensions and the composer download
 rm ${OUT_PREFIX}/etc/php/php.ini composer.phar
-package=${0#$WORKSPACE_DIR/}
-echo "$replace" | python -c 'import os, sys, json; print json.dumps({ "name": sys.argv[1], "version": sys.argv[2], "type": sys.argv[4], "conflict": dict(item.split(":") for item in sys.argv[5:]), "replace": dict(item.rstrip("\n").split(" ") for item in tuple(sys.stdin)), "require": {"heroku-sys/"+os.getenv("STACK"):"^1.0.0","heroku/installer-plugin":"^1.0.0"}, "dist": {"type":"heroku-sys-tar","url":"https://"+os.getenv("S3_BUCKET")+".s3.amazonaws.com/"+os.getenv("S3_PREFIX")+"/"+sys.argv[3]+".tar.gz"} })' "heroku-sys/php" "$dep_version" "$package" "heroku-sys-php" "heroku-sys/hhvm:*" > $package.composer.json
 
-echo "-----> Done. Run 's3cmd --ssl --access_key=\$AWS_ACCESS_KEY_ID --secret_key=\$AWS_SECRET_ACCESS_KEY --acl-public put $(pwd)/$package.composer.json s3://$S3_BUCKET/$S3_PREFIX/$package.composer.json' to upload manifest."
+echo "$replace" | python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "heroku-sys/hhvm:*" ${CONFLICT_EXTRA:-} > $dep_manifest
+
+print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

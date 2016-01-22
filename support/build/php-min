@@ -8,8 +8,10 @@ set -o pipefail
 # fail harder
 set -eux
 
-DEFAULT_VERSION="7.0.0"
-dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=php
+dep_version=7.0.0
+dep_package=${dep_name}-min
 dep_dirname=php-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 dep_url=http://us1.php.net/get/${dep_archive_name}/from/this/mirror

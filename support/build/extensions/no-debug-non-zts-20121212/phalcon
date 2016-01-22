@@ -2,26 +2,32 @@
 # Build Path: /app/.heroku/php/
 # Build Deps: php-5.5.30
 
-OUT_PREFIX=$1
-
 # fail hard
 set -o pipefail
 # fail harder
-set -eux
+set -eu
 
-DEFAULT_VERSION="2.0.9"
-dep_version=${VERSION:-$DEFAULT_VERSION}
-dep_dirname=cphalcon-phalcon-v${dep_version}
-dep_archive_name=phalcon-v${dep_version}.tar.gz
+source $(dirname $BASH_SOURCE)/../../_util/include/manifest.sh
+
+OUT_PREFIX=$1
+
+export PATH=${OUT_PREFIX}/bin:${PATH}
+
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=$(basename $BASH_SOURCE)
+dep_version=${VERSION}
+dep_package=ext-${dep_name}-${dep_version}
+dep_dirname=cphalcon-${dep_name}-v${dep_version}
+dep_archive_name=${dep_name}-v${dep_version}.tar.gz
 dep_url=https://github.com/phalcon/cphalcon/archive/${dep_archive_name}
+series=$(php-config --version | cut -d. -f1,2) # get "5.5", "5.6", "7.0" etc for the php requirement in the manifest
+dep_manifest=${dep_package}_php-$series.composer.json
 
 echo "-----> Building ext/phalcon ${dep_version}..."
 
 curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
-export PATH=${OUT_PREFIX}/bin:${PATH}
-series=$(php-config --version | cut -d. -f1,2) # get "5.5", "5.6", "7.0" etc for the php requirement in the manifest
 pushd build
 # remove last line
 sed '$ d' install > install-heroku
@@ -30,7 +36,7 @@ echo "
 phpize
 ./configure \
     --prefix=${OUT_PREFIX} \
-    --enable-phalcon
+    --enable-${dep_name}
 make -s -j 9
 # php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
 rm -rf ${OUT_PREFIX}/*
@@ -40,8 +46,6 @@ make install -s
 popd
 popd
 
-package=${0#$WORKSPACE_DIR/}
+python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "${series}.*" "heroku-sys/hhvm:*" > $dep_manifest
 
-PHPREQ="$series.*" python -c 'import os, sys, json; print json.dumps({ "name": sys.argv[1], "version": sys.argv[2], "type": sys.argv[4], "conflict": dict(item.split(":") for item in sys.argv[5:]), "require": {"heroku-sys/"+os.getenv("STACK"):"^1.0.0","heroku/installer-plugin":"^1.0.0","heroku-sys/php":os.getenv("PHPREQ")}, "dist": {"type":"heroku-sys-tar","url":"https://"+os.getenv("S3_BUCKET")+".s3.amazonaws.com/"+os.getenv("S3_PREFIX")+"/"+sys.argv[3]+".tar.gz"} })' "heroku-sys/ext-phalcon" "$dep_version" "$package" "heroku-sys-php-extension" "heroku-sys/hhvm:*" > ext-phalcon-${dep_version}_php-$series.composer.json
-
-echo "-----> Done. Run 's3cmd --ssl --access_key=\$AWS_ACCESS_KEY_ID --secret_key=\$AWS_SECRET_ACCESS_KEY --acl-public put $(pwd)/ext-phalcon-${dep_version}_php-$series.composer.json s3://$S3_BUCKET/$S3_PREFIX/ext-phalcon-${dep_version}_php-$series.composer.json' to upload manifest."
+print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
