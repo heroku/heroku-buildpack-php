@@ -69,7 +69,7 @@ LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
     --enable-zip \
     --with-zlib \
     --with-zlib-dir=${OUT_PREFIX} \
-    --enable-bcmath=shared \
+    --enable-bcmath \
     --enable-calendar=shared \
     --enable-exif=shared \
     --enable-ftp=shared \
