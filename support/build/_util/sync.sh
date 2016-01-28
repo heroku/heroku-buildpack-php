@@ -141,14 +141,14 @@ for manifest in $remove_from_dst; do
 	fi
 	echo -n "  - removing manifest file '$manifest'... " >&2
 	out=$(s3cmd rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${dst_bucket}${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
-	rm ${dst_tmp}/${manifest} # not really necessary since we're not re-using that directory to generate a manifest, but just in case someone ever debugs this and wonders...
+	rm ${dst_tmp}/${manifest}
 	echo "done." >&2
 done
 
 echo ""
 
 echo -n "Generating packages.json... " >&2
-out=$($here/mkrepo.sh $dst_bucket $dst_prefix 2>&1 1>${dst_tmp}/packages.json) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+out=$($here/mkrepo.sh $dst_bucket $dst_prefix ${dst_tmp}/*.composer.json 2>&1 1>${dst_tmp}/packages.json) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 echo "done." >&2
 
 echo -n "Uploading packages.json to s3://${dst_bucket}${dst_prefix}... " >&2
