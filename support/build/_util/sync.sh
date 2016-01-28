@@ -104,7 +104,7 @@ for manifest in $copy_to_dst; do
 	then
 		# the dist URL in the source's manifest points to the source bucket, so we copy the file to the dest bucket
 		echo -n "  - copying '$filename'... " >&2
-		out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access-key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public cp s3://${src_bucket}${src_prefix}${filename} s3://${dst_bucket}${dst_prefix}${filename} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+		out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public cp s3://${src_bucket}${src_prefix}${filename} s3://${dst_bucket}${dst_prefix}${filename} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 		echo "done." >&2
 	else
 		# the dist URL points somewhere else, so we are not touching that
@@ -113,7 +113,7 @@ for manifest in $copy_to_dst; do
 		cp ${src_tmp}/${manifest} ${dst_tmp}/${manifest}
 	fi
 	echo -n "  - copying manifest file '$manifest'... " >&2
-	out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access-key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public put ${dst_tmp}/${manifest} s3://${dst_bucket}${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public put ${dst_tmp}/${manifest} s3://${dst_bucket}${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	echo "done." >&2
 done
 
@@ -133,14 +133,14 @@ for manifest in $remove_from_dst; do
 	then
 		# the dist URL in the destination manifest points to the destination bucket, so we remove that file
 		echo -n "  - removing '$filename'... " >&2
-		out=$(s3cmd rm ${AWS_ACCESS_KEY_ID+"--access-key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${dst_bucket}${dst_prefix}${filename} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+		out=$(s3cmd rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${dst_bucket}${dst_prefix}${filename} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 		echo "done." >&2
 	else
 		# the dist URL points somewhere else, so we are not touching that
 		echo "  - WARNING: not removing '$filename' (in manifest 'dist.url')" >&2
 	fi
 	echo -n "  - removing manifest file '$manifest'... " >&2
-	out=$(s3cmd rm ${AWS_ACCESS_KEY_ID+"--access-key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${dst_bucket}${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${dst_bucket}${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	rm ${dst_tmp}/${manifest} # not really necessary since we're not re-using that directory to generate a manifest, but just in case someone ever debugs this and wonders...
 	echo "done." >&2
 done
@@ -152,7 +152,7 @@ out=$($here/mkrepo.sh $dst_bucket $dst_prefix 2>&1 1>${dst_tmp}/packages.json) |
 echo "done." >&2
 
 echo -n "Uploading packages.json to s3://${dst_bucket}${dst_prefix}... " >&2
-out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access-key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public put ${dst_tmp}/packages.json s3://${dst_bucket}${dst_prefix}packages.json 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public put ${dst_tmp}/packages.json s3://${dst_bucket}${dst_prefix}packages.json 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 echo "done!
 $(echo "$out" | grep -E '^Public URL' | sed 's/^Public URL of the object is: http:/Public URL of the repository is: https:/')
 " >&2
