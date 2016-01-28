@@ -12,6 +12,7 @@ fi
 
 # a helper (print_or_export_manifest_cmd) called in the script invoked by Bob will write to this if set
 export MANIFEST_CMD=$(mktemp -t "manifest.XXXXX")
+trap 'rm -rf $MANIFEST_CMD;' EXIT
 
 # pass through args (so users can pass --overwrite etc)
 bob deploy "$@"
