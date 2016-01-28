@@ -42,12 +42,18 @@ echo -n "Fetching source's manifests from s3://${src_bucket}${src_prefix}... " >
 	cd $src_tmp
 	out=$(s3cmd --ssl get s3://${src_bucket}${src_prefix}*.composer.json 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	ls *.composer.json 2>/dev/null 1>&2 || { echo "failed; no manifests found!" >&2; exit 1; }
-	# TODO: compare the two packages.jsons and error
-	# s3cmd --ssl get s3://${src_bucket}${src_prefix}packages.json 2>/dev/null || { echo "No packages.json in source repo" >&2; exit 1; }
-	# or even
-	# $here/mkrepo.sh $src_bucket $src_prefix 2>/dev/null
+	out=$(s3cmd --ssl get s3://${src_bucket}${src_prefix}packages.json 2>&1) || { echo -e "No packages.json in source repo:\n$out" >&2; exit 1; }
 )
 echo "done." >&2
+
+# this mkrepo.sh call won't actually download, but use the given *.composer.json, and echo a generated packages.json
+# we use this to compare to the downloaded packages.json
+$here/mkrepo.sh $src_bucket $src_prefix ${src_tmp}/*.composer.json 2>/dev/null | python -c 'import sys, json; sys.exit(abs(cmp(json.load(open(sys.argv[1])), json.load(sys.stdin))))' ${src_tmp}/packages.json || {
+	echo "WARNING: packages.json from source does not match its list of manifests!" >&2
+	echo " You should run 'mkrepo.sh' to update, or ask the bucket maintainers to do so." >&2
+	read -p "Would you like to abort this operation? [Yn] " proceed
+	[[ ! $proceed =~ [nN]o* ]] && exit 1 # yes is the default so doing yes | sync.sh won't do something stupid
+}
 
 echo -n "Fetching destination's manifests from s3://${dst_bucket}${dst_prefix}... " >&2
 (
