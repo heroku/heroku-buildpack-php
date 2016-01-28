@@ -104,7 +104,7 @@ for manifest in $copy_to_dst; do
 		else:
 		    # rewrite dist URL in manifest to destination bucket
 		    manifest["dist"]["url"] = "https://"+sys.argv[4]+"."+sys.argv[5]+".amazonaws.com"+sys.argv[6]+url[2]
-		    json.dump(manifest, open(sys.argv[7], "w"))
+		    json.dump(manifest, open(sys.argv[7], "w"), sort_keys=True)
 		    print(url[2])
 		PYTHON) $src_bucket $src_region $src_prefix $dst_bucket $dst_region $dst_prefix ${dst_tmp}/${manifest})
 	then

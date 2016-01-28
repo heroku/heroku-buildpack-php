@@ -23,4 +23,4 @@ manifest = {
 if not sys.stdin.isatty():
     manifest["replace"] = dict(item.rstrip("\n").split(" ") for item in tuple(sys.stdin))
 
-print json.dumps(manifest)
+json.dump(manifest, sys.stdout, sort_keys=True)
