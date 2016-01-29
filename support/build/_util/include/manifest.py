@@ -1,4 +1,4 @@
-import os, sys, json, re
+import os, sys, json, re, datetime
 
 require = {
     "heroku-sys/"+os.getenv("STACK"): "^1.0.0",
@@ -17,7 +17,8 @@ manifest = {
     "dist": {
         "type": "heroku-sys-tar",
         "url": "https://"+os.getenv("S3_BUCKET")+"."+os.getenv("S3_REGION", "s3")+".amazonaws.com/"+os.getenv("S3_PREFIX")+"/"+sys.argv[4]
-    }
+    },
+    "time": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 }
 
 if not sys.stdin.isatty():
