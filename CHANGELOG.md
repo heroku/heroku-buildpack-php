@@ -2,6 +2,10 @@
 
 ## v92 (2016-02-??)
 
+### ADD
+
+- ext-apcu/5.1.3 [David Zuelke]
+
 ### CHG
 
 - Refactor and improve build manifest helpers, add bucket sync tooling [David Zuelke]
