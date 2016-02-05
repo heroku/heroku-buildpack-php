@@ -58,3 +58,9 @@ rm agent.tar.gz agent agent.sha1
 python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "${series}.*" "heroku-sys/hhvm:*" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
+
+# FIXME: as long as the build formula is named just "blackfire" without a version, we would end up with many blackfire-x.y.z_php-a.b.composer.json that all point to the same blackfire.tar.gz
+echo "
+WARNING IF YOU JUST DEPLOYED WITH OVERWRITE:
+new manifest points to updated ${dep_formula}.tar.gz;
+remove old formula to avoid conflict."
