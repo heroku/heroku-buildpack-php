@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v92 (2016-02-??)
+
+### CHG
+
+- Refactor and improve build manifest helpers, add bucket sync tooling [David Zuelke]
+
 ## v91 (2016-01-08)
 
 ### ADD
