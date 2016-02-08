@@ -13,6 +13,7 @@
 ### CHG
 
 - Refactor and improve build manifest helpers, add bucket sync tooling [David Zuelke]
+- Use Bob 0.0.7 for builds [David Zuelke]
 
 ## v91 (2016-01-08)
 
