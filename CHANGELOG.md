@@ -15,6 +15,10 @@
 - Refactor and improve build manifest helpers, add bucket sync tooling [David Zuelke]
 - Use Bob 0.0.7 for builds [David Zuelke]
 
+### FIX
+
+- PHP 7 extension formulae use wrong API version in folder name [David Zuelke]
+
 ## v91 (2016-01-08)
 
 ### ADD
