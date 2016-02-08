@@ -20,8 +20,13 @@ case ${ZEND_MODULE_API_VERSION} in
 	20131226)
 		series=5.6
 		;;
-	*)
+	20151012)
 		series=7.0
+		;;
+	*)
+		echo "Unsupported PHP/Zend Module API version: ${ZEND_MODULE_API_VERSION}"
+		exit 1
+		;;
 esac
 
 ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-${ZEND_MODULE_API_VERSION}
