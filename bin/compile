@@ -121,18 +121,18 @@ status "Bootstrapping..."
 
 # minimal PHP needed for installs, and make "composer" invocations use that for now
 mkdir -p $build_dir/.heroku/php-min
-ln -s $build_dir/.heroku/php-min
+ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 curl --silent --location "$s3_url/php-min.tar.gz" | tar xz -C $build_dir/.heroku/php-min
 curl --silent --location "$s3_url/composer-1.0.0alpha11.tar.gz" | tar xz -C $build_dir/.heroku/php
 composer() {
-    $build_dir/.heroku/php-min/bin/php $(which composer) "$@"
+    /app/.heroku/php-min/bin/php $(which composer) "$@"
 }
 export -f composer
 
 status "Installing system packages..."
 
 # extract requirements from composer.lock
-$build_dir/.heroku/php-min/bin/php -r '
+/app/.heroku/php-min/bin/php -r '
 // prefix keys with "heroku-sys/"
 function mkreq($require) { return array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require); }
 // check if require section demands a runtime

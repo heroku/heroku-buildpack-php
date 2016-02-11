@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v93 (2016-02-??)
+
+### FIX
+
+- Internal `php-min` symlink ends up in root of built apps [David Zuelke]
+
 ## v92 (2016-02-09)
 
 ### ADD
