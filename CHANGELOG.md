@@ -5,6 +5,7 @@
 ### FIX
 
 - Internal `php-min` symlink ends up in root of built apps [David Zuelke]
+- Manifest for ext-apcu/4.0.10 does not declare ext-apc replacement [David Zuelke]
 
 ## v92 (2016-02-09)
 
