@@ -47,6 +47,7 @@ source $bp_dir/bin/util/common.sh
 # for extensions that need special treatment
 source $bp_dir/bin/util/newrelic.sh
 source $bp_dir/bin/util/blackfire.sh
+source $bp_dir/bin/util/tideways.sh
 
 # if this is set it prevents Git clones (e.g. for Composer installs from source) during the build in some circumstances, and it is set in SSH Git deploys to Heroku
 unset GIT_DIR
@@ -431,6 +432,9 @@ install_blackfire_agent
 install_newrelic_ext
 install_newrelic_daemon
 install_newrelic_userini
+# special treatment for Tideways; we enabe it if we detect an api key for it
+install_tideways_ext
+install_tideways_daemon
 
 # export for multi buildpack
 cat > $bp_dir/export <<"EOF"

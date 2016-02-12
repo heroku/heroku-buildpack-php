@@ -1,0 +1,51 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
+source $(dirname $BASH_SOURCE)/../../_util/include/manifest.sh
+
+ZEND_MODULE_API_VERSION=$(basename $(dirname $0))
+ZEND_MODULE_API_VERSION=${ZEND_MODULE_API_VERSION#no-debug-non-zts-}
+
+case ${ZEND_MODULE_API_VERSION} in
+    20121212)
+        series=5.5
+        ;;
+    20131226)
+        series=5.6
+        ;;
+    20151012)
+        series=7.0
+        ;;
+    *)
+        echo "Unsupported PHP/Zend Module API version: ${ZEND_MODULE_API_VERSION}"
+        exit 1
+        ;;
+esac
+
+ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-${ZEND_MODULE_API_VERSION}
+bin_dir=${OUT_PREFIX}/bin
+
+tw_version=`curl -A "Heroku" https://s3-eu-west-1.amazonaws.com/qafoo-profiler/heroku/latest.txt`
+
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=$(basename $BASH_SOURCE)
+dep_version=${tw_version}
+dep_package=ext-${dep_name}-${dep_version}
+dep_manifest=${dep_package}_php-$series.composer.json
+
+echo "-----> Packaging ${dep_package}..."
+
+wget -O tideways.tar.gz https://s3-eu-west-1.amazonaws.com/qafoo-profiler/heroku/tideways-heroku-${tw_version}-php-${series}.tar.gz
+
+tar -zxf tideways.tar.gz
+
+python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "${series}.*" "heroku-sys/hhvm:*" > $dep_manifest
+
+print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
