@@ -110,7 +110,7 @@ while getopts "$optstring" opt; do
                     ;;
                 help)
                     print_help 2>&1
-                    exit
+                    exit 2
                     ;;
                 *)
                     echo "Invalid option: --$OPTARG" >&2

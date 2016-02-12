@@ -115,7 +115,7 @@ while getopts "$optstring" opt; do
                     ;;
                 *)
                     echo "Invalid option: --$OPTARG" >&2
-                    exit
+                    exit 2
                     ;;
             esac
             ;;
