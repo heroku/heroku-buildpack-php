@@ -46,6 +46,27 @@ wget -O tideways.tar.gz https://s3-eu-west-1.amazonaws.com/qafoo-profiler/heroku
 
 tar -zxf tideways.tar.gz
 
-python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "${series}.*" "heroku-sys/hhvm:*" > $dep_manifest
+mkdir -p ${OUT_PREFIX}/bin
+cat > ${OUT_PREFIX}/bin/profile.tideways.sh <<'EOF'
+if [[ -n "$TIDEWAYS_APIKEY" ]]; then
+    if [[ -f "/app/.heroku/php/bin/tideways-daemon" ]]; then
+        /app/.heroku/php/bin/tideways-daemon -socket="/app/.heroku/tidewaysd.sock" &
+    else
+        echo >&2 "WARNING: Add-on 'tideways' detected, but PHP extension not yet installed. Push an update to the application to finish installation of the add-on; an empty change ('git commit --allow-empty') is sufficient."
+    fi
+fi
+EOF
+mkdir -p ${OUT_PREFIX}/etc/php/conf.d
+cat > ${OUT_PREFIX}/etc/php/conf.d/tideways.ini-dist <<'EOF'
+extension=tideways.so
+tideways.connection=unix:///app/.heroku/tidewaysd.sock
+EOF
+
+MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
+MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/hhvm\":\"*\"}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/tideways.ini-dist\",\"profile\":\"bin/profile.tideways.sh\"}"}"
+MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
+
+python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_EXTRA" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
