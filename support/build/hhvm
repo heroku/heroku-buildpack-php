@@ -73,8 +73,25 @@ curl -sS https://getcomposer.org/installer | hhvm --php
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/php\":\"*\"}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.hhvm.sh\",\"profile\":\"bin/profile.hhvm.sh\"}"}"
 MANIFEST_REPLACE=$(hhvm --php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b|php\b)' | tr -s " " | cut -d " " -f1,2 | sed -e "s/ $dep_version\$/ self.version/" -e 's/^/heroku-sys\//' | python -c 'import sys, json; json.dump(dict(item.split() for item in sys.stdin), sys.stdout)')
+
+# remove temporary composer download
+rm composer.phar
+
+# this gets sourced after package install, so that the buildpack and following buildpacks can invoke
+cat > ${OUT_PREFIX}/bin/export.hhvm.sh <<'EOF'
+export LD_LIBRARY_PATH=$HOME/.heroku/php/usr/lib/x86_64-linux-gnu:$HOME/.heroku/php/usr/lib/hhvm:$HOME/.heroku/php/usr/lib
+export PATH="$PATH:/app/.heroku/php/usr/bin"
+EOF
+# this gets sourced on dyno boot
+cat > ${OUT_PREFIX}/bin/profile.hhvm.sh <<'EOF'
+export PATH="$PATH:$HOME/.heroku/php/usr/bin"
+hhvm() { LD_LIBRARY_PATH=$HOME/.heroku/php/usr/lib/x86_64-linux-gnu:$HOME/.heroku/php/usr/lib/hhvm:$HOME/.heroku/php/usr/lib $(which hhvm) "$@"; }
+export -f hhvm
+composer() { hhvm $(which composer) "$@"; }
+export -f composer
+EOF
 
 python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-hhvm" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_EXTRA" > $dep_manifest
 

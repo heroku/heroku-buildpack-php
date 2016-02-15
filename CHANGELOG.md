@@ -6,6 +6,10 @@
 
 - Support custom platform repositories via space separated `HEROKU_PHP_PLATFORM_REPOSITORIES` env var; leading "-" entry disables default repository [David Zuelke]
 
+### CHG
+
+- A `composer.phar` in the project root will no longer be aliased to `composer` on dyno startup [David Zuelke]
+
 ### FIX
 
 - Internal `php-min` symlink ends up in root of built apps [David Zuelke]
