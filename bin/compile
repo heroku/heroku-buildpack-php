@@ -151,7 +151,11 @@ if(file_exists(getenv("COMPOSER_LOCK"))) {
         "require" => $lock["platform"],
     ];
     $lock["packages"][] = $root;
-    $require[$root["name"]] = $root["version"];
+    $require = [
+        $root["name"] => $root["version"],
+        "heroku-sys/apache" => "^2.4.10",
+        "heroku-sys/nginx" => "~1.8.0",
+    ];
     foreach($lock["packages"] as $package) {
         // extract only platform reqs
         $preq = array_filter(isset($package["require"]) ? $package["require"] : [], $preqfilter, ARRAY_FILTER_USE_KEY);
@@ -228,26 +232,6 @@ elif composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/hh
     engine="hhvm"
     engine_r="hhvm --php -r"
 fi
-
-apache_version="2.4.16"
-apache_dist_url="${s3_url}apache-$apache_version.tar.gz"
-echo "- Apache ($apache_version)" | indent
-curl --silent --location "$apache_dist_url" | tar xz -C $build_dir/.heroku/php
-# Apache; copy in our config
-cp $bp_dir/support/build/_conf/apache2/httpd.conf $build_dir/.heroku/php/etc/apache2/httpd.conf
-# store Apache version in the slug for possible later evaluation
-mkdir -p $build_dir/.heroku/php/.versions/apache2
-echo $apache_version > $build_dir/.heroku/php/.versions/apache2/apache2
-
-nginx_version="1.8.0"
-nginx_dist_url="${s3_url}nginx-$nginx_version.tar.gz"
-echo "- Nginx ($nginx_version)" | indent
-curl --silent --location "$nginx_dist_url" | tar xz -C $build_dir/.heroku/php
-# nginx; copy in our config
-cp $bp_dir/support/build/_conf/nginx/nginx.conf $build_dir/.heroku/php/etc/nginx/nginx.conf
-# store Nginx version in the slug for possible later evaluation
-mkdir -p $build_dir/.heroku/php/.versions/nginx
-echo $nginx_version > $build_dir/.heroku/php/.versions/nginx/nginx
 
 # clean up
 rm -rf /app/.heroku/php-min $build_dir/.heroku/php-min

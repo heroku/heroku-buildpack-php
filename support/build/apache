@@ -2,12 +2,14 @@
 # Build Path: /app/.heroku/php/
 # Build Deps: libraries/zlib, libraries/pcre
 
-OUT_PREFIX=$1
-
 # fail hard
 set -o pipefail
 # fail harder
 set -eux
+
+OUT_PREFIX=$1
+
+source $(dirname $BASH_SOURCE)/_util/include/manifest.sh
 
 dep_formula=${0#$WORKSPACE_DIR/}
 dep_name=$(basename $BASH_SOURCE)
@@ -16,13 +18,9 @@ dep_package=${dep_name}-${dep_version}
 dep_dirname=httpd-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 depdeps_archive_name=${dep_dirname}-deps.tar.gz
-if echo -n $dep_version | python -c "import sys, pkg_resources; sys.exit(pkg_resources.parse_version(sys.stdin.read()) >= pkg_resources.parse_version('2.4.17'));"; then
-    dep_url=http://archive.apache.org/dist/httpd/${dep_archive_name}
-    depdeps_url=http://archive.apache.org/dist/httpd/${depdeps_archive_name}
-else
-    dep_url=http://httpd.apache.org/dev/dist/${dep_archive_name}
-    depdeps_url=http://httpd.apache.org/dev/dist/${depdeps_archive_name}
-fi
+dep_url=http://archive.apache.org/dist/httpd/${dep_archive_name}
+depdeps_url=http://archive.apache.org/dist/httpd/${depdeps_archive_name}
+dep_manifest=${dep_package}.composer.json
 
 echo "-----> Building ${dep_package}..."
 
@@ -48,15 +46,24 @@ make -s -j 9
 make install -s
 popd
 
-if echo -n $dep_version | python -c "import sys, pkg_resources; sys.exit(pkg_resources.parse_version(sys.stdin.read()) >= pkg_resources.parse_version('2.4.10'));"; then
-    echo "-----> Building mod_proxy_handler..."
+MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
+MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.apache2.sh\",\"profile\":\"bin/profile.apache2.sh\"}"}"
+MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 
-    export PATH=${OUT_PREFIX}/bin:${OUT_PREFIX}/sbin:$PATH
+mkdir -p ${OUT_PREFIX}/etc/apache2
+cp $(dirname $BASH_SOURCE)/_conf/apache2/httpd.conf ${OUT_PREFIX}/etc/apache2/httpd.conf
 
-    curl -LO https://gist.githubusercontent.com/progandy/6ed4eeea60f6277c3e39/raw/5762a2542a18cd41ed6694bb0c4bd13109b649ad/mod_proxy_handler.c
+mkdir -p ${OUT_PREFIX}/bin
+# this gets sourced after package install, so that the buildpack and following buildpacks can invoke
+cat > ${OUT_PREFIX}/bin/export.apache2.sh <<'EOF'
+export PATH="/app/.heroku/php/bin:/app/.heroku/php/sbin:$PATH"
+EOF
+# this gets sourced on dyno boot
+cat > ${OUT_PREFIX}/bin/profile.apache2.sh <<'EOF'
+export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
+EOF
 
-    apxs -i -c mod_proxy_handler.c
-fi
+python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_EXTRA" > $dep_manifest
 
-
-echo "-----> Done."
+print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
