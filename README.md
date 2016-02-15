@@ -76,7 +76,7 @@ The manifest is a `composer.json` specific to your built runtime or extension. A
 
 Whenever you're happy with the state of your bucket, run `support/build/_util/mkrepo.sh` (you can also run this from a local computer if you give appropriate arguments and/or have the env vars set).
 
-The script downloads all manifests from your bucket, generates a `packages.json` Composer repository, and tells you how to upload it back to S3.
+The script downloads all manifests from your bucket, generates a `packages.json` Composer repository, and tells you how to upload it back to S3 (or uploads it for you if you pass the `--upload` flag).
 
 #### Tips:
 
