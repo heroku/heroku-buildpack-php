@@ -222,12 +222,8 @@ done
 
 echo ""
 
-echo -n "Generating packages.json... " >&2
-out=$($here/mkrepo.sh $dst_bucket $dst_prefix ${dst_tmp}/*.composer.json 2>&1 1>${dst_tmp}/packages.json) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
-echo "done." >&2
-
-echo -n "Uploading packages.json to s3://${dst_bucket}${dst_prefix}... " >&2
-out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public put ${dst_tmp}/packages.json s3://${dst_bucket}${dst_prefix}packages.json 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+echo -n "Generating and uploading packages.json... " >&2
+out=$(cd $dst_tmp; $here/mkrepo.sh --upload $dst_bucket $dst_prefix *.composer.json 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 echo "done!
 $(echo "$out" | grep -E '^Public URL' | sed 's/^Public URL of the object is: http:/Public URL of the repository is: https:/')
 " >&2

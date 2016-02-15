@@ -1,5 +1,21 @@
 # heroku-buildpack-php CHANGELOG
 
+## v93 (2016-02-??)
+
+### ADD
+
+- Support custom platform repositories via space separated `HEROKU_PHP_PLATFORM_REPOSITORIES` env var; leading "-" entry disables default repository [David Zuelke]
+
+### CHG
+
+- A `composer.phar` in the project root will no longer be aliased to `composer` on dyno startup [David Zuelke]
+
+### FIX
+
+- Internal `php-min` symlink ends up in root of built apps [David Zuelke]
+- Manifest for ext-apcu/4.0.10 does not declare ext-apc replacement [David Zuelke]
+- Boot scripts exit with status 0 when given invalid flag as argument [David Zuelke]
+
 ## v92 (2016-02-09)
 
 ### ADD
