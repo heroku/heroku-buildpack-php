@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: php-5.5.30
+# Build Deps: php-5.5.32
 
 VERSION=1.6.12
 
