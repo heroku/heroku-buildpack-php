@@ -9,7 +9,7 @@ set -eu
 # move hidden files too, just in case
 shopt -s dotglob
 
-STACK=${STACK:-cedar} # Anvil has none
+STACK=${STACK:-cedar-14} # Anvil has none
 build_dir=$1
 cache_dir=$2/php
 mkdir -p "$cache_dir"
@@ -179,11 +179,13 @@ if(!$have_runtime_req) {
 } elseif(!isset($root["require"]["php"]) && !isset($root["require"]["hhvm"])) {
     file_put_contents("php://stderr", "NOTICE: No runtime required in ".getenv("COMPOSER")."; requirements\nfrom dependencies in ".getenv("COMPOSER_LOCK")." will be used for selection\n");
 }
+preg_match("#^([^-]+)(?:-([0-9]+))?\$#", getenv("STACK")?:"cedar-14", $stack);
+$provide = ["heroku-sys/".$stack[1] => (isset($stack[2])?$stack[2]:"1").gmdate(".Y.m.d")]; # cedar: 14.2016.02.16 etc
 $json = [
     "config" => ["cache-files-ttl" => 0, "discard-changes" => true],
     "minimum-stability" => isset($lock["minimum-stability"]) ? $lock["minimum-stability"] : "stable",
     "prefer-stable" => isset($lock["prefer-stable"]) ? $lock["prefer-stable"] : false,
-    "provide" => ["heroku-sys/".getenv("STACK") => "1.0.0"],
+    "provide" => $provide,
     "repositories" => $repositories,
     "require" => $require,
 ];
