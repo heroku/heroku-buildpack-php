@@ -11,6 +11,7 @@
 - A `composer.phar` in the project root will no longer be aliased to `composer` on dyno startup [David Zuelke]
 - Runtimes, extensions and web servers are now installed as fully self-contained Composer packages [David Zuelke]
 - Perform boot script startup checks without loading unnecessary PHP configs or extensions [David Zuelke]
+- ext-blackfire builds are now explicitly versioned (currently v1.9.1) [David Zuelke]
 
 ### FIX
 
