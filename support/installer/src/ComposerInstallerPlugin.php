@@ -61,10 +61,16 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		
 		$this->initAllPlatformRequirements($event->getOperations());
 		
-		$this->configurePackage($event->getOperation()->getPackage());
-		$this->enableReplaces($event->getOperation()->getPackage());
-		$this->writeProfile($event->getOperation()->getPackage());
-		$this->writeExport($event->getOperation()->getPackage());
+		try {
+			$this->configurePackage($event->getOperation()->getPackage());
+			$this->enableReplaces($event->getOperation()->getPackage());
+			$this->writeProfile($event->getOperation()->getPackage());
+			$this->writeExport($event->getOperation()->getPackage());
+		} catch(\Exception $e) {
+			$this->io->writeError(sprintf('<error>Failed to activate package %s</error>', $event->getOperation()->getPackage()->getName()));
+			$this->io->writeError('');
+			throw $e;
+		}
 	}
 	
 	protected function initAllPlatformRequirements(array $operations)
@@ -140,6 +146,10 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 			// example: some rare extensions (e.g. recode: http://php.net/manual/en/recode.installation.php) need to be loaded in a specific order (https://www.pingle.org/2006/10/18/php-crashes-extensions)
 			// this can only happen if several extensions, built as shared, are included in a package and will be activated (so typically just PHP with its shared exts); for real dependencies (ext-apc needs ext-apcu, ext-foobar needs ext-mysql), Composer already does that ordering for us
 			rename($config, sprintf($ini, "ext-$extName"));
+		} elseif (!$config) {
+			return;
+		} else {
+			throw new \RuntimeException('Package declares invalid or missing "config" in "extra"');
 		}
 	}
 	
@@ -148,7 +158,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		if(!($fn = getenv('export_file_path'))) return;
 		
 		$extra = $package->getExtra();
-		if(!isset($extra['export'])) return;
+		if(!isset($extra['export']) || !$extra['export']) return;
 		
 		if(is_string($extra['export']) && is_readable($extra['export'])) {
 			// a file from the package used to export vars for the next buildpack, e.g. $PATH
@@ -158,7 +168,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 			// a hash of vars for the next buildpack, e.g. "PATH": "$HOME/.heroku/php/bin:$PATH"
 			$export = implode("\n", array_map(function($v, $k) { return sprintf('export %s="%s"', $k, $v); }, $extra['export'], array_keys($extra['export'])));
 		} else {
-			return;
+			throw new \RuntimeException('Package declares invalid or missing "export" in "extra"');
 		}
 		
 		file_put_contents($fn, "\n$export\n", FILE_APPEND);
@@ -169,7 +179,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		if(!getenv('profile_dir_path')) return;
 		
 		$profile = $package->getExtra();
-		if(!isset($profile['profile'])) return;
+		if(!isset($profile['profile']) || !$profile['profile']) return;
 		$profile = $profile['profile'];
 		
 		$fn = sprintf("%s/%03u-%s.sh", getenv('profile_dir_path'), $this->profileCounter++*10, str_replace('heroku-sys/', '', $package->getName()));
@@ -184,6 +194,8 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 				$fn,
 				implode("\n", array_map(function($v, $k) { return sprintf('export %s="%s"', $k, $v); }, $profile, array_keys($profile)))
 			);
+		} else {
+			throw new \RuntimeException('Package declares invalid or missing "profile" in "extra"');
 		}
 	}
 }
