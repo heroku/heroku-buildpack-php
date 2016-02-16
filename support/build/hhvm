@@ -50,7 +50,7 @@ http://mirrors.kernel.org/ubuntu/pool/main/e/elfutils/libelf1_0.160-0ubuntu3_amd
 http://mirrors.kernel.org/ubuntu/pool/main/g/gflags/libgflags2_2.0-2.1build1_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/main/g/google-glog/libgoogle-glog0_0.3.3-2build1_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/main/i/icu/libicu52_52.1-8_amd64.deb
-http://mirrors.kernel.org/ubuntu/pool/universe/j/jemalloc/libjemalloc1_3.6.0-8_amd64.deb
+http://mirrors.kernel.org/ubuntu/pool/universe/j/jemalloc/libjemalloc1_3.6.0-9ubuntu1_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/universe/libm/libmcrypt/libmcrypt4_2.5.8-3.3_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/main/libm/libmemcached/libmemcached10_1.0.8-1ubuntu2_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/universe/libo/libonig/libonig2_5.9.6-1_amd64.deb
