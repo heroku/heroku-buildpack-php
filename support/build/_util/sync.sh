@@ -6,10 +6,10 @@ if [[ $# -lt "2" || $# -gt "6" ]]; then
 	echo "Usage: $(basename $0) DEST_BUCKET DEST_PREFIX [DEST_REGION [SOURCE_BUCKET SOURCE_PREFIX [SOURCE_REGION]]]" >&2
 	echo "  DEST_BUCKET:   destination S3 bucket name." >&2
 	echo "  DEST_REGION:   destination bucket region, e.g. us-west-1; default: 's3'." >&2
-	echo "  DEST_PREFIX:   destination prefix, e.g. '/' or '/dist-stable/'." >&2
+	echo "  DEST_PREFIX:   destination prefix, e.g. '' or 'dist-stable/'." >&2
 	echo "  SOURCE_BUCKET: source S3 bucket name; default: '\$S3_BUCKET'." >&2
 	echo "  SOURCE_REGION: source bucket region; default: '\$S3_REGION' or 's3'." >&2
-	echo "  SOURCE_PREFIX: source prefix; default: '/\${S3_PREFIX}/'." >&2
+	echo "  SOURCE_PREFIX: source prefix; default: '\${S3_PREFIX}'." >&2
 	exit 2
 fi
 
@@ -22,7 +22,7 @@ else
 	dst_region="s3"
 fi
 src_bucket=${1:-$S3_BUCKET}; shift
-src_prefix=${1:-/$S3_PREFIX/}; shift
+src_prefix=${1:-$S3_PREFIX}; shift
 if [[ $# == "1" ]]; then
 	# region name given
 	src_region=$1; shift
@@ -37,12 +37,12 @@ here=$(cd $(dirname $0); pwd)
 # clean up at the end
 trap 'rm -rf $src_tmp $dst_tmp;' EXIT
 
-echo -n "Fetching source's manifests from s3://${src_bucket}${src_prefix}... " >&2
+echo -n "Fetching source's manifests from s3://${src_bucket}/${src_prefix}... " >&2
 (
 	cd $src_tmp
-	out=$(s3cmd --ssl get s3://${src_bucket}${src_prefix}*.composer.json 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd --ssl get s3://${src_bucket}/${src_prefix}*.composer.json 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	ls *.composer.json 2>/dev/null 1>&2 || { echo "failed; no manifests found!" >&2; exit 1; }
-	out=$(s3cmd --ssl get s3://${src_bucket}${src_prefix}packages.json 2>&1) || { echo -e "No packages.json in source repo:\n$out" >&2; exit 1; }
+	out=$(s3cmd --ssl get s3://${src_bucket}/${src_prefix}packages.json 2>&1) || { echo -e "No packages.json in source repo:\n$out" >&2; exit 1; }
 )
 echo "done." >&2
 
@@ -55,10 +55,10 @@ $here/mkrepo.sh $src_bucket $src_prefix ${src_tmp}/*.composer.json 2>/dev/null |
 	[[ ! $proceed =~ [nN]o* ]] && exit 1 # yes is the default so doing yes | sync.sh won't do something stupid
 }
 
-echo -n "Fetching destination's manifests from s3://${dst_bucket}${dst_prefix}... " >&2
+echo -n "Fetching destination's manifests from s3://${dst_bucket}/${dst_prefix}... " >&2
 (
 	cd $dst_tmp
-	out=$(s3cmd --ssl get s3://${dst_bucket}${dst_prefix}*.composer.json 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd --ssl get s3://${dst_bucket}/${dst_prefix}*.composer.json 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 )
 echo "done." >&2
 
@@ -126,17 +126,17 @@ The following packages will be IGNORED:
 $(IFS=$'\n'; echo "${ignore_manifests[*]:-(none)}" | sed -e 's/^/  - /' -e 's/.composer.json$//')
 
 The following packages will be ADDED
- from s3://${src_bucket}${src_prefix}
-   to s3://${dst_bucket}${dst_prefix}:
+ from s3://${src_bucket}/${src_prefix}
+   to s3://${dst_bucket}/${dst_prefix}:
 $(echo "${add_manifests:-(none)}" | sed -e 's/^/  - /' -e 's/.composer.json$//')
 
 The following packages will be UPDATED (source manifest is newer)
- from s3://${src_bucket}${src_prefix}
-   to s3://${dst_bucket}${dst_prefix}:
+ from s3://${src_bucket}/${src_prefix}
+   to s3://${dst_bucket}/${dst_prefix}:
 $(IFS=$'\n'; echo "${update_manifests[*]:-(none)}" | sed -e 's/^/  - /' -e 's/.composer.json$//')
 
 The following packages will be REMOVED
- from s3://${dst_bucket}${dst_prefix}:
+ from s3://${dst_bucket}/${dst_prefix}:
 $(echo "${remove_manifests:-(none)}" | sed -e 's/^/  - /' -e 's/.composer.json$//')
 " >&2
 
@@ -157,14 +157,14 @@ for manifest in $add_manifests ${update_manifests[@]:-}; do
 	if filename=$(cat ${src_tmp}/${manifest} | python <(cat <<-'PYTHON' # beware of single quotes in body
 		import sys, json;
 		manifest=json.load(sys.stdin)
-		url=manifest.get("dist",{}).get("url","").partition("https://"+sys.argv[1]+"."+sys.argv[2]+".amazonaws.com"+sys.argv[3])
+		url=manifest.get("dist",{}).get("url","").partition("https://"+sys.argv[1]+"."+sys.argv[2]+".amazonaws.com/"+sys.argv[3])
 		if url[0]:
-		    # dist URL does not match https://${src_bucket}.${src_region}.amazonaws.com${src_prefix}
+		    # dist URL does not match https://${src_bucket}.${src_region}.amazonaws.com/${src_prefix}
 		    print(url[0])
 		    sys.exit(1)
 		else:
 		    # rewrite dist URL in manifest to destination bucket
-		    manifest["dist"]["url"] = "https://"+sys.argv[4]+"."+sys.argv[5]+".amazonaws.com"+sys.argv[6]+url[2]
+		    manifest["dist"]["url"] = "https://"+sys.argv[4]+"."+sys.argv[5]+".amazonaws.com/"+sys.argv[6]+url[2]
 		    json.dump(manifest, open(sys.argv[7], "w"), sort_keys=True)
 		    print(url[2])
 		PYTHON
@@ -172,7 +172,7 @@ for manifest in $add_manifests ${update_manifests[@]:-}; do
 	then
 		# the dist URL in the source's manifest points to the source bucket, so we copy the file to the dest bucket
 		echo -n "  - copying '$filename'... " >&2
-		out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public cp s3://${src_bucket}${src_prefix}${filename} s3://${dst_bucket}${dst_prefix}${filename} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+		out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public cp s3://${src_bucket}/${src_prefix}${filename} s3://${dst_bucket}/${dst_prefix}${filename} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 		copied_files+=("$filename")
 		echo "done." >&2
 	else
@@ -182,7 +182,7 @@ for manifest in $add_manifests ${update_manifests[@]:-}; do
 		cp ${src_tmp}/${manifest} ${dst_tmp}/${manifest}
 	fi
 	echo -n "  - copying manifest file '$manifest'... " >&2
-	out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public put ${dst_tmp}/${manifest} s3://${dst_bucket}${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public put ${dst_tmp}/${manifest} s3://${dst_bucket}/${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	echo "done." >&2
 done
 
@@ -192,9 +192,9 @@ for manifest in $remove_manifests; do
 	if filename=$(cat ${dst_tmp}/${manifest} | python <(cat <<-'PYTHON' # beware of single quotes in body
 		import sys, json;
 		manifest=json.load(sys.stdin)
-		url=manifest.get("dist",{}).get("url","").partition("https://"+sys.argv[1]+"."+sys.argv[2]+".amazonaws.com"+sys.argv[3])
+		url=manifest.get("dist",{}).get("url","").partition("https://"+sys.argv[1]+"."+sys.argv[2]+".amazonaws.com/"+sys.argv[3])
 		if url[0]:
-		    # dist URL does not match https://${dst_bucket}.${dst_region}.amazonaws.com${dst_prefix}
+		    # dist URL does not match https://${dst_bucket}.${dst_region}.amazonaws.com/${dst_prefix}
 		    print(url[0])
 		    sys.exit(1)
 		else:
@@ -215,7 +215,7 @@ for manifest in $remove_manifests; do
 		echo "  - WARNING: not removing '$filename' (in manifest 'dist.url')!" >&2
 	fi
 	echo -n "  - removing manifest file '$manifest'... " >&2
-	out=$(s3cmd rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${dst_bucket}${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${dst_bucket}/${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	rm ${dst_tmp}/${manifest}
 	echo "done." >&2
 done
@@ -232,7 +232,7 @@ if [[ "${#remove_files[@]}" != "0" ]]; then
 	echo "Removing files queued for deletion from destination:" >&2
 	for filename in "${remove_files[@]}"; do
 		echo -n "  - removing '$filename'... " >&2
-		out=$(s3cmd rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${dst_bucket}${dst_prefix}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
+		out=$(s3cmd rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${dst_bucket}/${dst_prefix}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
 	done
 	echo ""
 fi

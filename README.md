@@ -40,14 +40,14 @@ To get started, create a Python app (*Bob* is a Python application) on Heroku in
     $ heroku config:set AWS_ACCESS_KEY_ID=<your_aws_key>
     $ heroku config:set AWS_SECRET_ACCESS_KEY=<your_aws_secret>
     $ heroku config:set S3_BUCKET=<your_s3_bucket_name>
-    $ heroku config:set S3_PREFIX=<optional_s3_subfolder_to_upload_to_without_leading_or_trailing_slashes>
+    $ heroku config:set S3_PREFIX=<optional_s3_subfolder_to_upload_to_without_leading_slash>
     $ heroku config:set STACK=cedar-14
     $ git push heroku master
     $ heroku ps:scale web=0
 
-Builds will initially fail, because your bucket is empty and no dependencies can be pulled. You can sync from an official bucket, e.g. `lang-php`, using a helper script - make sure you use the appropriate prefix (in this example, `/dist-cedar-14-master/`):
+Builds will initially fail, because your bucket is empty and no dependencies can be pulled. You can sync from an official bucket, e.g. `lang-php`, using a helper script - make sure you use the appropriate prefix (in this example, `dist-cedar-14-master/`):
 
-    $ heroku run "support/build/_util/sync.sh your-bucket /your-prefix/ lang-php /dist-cedar-14-master/"
+    $ heroku run "support/build/_util/sync.sh your-bucket your-prefix/ lang-php dist-cedar-14-master/"
 
 This only copies over "user-facing" items, but not library dependencies (e.g. `libraries/libmemcached`). You must copy those by hand using e.g. `s3cmd` if you want to use them.
 

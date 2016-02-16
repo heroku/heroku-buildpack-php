@@ -10,7 +10,7 @@ manifest = {
     "version": sys.argv[3],
     "dist": {
         "type": "heroku-sys-tar",
-        "url": "https://"+os.getenv("S3_BUCKET")+"."+os.getenv("S3_REGION", "s3")+".amazonaws.com/"+os.getenv("S3_PREFIX")+"/"+sys.argv[4]
+        "url": "https://"+os.getenv("S3_BUCKET")+"."+os.getenv("S3_REGION", "s3")+".amazonaws.com/"+os.getenv("S3_PREFIX")+sys.argv[4]
     },
     "require": require,
     "conflict": json.loads(sys.argv[6]) if len(sys.argv) > 6 else {},

@@ -29,7 +29,7 @@ shift $((OPTIND-1))
 if [[ $# == "1" ]]; then
 	echo "Usage: $(basename $0) [--upload] [S3_BUCKET S3_PREFIX [MANIFEST...]]" >&2
 	echo "  S3_BUCKET: S3 bucket name for packages.json upload; default: '\$S3_BUCKET'." >&2
-	echo "  S3_PREFIX: S3 prefix, e.g. '/' or '/dist-stable/'; default: '/\${S3_PREFIX}/'." >&2
+	echo "  S3_PREFIX: S3 prefix, e.g. '' or 'dist-stable/'; default: '\${S3_PREFIX}'." >&2
 	echo "  If MANIFEST arguments are given, those are used to build the repo; otherwise," >&2
 	echo "   all manifests from given or default S3_BUCKET+S3_PREFIX are downloaded." >&2
 	echo "  A --upload flag triggers immediate upload, otherwise instructions are printed." >&2
@@ -43,8 +43,6 @@ here=$(cd $(dirname $0); pwd)
 if [[ $# != "0" ]]; then
 	S3_BUCKET=$1; shift
 	S3_PREFIX=$1; shift
-else
-	S3_PREFIX="/${S3_PREFIX}/"
 fi
 
 if [[ $# == "0" ]]; then
@@ -53,7 +51,7 @@ if [[ $# == "0" ]]; then
 	echo "-----> Fetching manifests..." >&2
 	(
 		cd $manifests_tmp
-		s3cmd --ssl get s3://${S3_BUCKET}${S3_PREFIX}*.composer.json 1>&2
+		s3cmd --ssl get s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json 1>&2
 	)
 	manifests=$manifests_tmp/*.composer.json
 else
@@ -79,7 +77,7 @@ if $redir; then
 	exec 1>&3 3>&-
 fi
 
-cmd="s3cmd --ssl${AWS_ACCESS_KEY_ID+" --access_key=\$AWS_ACCESS_KEY_ID"}${AWS_SECRET_ACCESS_KEY+" --secret_key=\$AWS_SECRET_ACCESS_KEY"} --acl-public put packages.json s3://${S3_BUCKET}${S3_PREFIX}packages.json"
+cmd="s3cmd --ssl${AWS_ACCESS_KEY_ID+" --access_key=\$AWS_ACCESS_KEY_ID"}${AWS_SECRET_ACCESS_KEY+" --secret_key=\$AWS_SECRET_ACCESS_KEY"} --acl-public put packages.json s3://${S3_BUCKET}/${S3_PREFIX}packages.json"
 if $upload; then
 	echo "-----> Uploading packages.json..." >&2
 	eval "$cmd 1>&2"
