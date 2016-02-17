@@ -19,6 +19,7 @@
 - Manifest for ext-apcu/4.0.10 does not declare ext-apc replacement [David Zuelke]
 - Boot scripts exit with status 0 when given invalid flag as argument [David Zuelke]
 - Manifest for ext-memcached/2.2.0 declares wrong PHP requirement for PHP 5.6 build [David Zuelke]
+- Setting `NEW_RELIC_CONFIG_FILE` breaks HHVM builds (#149) [David Zuelke]
 
 ## v92 (2016-02-09)
 

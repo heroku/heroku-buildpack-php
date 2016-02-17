@@ -14,7 +14,7 @@ install_newrelic_ext() {
 }
 
 install_newrelic_userini() {
-    if [[ -n "${NEW_RELIC_CONFIG_FILE:-}" ]]; then
+    if [[ "$engine" == "php" && -n "${NEW_RELIC_CONFIG_FILE:-}" ]]; then
         if [[ ! -f "${NEW_RELIC_CONFIG_FILE}" ]]; then
             error "Config var 'NEW_RELIC_CONFIG_FILE' points to non existing file
 '${NEW_RELIC_CONFIG_FILE}'"
