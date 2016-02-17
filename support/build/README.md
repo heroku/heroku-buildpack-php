@@ -14,7 +14,7 @@ The custom Composer repository, running off an S3 bucket, provides all of these 
 
 To use custom platform packages (either new ones, or modifications of existing ones), a new Composer repository has to be created (see main README for usage info). All the tooling in here is designed to work with S3, since it is reliable and cheap. The bucket permissions should be set up so that a public listing is allowed.
 
-The folder `support/build` contains [Bob](http://github.com/kennethreitz/bob-builder) build formulae for all packags and their dependencies.
+The folder `support/build` contains [Bob](http://github.com/kennethreitz/bob-builder) build formulae for all packages and their dependencies.
 
 In `support/build/_util`, three scripts (`deploy.sh` to deploy a package, `mkrepo.sh` to (re-)generate a repo, and `sync.sh` to sync between repos) take care of most of the heavy lifting.
 
