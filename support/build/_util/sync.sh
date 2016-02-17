@@ -21,8 +21,9 @@ if [[ $# -gt 2 ]]; then
 else
 	dst_region="s3"
 fi
-src_bucket=${1:-$S3_BUCKET}; shift
-src_prefix=${1:-$S3_PREFIX}; shift
+echo "$@"
+src_bucket=${1:-$S3_BUCKET}; shift || true
+src_prefix=${1:-$S3_PREFIX}; shift || true
 if [[ $# == "1" ]]; then
 	# region name given
 	src_region=$1; shift
