@@ -1,2 +1,2 @@
-bob-builder>=0.0.8
+bob-builder>=0.0.9
 s3cmd>=1.6.0
