@@ -4,6 +4,11 @@ install_newrelic_ext() {
     # special treatment for New Relic; we enable it if we detect a license key for it
     # otherwise users would have to have it in their require section, which is annoying in development environments
     NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
+
+    if [[ "$engine" == "hhvm" && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
+        error "New Relic does not support non-standard PHP runtimes ('${engine}'). You can either remove the NEW_RELIC_LICENSE_KEY variable or switch to a standard runtime."
+    fi
+
     if [[ "$engine" == "php" && ( ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "newrelic" ) && -n "$NEW_RELIC_LICENSE_KEY" ]]; then
         if $engine $(which composer) require --quiet --update-no-dev -d "$build_dir/.heroku/php" -- "heroku-sys/ext-newrelic:*"; then
             install_ext "newrelic" "add-on detected"
@@ -30,10 +35,10 @@ if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
         # may be observed via 'heroku logs'.
         touch /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log
         tail -qF -n 0 /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log 1>&2 &
-        
+
         # daemon start
         /app/.heroku/php/bin/newrelic-daemon -f -l "/tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log" -d "${NEW_RELIC_LOG_LEVEL}" -p "/tmp/newrelic-daemon.pid" &
-        
+
         # give it a moment to connect
         sleep 2
     else
