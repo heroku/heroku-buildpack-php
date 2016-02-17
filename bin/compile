@@ -85,7 +85,7 @@ ln -s $build_dir/.heroku/php /app/.heroku/php
 
 status "Bootstrapping..."
 
-s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-master/"
+s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
 
 # minimal PHP needed for installs, and make "composer" invocations use that for now
 mkdir -p $build_dir/.heroku/php-min
