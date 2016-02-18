@@ -29,15 +29,17 @@ Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for fu
 
 The buildpack uses Composer repositories to resolve platform (`php`, `hhvm`, `ext-something`, ...) dependencies.
 
-To use a custom Composer repository with additional or different platform packages, add the URL to its `packages.json` the `HEROKU_PHP_PLATFORM_REPOSITORIES` config var:
+To use a custom Composer repository with additional or different platform packages, add the URL to its `packages.json` to the `HEROKU_PHP_PLATFORM_REPOSITORIES` config var:
 
-    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://mybucket.s3.amazonaws.com/cedar-14/"
+    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://mybucket.s3.amazonaws.com/cedar-14/packages.json"
 
-The config var may hold multiple repository URLs, separated by a space character, in ascending order of precedence.
+To allow the use of multiple custom repositories, the config var may hold a list of multiple repository URLs, separated by a space character, in ascending order of precedence.
 
 If the first entry in the list is "`-`" instead of a URL, the default platform repository is disabled entirely. This can be useful when testing development repositories, or to forcefully prevent the use of unwanted packages from the default platform repository.
 
-For instructions on how to build custom platform packages and a repository for them, please refer to the instructions further below.
+For instructions on how to build custom platform packages (and a repository to hold them), please refer to the instructions [further below](#custom-platform-packages-and-repositories).
+
+**Please note that Heroku cannot provide support for issues related to custom platform repositories and packages.**
 
 ## Development
 

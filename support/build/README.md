@@ -2,6 +2,8 @@
 
 ## Introduction
 
+**Please note that Heroku cannot provide support for issues related to custom platform repositories and packages.**
+
 ### How it all works
 
 When an application is deployed, `bin/compile` extracts all platform dependencies from the application's `composer.lock` and constructs a new `composer.json` (with all package names prefixed with `heroku-sys/`, so `php` becomes `heroku-sys/php`), which gets `composer install`ed using a custom Composer repository.
@@ -14,7 +16,7 @@ The custom Composer repository, running off an S3 bucket, provides all of these 
 
 To use custom platform packages (either new ones, or modifications of existing ones), a new Composer repository has to be created (see main README for usage info). All the tooling in here is designed to work with S3, since it is reliable and cheap. The bucket permissions should be set up so that a public listing is allowed.
 
-The folder `support/build` contains [Bob](http://github.com/kennethreitz/bob-builder) build formulae for all packags and their dependencies.
+The folder `support/build` contains [Bob](http://github.com/kennethreitz/bob-builder) build formulae for all packages and their dependencies.
 
 In `support/build/_util`, three scripts (`deploy.sh` to deploy a package, `mkrepo.sh` to (re-)generate a repo, and `sync.sh` to sync between repos) take care of most of the heavy lifting.
 
@@ -159,6 +161,10 @@ The `sync.sh` script automatically detects additions, updates and removals based
 The same can be used to sync from the official Heroku repository to the custom "develop" repository:
 
     $ support/build/_util/sync.sh my-bucket cedar-14-develop/ lang-php dist-cedar-14-master/
+
+## Usage in applications
+
+Please refer to [the instructions in the main README](../../README.md#custom-platform-repositories) for details on how to use a custom repository during application builds.
 
 ## Tips & Tricks
 
