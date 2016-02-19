@@ -1,6 +1,10 @@
 #!/usr/bin/env php
 <?php
 
+$COMPOSER = getenv("COMPOSER")?:"composer.json";
+$COMPOSER_LOCK = getenv("COMPOSER_LOCK")?:"composer.lock";
+$STACK = getenv("STACK")?:"cedar-14";
+
 // prefix keys with "heroku-sys/"
 function mkreq($require) { return array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require); }
 // check if require section demands a runtime
@@ -19,8 +23,8 @@ $repositories = [
 foreach(array_reverse($argv) as $repo) $repositories[] = ["type" => "composer", "url" => $repo];
 
 $have_runtime_req = false;
-if(file_exists(getenv("COMPOSER_LOCK"))) {
-	$lock = json_decode(file_get_contents(getenv("COMPOSER_LOCK")), true);
+if(file_exists($COMPOSER_LOCK)) {
+	$lock = json_decode(file_get_contents($COMPOSER_LOCK), true);
 	// basic lock file validity check
 	if(!$lock || !isset($lock["platform"], $lock["packages"], $lock["hash"])) exit(1);
 	$have_runtime_req |= hasreq($lock["platform"]);
@@ -31,7 +35,7 @@ if(file_exists(getenv("COMPOSER_LOCK"))) {
 	// this will result in an installer event for that meta-package, from which we can extract what extensions that are bundled (and hence "replace"d) with the runtime need to be enabled
 	// if we do not do this, then a require for e.g. ext-curl or ext-mbstring in the main composer.json cannot be found by the installer plugin
 	$root = [
-		"name" => getenv("COMPOSER")."/".getenv("COMPOSER_LOCK"),
+		"name" => "$COMPOSER/$COMPOSER_LOCK",
 		"version" => "dev-".$lock["hash"],
 		"require" => $lock["platform"],
 	];
@@ -60,11 +64,11 @@ if(file_exists(getenv("COMPOSER_LOCK"))) {
 }
 // if no PHP or HHVM is required anywhere, we need to add something
 if(!$have_runtime_req) {
-	file_put_contents("php://stderr", "NOTICE: No runtime required in ".getenv("COMPOSER_LOCK")."; using PHP ". ($require["heroku-sys/php"] = "^5.5.17") . "\n");
+	file_put_contents("php://stderr", "NOTICE: No runtime required in $COMPOSER_LOCK; using PHP ". ($require["heroku-sys/php"] = "^5.5.17") . "\n");
 } elseif(!isset($root["require"]["php"]) && !isset($root["require"]["hhvm"])) {
-	file_put_contents("php://stderr", "NOTICE: No runtime required in ".getenv("COMPOSER")."; requirements\nfrom dependencies in ".getenv("COMPOSER_LOCK")." will be used for selection\n");
+	file_put_contents("php://stderr", "NOTICE: No runtime required in $COMPOSER; requirements\nfrom dependencies in $COMPOSER_LOCK will be used for selection\n");
 }
-preg_match("#^([^-]+)(?:-([0-9]+))?\$#", getenv("STACK")?:"cedar-14", $stack);
+preg_match("#^([^-]+)(?:-([0-9]+))?\$#", $STACK, $stack);
 $provide = ["heroku-sys/".$stack[1] => (isset($stack[2])?$stack[2]:"1").gmdate(".Y.m.d")]; # cedar: 14.2016.02.16 etc
 $json = [
 	"config" => ["cache-files-ttl" => 0, "discard-changes" => true],
