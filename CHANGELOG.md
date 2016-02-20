@@ -13,6 +13,7 @@
 - Perform boot script startup checks without loading unnecessary PHP configs or extensions [David Zuelke]
 - ext-blackfire builds are now explicitly versioned (currently v1.9.1) [David Zuelke]
 - Append `composer config bin-dir` to `$PATH` for runtime [David Zuelke]
+- Check for lock file freshness using `composer validate` (#141) [David Zuelke]
 
 ### FIX
 

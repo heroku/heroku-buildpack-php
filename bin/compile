@@ -48,12 +48,6 @@ repository. For more information, please refer to the docs at
 https://devcenter.heroku.com/articles/php-support#activation"
     else
         cat "$COMPOSER_LOCK" | python -mjson.tool &> /dev/null || error "Could not parse '$COMPOSER_LOCK'; make sure it's valid!"
-        if [[ $(cat "$COMPOSER_LOCK" | python -c 'import sys, json; print json.load(sys.stdin)["hash"]' 2> /dev/null) != $(md5sum "$COMPOSER" | cut -d " " -f1) ]]; then
-            warning "Your '$COMPOSER_LOCK' is not up to date with the latest
-changes in '$COMPOSER'. To ensure you are not getting stale
-dependencies, run 'composer update' on your machine and commit
-any changes to Git before pushing again."
-        fi
         cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); sys.exit(not(l["minimum-stability"] == "stable"));' 2> /dev/null || warning "Your '$COMPOSER' contains a non-'stable' setting
 for 'minimum-stability'. This may cause the installation of
 unstable versions of runtimes and extensions during this deploy.
@@ -165,6 +159,11 @@ elif composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/hh
     engine="hhvm"
     engine_r="hhvm --php -r"
 fi
+
+composer validate --no-check-publish --no-check-all --quiet || warning "Your '$COMPOSER_LOCK' is not up to date with the latest
+changes in '$COMPOSER'. To ensure you are not getting stale
+dependencies, run 'composer update' on your machine and commit
+any changes to Git before pushing again."
 
 # clean up
 rm -rf /app/.heroku/php-min $build_dir/.heroku/php-min
