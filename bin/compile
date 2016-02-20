@@ -149,9 +149,6 @@ For a list of supported runtimes & extensions on Heroku, please
 refer to: https://devcenter.heroku.com/articles/php-support"
 fi
 
-# earlier we wrote at least one $PATH entry that we'll need now, and installed packages will likely have added to it too
-source $bp_dir/export
-
 if composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/php; then
     engine="php"
     engine_r="php -r"
@@ -168,6 +165,9 @@ any changes to Git before pushing again."
 # clean up
 rm -rf /app/.heroku/php-min $build_dir/.heroku/php-min
 unset -f composer
+
+# earlier we wrote at least one $PATH entry that we'll need now, and installed packages will likely have added to it too
+source $bp_dir/export
 
 composer() {
     $engine $(which composer) "$@"
