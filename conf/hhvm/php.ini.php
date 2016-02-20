@@ -1,5 +1,6 @@
 ; php options
 date.timezone = UTC
+expose_php = off
  
 ; hhvm specific 
 hhvm.log.level = Warning

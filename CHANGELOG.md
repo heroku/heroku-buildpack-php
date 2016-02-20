@@ -14,6 +14,7 @@
 - ext-blackfire builds are now explicitly versioned (currently v1.9.1) [David Zuelke]
 - Append `composer config bin-dir` to `$PATH` for runtime [David Zuelke]
 - Check for lock file freshness using `composer validate` (#141) [David Zuelke]
+- Change PHP `expose_php` to `off`, Apache `ServerTokens` to `Prod` and Nginx `server_tokens` to `off` for builds (#91, #92) [David Zuelke]
 
 ### FIX
 
