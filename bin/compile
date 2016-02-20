@@ -97,11 +97,17 @@ composer() {
     /app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer "$@"
 }
 export -f composer
+
+composer_vendordir=$(composer config vendor-dir)
+composer_bindir=$(composer config bin-dir)
+
 # packages that get installed will add to this file, it's both for us and for buildpacks that follow
-echo 'export PATH=/app/.heroku/php/bin:$PATH' > $bp_dir/export
-# make sure Composer is on the path at runtime
+# composer bin-dir goes last to avoid any conflicts
+echo "export PATH=/app/.heroku/php/bin:\$PATH:/app/$composer_bindir" > $bp_dir/export
+# make sure Composer and binaries for it are on the path at runtime
+# composer bin-dir goes last to avoid any conflicts
 mkdir -p $build_dir/.profile.d
-echo 'export PATH=$HOME/.heroku/php/bin:$PATH' > $build_dir/.profile.d/100-composer.sh
+echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $build_dir/.profile.d/100-composer.sh
 
 # prepend the default repo to the list configured by the user
 # list of repositories to use is in ascening order of precedence
@@ -185,9 +191,6 @@ fi
 # echo composer version for info purposes
 # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 composer --version 2> /dev/null | tail -n 1 | indent
-
-composer_vendordir=$(composer config vendor-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
-composer_bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
 
 # throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
 if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer" ]]; then
