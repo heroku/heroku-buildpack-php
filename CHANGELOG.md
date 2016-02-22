@@ -15,6 +15,7 @@
 - Append `composer config bin-dir` to `$PATH` for runtime [David Zuelke]
 - Check for lock file freshness using `composer validate` (#141) [David Zuelke]
 - Change PHP `expose_php` to `off`, Apache `ServerTokens` to `Prod` and Nginx `server_tokens` to `off` for builds (#91, #92) [David Zuelke]
+- Respect "provide", "replace" and "conflict" platform packages in dependencies and composer.json for platform package installs [David Zuelke]
 
 ### FIX
 

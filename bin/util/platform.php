@@ -6,11 +6,11 @@ $COMPOSER_LOCK = getenv("COMPOSER_LOCK")?:"composer.lock";
 $STACK = getenv("STACK")?:"cedar-14";
 
 // prefix keys with "heroku-sys/"
-function mkreq($require) { return array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require); }
+function mkdep($require) { return array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require); }
 // check if require section demands a runtime
 function hasreq($require) { return isset($require["php"]) || isset($require["hhvm"]); }
 // filter platform reqs
-$preqfilter = function($v) { return preg_match("#^(hhvm$|php(-64bit)?$|ext-)#", $v); };
+$platfilter = function($v) { return preg_match("#^(hhvm$|php(-64bit)?$|ext-)#", $v); };
 
 // remove first arg (0)
 array_shift($argv);
@@ -21,6 +21,9 @@ $repositories = [
 ];
 // all other args are repo URLs; they get passed in ascending order of precedence, so we reverse
 foreach(array_reverse($argv) as $repo) $repositories[] = ["type" => "composer", "url" => $repo];
+
+$json = json_decode(file_get_contents($COMPOSER), true);
+if(!is_array($json)) exit(1);
 
 $have_runtime_req = false;
 if(file_exists($COMPOSER_LOCK)) {
@@ -38,6 +41,9 @@ if(file_exists($COMPOSER_LOCK)) {
 		"name" => "$COMPOSER/$COMPOSER_LOCK",
 		"version" => "dev-".$lock["hash"],
 		"require" => $lock["platform"],
+		"replace" => isset($json["replace"]) ? $json["replace"] : [],
+		"provide" => isset($json["provide"]) ? $json["provide"] : [],
+		"conflict" => isset($json["conflict"]) ? $json["conflict"] : [],
 	];
 	$lock["packages"][] = $root;
 	$require = [
@@ -46,16 +52,22 @@ if(file_exists($COMPOSER_LOCK)) {
 		"heroku-sys/nginx" => "~1.8.0",
 	];
 	foreach($lock["packages"] as $package) {
-		// extract only platform reqs
-		$preq = array_filter(isset($package["require"]) ? $package["require"] : [], $preqfilter, ARRAY_FILTER_USE_KEY);
-		if(!$preq) continue;
+		// extract only platform requires, replaces and provides
+		$preq = array_filter(isset($package["require"]) ? $package["require"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
+		$prep = array_filter(isset($package["replace"]) ? $package["replace"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
+		$ppro = array_filter(isset($package["provide"]) ? $package["provide"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
+		$pcon = array_filter(isset($package["conflict"]) ? $package["conflict"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
+		if(!$preq && !$prep && !$ppro) continue;
 		$have_runtime_req |= hasreq($preq);
 		$metapaks[] = [
 			"type" => "metapackage",
 			// we re-use the dep name and version, makes for nice error messages if dependencies cannot be fulfilled :)
 			"name" => $package["name"],
 			"version" => $package["version"],
-			"require" => mkreq($preq),
+			"require" => mkdep($preq),
+			"replace" => mkdep($prep),
+			"provide" => mkdep($ppro),
+			"conflict" => mkdep($pcon),
 		];
 		$require[$package["name"]] = $package["version"];
 	}
