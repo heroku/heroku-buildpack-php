@@ -2,7 +2,7 @@
 
 ## Building the Image
 
-**After every change to your formulae, perform the following** (from the root of the application):
+**After every change to your formulae, perform the following** from the root of the Git repository (not from `support/build/_docker/`):
 
     $ docker build --tag heroku-php-build-cedar-14 --file $(pwd)/support/build/_docker/cedar-14.Dockerfile .
 
@@ -14,7 +14,7 @@ Out of the box, you'll likely want to change `S3_BUCKET` and `S3_PREFIX` to matc
 
 ## Using the Image
 
-Inside the root of the project (not in `support/build/_docker/`):
+From the root of the Git repository (not from `support/build/_docker/`):
 
     docker run --tty --interactive --env-file=support/build/_docker/env.default heroku-php-build-cedar-14 /bin/bash
 
