@@ -57,7 +57,6 @@ if(file_exists($COMPOSER_LOCK)) {
 		$prep = array_filter(isset($package["replace"]) ? $package["replace"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
 		$ppro = array_filter(isset($package["provide"]) ? $package["provide"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
 		$pcon = array_filter(isset($package["conflict"]) ? $package["conflict"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
-		if(!$preq && !$prep && !$ppro) continue;
 		$have_runtime_req |= hasreq($preq);
 		$metapaks[] = [
 			"type" => "metapackage",
