@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v94 (2016-02-26)
+
+### FIX
+
+- No web servers get selected when a `composer.lock` is missing [David Zuelke]
+
 ## v93 (2016-02-26)
 
 ### ADD

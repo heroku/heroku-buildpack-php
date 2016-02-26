@@ -26,6 +26,7 @@ $json = json_decode(file_get_contents($COMPOSER), true);
 if(!is_array($json)) exit(1);
 
 $have_runtime_req = false;
+$require = [];
 if(file_exists($COMPOSER_LOCK)) {
 	$lock = json_decode(file_get_contents($COMPOSER_LOCK), true);
 	// basic lock file validity check
@@ -48,8 +49,6 @@ if(file_exists($COMPOSER_LOCK)) {
 	$lock["packages"][] = $root;
 	$require = [
 		$root["name"] => $root["version"],
-		"heroku-sys/apache" => "^2.4.10",
-		"heroku-sys/nginx" => "~1.8.0",
 	];
 	foreach($lock["packages"] as $package) {
 		// extract only platform requires, replaces and provides
@@ -79,6 +78,8 @@ if(!$have_runtime_req) {
 } elseif(!isset($root["require"]["php"]) && !isset($root["require"]["hhvm"])) {
 	file_put_contents("php://stderr", "NOTICE: No runtime required in $COMPOSER; requirements\nfrom dependencies in $COMPOSER_LOCK will be used for selection\n");
 }
+$require["heroku-sys/apache"] = "^2.4.10";
+$require["heroku-sys/nginx"] = "~1.8.0";
 preg_match("#^([^-]+)(?:-([0-9]+))?\$#", $STACK, $stack);
 $provide = ["heroku-sys/".$stack[1] => (isset($stack[2])?$stack[2]:"1").gmdate(".Y.m.d")]; # cedar: 14.2016.02.16 etc
 $json = [
