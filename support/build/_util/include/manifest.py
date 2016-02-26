@@ -1,8 +1,9 @@
 import os, sys, json, re, datetime
 
 require = json.loads(sys.argv[5])
-require["heroku-sys/"+os.getenv("STACK")] = "^1.0.0"
-require["heroku/installer-plugin"] = "^1.0.0"
+stack=re.match("^([^-]+)(?:-([0-9]+))?$", os.getenv("STACK", "cedar-14"))
+require["heroku-sys/"+stack.group(1)] = "^{}.0.0".format(stack.group(2) or "1")
+require["heroku/installer-plugin"] = "^1.2.0"
 
 manifest = {
     "type": sys.argv[1],
@@ -10,7 +11,7 @@ manifest = {
     "version": sys.argv[3],
     "dist": {
         "type": "heroku-sys-tar",
-        "url": "https://"+os.getenv("S3_BUCKET")+"."+os.getenv("S3_REGION", "s3")+".amazonaws.com/"+os.getenv("S3_PREFIX")+"/"+sys.argv[4]
+        "url": "https://"+os.getenv("S3_BUCKET")+"."+os.getenv("S3_REGION", "s3")+".amazonaws.com/"+os.getenv("S3_PREFIX")+sys.argv[4]
     },
     "require": require,
     "conflict": json.loads(sys.argv[6]) if len(sys.argv) > 6 else {},

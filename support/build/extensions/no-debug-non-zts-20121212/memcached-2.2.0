@@ -9,6 +9,8 @@ set -o pipefail
 # fail harder
 set -eu
 
+OUT_PREFIX=$1
+
 source $(dirname $BASH_SOURCE)/../../_util/include/manifest.sh
 
 echo "-----> Merging dependencies..."
@@ -20,9 +22,15 @@ dep_package=ext-${dep_name}-${dep_version}
 series=5.5
 dep_manifest=${dep_package}_php-$series.composer.json
 
+mkdir -p ${OUT_PREFIX}/etc/php/conf.d
+cat > ${OUT_PREFIX}/etc/php/conf.d/memcached.ini-dist <<'EOF'
+extension = memcached.so
+memcached.use_sasl = 1
+EOF
+
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/hhvm\":\"*\"}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/memcached.ini-dist\"}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 
 python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_EXTRA" > $dep_manifest

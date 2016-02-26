@@ -16,6 +16,8 @@ http {
 
     #gzip  on;
 
+    server_tokens off;
+
     fastcgi_buffers 256 4k;
 
     # define an easy to reference name that can be used in fastgi_pass

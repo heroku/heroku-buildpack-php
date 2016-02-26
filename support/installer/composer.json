@@ -1,7 +1,7 @@
 {
 	"type": "composer-plugin",
 	"name": "heroku/installer-plugin",
-	"version": "1.0.0",
+	"version": "1.2.1",
 	"autoload": {
 		"psr-4": {
 			"Heroku\\Buildpack\\PHP\\": "src/"

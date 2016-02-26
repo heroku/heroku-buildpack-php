@@ -2,31 +2,6 @@
 
 # bin/compile <build-dir> <cache-dir> <env-dir>
 
-install_ext () {
-    local ext=$1
-    local reason=${2:-}
-    local ext_ini="$bp_dir/conf/php/conf.d/ext-$ext.ini"
-    local ext_so=
-    local ext_dir=$(php-config --extension-dir)
-    local ext_api=$(basename $ext_dir)
-    if [[ -f "$ext_ini" ]]; then
-        ext_so=$(php -r '$ini=parse_ini_file("'$ext_ini'"); echo $ext=$ini["zend_extension"]?:$ini["extension"]; exit((int)empty($ext));') # read .so name from .ini because e.g. opcache.so is named "zend-opcache"
-        if [[ ! -f "$ext_dir/$ext_so" ]]; then
-            warning_inline "Unknown extension ${ext} (${reason}), install may fail!"
-        else
-            echo "- ext-${ext} (${reason})" | indent
-            cp "${ext_ini}" "${build_dir}/.heroku/php/etc/php/conf.d"
-        fi
-    elif [[ -f "${ext_dir}/${ext}.so" ]]; then
-        echo "extension = ${ext}.so" > "${build_dir}/.heroku/php/etc/php/conf.d/ext-${ext}.ini"
-        echo "- ext-${ext} (${reason})" | indent
-    elif echo -n ${ext} | php -r 'exit((int)!extension_loaded(file_get_contents("php://stdin")));'; then
-        : # echo "- ${ext} (${reason}; enabled by default)" | indent
-    else
-        warning_inline "Unknown extension ${ext} (${reason}), install may fail!"
-    fi
-}
-
 # fail hard
 set -o pipefail
 # fail harder
@@ -34,7 +9,7 @@ set -eu
 # move hidden files too, just in case
 shopt -s dotglob
 
-STACK=${STACK:-cedar} # Anvil has none
+STACK=${STACK:-cedar-14} # Anvil has none
 build_dir=$1
 cache_dir=$2/php
 mkdir -p "$cache_dir"
@@ -52,15 +27,6 @@ source $bp_dir/bin/util/blackfire.sh
 unset GIT_DIR
 
 export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID)$'
-
-BUILDPACK_URL=${BUILDPACK_URL:-} # Anvil has none
-buildpack_branch=$(expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php#\(..*\)$' || expr "$BUILDPACK_URL" : '^.*/heroku-buildpack-php\.git#\(..*\)$' || true) # POSIX expr doesn't understand ".+" or "(\.git)?"
-buildpack_branch=${buildpack_branch:-master}
-
-if [[ "$buildpack_branch" != v* && "$buildpack_branch" != "master" ]]; then
-    s3_url="develop"
-fi
-s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-${s3_url:-"master"}"
 
 cd $build_dir
 
@@ -82,12 +48,6 @@ repository. For more information, please refer to the docs at
 https://devcenter.heroku.com/articles/php-support#activation"
     else
         cat "$COMPOSER_LOCK" | python -mjson.tool &> /dev/null || error "Could not parse '$COMPOSER_LOCK'; make sure it's valid!"
-        if [[ $(cat "$COMPOSER_LOCK" | python -c 'import sys, json; print json.load(sys.stdin)["hash"]' 2> /dev/null) != $(md5sum "$COMPOSER" | cut -d " " -f1) ]]; then
-            warning "Your '$COMPOSER_LOCK' is not up to date with the latest
-changes in '$COMPOSER'. To ensure you are not getting stale
-dependencies, run 'composer update' on your machine and commit
-any changes to Git before pushing again."
-        fi
         cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); sys.exit(not(l["minimum-stability"] == "stable"));' 2> /dev/null || warning "Your '$COMPOSER' contains a non-'stable' setting
 for 'minimum-stability'. This may cause the installation of
 unstable versions of runtimes and extensions during this deploy.
@@ -114,90 +74,56 @@ export COMPOSER_HOME=$cache_dir/.composer
 mkdir -p $COMPOSER_HOME
 # we need to run things in /app because of compiled paths, set that up!
 mkdir -p /app/.heroku
+# link the subdir only - we will leave it in place for potentially following buildpacks
 ln -s $build_dir/.heroku/php /app/.heroku/php
-export PATH=/app/.heroku/php/bin:$PATH
 
 status "Bootstrapping..."
+
+s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
 
 # minimal PHP needed for installs, and make "composer" invocations use that for now
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
-curl --silent --location "$s3_url/php-min.tar.gz" | tar xz -C $build_dir/.heroku/php-min
-curl --silent --location "$s3_url/composer-1.0.0alpha11.tar.gz" | tar xz -C $build_dir/.heroku/php
+curl --silent --location "${s3_url}php-min.tar.gz" | tar xz -C $build_dir/.heroku/php-min
+curl --silent --location "${s3_url}composer-1.0.0alpha11.tar.gz" | tar xz -C $build_dir/.heroku/php
+# this alias is just for now while we install platform packages
 composer() {
-    /app/.heroku/php-min/bin/php $(which composer) "$@"
+    /app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer "$@"
 }
 export -f composer
 
-status "Installing system packages..."
+composer_vendordir=$(composer config vendor-dir)
+composer_bindir=$(composer config bin-dir)
+
+# packages that get installed will add to this file, it's both for us and for buildpacks that follow
+# composer bin-dir goes last to avoid any conflicts
+echo "export PATH=/app/.heroku/php/bin:\$PATH:/app/$composer_bindir" > $bp_dir/export
+# make sure Composer and binaries for it are on the path at runtime
+# composer bin-dir goes last to avoid any conflicts
+mkdir -p $build_dir/.profile.d
+echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $build_dir/.profile.d/100-composer.sh
+
+# prepend the default repo to the list configured by the user
+# list of repositories to use is in ascening order of precedence
+HEROKU_PHP_PLATFORM_REPOSITORIES="${s3_url} ${HEROKU_PHP_PLATFORM_REPOSITORIES:-}"
+if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
+	# a single "-" in the user supplied string removes everything to the left of it; can be used to delete the default repo
+	notice_inline "Default platform repository disabled."
+	HEROKU_PHP_PLATFORM_REPOSITORIES=${HEROKU_PHP_PLATFORM_REPOSITORIES#*" - "}
+fi
+
+status "Installing platform packages..."
 
 # extract requirements from composer.lock
-/app/.heroku/php-min/bin/php -r '
-// prefix keys with "heroku-sys/"
-function mkreq($require) { return array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require); }
-// check if require section demands a runtime
-function hasreq($require) { return isset($require["php"]) || isset($require["hhvm"]); }
-// filter platform reqs
-$preqfilter = function($v) { return preg_match("#^(hhvm$|php(-64bit)?$|ext-)#", $v); };
-
-// remove first arg (0)
-array_shift($argv);
-// base repos we need - no packagist, and the installer plugin path (first arg)
-$repositories = [
-    ["packagist" => false],
-    ["type" => "path", "url" => array_shift($argv)],
-];
-// all other args are repo URLs
-foreach($argv as $repo) $repositories[] = ["type" => "composer", "url" => $repo];
-
-$have_runtime_req = false;
-if(file_exists(getenv("COMPOSER_LOCK"))) {
-    $lock = json_decode(file_get_contents(getenv("COMPOSER_LOCK")), true);
-    // basic lock file validity check
-    if(!$lock || !isset($lock["platform"], $lock["packages"])) exit(1);
-    // our main require will be what is in the lock "platform" key
-    $have_runtime_req |= hasreq($lock["platform"]);
-    $require = mkreq(array_filter($lock["platform"], $preqfilter, ARRAY_FILTER_USE_KEY));
-    // for each package that has platform requirements we build a meta-package that we then depend on
-    // we cannot simply join all those requirements together with " " or "," because of the precedence of the "|" operator: requirements "5.*," and "^5.3.9|^7.0", which should lead to a PHP 5 install, would combine into "5.*,^5.3.9|^7.0" (there is no way to group requirements), and that would give PHP 7
-    $metapaks = [];
-    foreach($lock["packages"] as $package) {
-        // extract only platform reqs
-        $preq = array_filter(isset($package["require"]) ? $package["require"] : [], $preqfilter, ARRAY_FILTER_USE_KEY);
-        if(!$preq) continue;
-        $have_runtime_req |= hasreq($preq);
-        $metapaks[] = [
-            "type" => "metapackage",
-            // we re-use the dep name and version, makes for nice error messages if dependencies cannot be fulfilled :)
-            "name" => $package["name"],
-            "version" => $package["version"],
-            "require" => mkreq($preq),
-        ];
-        $require[$package["name"]] = $package["version"];
-    }
-    // add all meta-packages to one local package repo
-    if($metapaks) $repositories[] = ["type" => "package", "package" => $metapaks];
-}
-// if no PHP or HHVM is required anywhere, we need to add something
-if(!$have_runtime_req) {
-    file_put_contents("php://stderr", "NOTICE: No runtime required in ".getenv("COMPOSER_LOCK")."; using PHP ". ($require["heroku-sys/php"] = "^5.5.17") . "\n");
-} elseif(!isset($require["heroku-sys/php"]) && !isset($require["heroku-sys/hhvm"])) {
-    file_put_contents("php://stderr", "NOTICE: No runtime required in ".getenv("COMPOSER")."; requirements\nfrom dependencies in ".getenv("COMPOSER_LOCK")." will be used for selection\n");
-}
-$json = [
-    "config" => ["cache-files-ttl" => 0, "discard-changes" => true],
-    "minimum-stability" => isset($lock["minimum-stability"]) ? $lock["minimum-stability"] : "stable",
-    "prefer-stable" => isset($lock["prefer-stable"]) ? $lock["prefer-stable"] : false,
-    "provide" => ["heroku-sys/".getenv("STACK") => "1.0.0"],
-    "repositories" => $repositories,
-    "require" => $require,
-];
-echo json_encode($json);
-' -- "$bp_dir/support/installer/" "$s3_url" 2>&1 >$build_dir/.heroku/php/composer.json | indent || error "Couldn't parse '$COMPOSER_LOCK'; it must be a valid lock
+/app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | indent || error "Couldn't parse '$COMPOSER_LOCK'; it must be a valid lock
 file generated by Composer. Run 'composer update', add/commit
 the change, then push again."
 
-if composer install -d "$build_dir/.heroku/php" --no-dev 2>&1 | tee $build_dir/.heroku/php/install.log | grep --line-buffered '  - Installing heroku-sys/' | sed -u 's/  - Installing heroku-sys\//- /' | indent; then
+# pass export_file_path and profile_dir_path to composer install; they will be used by the installer plugin
+# they are also used in later install attempts for add-on extensions (blackfire, newrelic, ...)
+export export_file_path=$bp_dir/export
+export profile_dir_path=$build_dir/.profile.d
+if composer install -d "$build_dir/.heroku/php" --no-dev 2>&1 | tee $build_dir/.heroku/php/install.log | grep --line-buffered -E '^  - (Instal|Enab)ling heroku-sys/' | sed -u -E -e 's/^  - (Instal|Enab)ling /- /' -e 's/heroku-sys\///g' | indent; then
     :
 else
     error "Failed to install system packages.
@@ -226,74 +152,27 @@ fi
 if composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/php; then
     engine="php"
     engine_r="php -r"
-    # update config files
-    mkdir -p $build_dir/.heroku/php/etc/php
-    cp $bp_dir/conf/php/php.ini $build_dir/.heroku/php/etc/php
-    cp $bp_dir/conf/php/php-fpm.conf $build_dir/.heroku/php/etc/php
-    mkdir -p $build_dir/.heroku/php/etc/php/conf.d
-    # store PHP version in the slug for possible later evaluation
-    mkdir -p $build_dir/.heroku/php/.versions/php
-    composer show -d "$build_dir/.heroku/php" --installed heroku-sys/php 2> /dev/null | sed -n -e 's/^versions : \* //p' > $build_dir/.heroku/php/.versions/php/php
 elif composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/hhvm; then
     engine="hhvm"
     engine_r="hhvm --php -r"
-    # store HHVM version in the slug for possible later evaluation
-    mkdir -p $build_dir/.heroku/php/.versions/hhvm
-    # make HHVM accessible
-    export PATH=$PATH:/app/.heroku/php/usr/bin
-    # so it'll start. remember to use the full path to the binary, or we'll get an infinite loop
-    hhvm() { LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/x86_64-linux-gnu:/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib `which hhvm` "$@"; }
-    export -f hhvm
-    composer show -d "$build_dir/.heroku/php" --installed heroku-sys/hhvm 2> /dev/null | sed -n -e 's/^versions : \* //p' > $build_dir/.heroku/php/.versions/hhvm/hhvm
 fi
 
-apache_version="2.4.16"
-apache_dist_url="$s3_url/apache-$apache_version.tar.gz"
-echo "- Apache ($apache_version)" | indent
-curl --silent --location "$apache_dist_url" | tar xz -C $build_dir/.heroku/php
-# Apache; copy in our config
-cp $bp_dir/conf/apache2/httpd.conf.default $build_dir/.heroku/php/etc/apache2/httpd.conf
-# store Apache version in the slug for possible later evaluation
-mkdir -p $build_dir/.heroku/php/.versions/apache2
-echo $apache_version > $build_dir/.heroku/php/.versions/apache2/apache2
-
-nginx_version="1.8.0"
-nginx_dist_url="$s3_url/nginx-$nginx_version.tar.gz"
-echo "- Nginx ($nginx_version)" | indent
-curl --silent --location "$nginx_dist_url" | tar xz -C $build_dir/.heroku/php
-# nginx; copy in our config
-cp $bp_dir/conf/nginx/nginx.conf.default $build_dir/.heroku/php/etc/nginx/nginx.conf
-# store Nginx version in the slug for possible later evaluation
-mkdir -p $build_dir/.heroku/php/.versions/nginx
-echo $nginx_version > $build_dir/.heroku/php/.versions/nginx/nginx
+composer validate --no-check-publish --no-check-all --quiet || warning "Your '$COMPOSER_LOCK' is not up to date with the latest
+changes in '$COMPOSER'. To ensure you are not getting stale
+dependencies, run 'composer update' on your machine and commit
+any changes to Git before pushing again."
 
 # clean up
 rm -rf /app/.heroku/php-min $build_dir/.heroku/php-min
 unset -f composer
 
+# earlier we wrote at least one $PATH entry that we'll need now, and installed packages will likely have added to it too
+source $bp_dir/export
+
 composer() {
-    $engine `which composer` "$@"
+    $engine $(which composer) "$@"
 }
 export -f composer
-
-# handle extensions for PHP
-if [[ "$engine" == "php" ]]; then
-    status "Enabling PHP extensions..."
-    
-    exts=()
-    if [[ -f "$COMPOSER_LOCK" ]]; then
-        exts=($(cat "$COMPOSER_LOCK" | python -c 'import sys, json, itertools; l=json.load(sys.stdin); print "\n".join(list(set(itertools.chain([plat[4:].lower() for plat in l.get("platform", []) if plat.startswith("ext-")], *[ [ pkg[4:].lower() for pkg in p.get("require", []) if pkg.startswith("ext-") ] for p in l.get("packages", []) ]))))' 2> /dev/null || true)) # convert to array
-        ext_source="$COMPOSER_LOCK"
-    fi
-    for ext in "${!exts[@]}"; do # loop over keys in case the array is empty or else it'll error out
-        install_ext "${exts[$ext]}" $ext_source
-    done
-    
-    if [[ ${#exts[@]} -eq 0 || ! ${exts[*]} =~ "zend-opcache" ]]; then
-        install_ext "zend-opcache" "automatic"
-        exts+=("zend-opcache")
-    fi
-fi
 
 status "Installing dependencies..."
 
@@ -311,9 +190,6 @@ fi
 # echo composer version for info purposes
 # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 composer --version 2> /dev/null | tail -n 1 | indent
-
-composer_vendordir=$(composer config vendor-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
-composer_bindir=$(composer config bin-dir 2> /dev/null | tail -n 1) # tail, as composer echos outdated version warnings to STDOUT
 
 # throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
 if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer" ]]; then
@@ -389,35 +265,6 @@ cd $build_dir/$composer_bindir
 ln -fs $relbins .
 cd $build_dir
 
-# Update the PATH
-mkdir -p $build_dir/.profile.d
-cat > $build_dir/.profile.d/php.sh <<"EOF"
-export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
-EOF
-if [[ $engine == "hhvm" ]]; then
-    cat > $build_dir/.profile.d/hhvm.sh <<"EOF"
-export PATH="$PATH:$HOME/.heroku/php/usr/bin"
-hhvm() { LD_LIBRARY_PATH=$HOME/.heroku/php/usr/lib/x86_64-linux-gnu:$HOME/.heroku/php/usr/lib/hhvm:$HOME/.heroku/php/usr/lib `which hhvm` "$@"; }
-export -f hhvm
-EOF
-fi
-# Alias composer if needed
-if [[ -f "composer.phar" ]]; then
-    cat > $build_dir/.profile.d/composer.sh <<EOF
-composer() {
-    $engine composer.phar "\$@"
-}
-export -f composer
-EOF
-else
-    cat > $build_dir/.profile.d/composer.sh <<EOF
-composer() {
-    $engine \`which composer\` "\$@"
-}
-export -f composer
-EOF
-fi
-
 if [[ ! -f "Procfile" ]]; then
     echo "web: $composer_bindir/heroku-$engine-apache2" > Procfile
     notice_inline "No Procfile, using 'web: $composer_bindir/heroku-$engine-apache2'."
@@ -426,13 +273,6 @@ fi
 status "Checking for additional extensions to install..."
 # special treatment for Blackfire; we enable it if we detect a server id and a server token for it
 install_blackfire_ext
-install_blackfire_agent
 # special treatment for New Relic; we enable it if we detect a license key for it
 install_newrelic_ext
-install_newrelic_daemon
 install_newrelic_userini
-
-# export for multi buildpack
-cat > $bp_dir/export <<"EOF"
-export PATH="/app/.heroku/php/bin:/app/.heroku/php/sbin:$PATH"
-EOF

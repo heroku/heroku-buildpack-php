@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: php-5.6.16, libraries/libmemcached
+# Build Deps: php-5.6.18, libraries/libmemcached
 
 VERSION=2.2.0
 
