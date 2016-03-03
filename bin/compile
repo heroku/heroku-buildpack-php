@@ -26,10 +26,9 @@ source $bp_dir/bin/util/blackfire.sh
 # if this is set it prevents Git clones (e.g. for Composer installs from source) during the build in some circumstances, and it is set in SSH Git deploys to Heroku
 unset GIT_DIR
 
-export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID)$'
-
 cd $build_dir
 
+export_env_dir "$env_dir" '^COMPOSER$'
 if [[ -n ${COMPOSER:-} ]]; then
     status "Using '$COMPOSER' (from "'$COMPOSER env var) for installation.'
 else
@@ -82,6 +81,7 @@ status "Bootstrapping..."
 s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
 # prepend the default repo to the list configured by the user
 # list of repositories to use is in ascening order of precedence
+export_env_dir "$env_dir" '^HEROKU_PHP_PLATFORM_REPOSITORIES$'
 HEROKU_PHP_PLATFORM_REPOSITORIES="${s3_url} ${HEROKU_PHP_PLATFORM_REPOSITORIES:-}"
 if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
 	# a single "-" in the user supplied string removes everything to the left of it; can be used to delete the default repo
@@ -214,6 +214,7 @@ For more info, refer to the Composer FAQ: http://bit.ly/1rlCSZU"
 fi
 
 # handle custom oauth keys
+export_env_dir "$env_dir" '^COMPOSER_GITHUB_OAUTH_TOKEN$'
 COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
 if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
     if curl --fail --silent -H "Authorization: token $COMPOSER_GITHUB_OAUTH_TOKEN" https://api.github.com/rate_limit > /dev/null; then
@@ -230,6 +231,7 @@ fi
 unset COMPOSER_GITHUB_OAUTH_TOKEN
 
 # install dependencies unless composer.json is completely empty (in which case it'd talk to packagist.org which may be slow and is unnecessary)
+export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS)$'
 cat "$COMPOSER" | python -c 'import sys,json; sys.exit(not json.load(sys.stdin));' && composer install --no-dev --prefer-dist --optimize-autoloader --no-interaction 2>&1 | indent
 
 composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your '$COMPOSER' requires 'heroku/heroku-buildpack-php'.
