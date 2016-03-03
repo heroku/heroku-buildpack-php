@@ -8,6 +8,7 @@
 - PHP/5.6.19 [David Zuelke]
 - PHP/7.0.4 [David Zuelke]
 - ext-blackfire/1.9.2 [David Zuelke]
+- Nginx/1.8.1 [David Zuelke]
 
 ## v94 (2016-02-26)
 
