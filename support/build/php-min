@@ -10,7 +10,7 @@ set -eux
 
 dep_formula=${0#$WORKSPACE_DIR/}
 dep_name=php
-dep_version=7.0.0
+dep_version=7.0.4
 dep_package=${dep_name}-min
 dep_dirname=php-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
