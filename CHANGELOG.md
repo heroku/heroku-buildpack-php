@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v96 (2016-03-??)
+
+### ADD
+
+- ext-imagick/3.4.1 for all PHP versions, with platform imagemagick [David Zuelke]
+
 ## v95 (2016-03-03)
 
 ### ADD

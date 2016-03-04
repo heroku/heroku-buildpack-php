@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=$(basename $BASH_SOURCE)
+
+source $(dirname $BASH_SOURCE)/../pecl
