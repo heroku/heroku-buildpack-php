@@ -65,6 +65,7 @@ for dep in $deps; do
     curl -LO $dep
     dpkg -x $depb ${OUT_PREFIX}
 done
+strip --strip-unneeded ${OUT_PREFIX}/usr/bin/*
 
 export LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/x86_64-linux-gnu:/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib
 export PATH=/app/.heroku/php/usr/bin:$PATH

@@ -43,6 +43,7 @@ pushd ${dep_dirname}
     --enable-deflate
 make -s -j 9
 make install -s
+find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 popd
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"

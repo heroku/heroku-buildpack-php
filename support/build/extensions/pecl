@@ -33,6 +33,7 @@ make -s -j 9
 # php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
 rm -rf ${OUT_PREFIX}/*
 make install -s
+strip --strip-unneeded ${OUT_PREFIX}/lib/php/extensions/*/*.so
 popd
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"

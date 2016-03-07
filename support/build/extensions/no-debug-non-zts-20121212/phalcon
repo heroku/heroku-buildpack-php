@@ -44,6 +44,7 @@ make install -s
 " >> install-heroku
 ./install-heroku
 popd
+strip --strip-unneeded ${OUT_PREFIX}/lib/php/extensions/*/*.so
 popd
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"

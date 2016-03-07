@@ -82,6 +82,8 @@ chmod +x agent
 cp agent ${bin_dir}/blackfire-agent
 rm agent.tar.gz agent agent.sha1
 
+find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
+
 # gets sourced on dyno boot
 cat > ${OUT_PREFIX}/bin/profile.blackfire.sh <<'EOF'
 if [[ -n "$BLACKFIRE_SERVER_TOKEN" && -n "$BLACKFIRE_SERVER_ID" ]]; then

@@ -109,6 +109,7 @@ export PATH=${OUT_PREFIX}/bin:$PATH
     $configureopts
 make -s -j 9
 make install -s
+find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 popd
 
 echo "-----> Preparing PECL..."
