@@ -18,6 +18,7 @@
 - Remove vendored pcre library and use platform version for Apache [David Zuelke]
 - Use platform pcre and zlib for Nginx [David Zuelke]
 - Update vendored gettext to 0.19.7 and build only its runtime parts [David Zuelke]
+- Use platform libsasl for libmemcached [David Zuelke]
 
 ## v95 (2016-03-03)
 

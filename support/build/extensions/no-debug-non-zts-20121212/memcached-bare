@@ -21,6 +21,9 @@ series=$(php-config --version | cut -d. -f1,2) # get "5.5", "5.6", "7.0" etc for
 
 echo "-----> Building ${dep_package}..."
 
+# we need libsasl2-dev for ext-memcached
+apt-get install -y libsasl2-dev || { echo "Failed to install libsasl2-dev; are you running this in a Docker build?"; exit 1; }
+
 curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
