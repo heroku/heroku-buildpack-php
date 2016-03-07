@@ -6,6 +6,7 @@
 
 - ext-imagick/3.4.1 for all PHP versions, with platform imagemagick [David Zuelke]
 - ext-mongodb/1.1.3 [David Zuelke]
+- ext-ldap, with SASL, for PHP builds (#131) [David Zuelke]
 
 ### CHG
 

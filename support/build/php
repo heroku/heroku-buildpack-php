@@ -36,6 +36,12 @@ curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
 
+# we need libsasl2-dev for LDAP
+apt-get install -y libsasl2-dev || { echo "Failed to install libsasl2-dev; are you running this in a Docker build?"; exit 1; }
+# look for LDAP and SASL libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
+sed -i 's/LDAP_LIBDIR=$i\/$PHP_LIBDIR/LDAP_LIBDIR=$i\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
+sed -i 's/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
+
 configureopts=
 if [[ $dep_version == 7.* ]]; then
     configureopts="\
@@ -80,6 +86,8 @@ LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
         --with-png-dir=/usr \
     --with-gettext=shared,${OUT_PREFIX} \
     --enable-intl=shared \
+    --with-ldap=shared \
+        --with-ldap-sasl \
     --enable-mbstring=shared \
     --enable-pcntl=shared \
     --enable-shmop=shared \
