@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: libraries/zlib, libraries/pcre
+# Build Deps: libraries/pcre
 
 # fail hard
 set -o pipefail
@@ -34,7 +34,7 @@ pushd ${dep_dirname}
     --prefix=${OUT_PREFIX} \
     --with-included-apr \
     --with-pcre=${OUT_PREFIX} \
-    --with-z=${OUT_PREFIX} \
+    --with-z \
     --with-ssl \
     --with-mpm=event \
     --enable-mods-shared=all \

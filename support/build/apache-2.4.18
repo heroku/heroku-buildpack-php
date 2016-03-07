@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: libraries/zlib, libraries/pcre
+# Build Deps: libraries/pcre
 
 VERSION=2.4.18
 

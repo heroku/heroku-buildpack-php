@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: libraries/zlib, libraries/libmcrypt, libraries/gettext
+# Build Deps: libraries/libmcrypt, libraries/gettext
 
 # fail hard
 set -o pipefail
@@ -84,7 +84,6 @@ export PATH=${OUT_PREFIX}/bin:$PATH
     --enable-sockets \
     --enable-zip \
     --with-zlib \
-    --with-zlib-dir=${OUT_PREFIX} \
     --enable-bcmath=shared \
     --enable-calendar=shared \
     --enable-exif=shared \
