@@ -15,6 +15,7 @@
 - Use Composer/1.0.0beta1 [David Zuelke]
 - Remove vendored ICU library and use platform ICU52 for PHP [David Zuelke]
 - Remove vendored zlib and use platform version for PHP and Apache [David Zuelke]
+- Remove vendored pcre library and use platform version for Apache [David Zuelke]
 
 ## v95 (2016-03-03)
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: libraries/pcre
 
 # fail hard
 set -o pipefail
@@ -33,7 +32,7 @@ pushd ${dep_dirname}
     --enable-layout=GNU \
     --prefix=${OUT_PREFIX} \
     --with-included-apr \
-    --with-pcre=${OUT_PREFIX} \
+    --with-pcre \
     --with-z \
     --with-ssl \
     --with-mpm=event \
