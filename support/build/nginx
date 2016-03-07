@@ -22,8 +22,6 @@ dep_manifest=${dep_package}.composer.json
 echo "-----> Building ${dep_package}..."
 
 curl -L ${dep_url} | tar xz
-curl -L http://zlib.net/zlib-1.2.8.tar.gz | tar xz -C ${dep_dirname}
-curl -L http://sourceforge.net/projects/pcre/files/pcre/8.37/pcre-8.37.tar.gz | tar xz -C ${dep_dirname}
 
 pushd ${dep_dirname}
 ETC=${OUT_PREFIX}/etc
@@ -40,9 +38,7 @@ VAR=${OUT_PREFIX}/var
     --http-scgi-temp-path=${VAR}/run/nginx/scgi_temp \
     --http-log-path=${VAR}/log/nginx/access.log \
     --error-log-path=${VAR}/log/nginx/error.log \
-    --with-http_realip_module \
-    --with-pcre=pcre-8.37 \
-    --with-zlib=zlib-1.2.8
+    --with-http_realip_module
 make -s -j 9
 make install -s
 # this doesn't get created
