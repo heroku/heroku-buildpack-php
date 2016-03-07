@@ -66,8 +66,8 @@ for dep in $deps; do
     dpkg -x $depb ${OUT_PREFIX}
 done
 
-export LD_LIBRARY_PATH=$HOME/.heroku/php/usr/lib/x86_64-linux-gnu:$HOME/.heroku/php/usr/lib/hhvm:$HOME/.heroku/php/usr/lib
-export PATH=$HOME/.heroku/php/usr/bin:$PATH
+export LD_LIBRARY_PATH=/app/.heroku/php/usr/lib/x86_64-linux-gnu:/app/.heroku/php/usr/lib/hhvm:/app/.heroku/php/usr/lib
+export PATH=/app/.heroku/php/usr/bin:$PATH
 echo "-----> Generating manifest..."
 curl -sS https://getcomposer.org/installer | hhvm --php
 
