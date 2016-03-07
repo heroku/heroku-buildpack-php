@@ -8,6 +8,7 @@
 - ext-mongodb/1.1.3 [David Zuelke]
 - ext-ldap, with SASL, for PHP builds (#131) [David Zuelke]
 - ext-gmp for PHP builds (#117) [David Zuelke]
+- ext-event/2.0.0 [David Zuelke]
 
 ### CHG
 
