@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: libraries/zlib, libraries/libmcrypt, libraries/icu, libraries/gettext
+# Build Deps: libraries/zlib, libraries/libmcrypt, libraries/gettext
 
 # fail hard
 set -o pipefail
@@ -43,6 +43,9 @@ sed -i 's/$GMP_DIR\/$PHP_LIBDIR/$GMP_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' config
 # symlink in gmp.h
 ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h
 
+# we need libicu-dev for intl
+apt-get install -y libicu-dev || { echo "Failed to install libicu-dev; are you running this in a Docker build?"; exit 1; }
+
 # we need libsasl2-dev for LDAP
 apt-get install -y libsasl2-dev || { echo "Failed to install libsasl2-dev; are you running this in a Docker build?"; exit 1; }
 # look for LDAP and SASL libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
@@ -65,7 +68,7 @@ fi
 export PATH=${OUT_PREFIX}/bin:$PATH
 # cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
 # sqlite3 and pdo_sqlite are on by default but we're building them shared on purpose
-LD_LIBRARY_PATH=${OUT_PREFIX} ./configure \
+./configure \
     --prefix=${OUT_PREFIX} \
     --with-config-file-path=/app/.heroku/php/etc/php \
     --with-config-file-scan-dir=/app/.heroku/php/etc/php/conf.d \

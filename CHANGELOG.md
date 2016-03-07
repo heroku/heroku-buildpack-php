@@ -13,6 +13,7 @@
 ### CHG
 
 - Use Composer/1.0.0beta1 [David Zuelke]
+- Remove vendored ICU library and use platform ICU52 for PHP [David Zuelke]
 
 ## v95 (2016-03-03)
 
