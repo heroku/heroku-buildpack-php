@@ -36,11 +36,6 @@ curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
 
-if echo -n $dep_version | python -c "import sys, pkg_resources; ver=pkg_resources.parse_version(sys.stdin.read()); sys.exit(ver >= pkg_resources.parse_version('5.6.0RC2') or ver >= pkg_resources.parse_version('5.5.17RC1'));"; then
-    echo "-----> Applying https://github.com/php/php-src/pull/694..."
-    curl -L https://github.com/php/php-src/pull/694.diff | patch -p1
-fi
-
 configureopts=
 if [[ $dep_version == 7.* ]]; then
     configureopts="\
