@@ -162,6 +162,14 @@ The same can be used to sync from the official Heroku repository to the custom "
 
     $ support/build/_util/sync.sh my-bucket cedar-14-develop/ lang-php dist-cedar-14-master/
 
+### Removing packages
+
+The `support/build/_util/remove.sh` helper removes a package manifest and its tarball from a bucket, and re-generates the repository. It accepts one or more names of a JSON manifest file from the bucket (optionally without "`.composer.json`" suffix) as arguments:
+
+    $ support/build/_util/remove.sh ext-imagick-3.3.0_php-5.5.composer.json ext-imagick-3.3.0_php-5.6.composer.json
+
+Unless the `--no-publish` option is given, the repository will be re-generated after removal. Otherwise, the manifests and tarballs would be removed, but the main repository would remain in place, pointing to non-existing packages, so usage of this flag is only recommended for debugging purposes or similar.
+
 ## Usage in applications
 
 Please refer to [the instructions in the main README](../../README.md#custom-platform-repositories) for details on how to use a custom repository during application builds.
