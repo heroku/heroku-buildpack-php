@@ -124,7 +124,7 @@ echo "
 WARNING: POTENTIALLY DESTRUCTIVE ACTION!
 
 The following packages will be IGNORED:
-$(IFS=$'\n'; echo "${ignore_manifests[*]:-(none)}" | sed -e 's/^/  - /' -e 's/.composer.json$//')
+$(IFS=$'\n'; echo "${ignore_manifests[*]:-(none)}" | sed -e 's/^/  - /' -e 's/.composer.json//')
 
 The following packages will be ADDED
  from s3://${src_bucket}/${src_prefix}
