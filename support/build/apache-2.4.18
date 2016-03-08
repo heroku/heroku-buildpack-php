@@ -1,6 +1,4 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
 
-VERSION=2.4.18
-
 source $(dirname $0)/apache

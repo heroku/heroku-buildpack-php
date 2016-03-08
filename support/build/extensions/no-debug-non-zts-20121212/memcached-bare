@@ -11,8 +11,8 @@ set -eu
 export PATH=${OUT_PREFIX}/bin:${PATH}
 
 dep_formula=${0#$WORKSPACE_DIR/}
-dep_name=memcached
-dep_version=${VERSION}
+dep_name=memcached-bare
+dep_version=${dep_formula##*"/${dep_name}-"}
 dep_package=ext-${dep_name}-${dep_version}
 dep_dirname=php-memcached-${dep_version}
 dep_archive_name=${dep_version}.tar.gz
@@ -30,7 +30,7 @@ pushd ${dep_dirname}
 phpize
 ./configure \
     --prefix=${OUT_PREFIX} \
-    --enable-${dep_name} \
+    --enable-memcached \
     --with-libmemcached-dir=${OUT_PREFIX}
 make -s -j 9
 # php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension

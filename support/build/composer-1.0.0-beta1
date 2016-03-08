@@ -2,6 +2,4 @@
 # Build Path: /app/.heroku/php/
 # Build Deps: php-min
 
-VERSION=1.0.0-beta1
-
 source $(dirname $0)/composer

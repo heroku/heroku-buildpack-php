@@ -34,9 +34,10 @@ bin_dir=${OUT_PREFIX}/bin
 
 dep_formula=${0#$WORKSPACE_DIR/}
 dep_name=$(basename $BASH_SOURCE)
-if [[ -n "${VERSION:-}" ]]; then
-	probe_version=${VERSION}
-	echo "Using explicit version ${VERSION}"
+if [[ "$dep_formula" != "$dep_name" ]]; then
+	probe_version=${dep_formula##*"/${dep_name}-"}
+	
+	echo "Using explicit version ${probe_version}"
 else
 	probe_version=`curl -I -A "Heroku" -L -s https://blackfire.io/api/v1/releases/probe/php/linux/amd64/${series/\./} | grep 'X-Blackfire-Release-Version: ' | sed "s%X-Blackfire-Release-Version: %%" | sed s%.$%%`
 	cat <<-EOF
@@ -55,7 +56,7 @@ else
 fi
 dep_version=${probe_version}
 dep_package=ext-${dep_name}-${dep_version}
-if [[ -n "${VERSION:-}" ]]; then
+if [[ "$dep_formula" != "$dep_name" ]]; then
 	dep_manifest=${dep_package}_php-$series.composer.json
 else
 	dep_manifest=ext-${dep_name}_php-$series.composer.json
@@ -113,7 +114,7 @@ python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-e
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
 
-if [[ -z "${VERSION:-}" ]]; then
+if [[ "$dep_formula" == "$dep_name" ]]; then
 	cat <<-EOF
 		
 		!!! WARNING !!! If you just deployed using --overwrite and without --publish:

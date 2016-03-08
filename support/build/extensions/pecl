@@ -12,7 +12,7 @@ OUT_PREFIX=$1
 export PATH=${OUT_PREFIX}/bin:${PATH}
 
 dep_formula=${0#$WORKSPACE_DIR/}
-dep_version=${VERSION}
+dep_version=${dep_formula##*"/${dep_name}-"}
 dep_package=ext-${dep_name}-${dep_version}
 dep_dirname=${dep_name}-${dep_version}
 dep_archive_name=${dep_dirname}.tgz

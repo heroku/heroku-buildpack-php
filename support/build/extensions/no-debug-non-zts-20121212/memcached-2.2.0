@@ -17,7 +17,7 @@ echo "-----> Merging dependencies..."
 
 dep_formula=${0#$WORKSPACE_DIR/}
 dep_name=memcached
-dep_version=2.2.0
+dep_version=${dep_formula##*"/${dep_name}-"}
 dep_package=ext-${dep_name}-${dep_version}
 series=5.5
 dep_manifest=${dep_package}_php-$series.composer.json
