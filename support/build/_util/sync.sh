@@ -2,14 +2,36 @@
 
 set -eu
 
+remove=true
+
+# process flags
+optstring=":-:"
+while getopts "$optstring" opt; do
+	case $opt in
+		-)
+			case "$OPTARG" in
+				no-remove)
+					remove=false
+					;;
+				*)
+					echo "Invalid option: --$OPTARG" >&2
+					exit 2
+					;;
+			esac
+	esac
+done
+# clear processed arguments
+shift $((OPTIND-1))
+
 if [[ $# -lt "2" || $# -gt "6" ]]; then
-	echo "Usage: $(basename $0) DEST_BUCKET DEST_PREFIX [DEST_REGION [SOURCE_BUCKET SOURCE_PREFIX [SOURCE_REGION]]]" >&2
+	echo "Usage: $(basename $0) [--no-remove] DEST_BUCKET DEST_PREFIX [DEST_REGION [SOURCE_BUCKET SOURCE_PREFIX [SOURCE_REGION]]]" >&2
 	echo "  DEST_BUCKET:   destination S3 bucket name." >&2
 	echo "  DEST_REGION:   destination bucket region, e.g. us-west-1; default: 's3'." >&2
 	echo "  DEST_PREFIX:   destination prefix, e.g. '' or 'dist-stable/'." >&2
 	echo "  SOURCE_BUCKET: source S3 bucket name; default: '\$S3_BUCKET'." >&2
 	echo "  SOURCE_REGION: source bucket region; default: '\$S3_REGION' or 's3'." >&2
 	echo "  SOURCE_PREFIX: source prefix; default: '\${S3_PREFIX}'." >&2
+	echo "  --no-remove: no removal of destination packages that are not in source bucket." >&2
 	exit 2
 fi
 
@@ -136,10 +158,13 @@ The following packages will be UPDATED (source manifest is newer)
    to s3://${dst_bucket}/${dst_prefix}:
 $(IFS=$'\n'; echo "${update_manifests[*]:-(none)}" | sed -e 's/^/  - /' -e 's/.composer.json$//')
 
-The following packages will be REMOVED
- from s3://${dst_bucket}/${dst_prefix}:
+The following packages will $($remove || echo -n "NOT ")be REMOVED
+ from s3://${dst_bucket}/${dst_prefix}$($remove && echo -n ":")$($remove || echo -ne "\n because '--no-remove' was given:")
 $(echo "${remove_manifests:-(none)}" | sed -e 's/^/  - /' -e 's/.composer.json$//')
 " >&2
+
+# clear remove_manifests if --no-remove given
+$remove || remove_manifests=
 
 if [[ ! "$add_manifests" && ! "$remove_manifests" && "${#update_manifests[@]}" -eq 0 ]]; then
 	echo "Nothing to do. Aborting." >&2
