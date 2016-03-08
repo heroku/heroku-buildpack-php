@@ -34,7 +34,6 @@ export PATH=${OUT_PREFIX}/bin:$PATH
     --enable-cli\
     --with-bz2 \
     --disable-dom \
-    --without-iconv \
     --disable-libxml \
     --with-openssl \
     --without-pear \
