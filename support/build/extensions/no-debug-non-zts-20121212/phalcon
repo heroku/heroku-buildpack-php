@@ -23,7 +23,7 @@ dep_url=https://github.com/phalcon/cphalcon/archive/${dep_archive_name}
 series=$(php-config --version | cut -d. -f1,2) # get "5.5", "5.6", "7.0" etc for the php requirement in the manifest
 dep_manifest=${dep_package}_php-$series.composer.json
 
-echo "-----> Building ext/phalcon ${dep_version}..."
+echo "-----> Building ${dep_package}..."
 
 curl -L ${dep_url} | tar xz
 
