@@ -4,35 +4,4 @@
 
 # That's it - we're combining the dep build and the extension build here
 
-# fail hard
-set -o pipefail
-# fail harder
-set -eu
-
-OUT_PREFIX=$1
-
-source $(dirname $BASH_SOURCE)/../../_util/include/manifest.sh
-
-echo "-----> Merging dependencies..."
-
-dep_formula=${0#$WORKSPACE_DIR/}
-dep_name=memcached
-dep_version=${dep_formula##*"/${dep_name}-"}
-dep_package=ext-${dep_name}-${dep_version}
-series=5.5
-dep_manifest=${dep_package}_php-$series.composer.json
-
-mkdir -p ${OUT_PREFIX}/etc/php/conf.d
-cat > ${OUT_PREFIX}/etc/php/conf.d/memcached.ini-dist <<'EOF'
-extension = memcached.so
-memcached.use_sasl = 1
-EOF
-
-MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
-MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/hhvm\":\"*\"}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/memcached.ini-dist\"}"}"
-MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
-
-python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_EXTRA" > $dep_manifest
-
-print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
+source $(dirname $0)/memcached
