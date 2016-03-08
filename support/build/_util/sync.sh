@@ -150,7 +150,7 @@ read -p "Are you sure you want to sync to destination & regenerate packages.json
 
 [[ ! $proceed =~ [yY](es)* ]] && exit
 
-echo ""
+echo "" >&2
 
 copied_files=()
 for manifest in $add_manifests ${update_manifests[@]:-}; do
@@ -221,7 +221,7 @@ for manifest in $remove_manifests; do
 	echo "done." >&2
 done
 
-echo ""
+echo "" >&2
 
 echo -n "Generating and uploading packages.json... " >&2
 out=$(cd $dst_tmp; $here/mkrepo.sh --upload $dst_bucket $dst_prefix *.composer.json 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
@@ -235,8 +235,8 @@ if [[ "${#remove_files[@]}" != "0" ]]; then
 		echo -n "  - removing '$filename'... " >&2
 		out=$(s3cmd rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${dst_bucket}/${dst_prefix}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
 	done
-	echo ""
+	echo "" >&2
 fi
 
 echo "Sync complete.
-"
+" >&2
