@@ -112,6 +112,8 @@ make install -s
 find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 popd
 
+rm -rf ${OUT_PREFIX}/php/man ${OUT_PREFIX}/lib/php/extensions/*/*.a
+
 echo "-----> Preparing PECL..."
 ${OUT_PREFIX}/bin/pecl channel-update pecl.php.net
 

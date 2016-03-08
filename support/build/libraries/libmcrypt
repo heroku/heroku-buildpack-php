@@ -24,4 +24,6 @@ make -s -j 9
 make install-strip -s
 popd
 
+rm -rf ${OUT_PREFIX}/man
+
 echo "-----> Done."
