@@ -1,20 +1,25 @@
 #!/bin/bash
 # Build Path: /app/.heroku/php/
 
-OUT_PREFIX=$1
-
 # fail hard
 set -o pipefail
 # fail harder
 set -eu
 
-DEFAULT_VERSION="0.19.7"
-dep_version=${VERSION:-$DEFAULT_VERSION}
+source $(dirname $BASH_SOURCE)/../_util/include/manifest.sh
+
+OUT_PREFIX=$1
+
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=$(basename $BASH_SOURCE)
+dep_version=${dep_formula##*"/${dep_name}-"}
+dep_package=pkg-${dep_name}-${dep_version}
 dep_dirname=gettext-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 dep_url=http://ftp.gnu.org/pub/gnu/gettext/${dep_archive_name}
+dep_manifest=${dep_package}.composer.json
 
-echo "-----> Building gettext-runtime ${dep_version}..."
+echo "-----> Building ${dep_package}..."
 
 curl -L ${dep_url} | tar xz
 
@@ -26,4 +31,6 @@ popd
 
 rm -rf ${OUT_PREFIX}/share/man ${OUT_PREFIX}/share/doc
 
-echo "-----> Done."
+python $(dirname $BASH_SOURCE)/../_util/include/manifest.py "heroku-sys-package" "heroku-sys/pkg-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" > $dep_manifest
+
+print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
