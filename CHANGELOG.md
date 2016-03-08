@@ -6,6 +6,10 @@
 
 - ext-imagick/3.4.1 for all PHP versions, with platform imagemagick [David Zuelke]
 
+### CHG
+
+- Use Composer/1.0.0beta1 [David Zuelke]
+
 ## v95 (2016-03-03)
 
 ### ADD

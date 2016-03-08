@@ -85,7 +85,7 @@ s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 curl --silent --location "${s3_url}php-min.tar.gz" | tar xz -C $build_dir/.heroku/php-min
-curl --silent --location "${s3_url}composer-1.0.0alpha11.tar.gz" | tar xz -C $build_dir/.heroku/php
+curl --silent --location "${s3_url}composer-1.0.0-beta1.tar.gz" | tar xz -C $build_dir/.heroku/php
 # this alias is just for now while we install platform packages
 composer() {
     /app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer "$@"
@@ -149,15 +149,15 @@ For a list of supported runtimes & extensions on Heroku, please
 refer to: https://devcenter.heroku.com/articles/php-support"
 fi
 
-if composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/php; then
+if composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/php 2>/dev/null; then
     engine="php"
     engine_r="php -r"
-elif composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/hhvm; then
+elif composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/hhvm 2>/dev/null; then
     engine="hhvm"
     engine_r="hhvm --php -r"
 fi
 
-composer validate --no-check-publish --no-check-all --quiet || warning "Your '$COMPOSER_LOCK' is not up to date with the latest
+composer validate --no-check-publish --no-check-all --quiet 2>/dev/null || warning "Your '$COMPOSER_LOCK' is not up to date with the latest
 changes in '$COMPOSER'. To ensure you are not getting stale
 dependencies, run 'composer update' on your machine and commit
 any changes to Git before pushing again."
