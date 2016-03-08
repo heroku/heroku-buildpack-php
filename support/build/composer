@@ -7,7 +7,7 @@ OUT_PREFIX=$1
 # fail hard
 set -o pipefail
 # fail harder
-set -eux
+set -eu
 
 dep_formula=${0#$WORKSPACE_DIR/}
 dep_name=$(basename $BASH_SOURCE)

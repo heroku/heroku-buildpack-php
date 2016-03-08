@@ -6,7 +6,7 @@ OUT_PREFIX=$1
 # fail hard
 set -o pipefail
 # fail harder
-set -eux
+set -eu
 
 DEFAULT_VERSION="2.5.8"
 dep_version=${VERSION:-$DEFAULT_VERSION}

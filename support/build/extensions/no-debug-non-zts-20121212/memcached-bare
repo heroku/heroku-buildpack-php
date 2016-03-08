@@ -6,7 +6,7 @@ OUT_PREFIX=$1
 # fail hard
 set -o pipefail
 # fail harder
-set -eux
+set -eu
 
 export PATH=${OUT_PREFIX}/bin:${PATH}
 

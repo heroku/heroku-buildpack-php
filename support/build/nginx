@@ -4,7 +4,7 @@
 # fail hard
 set -o pipefail
 # fail harder
-set -eux
+set -eu
 
 OUT_PREFIX=$1
 
