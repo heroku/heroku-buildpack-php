@@ -36,6 +36,10 @@ The following environment variables are optional:
 
 - `S3_REGION`, to be set to the AWS region name (e.g. "`s3-eu-west-1`") for any non-standard region, otherwise "`s3`" (for region "us-east-1")
 
+### Understanding Prefixes
+
+It is recommended to use a prefix like "`dist-cedar-14-develop/`" for `$S3_PREFIX`. The contents of this prefix will act as a development repository, where all building happens. The `support/build/_util/sync.sh` helper can later be used to synchronize to another prefix, e.g. "`dist-cedar-14-stable/`" that is used for production. For more info, see the section on syncing repositories further below.
+
 ### Build environment setup
 
 #### Using Heroku
@@ -60,7 +64,7 @@ Refer to the [README in `support/build/_docker/`](_docker/README.md) for setup i
 
 Most builds will initially fail, because your bucket is empty and no formula dependencies can be pulled. You can sync from an official repository, e.g. `lang-php`, using a helper script - make sure you use the appropriate prefix (in this example, the default `dist-cedar-14-stable/` for the "cedar-14" stack):
 
-    $ heroku run "support/build/_util/sync.sh your-bucket your-prefix/ lang-php dist-cedar-14-stable/"
+    $ heroku run "support/build/_util/sync.sh your-bucket dist-cedar-14-develop/ lang-php dist-cedar-14-stable/"
 
 *The `sync.sh` script takes destination bucket info as arguments first, then source bucket info*.
 
@@ -84,6 +88,8 @@ If that works, a `bob deploy` builds first and then uploads to your bucket (spec
 See the next section for important info about the manifest for your build; the *tl;dr* is: **do not use `bob build`, but `support/build/_util/deploy.sh`, to deploy a package**, because it will take care of manifest uploading:
 
     $ support/build/_util/deploy.sh extensions/no-debug-non-zts-20121212/yourextension-1.2.3
+
+The `deploy.sh` script also accepts a `--publish` option that will cause the package to immediately be published into the repository by re-generating that repo (see below). **This should be used with caution**, as several parallel `deploy.sh` invocations could result in a race condition when re-generating the repository.
 
 Sometimes, you need to deploy a prerequisite for another build, for instance a library, that needs no manifest. In that case, use `bob deploy`.
 
@@ -148,19 +154,21 @@ Alternatively, `deploy.sh` can be called with `--publish` as the first argument,
 
     $ support/build/_util/deploy.sh --publish php-6.0.0
 
+**This should be used with caution**, as several parallel `deploy.sh` invocations could result in a race condition when re-generating the repository.
+
 ### Syncing repositories
 
-It is often desirable to have a bucket with two repositories under different prefixes, e.g. `cedar-14-develop/` and `cedar-14-stable/`. The "develop" bucket prefix would be set via `S3_PREFIX` on the Heroku app or Docker container, so all builds would always end up there.
+It is often desirable to have a bucket with two repositories under different prefixes, e.g. `dist-cedar-14-develop/` and `dist-cedar-14-stable/`. The "develop" bucket prefix would be set via `S3_PREFIX` on the Heroku app or Docker container, so all builds would always end up there.
 
 After testing builds, the contents of that "develop" repository can then be synced to "stable" using `support/build/_util/mkrepo.sh`:
 
-    $ support/build/_util/sync.sh my-bucket cedar-14-stable/ my-bucket cedar-14-develop/
+    $ support/build/_util/sync.sh my-bucket dist-cedar-14-stable/ my-bucket dist-cedar-14-develop/
 
 The `sync.sh` script automatically detects additions, updates and removals based on manifests. It will also warn if the source `packages.json` is not up to date with its manifests, and prompt for confirmation before syncing.
 
 The same can be used to sync from the official Heroku repository to the custom "develop" repository:
 
-    $ support/build/_util/sync.sh my-bucket cedar-14-develop/ lang-php dist-cedar-14-master/
+    $ support/build/_util/sync.sh my-bucket dist-cedar-14-develop/ lang-php dist-cedar-14-stable/
 
 ### Removing packages
 
