@@ -28,7 +28,6 @@ pushd ${dep_dirname}
 phpize
 ./configure \
     --prefix=${OUT_PREFIX} \
-    --enable-${dep_name} \
     ${CONFIGURE_EXTRA:-}
 make -s -j 9
 # php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
