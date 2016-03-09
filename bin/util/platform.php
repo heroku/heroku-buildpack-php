@@ -43,16 +43,19 @@ if(file_exists($COMPOSER_LOCK)) {
 		"version" => "dev-".$lock["hash"],
 		"require" => $lock["platform"],
 	];
-	$lock["packages"][] = $root;
-	$require = [
-		$root["name"] => $root["version"],
-	];
+	if($root["require"]) {
+		$lock["packages"][] = $root;
+		$require = [
+			$root["name"] => $root["version"],
+		];
+	}
 	foreach($lock["packages"] as $package) {
 		// extract only platform requires, replaces and provides
 		$preq = array_filter(isset($package["require"]) ? $package["require"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
 		$prep = array_filter(isset($package["replace"]) ? $package["replace"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
 		$ppro = array_filter(isset($package["provide"]) ? $package["provide"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
 		$pcon = array_filter(isset($package["conflict"]) ? $package["conflict"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
+		if(!$preq && !$prep && !$ppro && !$pcon) continue;
 		$have_runtime_req |= hasreq($preq);
 		$metapaks[] = [
 			"type" => "metapackage",
