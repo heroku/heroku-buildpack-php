@@ -22,6 +22,7 @@
 - Update vendored gettext to 0.19.7 and build only its runtime parts [David Zuelke]
 - Use platform libsasl for libmemcached [David Zuelke]
 - Strip platform packages on build install [David Zuelke]
+- Ignore platform package replace/provide/conflict from root `composer.json` on platform package install [David Zuelke]
 
 ### FIX
 

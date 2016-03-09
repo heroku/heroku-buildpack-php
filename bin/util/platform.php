@@ -42,9 +42,6 @@ if(file_exists($COMPOSER_LOCK)) {
 		"name" => "$COMPOSER/$COMPOSER_LOCK",
 		"version" => "dev-".$lock["hash"],
 		"require" => $lock["platform"],
-		"replace" => isset($json["replace"]) ? $json["replace"] : [],
-		"provide" => isset($json["provide"]) ? $json["provide"] : [],
-		"conflict" => isset($json["conflict"]) ? $json["conflict"] : [],
 	];
 	$lock["packages"][] = $root;
 	$require = [
