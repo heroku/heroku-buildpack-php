@@ -27,8 +27,9 @@ case ${ZEND_MODULE_API_VERSION} in
 	20131226)
 		series=5.6
 		;;
-	*)
+	20151012)
 		series=7.0
+		;;
 esac
 dep_manifest=${dep_package}_php-$series.composer.json
 
@@ -64,7 +65,7 @@ if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
         tail -qF -n 0 /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log 1>&2 &
         
         # daemon start
-        /app/.heroku/php/bin/newrelic-daemon -f -l "/tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log" -d "${NEW_RELIC_LOG_LEVEL}" -p "/tmp/newrelic-daemon.pid" &
+        /app/.heroku/php/bin/newrelic-daemon --foreground --logfile "/tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log" --loglevel "${NEW_RELIC_LOG_LEVEL}" --pidfile "/tmp/newrelic-daemon.pid" &
         
         # give it a moment to connect
         sleep 2

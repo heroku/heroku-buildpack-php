@@ -10,6 +10,7 @@
 - ext-gmp for PHP builds (#117) [David Zuelke]
 - ext-event/2.0.0 [David Zuelke]
 - apcu_bc for ext-apcu on PHP 7 (#137) [David Zuelke]
+- ext-newrelic/6.0.1.156 (#153) [David Zuelke]
 
 ### CHG
 
