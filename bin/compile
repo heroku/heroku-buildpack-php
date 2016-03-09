@@ -58,7 +58,7 @@ see https://getcomposer.org/doc/01-basic-usage.md#stability"
 else
     if [[ ! -f "$COMPOSER" ]]; then
         warning "No '$COMPOSER' found.
-Using 'index.php' to declare PHP applications is considered legacy
+Using 'index.php' to declare app type as PHP is considered legacy
 functionality and may lead to unexpected behavior."
     else
         notice "Your '$COMPOSER' is completely empty.
