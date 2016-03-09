@@ -23,6 +23,10 @@
 - Use platform libsasl for libmemcached [David Zuelke]
 - Strip platform packages on build install [David Zuelke]
 
+### FIX
+
+- Platform installer is incompatible with PHP 5.5 [David Zuelke]
+
 ## v95 (2016-03-03)
 
 ### ADD

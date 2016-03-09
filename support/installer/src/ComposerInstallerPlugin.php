@@ -34,7 +34,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 			'configCounter' => self::CONF_D_PATHNAME.'/[0-9][0-9][0-9]-*.ini'
 		] as $var => $glob) {
 			if($matches = glob($glob)) {
-				$this->$var = ceil(max($this->$var, ...array_map(function($e) { return explode('-', pathinfo($e, PATHINFO_FILENAME), 2)[0]; }, $matches))/10)+1;
+				$this->$var = ceil(max(array_merge([$this->$var], array_map(function($e) { return explode('-', pathinfo($e, PATHINFO_FILENAME), 2)[0]; }, $matches)))/10)+1;
 			}
 		}
 		
