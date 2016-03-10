@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v97 (2016-03-10)
+
+### CHG
+
+- Temporarily downgrade to ext-newrelic/5.1.1.130 [David Zuelke]
+
 ## v96 (2016-03-10)
 
 ### ADD
