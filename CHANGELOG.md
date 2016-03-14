@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v98 (2016-03-??)
+
+### CHG
+
+- Remove GitHub API rate limit checks during build time [David Zuelke]
+
 ## v97 (2016-03-10)
 
 ### CHG
