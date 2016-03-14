@@ -6,7 +6,7 @@ install_blackfire_ext() {
     BLACKFIRE_SERVER_ID=${BLACKFIRE_SERVER_ID:-}
     BLACKFIRE_SERVER_TOKEN=${BLACKFIRE_SERVER_TOKEN:-}
     if [[ "$engine" == "php" && -n "$BLACKFIRE_SERVER_TOKEN" && -n "$BLACKFIRE_SERVER_ID" ]] && ! $engine -n $(which composer) show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/ext-blackfire 2>/dev/null; then
-        if $engine -n $(which composer) require --quiet --update-no-dev -d "$build_dir/.heroku/php" -- "heroku-sys/ext-blackfire:*" 2>/dev/null; then
+        if $engine -n $(which composer) require --update-no-dev -d "$build_dir/.heroku/php" -- "heroku-sys/ext-blackfire:*" >> $build_dir/.heroku/php/install.log 2>&1; then
             echo "- Blackfire detected, installed ext-blackfire" | indent
         else
             warning_inline "Blackfire detected, but no suitable extension available"
