@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-event/2.0.1 [David Zuelke]
+- ext-mongo/1.6.13 [David Zuelke]
 
 ### CHG
 
