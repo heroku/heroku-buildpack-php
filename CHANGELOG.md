@@ -6,6 +6,7 @@
 
 - ext-event/2.0.1 [David Zuelke]
 - ext-mongo/1.6.13 [David Zuelke]
+- ext-mongodb/1.1.5 [David Zuelke]
 
 ### CHG
 
