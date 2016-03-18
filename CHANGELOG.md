@@ -2,6 +2,10 @@
 
 ## v98 (2016-03-??)
 
+### ADD
+
+- ext-event/2.0.1 [David Zuelke]
+
 ### CHG
 
 - Remove GitHub API rate limit checks during build time [David Zuelke]
