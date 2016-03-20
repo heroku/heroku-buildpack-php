@@ -9,6 +9,7 @@
 - ext-mongodb/1.1.5 [David Zuelke]
 - ext-oauth/2.0.1 [David Zuelke]
 - ext-newrelic/6.1.0.157 [David Zuelke]
+- ext-blackfire/1.10.0 [David Zuelke]
 
 ### CHG
 
