@@ -13,6 +13,7 @@
 ### CHG
 
 - Remove GitHub API rate limit checks during build time [David Zuelke]
+- Change pcre.jit to 0 in php.ini [David Zuelke]
 
 ## v97 (2016-03-10)
 
