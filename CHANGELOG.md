@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v99 (2016-03-23)
+
+### FIX
+
+- Automatic extensions (blackfire, newrelic) may fail to get installed with many dependencies [David Zuelke]
+
 ## v98 (2016-03-21)
 
 ### ADD
