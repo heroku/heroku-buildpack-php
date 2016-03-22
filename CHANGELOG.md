@@ -2,6 +2,10 @@
 
 ## v100 (2016-03-??)
 
+### ADD
+
+- ext-imap for all PHP versions [David Zuelke]
+
 ### CHG
 
 - Return to using built-in default value for the `pcre.jit` PHP INI setting [David Zuelke]
