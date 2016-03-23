@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v100 (2016-03-??)
+
+### CHG
+
+- Return to using built-in default value for the `pcre.jit` PHP INI setting [David Zuelke]
+
 ## v99 (2016-03-23)
 
 ### FIX
