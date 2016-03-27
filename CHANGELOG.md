@@ -9,6 +9,7 @@
 ### CHG
 
 - Return to using built-in default value for the `pcre.jit` PHP INI setting [David Zuelke]
+- Use Composer/1.0.0beta2 [David Zuelke]
 
 ## v99 (2016-03-23)
 
