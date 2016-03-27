@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-imap for all PHP versions [David Zuelke]
+- ext-pq/1.0.0 and 2.0.0 [David Zuelke]
 
 ### CHG
 
