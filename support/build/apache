@@ -31,6 +31,7 @@ pushd ${dep_dirname}
 ./configure \
     --enable-layout=GNU \
     --prefix=${OUT_PREFIX} \
+    --disable-static \
     --with-included-apr \
     --with-pcre \
     --with-z \
