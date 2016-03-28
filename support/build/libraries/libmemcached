@@ -26,7 +26,7 @@ echo "-----> Building ${dep_package}..."
 
 curl -L ${dep_url} | tar xz
 pushd ${dep_dirname}
-./configure --prefix=${OUT_PREFIX} --without-memcached
+./configure --prefix=${OUT_PREFIX} --without-memcached --disable-static
 make -s -j 9
 make install-strip -s
 popd
