@@ -80,6 +80,17 @@ ln -s $build_dir/.heroku/php /app/.heroku/php
 status "Bootstrapping..."
 
 s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
+# prepend the default repo to the list configured by the user
+# list of repositories to use is in ascening order of precedence
+HEROKU_PHP_PLATFORM_REPOSITORIES="${s3_url} ${HEROKU_PHP_PLATFORM_REPOSITORIES:-}"
+if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
+	# a single "-" in the user supplied string removes everything to the left of it; can be used to delete the default repo
+	notice_inline "Default platform repository disabled."
+	HEROKU_PHP_PLATFORM_REPOSITORIES=${HEROKU_PHP_PLATFORM_REPOSITORIES#*" - "}
+	s3_url=$(echo "$HEROKU_PHP_PLATFORM_REPOSITORIES" | cut -f1 -d" " | sed 's/[^/]*$//')
+	notice_inline "Bootstrapping using ${s3_url}..."
+fi
+
 
 # minimal PHP needed for installs, and make "composer" invocations use that for now
 mkdir -p $build_dir/.heroku/php-min
@@ -102,15 +113,6 @@ echo "export PATH=/app/.heroku/php/bin:\$PATH:/app/$composer_bindir" > $bp_dir/e
 # composer bin-dir goes last to avoid any conflicts
 mkdir -p $build_dir/.profile.d
 echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $build_dir/.profile.d/100-composer.sh
-
-# prepend the default repo to the list configured by the user
-# list of repositories to use is in ascening order of precedence
-HEROKU_PHP_PLATFORM_REPOSITORIES="${s3_url} ${HEROKU_PHP_PLATFORM_REPOSITORIES:-}"
-if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
-	# a single "-" in the user supplied string removes everything to the left of it; can be used to delete the default repo
-	notice_inline "Default platform repository disabled."
-	HEROKU_PHP_PLATFORM_REPOSITORIES=${HEROKU_PHP_PLATFORM_REPOSITORIES#*" - "}
-fi
 
 status "Installing platform packages..."
 
