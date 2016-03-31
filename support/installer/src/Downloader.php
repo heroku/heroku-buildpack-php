@@ -21,6 +21,7 @@ class Downloader extends ArchiveDownloader
 		parent::__construct($io, $config, $eventDispatcher, $cache);
 	}
 
+	// extract using cmdline tar, which merges with existing files and folders
 	protected function extract($file, $path)
 	{
 		// we must use cmdline tar, as PharData::extract() messes up symlinks
@@ -33,6 +34,8 @@ class Downloader extends ArchiveDownloader
 		throw new \RuntimeException("Failed to execute '$command'\n\n" . $this->process->getErrorOutput());
 	}
 
+	// ArchiveDownloader unpacks to a temp dir, then replaces the destination
+	// we can't do that, since we need our contents to be merged into the probably existing folder structure
 	public function download(PackageInterface $package, $path)
 	{
 		$temporaryDir = $this->config->get('vendor-dir').'/composer/'.substr(md5(uniqid('', true)), 0, 8);
@@ -66,16 +69,16 @@ class Downloader extends ArchiveDownloader
 		}
 
 		// END: from FileDownloader::download()
-		
-		if ($this->io->isVerbose()) {
-			$this->io->writeError('    Extracting archive');
-		}
+
+		// START: from ArchiveDownloader::download()
+
+		$this->io->writeError('    Extracting archive', true, IOInterface::VERBOSE);
 
 		try {
 			$this->extract($fileName, $path);
 		} catch (\Exception $e) {
 			// remove cache if the file was corrupted
-			parent::clearCache($package, $path);
+			parent::clearLastCacheWrite($package);
 			throw $e;
 		}
 
@@ -89,5 +92,7 @@ class Downloader extends ArchiveDownloader
 		}
 
 		$this->io->writeError('');
+
+		// END: from ArchiveDownloader::download()
 	}
 }
