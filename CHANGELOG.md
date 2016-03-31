@@ -8,6 +8,7 @@
 - ext-pq/1.0.0 and 2.0.0 [David Zuelke]
 - PHP/7.0.5 [David Zuelke]
 - PHP/5.6.20 [David Zuelke]
+- PHP/5.5.34 [David Zuelke]
 
 ### CHG
 
