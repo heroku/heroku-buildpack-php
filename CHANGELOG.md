@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v101 (2016-04-??)
+
+### ADD
+
+- ext-event/2.0.2 [David Zuelke]
+
 ## v100 (2016-03-31)
 
 ### ADD
