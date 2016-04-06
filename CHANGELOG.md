@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-event/2.0.2 [David Zuelke]
+- ext-mongodb/1.1.6 [David Zuelke]
 
 ### CHG
 
