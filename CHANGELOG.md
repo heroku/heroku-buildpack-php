@@ -7,6 +7,7 @@
 - ext-event/2.0.2 [David Zuelke]
 - ext-mongodb/1.1.6 [David Zuelke]
 - Apache/2.4.20 [David Zuelke]
+- ext-blackfire/1.10.3 [David Zuelke]
 
 ### CHG
 
