@@ -14,7 +14,7 @@ http {
     #keepalive_timeout  0;
     keepalive_timeout  65;
 
-    #gzip  on;
+    gzip  on;
 
     server_tokens off;
 
