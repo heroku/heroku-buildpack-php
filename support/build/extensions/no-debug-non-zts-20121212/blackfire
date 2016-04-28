@@ -83,6 +83,10 @@ chmod +x agent
 cp agent ${bin_dir}/blackfire-agent
 rm agent.tar.gz agent agent.sha1
 
+echo "-----> Packaging bin/blackfire ${agent_version}..."
+curl https://packages.blackfire.io/binaries/blackfire-agent/${agent_version}/blackfire-cli-linux_amd64 > ${bin_dir}/blackfire
+chmod +x ${bin_dir}/blackfire
+
 find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 
 # gets sourced on dyno boot

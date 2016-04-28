@@ -6,6 +6,10 @@
 
 - ext-newrelic/6.2.0 [David Zuelke]
 
+### CHG
+
+- Bundle `blackfire` CLI binary with ext-blackfire [David Zuelke]
+
 ## v101 (2016-04-12)
 
 ### ADD
