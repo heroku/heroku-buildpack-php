@@ -9,6 +9,7 @@
 - ext-apcu/4.0.11 [David Zuelke]
 - ext-event/2.0.4 [David Zuelke]
 - ext-imagick/3.4.2 [David Zuelke]
+- ext-mongo/1.6.14 [David Zuelke]
 
 ### CHG
 
