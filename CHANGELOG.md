@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-newrelic/6.2.0 [David Zuelke]
+- ext-blackfire/1.10.5 [David Zuelke]
 
 ### CHG
 
