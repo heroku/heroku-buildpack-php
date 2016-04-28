@@ -75,7 +75,6 @@ export PATH=${OUT_PREFIX}/bin:$PATH
     --with-config-file-path=/app/.heroku/php/etc/php \
     --with-config-file-scan-dir=/app/.heroku/php/etc/php/conf.d \
     --disable-phpdbg \
-    --disable-cgi \
     --enable-fpm \
     --with-bz2 \
     --with-curl \
