@@ -11,6 +11,7 @@
 - ext-imagick/3.4.2 [David Zuelke]
 - ext-mongo/1.6.14 [David Zuelke]
 - PHP/5.5.35 [David Zuelke]
+- PHP/5.6.21 [David Zuelke]
 
 ### CHG
 
