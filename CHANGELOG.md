@@ -6,6 +6,7 @@
 
 - ext-newrelic/6.2.0 [David Zuelke]
 - ext-blackfire/1.10.5 [David Zuelke]
+- ext-apcu/4.0.11 [David Zuelke]
 
 ### CHG
 
