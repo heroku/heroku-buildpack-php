@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: php-5.5.30
 
 # fail hard
 set -o pipefail

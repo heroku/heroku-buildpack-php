@@ -10,6 +10,7 @@
 - ext-event/2.0.4 [David Zuelke]
 - ext-imagick/3.4.2 [David Zuelke]
 - ext-mongo/1.6.14 [David Zuelke]
+- PHP/5.5.35 [David Zuelke]
 
 ### CHG
 
