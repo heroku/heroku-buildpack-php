@@ -18,6 +18,7 @@
 
 - Bundle `blackfire` CLI binary with ext-blackfire [David Zuelke]
 - Build PHP with `php-cgi` executable [David Zuelke]
+- Composer/1.0.3 [David Zuelke]
 
 ## v101 (2016-04-12)
 
