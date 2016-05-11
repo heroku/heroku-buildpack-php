@@ -6,6 +6,10 @@
 
 - ext-pq/1.0.1 and 2.0.1 [David Zuelke]
 
+### CHG
+
+- Composer/1.1.0 [David Zuelke]
+
 ## v102 (2016-04-29)
 
 ### ADD
