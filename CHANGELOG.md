@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-pq/1.0.1 and 2.0.1 [David Zuelke]
+- ext-apcu/5.1.4 [David Zuelke]
 
 ### CHG
 
