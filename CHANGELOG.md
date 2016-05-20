@@ -11,7 +11,7 @@
 
 ### CHG
 
-- Composer/1.1.0 [David Zuelke]
+- Composer/1.1.1 [David Zuelke]
 
 ## v102 (2016-04-29)
 
