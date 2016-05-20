@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v104 (2016-05-20)
+
+### ADD
+
+- ext-pq/1.1.1 and 2.1.1 [David Zuelke]
+
 ## v103 (2016-05-20)
 
 ### ADD
