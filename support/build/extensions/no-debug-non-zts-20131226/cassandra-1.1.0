@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+# Build Deps: extensions/no-debug-non-zts-20131226/cassandra-bare-1.1.0, libraries/libcassandra-2.4.0
+
+# That's it - we're combining the dep build and the extension build here
+
+source $(dirname $0)/../no-debug-non-zts-20121212/cassandra
