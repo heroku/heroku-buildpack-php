@@ -6,6 +6,7 @@
 
 - ext-mongodb/1.1.7 [David Zuelke]
 - ext-cassandra/1.1.0 [David Zuelke]
+- ext-apcu/5.1.5 [David Zuelke]
 
 ## v105 (2016-05-27)
 
