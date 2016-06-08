@@ -11,7 +11,7 @@
 
 ### CHG
 
-- Use Composer/1.1.2
+- Use Composer/1.1.2 [David Zuelke]
 
 ## v105 (2016-05-27)
 
