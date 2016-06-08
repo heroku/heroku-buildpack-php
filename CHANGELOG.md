@@ -1,6 +1,6 @@
 # heroku-buildpack-php CHANGELOG
 
-## v106 (2016-06-??)
+## v106 (2016-06-08)
 
 ### ADD
 
