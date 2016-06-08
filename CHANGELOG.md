@@ -7,6 +7,7 @@
 - ext-mongodb/1.1.7 [David Zuelke]
 - ext-cassandra/1.1.0 [David Zuelke]
 - ext-apcu/5.1.5 [David Zuelke]
+- ext-event/2.1.0 [David Zuelke]
 
 ### CHG
 
