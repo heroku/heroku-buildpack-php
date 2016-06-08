@@ -9,6 +9,8 @@
 - ext-apcu/5.1.6 [David Zuelke]
 - PHP/5.6.27 [David Zuelke]
 - PHP/7.0.12 [David Zuelke]
+- ext-rdkafka/1.0.0 [David Zuelke]
+- ext-rdkafka/2.0.0 [David Zuelke]
 
 ## v112 (2016-09-20)
 
