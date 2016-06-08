@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v107 (2016-06-??)
+
+### ADD
+
+- ext-redis/2.2.8 [David Zuelke]
+
 ## v106 (2016-06-08)
 
 ### ADD
