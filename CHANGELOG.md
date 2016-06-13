@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-redis/2.2.8 [David Zuelke]
+- ext-redis/3.0.0 [David Zuelke]
 
 ## v106 (2016-06-08)
 
