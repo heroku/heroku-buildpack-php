@@ -8,6 +8,10 @@
 - ext-redis/3.0.0 [David Zuelke]
 - ext-newrelic/6.4.0 [David Zuelke]
 
+### FIX
+
+- Custom `COMPOSER` env var breaks platform installs [David Zuelke]
+
 ## v106 (2016-06-08)
 
 ### ADD
