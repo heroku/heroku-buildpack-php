@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v108 (2016-06-??)
+
+### ADD
+
+- ext-oauth/2.0.2 [David Zuelke]
+
 ## v107 (2016-06-18)
 
 ### ADD
