@@ -6,6 +6,10 @@
 
 - ext-oauth/2.0.2 [David Zuelke]
 
+### FIX
+
+- Revert to ext-redis/2.2.7 due to reported segfaults/memleaks [David Zuelke]
+
 ## v107 (2016-06-18)
 
 ### ADD
