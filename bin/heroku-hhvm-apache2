@@ -328,84 +328,100 @@ exec 3<> $wait_pipe
 
 pids=()
 
-# trap SIGQUIT (ctrl+\ on the console), SIGTERM (when we get killed) and EXIT (upon failure of any command due to set -e, or because of the exit 1 at the very end), we then
+# trap SIGTERM (for when we get killed) and EXIT (upon failure of any command due to set -e, or because of the exit at the very end), we then
 # 1) restore the trap for the signal in question so it doesn't fire again due to the kill at the end of the trap, as well as for EXIT, because that would fire too
 # 2) call cleanup() to
-# 2a) remove our FIFO from above
-# 2b) kill all the subshells we've spawned - they in turn have their own traps to kill their respective subprocesses, and because we use SIGUSR1, they know it's the parent's cleanup and can handle it differently from an external SIGKILL
-# 2c) send STDERR to /dev/null so we don't see "no such process" errors - after all, one of the subshells may be gone
-# 2d) || true so that set -e doesn't cause a mess if the kill returns 1 on "no such process" cases (which is likely on Heroku where all processes get killed and not just this top level one)
-# 2e) do that in the background and 'wait' on those processes, sending wait's output to /dev/null - this prevents the logs getting cluttered with "vendor/bin/heroku-...: line 309:    96 Terminated" messages (we can't use 'disown' after launching programs for that purpose because that removes the jobs from the shell's jobs table and the we can no longer 'wait' on the program)
-# 3) kill ourselves with the correct signal in case we're handling SIGQUIT or SIGTERM (http://www.cons.org/cracauer/sigint.html and http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT1)
-cleanup() { echo "Going down, terminating child processes..." >&2; rm -f ${wait_pipe} || true; kill -USR1 "${pids[@]}" 2> /dev/null || true; }
-trap 'trap - QUIT EXIT; cleanup; kill -QUIT $$' QUIT
-trap 'trap - TERM EXIT; cleanup; kill -TERM $$' TERM
-trap 'trap - EXIT; cleanup' EXIT
-# if FD 1 is a TTY (that's the -t 1 check), trap SIGINT/Ctrl+C, then same procedure as for QUIT and TERM above
+# 2a) kill all the subshells we've spawned, in reverse order - they in turn have their own traps to kill their respective subprocesses
+# 2b) send STDERR to /dev/null so we don't see "no such process" errors - after all, one of the subshells may be gone
+# 2c) || true so that set -e doesn't cause a mess if the kill returns 1 on "no such process" cases
+# 2d) 'wait' on that killed subprocess, sending wait's output to /dev/null - this prevents the logs getting cluttered with "vendor/bin/heroku-...: line 309:    96 Terminated" messages (we can't use 'disown' after launching programs for that purpose because that removes the jobs from the shell's jobs table and then we can no longer 'wait' on the program)
+# 2e) remove our FIFO from above
+# 3) kill ourselves with the correct signal in case we're handling SIGTERM or, further down, SIGINT (http://www.cons.org/cracauer/sigint.html and http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT1)
+cleanup() {
+	# reverse through list of child processes and kill them
+	# we want that order so the web server stops accepting connections and drains properly, then the app is terminated, and then finally the logs redirect, which we want alive up until the very last moment
+	for (( i=${#pids[@]}-1 ; i>=0 ; i-- )) ; do
+		kill -TERM "${pids[$i]}" 2> /dev/null || true # redirect stderr and || true the call because the process might be gone
+		wait "${pids[$i]}" 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed and || true the call because wait returns the exit status of the program, and not 0
+	done
+	rm -f ${wait_pipe} || true;
+	echo "Shutdown complete." >&2
+}
+trap 'trap - TERM EXIT; echo "SIGTERM received, initiating graceful shutdown..." >&2; cleanup; kill -TERM $$' TERM
+# on "regular" EXIT (i.e. when we reached the end of the script because a process exited unexpectedly) just clean up and let the exit status bubble through (see last line)
+trap 'trap - EXIT; echo "Process exited unexpectedly: $exitproc, shutting down..."; cleanup' EXIT
+
+# if FD 1 is a TTY (that's the -t 1 check), trap SIGINT/Ctrl+C, then same procedure as for TERM above
 if [[ -t 1 ]]; then
-	trap 'trap - INT EXIT; cleanup; kill -INT $$' INT;
+	trap 'trap - INT EXIT; echo "SIGINT received, initiating graceful shutdown..." >&2; cleanup; kill -INT $$' INT;
 # if FD 1 is not a TTY (e.g. when we're run through 'foreman start'), do nothing on SIGINT; the assumption is that the parent will send us a SIGTERM or something when this happens. With the trap above, Ctrl+C-ing out of a 'foreman start' run would trigger the INT trap both in Foreman and here (because Ctrl+C sends SIGINT to the entire process group, but there is no way to tell the two cases apart), and while the trap is still doing its shutdown work triggered by the SIGTERM from the Ctrl+C, Foreman would then send a SIGTERM because that's what it does when it receives a SIGINT itself.
 else
 	trap '' INT;
 fi
 
 # we are now launching a subshell for each of the tasks (log tail, app server, web server)
-# 1) each subshell has a trap on EXIT that echos the command name to FD 3 (see the FIFO set up above)
-# 1a) a 'read' at the end of the script will block on reading from that FD and then trigger the exit trap further above, which does the cleanup
-# 2) each subshell also has a trap on TERM that
-# 2a) kills $! (the last process executed)
-# 2b) ... which in turn will hit the EXIT trap and that unblocks the 'wait' in 5) which will cause the parent to clean up when the exit at the end of the script is hit
-# 2c) the 'kill' is done in the background and we immediately 'wait' on $!, sending wait's output to /dev/null - this prevents the logs getting cluttered with "vendor/bin/heroku-...: line 309:    96 Terminated" messages (we can't use 'disown' after launching programs for that purpose because that removes the jobs from the shell's jobs table and the we can no longer 'wait' on the program)
-# 2d) finally, if $BASHPID exists, the subshell kills itself using the right signal for maximum compliance ($$ doesn't work in subshells, and $BASHPID is not available in Bash 3, but unlike with the parent, it's not that critical to have this)
-# 3) each subshell has another trap on USR1 which gets sent when the parent is cleaning up; it works like 2a) but doesn't trigger the EXIT trap to avoid multiple cleanup runs by the parent
-# 4) execute the command in the background
-# 5) 'wait' on the command (wait is interrupted by an incoming TERM to the subshell, whereas running 4) in the foreground would wait for that process to finish before triggering the trap)
-# 6) add the PID of the subshell to the array that the EXIT trap further above uses to clean everything up
+# 1) each subshell has an echo as an EXIT trap that echos the command name to FD 3 (see the FIFO set up above)
+# 1a) a 'read' at the end of the script will block on reading from that FD and, when something is written to the pipe, will unblock, which finishes the script, which triggers the exit trap further above, which does some cleanup
+# 2) each subshell also has a trap on TERM that kills the processes inside the subshell
+# 2a) if a SIGTERM is received, this will unblock the first 'wait'
+# 2b) a second 'wait' then ensures that the subshell remains alive until the process inside has shut down
+# 2c) both 'wait' calls use || true to prevent 'set -e' failures: 'wait' returns the exit status of the given program, and that won't be zero, because it's getting killed
+# 3) each subshell has another trap on INT which does nothing (to prevent Ctrl+C interference)
+# 4) we execute the command in the background, recording its PID(s) for the subshell's TERM trap
+# 5) we also execute the subshell in the background, recording its PID for the main TERM/INT traps
 
-[[ $verbose ]] && echo "Starting log redirection..." >&2
 (
+	trap 'echo "log redirection" >&3;' EXIT
 	trap '' INT;
-	trap 'echo "tail" >&3;' EXIT
-	trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
-	trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
+
+	[[ $verbose ]] && echo "Starting log redirection..." >&2
 
 	touch "${logs[@]}"
 
 	tail -qF -n 0 "${logs[@]}" 1>&2 & pid=$!
 
-	wait
-) & pids+=($!)
-disown $!
+	trap '[[ $verbose ]] && echo "Stopping log redirection..." >&2; kill -TERM $pid 2> /dev/null || true' TERM
 
-echo "Starting hhvm..." >&2
+	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+	trap - TERM
+	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+) & pids+=($!)
+
 (
-	trap '' INT;
 	trap 'echo "hhvm" >&3;' EXIT
-	trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
-	trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
+	trap '' INT;
+
+	echo "Starting hhvm..." >&2
 
 	hhvm --mode server "${php_configs[@]}" & pid=$!
 
-	wait
+	# TODO: wait for pidfile in trap, otherwise a previous subshell failing will bring things down and send us a SIGTERM before the process may be able to react to the signal we're sending it
+	trap 'echo "Stopping hhvm..." >&2; kill -HUP $pid 2> /dev/null || true' TERM
+
+	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+	trap - TERM
+	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
 ) & pids+=($!)
-disown $!
 
-# wait a few seconds for HHVM to finish initializing; otherwise an early request might break Apache with the FastCGI pipe not being ready
-sleep 2
-
-echo "Starting httpd..." >&2
 (
-	trap '' INT;
 	trap 'echo "httpd" >&3;' EXIT
-	trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
-	trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
+	trap '' INT;
+
+	# wait a few seconds for HHVM to finish initializing; otherwise an early request might break the web server with the FastCGI pipe not being ready
+	sleep 2
+
+	echo "Starting httpd..." >&2
 
 	httpd -D NO_DETACH -c "Include $httpd_config" & pid=$!
+	# TODO: wait for pidfile in trap, otherwise a previous subshell failing will bring things down and send us a SIGTERM before the process may be able to react to the signal we're sending it
+	trap 'echo "Stopping httpd..." >&2; kill -WINCH $pid 2> /dev/null || true' TERM
 
-	wait
+	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+	trap - TERM
+	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
 ) & pids+=($!)
-disown $!
 
+# TODO: wait for pidfile here
 # on Heroku, there is a "state changed from starting to up", but for local execution, we want a "ready" message
 [[ -z ${DYNO:-} || $verbose ]] && echo "Application ready for connections on port $PORT." >&2
 
@@ -414,7 +430,7 @@ disown $!
 # if the pipe unblocks and this executes, then we won't read it again, so if the traps further up kill the remaining subshells above, their writing to FD 3 will have no effect
 read exitproc <&3
 # we'll only reach this if one of the processes above has terminated
-echo "Process exited unexpectedly: $exitproc" >&2
-
-# this will trigger the EXIT trap further up and kill all remaining children
-exit 1
+# this will trigger the main EXIT trap further up and kill all remaining children
+# code 70 is EX_SOFTWARE from sysexits.h
+# Ctrl+C/SIGINT or SIGTERM exits will, through the respective trap's 'kill $$', exit with the correct 128+$signalcode status
+exit 70
