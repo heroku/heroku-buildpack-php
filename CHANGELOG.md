@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-oauth/2.0.2 [David Zuelke]
+- ext-mongodb/1.1.8 [David Zuelke]
 
 ### FIX
 
