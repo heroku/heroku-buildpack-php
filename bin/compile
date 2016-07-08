@@ -96,7 +96,7 @@ fi
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 curl --silent --location "${s3_url}php-min-7.0.8.tar.gz" | tar xz -C $build_dir/.heroku/php-min
-curl --silent --location "${s3_url}composer-1.1.2.tar.gz" | tar xz -C $build_dir/.heroku/php
+curl --silent --location "${s3_url}composer-1.1.3.tar.gz" | tar xz -C $build_dir/.heroku/php
 # this alias is just for now while we install platform packages
 composer() {
     /app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer "$@"

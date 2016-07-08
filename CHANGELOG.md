@@ -11,6 +11,10 @@
 - PHP/5.6.23 [David Zuelke]
 - PHP/7.0.8 [David Zuelke]
 
+### CHG
+
+- Composer/1.1.3 [David Zuelke]
+
 ### FIX
 
 - Revert to ext-redis/2.2.7 due to reported segfaults/memleaks [David Zuelke]
