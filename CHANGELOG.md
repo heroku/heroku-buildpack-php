@@ -8,6 +8,7 @@
 - ext-mongodb/1.1.8 [David Zuelke]
 - ext-blackfire/1.11.1 [David Zuelke]
 - PHP/5.5.37 [David Zuelke]
+- PHP/5.6.23 [David Zuelke]
 
 ### FIX
 
