@@ -77,7 +77,7 @@ if $redir; then
 	exec 1>&3 3>&-
 fi
 
-cmd="s3cmd --ssl${AWS_ACCESS_KEY_ID+" --access_key=\$AWS_ACCESS_KEY_ID"}${AWS_SECRET_ACCESS_KEY+" --secret_key=\$AWS_SECRET_ACCESS_KEY"} --acl-public put packages.json s3://${S3_BUCKET}/${S3_PREFIX}packages.json"
+cmd="s3cmd --ssl${AWS_ACCESS_KEY_ID+" --access_key=\$AWS_ACCESS_KEY_ID"}${AWS_SECRET_ACCESS_KEY+" --secret_key=\$AWS_SECRET_ACCESS_KEY"} --acl-public -m application/json put packages.json s3://${S3_BUCKET}/${S3_PREFIX}packages.json"
 if $upload; then
 	echo "-----> Uploading packages.json..." >&2
 	eval "$cmd 1>&2"
