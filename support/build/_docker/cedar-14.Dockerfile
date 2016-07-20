@@ -5,6 +5,8 @@ ENV WORKSPACE_DIR=/app/support/build
 
 RUN apt-get update && apt-get install -y python-pip
 
-RUN pip install 'bob-builder>=0.0.10' 's3cmd>=1.6.0'
+ADD requirements.txt /app/requirements.txt
+
+RUN pip install -r /app/requirements.txt
 
 ADD . /app
