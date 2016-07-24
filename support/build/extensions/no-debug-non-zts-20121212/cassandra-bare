@@ -24,7 +24,7 @@ dep_manifest=${dep_package}_php-$series.composer.json
 echo "-----> Building ${dep_package} (from PECL)..."
 
 # we need libgmp-dev
-apt-get install -y libgmp-dev || { echo "Failed to install libgmp-dev; are you running this in a Docker build?"; exit 1; }
+apt-get install -y libgmp-dev || { echo "Failed to install libgmp-dev; this build cannot run in a dyno; are you running this in a Docker build?"; exit 1; }
 
 curl -L ${dep_url} | tar xz
 
