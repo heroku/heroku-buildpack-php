@@ -20,8 +20,8 @@ dep_url=https://github.com/datastax/cpp-driver/archive/${dep_version}.tar.gz
 dep_manifest=${dep_package}.composer.json
 
 # we need libgmp-dev and cmake
-apt-get install -y libgmp-dev || { echo "Failed to install libgmp-dev; are you running this in a Docker build?"; exit 1; }
-apt-get install -y cmake || { echo "Failed to install cmake; are you running this in a Docker build?"; exit 1; }
+apt-get update || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
+apt-get install -y libgmp-dev cmake
 
 echo "-----> Building ${dep_package}..."
 

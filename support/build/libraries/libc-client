@@ -21,8 +21,9 @@ dep_manifest=${dep_package}.composer.json
 
 echo "-----> Building ${dep_package}..."
 
-# IMAP
-apt-get install -y libpam0g-dev || { echo "Failed to install libpam0g-dev; are you running this in a Docker build?"; exit 1; }
+# we need that for IMAP
+apt-get update || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
+apt-get install -y libpam0g-dev
 
 curl -L ${dep_url} | tar xz
 

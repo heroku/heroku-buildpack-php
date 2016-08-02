@@ -35,21 +35,15 @@ curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
 
-# we need libgmp-dev for GMP
-apt-get install -y libgmp-dev || { echo "Failed to install libgmp-dev; are you running this in a Docker build?"; exit 1; }
+apt-get update || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
+# we need libgmp-dev for GMP, libpam0g-dev for IMAP, libicu-dev for intl, libsasl2-dev for LDAP
+apt-get install -y libgmp-dev libpam0g-dev libicu-dev libsasl2-dev
+
 # look for GMP libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
 sed -i 's/$GMP_DIR\/$PHP_LIBDIR/$GMP_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
 # symlink in gmp.h
 ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h
 
-# IMAP
-apt-get install -y libpam0g-dev || { echo "Failed to install libpam0g-dev; are you running this in a Docker build?"; exit 1; }
-
-# we need libicu-dev for intl
-apt-get install -y libicu-dev || { echo "Failed to install libicu-dev; are you running this in a Docker build?"; exit 1; }
-
-# we need libsasl2-dev for LDAP
-apt-get install -y libsasl2-dev || { echo "Failed to install libsasl2-dev; are you running this in a Docker build?"; exit 1; }
 # look for LDAP and SASL libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
 sed -i 's/LDAP_LIBDIR=$i\/$PHP_LIBDIR/LDAP_LIBDIR=$i\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
 sed -i 's/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure

@@ -25,7 +25,8 @@ dep_manifest=${dep_package}_php-$series.composer.json
 echo "-----> Building ${dep_package}..."
 
 # we need libsasl2-dev for ext-memcached
-apt-get install -y libsasl2-dev || { echo "Failed to install libsasl2-dev; are you running this in a Docker build?"; exit 1; }
+apt-get update || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
+apt-get install -y libsasl2-dev
 
 curl -L ${dep_url} | tar xz
 
