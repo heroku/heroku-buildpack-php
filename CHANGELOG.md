@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-ev/1.0.3 [David Zuelke]
+- ext-newrelic/6.5.0 [David Zuelke]
 
 ## v109 (2016-07-21)
 
