@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v110 (2016-08-??)
+
+### ADD
+
+- ext-ev/1.0.3 [David Zuelke]
+
 ## v109 (2016-07-21)
 
 ### ADD
