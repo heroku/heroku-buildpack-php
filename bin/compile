@@ -95,8 +95,16 @@ fi
 # minimal PHP needed for installs, and make "composer" invocations use that for now
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
-curl --silent --location "${s3_url}php-min-7.0.9.tar.gz" | tar xz -C $build_dir/.heroku/php-min
-curl --silent --location "${s3_url}composer-1.1.3.tar.gz" | tar xz -C $build_dir/.heroku/php
+
+curl_retry_on_18 --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.0.9.tar.gz" || error "Failed to download minimal PHP for bootstrapping.
+Please try again, or contact support if this problem persists."
+tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
+rm $build_dir/.heroku/php-min.tar.gz
+
+curl_retry_on_18 --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.1.3.tar.gz" || error "Failed to download Composer. Please try again, or contact support if this problem persists."
+tar xzf $build_dir/.heroku/composer.tar.gz -C $build_dir/.heroku/php
+rm $build_dir/.heroku/composer.tar.gz
+
 # this alias is just for now while we install platform packages
 composer() {
     /app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer "$@"

@@ -53,3 +53,14 @@ export_env_dir() {
     done
   fi
 }
+
+curl_retry_on_18() {
+  local ec=18;
+  local attempts=0;
+  while [[ $ec -eq 18 && $attempts -lt 3 ]]; do
+    ((attempts++))
+    curl "$@" # -C - would return code 33 if unsupported by server
+    ec=$?
+  done
+  return $ec
+}
