@@ -8,6 +8,7 @@
 - ext-newrelic/6.5.0 [David Zuelke]
 - ext-phalcon/2.0.13 [David Zuelke]
 - ext-phalcon/3.0.0 [David Zuelke]
+- ext-cassandra/1.2.2 [David Zuelke]
 
 ### CHG
 
