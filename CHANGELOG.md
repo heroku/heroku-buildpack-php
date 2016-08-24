@@ -6,12 +6,12 @@
 
 - ext-ev/1.0.3 [David Zuelke]
 - ext-phalcon/2.0.13 [David Zuelke]
-- ext-phalcon/3.0.0 [David Zuelke]
 - ext-cassandra/1.2.2 [David Zuelke]
 - ext-blackfire/1.12.0 [David Zuelke]
 - ext-newrelic/6.6.0 [David Zuelke]
 - PHP/5.6.25 [David Zuelke]
 - PHP/7.0.10 [David Zuelke]
+- ext-phalcon/3.0.1 [David Zuelke]
 
 ### CHG
 
