@@ -16,6 +16,7 @@
 ### CHG
 
 - Retry downloads up to three times during bootstrapping [David Zuelke]
+- Composer/1.2.0 [David Zuelke]
 
 ## v109 (2016-07-21)
 
