@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-newrelic/6.6.1.172 [David Zuelke]
+- PHP/5.6.26 [David Zuelke]
 
 ## v110 (2016-08-26)
 
