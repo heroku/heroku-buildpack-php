@@ -8,6 +8,10 @@
 - PHP/5.6.26 [David Zuelke]
 - PHP/7.0.11 [David Zuelke]
 
+### CHG
+
+- Use Composer/1.2.1 [David Zuelke]
+
 ## v110 (2016-08-26)
 
 ### ADD
