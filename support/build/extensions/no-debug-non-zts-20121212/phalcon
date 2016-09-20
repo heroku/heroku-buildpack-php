@@ -31,21 +31,24 @@ echo "-----> Building ${dep_package}..."
 
 curl -L ${dep_url} | tar xz
 
+if [[ "$dep_version" == 2.* ]]; then
+	workdir=64bits
+else
+	workdir=php${series:0:1}/64bits
+fi
 pushd ${dep_dirname}
 pushd build
-# remove last line
-sed '$ d' install > install-heroku
-chmod a+x install-heroku
-echo "
+pushd ${workdir}
+export CC="gcc"
+export CFLAGS="-O2 -fvisibility=hidden"
+export CPPFLAGS="-DPHALCON_RELEASE"
 phpize
-./configure \
-    --prefix=${OUT_PREFIX}
-make -s -j 9
+./configure --prefix=${OUT_PREFIX} --enable-phalcon
+make -s -j9
 # php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
 rm -rf ${OUT_PREFIX}/*
 make install -s
-" >> install-heroku
-./install-heroku
+popd
 popd
 strip --strip-unneeded ${OUT_PREFIX}/lib/php/extensions/*/*.so
 popd
