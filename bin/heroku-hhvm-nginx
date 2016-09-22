@@ -191,7 +191,7 @@ hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { ech
 composer() {
     local composer_bin=$(which ./composer.phar composer | head -n1)
     # check if we the composer binary is executable by HHVM
-    if file --brief --dereference $composer_bin | grep "bash" > /dev/null ; then # newer versions of file return "data" for .phar
+    if file --brief --dereference $composer_bin | grep -e "shell" -e "bash" > /dev/null ; then # newer versions of file return "data" for .phar
         # run it directly; it's probably a bash script or similar (homebrew-php does this)
         $composer_bin "$@"
     else
