@@ -208,7 +208,7 @@ for manifest in $add_manifests ${update_manifests[@]:-}; do
 		cp ${src_tmp}/${manifest} ${dst_tmp}/${manifest}
 	fi
 	echo -n "  - copying manifest file '$manifest'... " >&2
-	out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public put ${dst_tmp}/${manifest} s3://${dst_bucket}/${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public -m application/json put ${dst_tmp}/${manifest} s3://${dst_bucket}/${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	echo "done." >&2
 done
 
