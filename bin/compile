@@ -223,7 +223,7 @@ This directory should not be under version control; only your
 '$COMPOSER' and '$COMPOSER_LOCK' files should be added, which
 will let Composer handle installation of dependencies on deploy.
 To suppress this notice, first remove the folder from your index
-by running 'git rm --cached $composer_vendordir/'.
+by running 'git rm --cached $composer_vendordir/ -r'.
 Next, edit your project's '.gitignore' file and add the folder
 '/$composer_vendordir/' to the list.$composer_warn_bindir
 For more info, refer to the Composer FAQ: http://bit.ly/1rlCSZU"
