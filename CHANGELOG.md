@@ -8,6 +8,7 @@
 - ext-blackfire/1.13.0 [David Zuelke]
 - ext-apcu/5.1.6 [David Zuelke]
 - PHP/5.6.27 [David Zuelke]
+- PHP/7.0.12 [David Zuelke]
 
 ## v112 (2016-09-20)
 
