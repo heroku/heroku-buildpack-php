@@ -30,7 +30,8 @@ $require = [];
 if(file_exists($COMPOSER_LOCK)) {
 	$lock = json_decode(file_get_contents($COMPOSER_LOCK), true);
 	// basic lock file validity check
-	if(!$lock || !isset($lock["platform"], $lock["packages"], $lock["hash"])) exit(1);
+	if(!$lock || !isset($lock["platform"], $lock["packages"])) exit(1);
+	if(!isset($lock["content-hash"]) && !isset($lock["hash"])) exit(1);
 	$have_runtime_req |= hasreq($lock["platform"]);
 	// for each package that has platform requirements we build a meta-package that we then depend on
 	// we cannot simply join all those requirements together with " " or "," because of the precedence of the "|" operator: requirements "5.*," and "^5.3.9|^7.0", which should lead to a PHP 5 install, would combine into "5.*,^5.3.9|^7.0" (there is no way to group requirements), and that would give PHP 7
@@ -40,7 +41,7 @@ if(file_exists($COMPOSER_LOCK)) {
 	// if we do not do this, then a require for e.g. ext-curl or ext-mbstring in the main composer.json cannot be found by the installer plugin
 	$root = [
 		"name" => "$COMPOSER/$COMPOSER_LOCK",
-		"version" => "dev-".$lock["hash"],
+		"version" => "dev-".($lock["content-hash"] ?? $lock['hash']),
 		"require" => $lock["platform"],
 	];
 	if($root["require"]) {
