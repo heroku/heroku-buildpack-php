@@ -1,0 +1,37 @@
+#!/bin/bash
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
+source $(dirname $BASH_SOURCE)/../_util/include/manifest.sh
+
+OUT_PREFIX=$1
+
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=$(basename $BASH_SOURCE)
+dep_version=${dep_formula##*"/${dep_name}-"}
+dep_package=pkg-${dep_name}-${dep_version}
+dep_dirname=librdkafka-${dep_version}
+dep_archive_name=v${dep_version}.tar.gz
+dep_url=https://github.com/edenhill/librdkafka/archive/${dep_archive_name}
+dep_manifest=${dep_package}.composer.json
+
+# we need libsasl2-dev
+apt-get install -y libsasl2-dev || { echo "Failed to install libsasl2-dev; are you running this in a Docker build?"; exit 1; }
+
+echo "-----> Building ${dep_package}..."
+
+curl -L ${dep_url} | tar xz
+pushd ${dep_dirname}
+./configure --prefix=${OUT_PREFIX}
+make -s -j9
+make install -s
+rm ${OUT_PREFIX}/lib/*.a
+find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
+popd
+
+python $(dirname $BASH_SOURCE)/../_util/include/manifest.py "heroku-sys-package" "heroku-sys/pkg-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" > $dep_manifest
+
+print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

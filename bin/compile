@@ -96,7 +96,7 @@ fi
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 
-curl_retry_on_18 --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.0.11.tar.gz" || error "Failed to download minimal PHP for bootstrapping.
+curl_retry_on_18 --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.0.12.tar.gz" || error "Failed to download minimal PHP for bootstrapping.
 Please try again, or contact support if this problem persists."
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
@@ -223,7 +223,7 @@ This directory should not be under version control; only your
 '$COMPOSER' and '$COMPOSER_LOCK' files should be added, which
 will let Composer handle installation of dependencies on deploy.
 To suppress this notice, first remove the folder from your index
-by running 'git rm --cached $composer_vendordir/'.
+by running 'git rm -r --cached $composer_vendordir/'.
 Next, edit your project's '.gitignore' file and add the folder
 '/$composer_vendordir/' to the list.$composer_warn_bindir
 For more info, refer to the Composer FAQ: http://bit.ly/1rlCSZU"

@@ -9,5 +9,5 @@ print_or_export_manifest_cmd() {
 }
 
 generate_manifest_cmd() {
-    echo "s3cmd --ssl${AWS_ACCESS_KEY_ID+" --access_key=\$AWS_ACCESS_KEY_ID"}${AWS_SECRET_ACCESS_KEY+" --secret_key=\$AWS_SECRET_ACCESS_KEY"} --acl-public put $(pwd)/${1} s3://${S3_BUCKET}/${S3_PREFIX}${1}"
+    echo "s3cmd --ssl${AWS_ACCESS_KEY_ID+" --access_key=\$AWS_ACCESS_KEY_ID"}${AWS_SECRET_ACCESS_KEY+" --secret_key=\$AWS_SECRET_ACCESS_KEY"} --acl-public -m application/json put $(pwd)/${1} s3://${S3_BUCKET}/${S3_PREFIX}${1}"
 }
