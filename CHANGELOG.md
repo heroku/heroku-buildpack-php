@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v114 (2016-10-??)
+
+### ADD
+
+- ext-apcu/5.1.7 [David Zuelke]
+
 ## v113 (2016-10-19)
 
 ### ADD
