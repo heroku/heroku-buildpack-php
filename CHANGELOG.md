@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-apcu/5.1.7 [David Zuelke]
+- ext-mongodb/1.1.9 [David Zuelke]
 
 ## v113 (2016-10-19)
 
