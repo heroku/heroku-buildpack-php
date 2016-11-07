@@ -66,15 +66,16 @@ Please change its contents to at least '{}' so it is valid JSON."
     echo "{}" > $COMPOSER
 fi
 
+# PHP expects to be installed in /app/.heroku/php because of compiled paths, let's set that up!
+mkdir -p /app/.heroku
 # all system packages live in there
 mkdir -p $build_dir/.heroku/php
 # set up Composer
 export COMPOSER_HOME=$cache_dir/.composer
 mkdir -p $COMPOSER_HOME
-# we need to run things in /app because of compiled paths, set that up!
-mkdir -p /app/.heroku
-# link the subdir only - we will leave it in place for potentially following buildpacks
-ln -s $build_dir/.heroku/php /app/.heroku/php
+
+# if the build dir is not "/app", we symlink in the .heroku/php subdir (and only that, to avoid problems with other buildpacks) so that PHP correctly finds its INI files etc
+[[ $build_dir == '/app' ]] || ln -s $build_dir/.heroku/php /app/.heroku/php
 
 status "Bootstrapping..."
 
