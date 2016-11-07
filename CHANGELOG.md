@@ -1,11 +1,15 @@
 # heroku-buildpack-php CHANGELOG
 
-## v114 (2016-10-??)
+## v114 (2016-11-??)
 
 ### ADD
 
 - ext-apcu/5.1.7 [David Zuelke]
 - ext-mongodb/1.1.9 [David Zuelke]
+
+### CHG
+
+- Composer/1.2.2 [David Zuelke]
 
 ## v113 (2016-10-19)
 
