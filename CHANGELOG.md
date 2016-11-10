@@ -11,6 +11,7 @@
 ### CHG
 
 - Composer/1.2.2 [David Zuelke]
+- Update to librdkafka-0.9.2 final for ext-rdkafka [David Zuelke]
 
 ## v113 (2016-10-19)
 
