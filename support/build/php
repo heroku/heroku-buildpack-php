@@ -91,7 +91,7 @@ export PATH=${OUT_PREFIX}/bin:$PATH
         --with-freetype-dir=/usr \
         --with-jpeg-dir=/usr \
         --with-png-dir=/usr \
-    --with-gettext=shared,${OUT_PREFIX} \
+    --with-gettext=shared \
     --with-gmp=shared \
     --with-imap=shared,${OUT_PREFIX}/opt/imap-2007f \
         --with-imap-ssl \
