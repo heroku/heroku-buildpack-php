@@ -7,6 +7,7 @@
 - ext-apcu/5.1.7 [David Zuelke]
 - ext-mongodb/1.1.9 [David Zuelke]
 - ext-newrelic/6.8.0.177 [David Zuelke]
+- PHP/7.0.13 [David Zuelke]
 
 ### CHG
 
