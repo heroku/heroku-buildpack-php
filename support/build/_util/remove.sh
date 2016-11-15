@@ -69,13 +69,15 @@ $(IFS=$'\n'; echo "${manifests[*]:-(none)}" | xargs -n1 basename | sed -e 's/^/ 
 if $publish; then
 	echo "NOTICE: You have selected to publish the repo after removal of packages." >&2
 	echo "This means the repo will be re-generated based on the current bucket contents!" >&2
+	regenmsg="& regenerate packages.json"
 else
+	regenmsg="without updating the repo"
 	echo "WARNING: You have selected to NOT publish the repo after removal of packages." >&2
 	echo "This means the repo will point to non-existing packages until mkrepo.sh is run!" >&2
 fi
 echo "" >&2
 
-read -p "Are you sure you want to remove the packages & regenerate packages.json? [yN] " proceed
+read -p "Are you sure you want to remove the packages $regenmsg? [yN] " proceed
 
 [[ ! $proceed =~ [yY](es)* ]] && exit
 
@@ -135,9 +137,9 @@ echo "Removal complete.
 
 if ! $publish; then
 	cat >&2 <<-EOF
-		WARNING: repo has not been re-generated. It currently is in a broken state.
-		There are packages still listed in the repo that have just been removed.
-		Run 'mkrepo.sh --upload' at once to get repository into a consistent state.
+		WARNING: repo has not been re-generated. It may currently be in a broken state.
+		There may be packages still listed in the repo that have just been removed.
+		Run 'mkrepo.sh --upload' at once to return repository into a consistent state.
 		
 	EOF
 fi
