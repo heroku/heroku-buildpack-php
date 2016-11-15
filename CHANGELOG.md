@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v115 (2016-11-??)
+
+### ADD
+
+- ext-blackfire/1.14.1 [David Zuelke]
+
 ## v114 (2016-11-10)
 
 ### ADD
