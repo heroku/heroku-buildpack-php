@@ -131,7 +131,7 @@ $json = [
 	"prefer-stable" => isset($lock["prefer-stable"]) ? $lock["prefer-stable"] : false,
 	"provide" => $provide,
 	"require" => $require,
-	"require-dev" => $requireDev,
+	"require-dev" => (object)$requireDev,
 	// put require before repositories, or a large number of metapackages from above will cause Composer's regexes to hit PCRE limits for backtracking or JIT stack size
 	"repositories" => $repositories,
 ];
