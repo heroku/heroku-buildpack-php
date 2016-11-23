@@ -48,6 +48,7 @@ $json = json_decode(file_get_contents($COMPOSER), true);
 if(!is_array($json)) exit(1);
 
 $have_runtime_req = false;
+$have_dev_runtime_req = false;
 $require = [];
 $requireDev = [];
 if(file_exists($COMPOSER_LOCK)) {
@@ -56,6 +57,7 @@ if(file_exists($COMPOSER_LOCK)) {
 	if(!$lock || !isset($lock["platform"], $lock["platform-dev"], $lock["packages"], $lock["packages-dev"])) exit(1);
 	if(!isset($lock["content-hash"]) && !isset($lock["hash"])) exit(1);
 	$have_runtime_req |= hasreq($lock["platform"]);
+	$have_dev_runtime_req |= hasreq($lock["platform-dev"]);
 	// for each package that has platform requirements we build a meta-package that we then depend on
 	// we cannot simply join all those requirements together with " " or "," because of the precedence of the "|" operator: requirements "5.*," and "^5.3.9|^7.0", which should lead to a PHP 5 install, would combine into "5.*,^5.3.9|^7.0" (there is no way to group requirements), and that would give PHP 7
 	$metapaks = [];
@@ -95,7 +97,7 @@ if(file_exists($COMPOSER_LOCK)) {
 	}
 	// collect platform requirements from dev packages in lock file
 	foreach($lock["packages-dev"] as $package) {
-		if(mkmetas($package, $metapaks)) {
+		if(mkmetas($package, $metapaks, $have_dev_runtime_req)) {
 			$requireDev[$package["name"]] = $package["version"];
 		}
 	}
@@ -105,7 +107,14 @@ if(file_exists($COMPOSER_LOCK)) {
 }
 
 // if no PHP or HHVM is required anywhere, we need to add something
-if(!$have_runtime_req) { // FIXME: this may break things if only root require-dev contains a PHP requirement that conflicts with the default
+if(!$have_runtime_req) {
+	if($have_dev_runtime_req) {
+		// there is no requirement for a PHP or HHVM version in "require", nor in any dependencies therein, but there is one in "require-dev"
+		// that's problematic, because requirements in there may effectively result in a rule like "7.0.*", but we'd next write "^5.5.17" into our "require" to have a sane default, and that'd blow up in CI where dev dependenies are installed
+		// we can't compute a resulting version rule (that's the whole point of the custom installer that uses Composer's solver), so throwing an error is the best thing we can do here
+		file_put_contents("php://stderr", "ERROR: neither your $COMPOSER 'require' section nor any\ndependency therein requires a runtime version, but 'require-dev'\nor a dependency therein does. Heroku cannot automatically select\na default runtime version in this case.\nPlease add a version requirement for 'php' to section 'require'\nin $COMPOSER, 'composer update', commit, and deploy again.");
+		exit(3);
+	}
 	file_put_contents("php://stderr", "NOTICE: No runtime required in $COMPOSER_LOCK; using PHP ". ($require["heroku-sys/php"] = "^5.5.17") . "\n");
 } elseif(!isset($root["require"]["php"]) && !isset($root["require"]["hhvm"])) {
 	file_put_contents("php://stderr", "NOTICE: No runtime required in $COMPOSER; requirements\nfrom dependencies in $COMPOSER_LOCK will be used for selection\n");
