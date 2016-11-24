@@ -24,8 +24,12 @@ case ${ZEND_MODULE_API_VERSION} in
 	20131226)
 		series=5.6
 		;;
-	*)
+	20151012)
 		series=7.0
+		;;
+	20160303)
+		series=7.1
+		;;
 esac
 dep_manifest=${dep_package}_php-$series.composer.json
 
