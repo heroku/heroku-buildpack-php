@@ -10,6 +10,22 @@ function mkdep($require) { return array_combine(array_map(function($v) { return 
 // check if require section demands a runtime
 function hasreq($require) { return isset($require["php"]) || isset($require["hhvm"]); }
 
+// return stability flag string for Composer's internal numeric value from lock file
+function getflag($number) {
+	static $stabilityFlags = [
+		0  => "stable",
+		5  => "RC",
+		10 => "beta",
+		15 => "alpha",
+		20 => "dev",
+	];
+	if(!isset($stabilityFlags[$number])) {
+		file_put_contents("php://stderr", "ERROR: invalid stability flag '$number' in $COMPOSER_LOCK");
+		exit(1);
+	}
+	return "@".$stabilityFlags[$number];
+}
+
 function mkmetas($package, array &$metapaks, &$have_runtime_req = false) {
 	// filter platform reqs
 	$platfilter = function($v) { return preg_match("#^(hhvm$|php(-64bit)?$|ext-)#", $v); };
@@ -80,6 +96,15 @@ if(file_exists($COMPOSER_LOCK)) {
 		$require = [
 			$root["name"] => $root["version"],
 		];
+		$sfr = [];
+		// for any root platform require with implicit or explicit stability flags we must create a dummy require for that flag in the new root
+		// the reason is that the actual requiring of the package version happens in the "composer.json/composer.lock" metapackage, but stability flags that allow e.g. an RC install are ignored there - they only take effect in the root "require" section so that dependencies don't push unstable stuff onto users
+		foreach($lock["platform"] as $name => $version) {
+			if(isset($lock["stability-flags"][$name])) {
+				$sfr[$name] = getflag($lock["stability-flags"][$name]);
+			}
+		}
+		$require = array_merge($require, mkdep($sfr));
 	}
 	// same for platform-dev requirements, but they go into a require-dev section later, so only installs with --dev pull those in
 	if($rootDev["require"]) {
@@ -87,6 +112,15 @@ if(file_exists($COMPOSER_LOCK)) {
 		$requireDev = [
 			$rootDev["name"] => $rootDev["version"],
 		];
+		$sfr = [];
+		// for any root platform require-dev with implicit or explicit stability flags we must create a dummy require-dev for that flag in the new root
+		// the reason is that the actual requiring of the package version happens in the "composer.json/composer.lock" metapackage, but stability flags that allow e.g. an RC install are ignored there - they only take effect in the root "require-dev" section so that dependencies don't push unstable stuff onto users
+		foreach($lock["platform-dev"] as $name => $version) {
+			if(isset($lock["stability-flags"][$name])) {
+				$sfr[$name] = getflag($lock["stability-flags"][$name]);
+			}
+		}
+		$requireDev = array_merge($requireDev, mkdep($sfr));
 	}
 	
 	// collect platform requirements from regular packages in lock file

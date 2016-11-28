@@ -7,6 +7,10 @@
 - PHP/7.1.0RC6 [David Zuelke]
 - ext-phalcon/3.0.2 [David Zuelke]
 
+### FIX
+
+- Implicit and explicit stability flags for platform packages got ignored [David Zuelke]
+
 ## v115 (2016-11-23)
 
 ### ADD
