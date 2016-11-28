@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/7.1.0RC6 [David Zuelke]
+- ext-phalcon/3.0.2 [David Zuelke]
 
 ## v115 (2016-11-23)
 
