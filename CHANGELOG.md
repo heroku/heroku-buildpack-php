@@ -7,6 +7,7 @@
 - PHP/7.1.0RC6 [David Zuelke]
 - ext-phalcon/3.0.2 [David Zuelke]
 - ext-rdkafka/2.0.1 [David Zuelke]
+- ext-mongodb/1.2.0 [David Zuelke]
 
 ### FIX
 
