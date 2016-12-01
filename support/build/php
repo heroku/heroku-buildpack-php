@@ -23,6 +23,8 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
         dep_url=http://downloads.php.net/~tyrael/${dep_archive_name}
     elif [[ $dep_version == 7.0.* ]]; then
         dep_url=https://downloads.php.net/~ab/${dep_archive_name}
+    elif [[ $dep_version == 7.1.* ]]; then
+        dep_url=https://downloads.php.net/~krakjoe/${dep_archive_name}
     fi
 else
     dep_url=http://us1.php.net/get/${dep_archive_name}/from/this/mirror

@@ -1,5 +1,18 @@
 # heroku-buildpack-php CHANGELOG
 
+## v116 (2016-12-01)
+
+### ADD
+
+- PHP/7.1.0 [David Zuelke]
+- ext-phalcon/3.0.2 [David Zuelke]
+- ext-rdkafka/2.0.1 [David Zuelke]
+- ext-mongodb/1.2.0 [David Zuelke]
+
+### FIX
+
+- Implicit and explicit stability flags for platform packages got ignored [David Zuelke]
+
 ## v115 (2016-11-23)
 
 ### ADD
