@@ -3,6 +3,7 @@
 ## v117 (2016-12-??)
 
 - ext-ev/1.0.4 [David Zuelke]
+- ext-mongodb/1.2.1 [David Zuelke]
 
 ## v116 (2016-12-01)
 
