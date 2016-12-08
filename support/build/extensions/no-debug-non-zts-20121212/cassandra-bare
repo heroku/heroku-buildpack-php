@@ -24,8 +24,12 @@ dep_manifest=${dep_package}_php-$series.composer.json
 echo "-----> Building ${dep_package} (from PECL)..."
 
 # we need libgmp-dev
-apt-get update || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
-apt-get install -y libgmp-dev
+needed=( libgmp-dev )
+missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
+if [[ -n "$missing" ]]; then
+    apt-get update || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
+    apt-get install -y $missing
+fi
 
 curl -L ${dep_url} | tar xz
 
