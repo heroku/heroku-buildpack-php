@@ -22,8 +22,12 @@ dep_manifest=${dep_package}.composer.json
 echo "-----> Building ${dep_package}..."
 
 # we need that for IMAP
-apt-get update || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
-apt-get install -y libpam0g-dev
+needed=( libpam0g-dev )
+missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
+if [[ -n "$missing" ]]; then
+    apt-get update || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
+    apt-get install -y $missing
+fi
 
 curl -L ${dep_url} | tar xz
 

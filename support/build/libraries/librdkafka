@@ -19,7 +19,12 @@ dep_url=https://github.com/edenhill/librdkafka/archive/${dep_archive_name}
 dep_manifest=${dep_package}.composer.json
 
 # we need libsasl2-dev
-apt-get install -y libsasl2-dev || { echo "Failed to install libsasl2-dev; are you running this in a Docker build?"; exit 1; }
+needed=( libsasl2-dev )
+missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
+if [[ -n "$missing" ]]; then
+    apt-get update || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
+    apt-get install -y $missing
+fi
 
 echo "-----> Building ${dep_package}..."
 

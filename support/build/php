@@ -37,9 +37,13 @@ curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
 
-apt-get update || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
 # we need libgmp-dev for GMP, libpam0g-dev for IMAP, libicu-dev for intl, libsasl2-dev for LDAP
-apt-get install -y libgmp-dev libpam0g-dev libicu-dev libsasl2-dev
+needed=( libgmp-dev libpam0g-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev )
+missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
+if [[ -n "$missing" ]]; then
+    apt-get update || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
+    apt-get install -y $missing
+fi
 
 # look for GMP libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
 sed -i 's/$GMP_DIR\/$PHP_LIBDIR/$GMP_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
