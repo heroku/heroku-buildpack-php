@@ -1,11 +1,17 @@
 # heroku-buildpack-php CHANGELOG
 
-## v117 (2016-12-??)
+## v117 (2016-12-09)
+
+### ADD
 
 - ext-ev/1.0.4 [David Zuelke]
 - ext-mongodb/1.2.1 [David Zuelke]
 - PHP/7.0.14 [David Zuelke]
 - PHP/5.6.29 [David Zuelke]
+
+### CHG
+
+- Composer/1.2.4 [David Zuelke]
 
 ## v116 (2016-12-01)
 
