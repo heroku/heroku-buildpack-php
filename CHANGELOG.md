@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v118 (2016-12-??)
+
+### ADD
+
+- ext-mongodb/1.2.2 [David Zuelke]
+
 ## v117 (2016-12-09)
 
 ### ADD
