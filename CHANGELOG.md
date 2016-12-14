@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-mongodb/1.2.2 [David Zuelke]
+- ext-redis/3.1.0 [David Zuelke]
 
 ## v117 (2016-12-09)
 
