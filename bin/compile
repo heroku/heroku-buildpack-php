@@ -267,13 +267,13 @@ status "Preparing runtime environment..."
 # TODO: warn if require-dev has the package using a different branch
 shopt -u dotglob # we don't want .git, .gitignore et al
 # figure out the package dir name to write to and copy to it
-hbpdir="$composer_vendordir/$(cat $bp_dir/composer.json | python -c 'import sys, json; print json.load(sys.stdin)["name"]')"
+hbpdir="$composer_vendordir/$(cat $bp_dir/composer.json | python -c 'import sys, json; print(json.load(sys.stdin)["name"])')"
 mkdir -p "$build_dir/$hbpdir"
 cp -r "$bp_dir"/* "$build_dir/$hbpdir/"
 # make bin dir, just in case
 mkdir -p "$build_dir/$composer_bindir"
 # figure out shortest relative path from vendor/heroku/heroku-buildpack-php to vendor/bin (or whatever the bin dir is)
-relbin=$(python -c "import os.path; print os.path.relpath('$hbpdir', '$composer_bindir')")
+relbin=$(python -c "import os.path; print(os.path.relpath('$hbpdir', '$composer_bindir'))")
 # collect bin names from composer.json
 relbins=$(cat $bp_dir/composer.json | python -c 'from __future__ import print_function; import sys, json; { print(sys.argv[1]+"/"+bin) for bin in json.load(sys.stdin)["bin"] }' $relbin)
 # link to bins
