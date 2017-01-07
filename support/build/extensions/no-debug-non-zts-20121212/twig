@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php/
+# Build Deps: php-5.5.11
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+DEFAULT_VERSION="1.16.0"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=twig-${dep_version}
+dep_archive_name=${dep_dirname}.tgz
+dep_url=https://github.com/fabpot/Twig.git
+
+echo "-----> Building ext/twig ${dep_version}..."
+
+git clone ${dep_url}
+pushd Twig
+git checkout v${dep_version}
+
+pushd ext/twig
+export PATH=${OUT_PREFIX}/bin:${PATH}
+phpize
+./configure \
+    --prefix=${OUT_PREFIX} 
+make -s -j 9
+# php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
+rm -rf ${OUT_PREFIX}/*
+make install -s
+popd
+popd
+
+echo "-----> Done."
