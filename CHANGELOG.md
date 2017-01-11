@@ -8,6 +8,7 @@
 - ext-redis/3.1.0 [David Zuelke]
 - ext-rdkafka/3.0.0 [David Zuelke]
 - ext-phalcon/3.0.3 [David Zuelke]
+- ext-blackfire/1.14.2 [David Zuelke]
 
 ## v117 (2016-12-09)
 
