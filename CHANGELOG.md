@@ -10,6 +10,10 @@
 - ext-phalcon/3.0.3 [David Zuelke]
 - ext-blackfire/1.14.2 [David Zuelke]
 
+### CHG
+
+- Composer/1.3.1 [David Zuelke]
+
 ## v117 (2016-12-09)
 
 ### ADD
