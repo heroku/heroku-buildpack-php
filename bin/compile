@@ -96,6 +96,9 @@ if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
 	notice_inline "Bootstrapping using ${s3_url}..."
 fi
 
+notice_inline "s3 is ${s3_url}..."
+notice_inline "HEROKU_PHP_PLATFORM_REPOSITORIES = '${HEROKU_PHP_PLATFORM_REPOSITORIES}' ..."
+
 
 echo "l99 $(date)"
 # minimal PHP needed for installs, and make "composer" invocations use that for now
