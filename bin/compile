@@ -9,6 +9,8 @@ set -eu
 # move hidden files too, just in case
 shopt -s dotglob
 
+echo "Here $(date)"
+
 STACK=${STACK:-cedar-14} # Anvil has none
 build_dir=$1
 cache_dir=$2/php
