@@ -160,7 +160,7 @@ $require["heroku-sys/nginx"] = "~1.8.0";
 preg_match("#^([^-]+)(?:-([0-9]+))?\$#", $STACK, $stack);
 $provide = ["heroku-sys/".$stack[1] => (isset($stack[2])?$stack[2]:"1").gmdate(".Y.m.d")]; # cedar: 14.2016.02.16 etc
 $json = [
-	"config" => ["cache-files-ttl" => 0, "discard-changes" => true],
+	"config" => ["cache-files-ttl" => 0, "discard-changes" => true, "secure-http" => false,],
 	"minimum-stability" => isset($lock["minimum-stability"]) ? $lock["minimum-stability"] : "stable",
 	"prefer-stable" => isset($lock["prefer-stable"]) ? $lock["prefer-stable"] : false,
 	"provide" => $provide,
