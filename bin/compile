@@ -153,6 +153,7 @@ export COMPOSER=composer.json
 export export_file_path=$bp_dir/export
 export profile_dir_path=$build_dir/.profile.d
 echo "l151 $(date)"
+cat $build_dir/.heroku/php/composer.json
 composer install -vvv -d "$build_dir/.heroku/php" ${HEROKU_PHP_INSTALL_DEV-"--no-dev"}
 echo "l153 $(date)"
 
