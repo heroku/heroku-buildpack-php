@@ -10,6 +10,7 @@ set -eu
 shopt -s dotglob
 
 echo "Here $(date)"
+hostname
 
 STACK=${STACK:-cedar-14} # Anvil has none
 build_dir=$1
