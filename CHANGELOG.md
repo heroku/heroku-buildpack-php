@@ -4,12 +4,12 @@
 
 ### ADD
 
-- ext-mongodb/1.2.2 [David Zuelke]
 - ext-redis/3.1.0 [David Zuelke]
 - ext-rdkafka/3.0.0 [David Zuelke]
 - ext-phalcon/3.0.3 [David Zuelke]
 - ext-blackfire/1.14.2 [David Zuelke]
 - ext-apcu/5.1.8 [David Zuelke]
+- ext-mongodb/1.2.3 [David Zuelke]
 
 ### CHG
 
