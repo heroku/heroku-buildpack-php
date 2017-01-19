@@ -300,3 +300,6 @@ install_newrelic_userini
 # done with platform installs; restore COMPOSER from previous value
 export COMPOSER="$COMPOSER_bak"
 unset COMPOSER_bak
+
+# run artisan commands
+cd $build_dir && php artisan migrate
