@@ -11,6 +11,7 @@
 - ext-apcu/5.1.8 [David Zuelke]
 - ext-mongodb/1.2.3 [David Zuelke]
 - PHP/5.6.30 [David Zuelke]
+- PHP/7.0.15 [David Zuelke]
 
 ### CHG
 
