@@ -12,6 +12,7 @@
 - ext-mongodb/1.2.3 [David Zuelke]
 - PHP/5.6.30 [David Zuelke]
 - PHP/7.0.15 [David Zuelke]
+- PHP/7.1.1 [David Zuelke]
 
 ### CHG
 
