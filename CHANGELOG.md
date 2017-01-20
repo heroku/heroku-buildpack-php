@@ -18,6 +18,7 @@
 ### CHG
 
 - Composer/1.3.1 [David Zuelke]
+- Ignore `WEB_CONCURRENCY` values with leading zeroes [David Zuelke]
 
 ## v117 (2016-12-09)
 

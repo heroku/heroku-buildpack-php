@@ -241,7 +241,8 @@ if [[ -n ${httpd_config:-} || ( ${httpd_config:="$HEROKU_APP_DIR/$COMPOSER_VENDO
 fi
 httpd_config=$(php_passthrough "$httpd_config")
 
-if [[ -z ${WEB_CONCURRENCY:-} ]]; then
+# if WEB_CONCURRENCY starts with a 0, then that's a default value which comes from another buildpack (e.g. Node), so we ignore it
+if [[ -z ${WEB_CONCURRENCY:-} || "${WEB_CONCURRENCY}" == 0* ]]; then
     maxprocs=$(ulimit -u)
     ram="512M"
     if [[ -n ${DYNO:-} && "$maxprocs" == "32768" ]]; then
