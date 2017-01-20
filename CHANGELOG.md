@@ -19,6 +19,7 @@
 
 - Composer/1.3.1 [David Zuelke]
 - Ignore `WEB_CONCURRENCY` values with leading zeroes [David Zuelke]
+- Default `NEW_RELIC_APP_NAME` to `HEROKU_APP_NAME` [Christophe Coevoet]
 
 ## v117 (2016-12-09)
 
