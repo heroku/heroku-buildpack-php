@@ -1,5 +1,26 @@
 # heroku-buildpack-php CHANGELOG
 
+## v118 (2017-01-20)
+
+### ADD
+
+- ext-redis/3.1.0 [David Zuelke]
+- ext-rdkafka/3.0.0 [David Zuelke]
+- ext-phalcon/3.0.3 [David Zuelke]
+- ext-blackfire/1.14.2 [David Zuelke]
+- ext-apcu/5.1.8 [David Zuelke]
+- ext-mongodb/1.2.3 [David Zuelke]
+- PHP/5.6.30 [David Zuelke]
+- PHP/7.0.15 [David Zuelke]
+- PHP/7.1.1 [David Zuelke]
+- ext-newrelic/6.9.0 [David Zuelke]
+
+### CHG
+
+- Composer/1.3.1 [David Zuelke]
+- Ignore `WEB_CONCURRENCY` values with leading zeroes [David Zuelke]
+- Default `NEW_RELIC_APP_NAME` to `HEROKU_APP_NAME` [Christophe Coevoet]
+
 ## v117 (2016-12-09)
 
 ### ADD

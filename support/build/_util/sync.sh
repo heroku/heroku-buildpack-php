@@ -94,7 +94,11 @@ ignore_manifests=()
 for filename in $common; do
 	result=0
 	python <(cat <<-'PYTHON' # beware of single quotes in body
-		import sys, json, os, datetime;
+		from __future__ import print_function
+		import sys, json, os, datetime
+		# for python 2+3 compat
+		def stderrprint(*args, **kwargs):
+		    print(*args, file=sys.stderr, **kwargs)
 		src_manifest = json.load(open(sys.argv[1]))
 		dst_manifest = json.load(open(sys.argv[2]))
 		# remove URLs so they don't interfere with comparison
@@ -105,12 +109,12 @@ for filename in $common; do
 		    src_time = datetime.datetime.strptime(src_manifest.pop("time"), "%Y-%m-%d %H:%M:%S") # UTC
 		except KeyError, ValueError:
 		    src_time = datetime.datetime.utcfromtimestamp(os.path.getmtime(sys.argv[1]))
-		    print >> sys.stderr, "WARNING: source manifest "+os.path.basename(sys.argv[1])+" has invalid time entry, using mtime: "+src_time.isoformat()
+		    stderrprint("WARNING: source manifest {} has invalid time entry, using mtime: {}".format(os.path.basename(sys.argv[1]), src_time.isoformat()))
 		try:
 		    dst_time = datetime.datetime.strptime(dst_manifest.pop("time"), "%Y-%m-%d %H:%M:%S") # UTC
 		except KeyError, ValueError:
 		    dst_time = datetime.datetime.utcfromtimestamp(os.path.getmtime(sys.argv[2]))
-		    print >> sys.stderr, "WARNING: destination manifest "+os.path.basename(sys.argv[2])+" has invalid time entry, using mtime: "+dst_time.isoformat()
+		    stderrprint("WARNING: destination manifest {} has invalid time entry, using mtime: {}".format(os.path.basename(sys.argv[2]), dst_time.isoformat()))
 		# a newer source time means we will copy
 		if src_time > dst_time:
 		    sys.exit(0)
