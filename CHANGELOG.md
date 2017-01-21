@@ -1,5 +1,12 @@
 # heroku-buildpack-php CHANGELOG
 
+## v119 (2017-01-21)
+
+### FIX
+
+- Revert: ext-redis/3.1.0 [David Zuelke]
+- Revert: Composer/1.3.1 [David Zuelke]
+
 ## v118 (2017-01-20)
 
 ### ADD
