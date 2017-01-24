@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v120 (2017-02-??)
+
+### CHG
+
+- Allow overwriting of Apache access log format (now named `heroku`) in config include [David Zuelke]
+
 ## v119 (2017-01-21)
 
 ### FIX
