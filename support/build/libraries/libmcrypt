@@ -16,7 +16,7 @@ dep_version=${dep_formula##*"/${dep_name}-"}
 dep_package=pkg-${dep_name}-${dep_version}
 dep_dirname=${dep_name}-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
-dep_url=http://downloads.sourceforge.net/project/mcrypt/Libmcrypt/${dep_version}/${dep_archive_name}
+dep_url=https://downloads.sourceforge.net/project/mcrypt/Libmcrypt/${dep_version}/${dep_archive_name}
 dep_manifest=${dep_package}.composer.json
 
 # skip build if already present

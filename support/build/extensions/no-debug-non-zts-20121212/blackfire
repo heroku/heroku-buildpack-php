@@ -67,7 +67,7 @@ fi
 
 echo "-----> Packaging ${dep_package}..."
 
-curl -L -o probe.tar.gz "http://packages.blackfire.io/binaries/blackfire-php/${probe_version}/blackfire-php-linux_amd64-php-${series/\./}.tar.gz"
+curl -L -o probe.tar.gz "https://packages.blackfire.io/binaries/blackfire-php/${probe_version}/blackfire-php-linux_amd64-php-${series/\./}.tar.gz"
 
 mkdir -p ${ext_dir}
 tar -zxf probe.tar.gz

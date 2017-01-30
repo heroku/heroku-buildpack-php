@@ -16,7 +16,7 @@ dep_version=${dep_formula#"${dep_name}-"}
 dep_package=${dep_name}-${dep_version}
 dep_dirname=nginx-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
-dep_url=http://nginx.org/download/${dep_archive_name}
+dep_url=https://nginx.org/download/${dep_archive_name}
 dep_manifest=${dep_package}.composer.json
 
 echo "-----> Building ${dep_package}..."
