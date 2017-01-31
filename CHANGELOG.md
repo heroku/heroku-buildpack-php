@@ -2,6 +2,10 @@
 
 ## v120 (2017-02-??)
 
+### ADD
+
+- ext-blackfire/1.14.3 [David Zuelke]
+
 ### CHG
 
 - Allow overwriting of Apache access log format (now named `heroku`) in config include [David Zuelke]
