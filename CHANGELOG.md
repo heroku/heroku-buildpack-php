@@ -6,6 +6,7 @@
 
 - ext-blackfire/1.14.3 [David Zuelke]
 - ext-mongodb/1.2.5 [David Zuelke]
+- ext-redis/3.1.1 [David Zuelke]
 
 ### CHG
 
