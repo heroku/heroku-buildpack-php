@@ -7,6 +7,7 @@
 - ext-blackfire/1.14.3 [David Zuelke]
 - ext-mongodb/1.2.5 [David Zuelke]
 - ext-redis/3.1.1 [David Zuelke]
+- ext-imagick/3.4.3 [David Zuelke]
 
 ### CHG
 
