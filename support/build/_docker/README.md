@@ -26,4 +26,6 @@ or
 
     docker run --rm --tty --interactive --env-file=support/build/_docker/env.default -e AWS_ACCESS_KEY_ID=... -e AWS_SECRET_ACCESS_KEY=... heroku-php-build-cedar-14 /bin/bash
 
-You then have a shell where you can run `bob build`, `support/build/_util/deploy.sh` and so forth.
+You then have a shell where you can run `bob build`, `deploy.sh` and so forth.
+
+The `support/build/_util/` directory is on `$PATH` in the image.
