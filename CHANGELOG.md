@@ -9,6 +9,7 @@
 - ext-redis/3.1.1 [David Zuelke]
 - ext-imagick/3.4.3 [David Zuelke]
 - ext-memcached/3.0.1 [David Zuelke]
+- ext-rdkafka/3.0.1 [David Zuelke]
 
 ### CHG
 
