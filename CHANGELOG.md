@@ -15,6 +15,7 @@
 - Allow overwriting of Apache access log format (now named `heroku`) in config include [David Zuelke]
 - Composer/1.3.2 [David Zuelke]
 - Use system libmcrypt and libmemcached on heroku-16 [David Zuelke]
+- librdkafka/0.9.3 [David Zuelke]
 
 ## v119 (2017-01-21)
 
