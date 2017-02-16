@@ -10,6 +10,7 @@
 - ext-imagick/3.4.3 [David Zuelke]
 - ext-rdkafka/3.0.1 [David Zuelke]
 - ext-memcached/3.0.2 [David Zuelke]
+- PHP/7.0.16 [David Zuelke]
 
 ### CHG
 
