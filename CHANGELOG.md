@@ -19,6 +19,7 @@
 - Composer/1.3.2 [David Zuelke]
 - Use system libmcrypt and libmemcached on heroku-16 [David Zuelke]
 - librdkafka/0.9.3 [David Zuelke]
+- Enable `mod_proxy_wstunnel` in Apache config [David Zuelke]
 
 ## v119 (2017-01-21)
 
