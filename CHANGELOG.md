@@ -1,5 +1,26 @@
 # heroku-buildpack-php CHANGELOG
 
+## v120 (2017-02-20)
+
+### ADD
+
+- ext-blackfire/1.14.3 [David Zuelke]
+- ext-mongodb/1.2.5 [David Zuelke]
+- ext-redis/3.1.1 [David Zuelke]
+- ext-imagick/3.4.3 [David Zuelke]
+- ext-rdkafka/3.0.1 [David Zuelke]
+- PHP/7.0.16 [David Zuelke]
+- PHP/7.1.2 [David Zuelke]
+- ext-memcached/3.0.3 [David Zuelke]
+
+### CHG
+
+- Allow overwriting of Apache access log format (now named `heroku`) in config include [David Zuelke]
+- Composer/1.3.2 [David Zuelke]
+- Use system libmcrypt and libmemcached on heroku-16 [David Zuelke]
+- librdkafka/0.9.3 [David Zuelke]
+- Enable `mod_proxy_wstunnel` in Apache config [David Zuelke]
+
 ## v119 (2017-01-21)
 
 ### FIX

@@ -16,7 +16,7 @@ dep_version=${dep_formula#"${dep_name}-"}
 dep_package=pkg-${dep_name}-${dep_version}
 dep_dirname=php-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
-dep_url=http://us1.php.net/get/${dep_archive_name}/from/this/mirror
+dep_url=https://php.net/get/${dep_archive_name}/from/this/mirror
 dep_manifest=${dep_package}.composer.json
 
 echo "-----> Building minimal PHP ${dep_version}..."

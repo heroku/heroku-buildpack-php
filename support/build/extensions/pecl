@@ -16,7 +16,7 @@ dep_version=${dep_formula##*"/${dep_name}-"}
 dep_package=ext-${dep_name}-${dep_version}
 dep_dirname=${dep_name}-${dep_version}
 dep_archive_name=${dep_dirname}.tgz
-dep_url=http://pecl.php.net/get/${dep_archive_name}
+dep_url=https://pecl.php.net/get/${dep_archive_name}
 series=$(php-config --version | cut -d. -f1,2) # get "5.5", "5.6", "7.0" etc for the php requirement in the manifest
 dep_manifest=${dep_package}_php-$series.composer.json
 

@@ -1,6 +1,20 @@
 #!/usr/bin/env bash
 
 set -eu
+set -o pipefail
+
+function s3cmd_get_progress() {
+	len=0
+	while read line; do
+		if [[ "$len" -gt 0 ]]; then
+			# repeat a backspace $len times
+			# need to use seq; {1..$len} doesn't work
+			printf '%0.s\b' $(seq 1 $len)
+		fi
+		echo -n "$line"
+		len=${#line}
+	done < <(grep --line-buffered -o -E '\[[0-9]+ of [0-9]+\]') # filter only the "[1 of 99]" bits from 's3cmd get' output
+}
 
 remove=true
 
@@ -63,11 +77,12 @@ trap 'rm -rf $src_tmp $dst_tmp;' EXIT
 echo -n "Fetching source's manifests from s3://${src_bucket}/${src_prefix}... " >&2
 (
 	cd $src_tmp
-	out=$(s3cmd --ssl get s3://${src_bucket}/${src_prefix}*.composer.json 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
-	ls *.composer.json 2>/dev/null 1>&2 || { echo "failed; no manifests found!" >&2; exit 1; }
 	out=$(s3cmd --ssl get s3://${src_bucket}/${src_prefix}packages.json 2>&1) || { echo -e "No packages.json in source repo:\n$out" >&2; exit 1; }
+	s3cmd --ssl --progress get s3://${src_bucket}/${src_prefix}*.composer.json 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
+	ls *.composer.json 2>/dev/null 1>&2 || { echo "failed; no manifests found!" >&2; exit 1; }
+	rm download.log
 )
-echo "done." >&2
+echo "" >&2
 
 # this mkrepo.sh call won't actually download, but use the given *.composer.json, and echo a generated packages.json
 # we use this to compare to the downloaded packages.json
@@ -81,9 +96,10 @@ $here/mkrepo.sh $src_bucket $src_prefix ${src_tmp}/*.composer.json 2>/dev/null |
 echo -n "Fetching destination's manifests from s3://${dst_bucket}/${dst_prefix}... " >&2
 (
 	cd $dst_tmp
-	out=$(s3cmd --ssl get s3://${dst_bucket}/${dst_prefix}*.composer.json 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	s3cmd --ssl --progress get s3://${dst_bucket}/${dst_prefix}*.composer.json 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
+	rm download.log
 )
-echo "done." >&2
+echo "" >&2
 
 comm=$(comm <(cd $src_tmp; ls -1 *.composer.json) <(cd $dst_tmp; ls -1 *.composer.json 2> /dev/null)) # comm produces three columns of output: entries only in left file, entries only in right file, entries in both
 add_manifests=$(echo "$comm" | grep '^\S' || true) # no tabs means output in col 1 = files only in src

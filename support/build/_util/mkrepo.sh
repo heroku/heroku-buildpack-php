@@ -5,6 +5,19 @@ set -o pipefail
 # fail harder
 set -eu
 
+function s3cmd_get_progress() {
+	len=0
+	while read line; do
+		if [[ "$len" -gt 0 ]]; then
+			# repeat a backspace $len times
+			# need to use seq; {1..$len} doesn't work
+			printf '%0.s\b' $(seq 1 $len)
+		fi
+		echo -n "$line"
+		len=${#line}
+	done < <(grep --line-buffered -o -E '\[[0-9]+ of [0-9]+\]') # filter only the "[1 of 99]" bits from 's3cmd get' output
+}
+
 upload=false
 
 # process flags
@@ -48,11 +61,13 @@ fi
 if [[ $# == "0" ]]; then
 	manifests_tmp=$(mktemp -d -t "dst-repo.XXXXX")
 	trap 'rm -rf $manifests_tmp;' EXIT
-	echo "-----> Fetching manifests..." >&2
+	echo -n "-----> Fetching manifests... " >&2
 	(
 		cd $manifests_tmp
-		s3cmd --ssl get s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json 1>&2
+		s3cmd --ssl --progress get s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
+		rm download.log
 	)
+	echo "" >&2
 	manifests=$manifests_tmp/*.composer.json
 else
 	manifests="$@"
