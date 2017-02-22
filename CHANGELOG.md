@@ -6,6 +6,10 @@
 
 - ext-newrelic/7.0.0.186 [David Zuelke]
 
+### FIX
+
+- Failed download during bootstrap fails without meaningful error message [David Zuelke]
+
 ## v120 (2017-02-20)
 
 ### ADD
