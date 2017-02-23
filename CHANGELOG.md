@@ -6,6 +6,10 @@
 
 - ext-newrelic/7.0.0.186 [David Zuelke]
 
+### CHG
+
+- Default to `web: heroku-php-apache2` process in case of empty `Procfile` [David Zuelke]
+
 ### FIX
 
 - Failed download during bootstrap fails without meaningful error message [David Zuelke]
