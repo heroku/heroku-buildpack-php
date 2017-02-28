@@ -6,6 +6,7 @@
 
 - ext-newrelic/7.0.0.186 [David Zuelke]
 - ext-phalcon/3.0.4 [David Zuelke]
+- ext-blackfire/1.15.0 [David Zuelke]
 
 ### CHG
 
