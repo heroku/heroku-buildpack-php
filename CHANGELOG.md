@@ -16,6 +16,7 @@
 
 - Default to `web: heroku-php-apache2` process in case of empty `Procfile` [David Zuelke]
 - libcassandra-2.6.0 [David Zuelke]
+- librdkafka/0.9.4 [David Zuelke]
 
 ### FIX
 
