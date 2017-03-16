@@ -10,10 +10,12 @@
 - ext-mongodb/1.2.7 [David Zuelke]
 - PHP/7.0.17 [David Zuelke]
 - PHP/7.1.2 [David Zuelke]
+- ext-cassandra/1.3.0 [David Zuelke]
 
 ### CHG
 
 - Default to `web: heroku-php-apache2` process in case of empty `Procfile` [David Zuelke]
+- libcassandra-2.6.0 [David Zuelke]
 
 ### FIX
 
