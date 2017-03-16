@@ -8,6 +8,7 @@
 - ext-phalcon/3.0.4 [David Zuelke]
 - ext-blackfire/1.15.0 [David Zuelke]
 - ext-mongodb/1.2.7 [David Zuelke]
+- PHP/7.0.17 [David Zuelke]
 
 ### CHG
 
