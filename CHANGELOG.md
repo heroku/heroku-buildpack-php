@@ -11,6 +11,7 @@
 - PHP/7.1.2 [David Zuelke]
 - ext-cassandra/1.3.0 [David Zuelke]
 - ext-mongodb/1.2.8 [David Zuelke]
+- ext-amqp/1.9.0 (for heroku-16 only) [David Zuelke]
 
 ### CHG
 
