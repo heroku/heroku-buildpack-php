@@ -4,7 +4,6 @@
 
 ### ADD
 
-- ext-phalcon/3.0.4 [David Zuelke]
 - ext-blackfire/1.15.0 [David Zuelke]
 - PHP/7.0.17 [David Zuelke]
 - PHP/7.1.2 [David Zuelke]
@@ -12,6 +11,7 @@
 - ext-mongodb/1.2.8 [David Zuelke]
 - ext-amqp/1.9.0 (for heroku-16 only) [David Zuelke]
 - ext-newrelic/7.1.0.187 [David Zuelke]
+- ext-phalcon/3.1.0 [David Zuelke]
 
 ### CHG
 
