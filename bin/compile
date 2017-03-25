@@ -282,8 +282,8 @@ ln -fs $relbins .
 cd $build_dir
 
 if [[ ! -f "Procfile" ]]; then
-    echo "web: $composer_bindir/heroku-$engine-apache2" > Procfile
-    notice_inline "No Procfile, using 'web: $composer_bindir/heroku-$engine-apache2'."
+    echo "web: heroku-$engine-apache2" > Procfile
+    notice_inline "No Procfile, using 'web: heroku-$engine-apache2'."
 fi
 
 # reset COMPOSER for the platform install step

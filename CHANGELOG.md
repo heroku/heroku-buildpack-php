@@ -20,6 +20,7 @@
 - libcassandra-2.6.0 [David Zuelke]
 - librdkafka/0.9.4 [David Zuelke]
 - Composer/1.4.1 [David Zuelke]
+- Default to `web: heroku-php-apache2` (without explicit composer bin dir) process in case of missing `Procfile` [David Zuelke]
 
 ### FIX
 
