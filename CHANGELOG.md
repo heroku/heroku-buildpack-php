@@ -13,6 +13,7 @@
 - ext-newrelic/7.1.0.187 [David Zuelke]
 - ext-phalcon/3.1.0 [David Zuelke]
 - ext-redis/3.1.2 [David Zuelke]
+- ext-event/2.3.0 [David Zuelke]
 
 ### CHG
 
