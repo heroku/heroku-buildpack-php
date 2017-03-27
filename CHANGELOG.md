@@ -1,5 +1,32 @@
 # heroku-buildpack-php CHANGELOG
 
+## v121 (2017-02-28)
+
+### ADD
+
+- ext-blackfire/1.15.0 [David Zuelke]
+- PHP/7.0.17 [David Zuelke]
+- PHP/7.1.2 [David Zuelke]
+- ext-cassandra/1.3.0 [David Zuelke]
+- ext-mongodb/1.2.8 [David Zuelke]
+- ext-amqp/1.9.0 (for heroku-16 only) [David Zuelke]
+- ext-newrelic/7.1.0.187 [David Zuelke]
+- ext-redis/3.1.2 [David Zuelke]
+- ext-event/2.3.0 [David Zuelke]
+- ext-phalcon/3.1.1 [David Zuelke]
+
+### CHG
+
+- Default to `web: heroku-php-apache2` process in case of empty `Procfile` [David Zuelke]
+- libcassandra-2.6.0 [David Zuelke]
+- librdkafka/0.9.4 [David Zuelke]
+- Composer/1.4.1 [David Zuelke]
+- Default to `web: heroku-php-apache2` (without explicit composer bin dir) process in case of missing `Procfile` [David Zuelke]
+
+### FIX
+
+- Failed download during bootstrap fails without meaningful error message [David Zuelke]
+
 ## v120 (2017-02-20)
 
 ### ADD
