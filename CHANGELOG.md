@@ -1,12 +1,12 @@
 # heroku-buildpack-php CHANGELOG
 
-## v121 (2017-02-28)
+## v121 (2017-03-28)
 
 ### ADD
 
 - ext-blackfire/1.15.0 [David Zuelke]
 - PHP/7.0.17 [David Zuelke]
-- PHP/7.1.2 [David Zuelke]
+- PHP/7.1.3 [David Zuelke]
 - ext-cassandra/1.3.0 [David Zuelke]
 - ext-mongodb/1.2.8 [David Zuelke]
 - ext-amqp/1.9.0 (for heroku-16 only) [David Zuelke]
