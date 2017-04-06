@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v122 (2017-04-??)
+
+### ADD
+
+- ext-phalcon/3.1.2 [David Zuelke]
+
 ## v121 (2017-03-28)
 
 ### ADD
