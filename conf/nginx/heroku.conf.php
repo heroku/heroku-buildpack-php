@@ -26,8 +26,23 @@ http {
         server unix:/tmp/heroku.fcgi.<?=getenv('PORT')?:'8080'?>.sock max_fails=3 fail_timeout=3s;
         keepalive 16;
     }
-    
+
+    map_hash_bucket_size 2048;
+
+    map $request_uri $new_uri {
+        include /app/vendor/heroku/heroku-buildpack-php/conf/nginx/oldnew.map;
+    }
+
     server {
+        # Redirect old mobile user to preprod before everything
+        if ($http_x_mr_mobile_app) {
+            return 301 https://www.preprod.ma-residence.fr$request_uri;
+        }
+
+        if ($new_uri) {
+           return 301 $new_uri;
+        }
+
         # define an easy to reference name that can be used in try_files
         location @heroku-fcgi {
             include fastcgi_params;
