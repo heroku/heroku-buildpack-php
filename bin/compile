@@ -248,14 +248,17 @@ fi
 # no need for the token to stay around in the env
 unset COMPOSER_GITHUB_OAUTH_TOKEN
 
+if [[ ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} != *"--no-dev"* ]]; then
+    # dev dependencies will be installed; make sure those don't include heroku/heroku-buildpack-php
+    composer remove heroku/heroku-buildpack-php &> /dev/null 2>&1
+fi
+
 # install dependencies unless composer.json is completely empty (in which case it'd talk to packagist.org which may be slow and is unnecessary)
 export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV)$'
 cat "$COMPOSER" | python -c 'import sys,json; sys.exit(not json.load(sys.stdin));' && composer install ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --prefer-dist --optimize-autoloader --no-interaction 2>&1 | indent
 
-if [[ ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} == *"--no-dev"* ]]; then
-    composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your '$COMPOSER' requires 'heroku/heroku-buildpack-php'.
+composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your '$COMPOSER' requires 'heroku/heroku-buildpack-php'.
 This package may only be used as a dependency in 'require-dev'!"
-fi
 
 if cat "$COMPOSER" | python -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
     status "Running 'composer compile'..."
