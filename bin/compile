@@ -290,12 +290,15 @@ fi
 COMPOSER_bak="$COMPOSER"
 export COMPOSER=composer.json
 
-status "Checking for additional extensions to install..."
-# special treatment for Blackfire; we enable it if we detect a server id and a server token for it
-install_blackfire_ext
-# special treatment for New Relic; we enable it if we detect a license key for it
-install_newrelic_ext
-install_newrelic_userini
+# unless we're running a CI build...
+if [[ "${HEROKU_PHP_INSTALL_DEV+CI}" != "CI" ]]; then
+    status "Checking for additional extensions to install..."
+    # special treatment for Blackfire; we enable it if we detect a server id and a server token for it
+    install_blackfire_ext
+    # special treatment for New Relic; we enable it if we detect a license key for it
+    install_newrelic_ext
+    install_newrelic_userini
+fi
 
 # done with platform installs; restore COMPOSER from previous value
 export COMPOSER="$COMPOSER_bak"
