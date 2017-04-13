@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-phalcon/3.1.2 [David Zuelke]
+- PHP/7.0.18 [David Zuelke]
 
 ### CHG
 
