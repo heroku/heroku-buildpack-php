@@ -286,6 +286,9 @@ if [[ ! -f "Procfile" ]]; then
     notice_inline "No Procfile, using 'web: heroku-$engine-apache2'."
 fi
 
+# write empty WEB_CONCURRENCY.sh to overwrite the defaults logic from a prior buildpack, e.g. Node (all buildpacks use the same filename to allow this)
+> $build_dir/.profile.d/WEB_CONCURRENCY.sh
+
 # reset COMPOSER for the platform install step
 COMPOSER_bak="$COMPOSER"
 export COMPOSER=composer.json
