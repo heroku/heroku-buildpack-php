@@ -65,7 +65,7 @@ http {
         }
         
         # default handling of .php
-        location ~ \.php {
+        location ~ \.php$ {
             try_files @heroku-fcgi @heroku-fcgi;
         }
     }
