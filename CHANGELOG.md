@@ -9,6 +9,7 @@
 - PHP/7.1.4 [David Zuelke]
 - ext-newrelic/7.2.0.191 [David Zuelke]
 - ext-blackfire/1.16.2 [David Zuelke]
+- ext-mongodb/1.2.9 [David Zuelke]
 
 ### CHG
 
