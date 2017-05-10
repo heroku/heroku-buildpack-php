@@ -72,7 +72,7 @@ http {
         
         include "<?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>";
         
-        index /app/html/index.php;
+        index index.php;
             
         # Global restrictions configuration file.
         # Designed to be included in any server {} block.
@@ -101,7 +101,7 @@ http {
         }
 
         location ~ ^(/[^/]+/)?files/(.+) {
-            try_files /wp-content/blogs.dir/$blogid/files/$2 /wp-includes/ms-files.php?file=$2 ;
+            try_files /app/html/wp-content/blogs.dir/$blogid/files/$2 /wp-includes/ms-files.php?file=$2 ;
             access_log off;     log_not_found off; expires max;
         }
 
