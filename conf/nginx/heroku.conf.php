@@ -120,7 +120,7 @@ http {
 
         location / {
             #try_files $uri $uri/ /app/html/index.php?$args ;
-            try_files $uri heroku-fcgi @heroku-fcgi;
+            try_files $uri $uri/ index.php?$args heroku-fcgi @heroku-fcgi;
         }
 
         location ~ \.php$ {            
