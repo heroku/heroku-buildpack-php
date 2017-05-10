@@ -70,7 +70,7 @@ http {
         
         include "<?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>";
         
-        index index.php;
+        index /app/html/index.php;
 
         location ~ ^(/[^/]+/)?files/(.+) {
             try_files /wp-content/blogs.dir/$blogid/files/$2 /wp-includes/ms-files.php?file=$2 ;
@@ -80,7 +80,7 @@ http {
         #avoid php readfile()
         location ^~ /blogs.dir {
             internal;
-            alias /var/www/example.com/htdocs/wp-content/blogs.dir ;
+            alias /app/html/wp-content/blogs.dir ;
             access_log off;     log_not_found off; expires max;
         }
 
