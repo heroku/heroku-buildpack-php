@@ -89,51 +89,51 @@ http {
 
         # Deny all attempts to access hidden files such as .htaccess, .htpasswd, .DS_Store (Mac).
         # Keep logging the requests to parse later (or to pass to firewall utilities such as fail2ban)
-        location ~ /\. {
-            deny all;
-        }
+        #location ~ /\. {
+        #    deny all;
+        #}
 
         # Deny access to any files with a .php extension in the uploads directory
         # Works in sub-directory installs and also in multisite network
         # Keep logging the requests to parse later (or to pass to firewall utilities such as fail2ban)
-        location ~* /(?:uploads|files)/.*\.php$ {
-            deny all;
-        }
+        #location ~* /(?:uploads|files)/.*\.php$ {
+        #    deny all;
+        #}
 
-        location ~ ^(/[^/]+/)?files/(.+) {
-            try_files /app/html/wp-content/blogs.dir/$blogid/files/$2 /wp-includes/ms-files.php?file=$2 ;
-            access_log off;     log_not_found off; expires max;
-        }
+        #location ~ ^(/[^/]+/)?files/(.+) {
+        #    try_files /app/html/wp-content/blogs.dir/$blogid/files/$2 /wp-includes/ms-files.php?file=$2 ;
+        #    access_log off;     log_not_found off; expires max;
+        #}
 
         #avoid php readfile()
-        location ^~ /blogs.dir {
-            internal;
-            alias /app/html/wp-content/blogs.dir ;
-            access_log off;     log_not_found off; expires max;
-        }
+        #location ^~ /blogs.dir {
+        #    internal;
+        #    alias /app/html/wp-content/blogs.dir ;
+        #    access_log off;     log_not_found off; expires max;
+        #}
 
-        if (!-e $request_filename) {
-            rewrite /wp-admin$ $scheme://$host$uri/ permanent;
-            rewrite ^(/[^/]+)?(/wp-.*) $2 last;
-            rewrite ^(/[^/]+)?(/.*\.php) $2 last;
-        }
+        #if (!-e $request_filename) {
+        #    rewrite /wp-admin$ $scheme://$host$uri/ permanent;
+        #    rewrite ^(/[^/]+)?(/wp-.*) $2 last;
+        #    rewrite ^(/[^/]+)?(/.*\.php) $2 last;
+        #}
 
-        location / {
-            #try_files $uri $uri/ /app/html/index.php?$args ;
-            try_files $uri $uri/ /index.php?$args;
-        }
+        #location / {
+        #    #try_files $uri $uri/ /app/html/index.php?$args ;
+        #    try_files $uri $uri/ /index.php?$args;
+        #}
 
-        location ~ \.php$ {            
-            #try_files @heroku-fcgi @heroku-fcgi;
-            try_files $uri =404;
-            include fastcgi_params;
-            fastcgi_pass php;
-        }
+        #location ~ \.php$ {            
+        #    #try_files @heroku-fcgi @heroku-fcgi;
+        #    try_files $uri =404;
+        #    include fastcgi_params;
+        #    fastcgi_pass php;
+        #}
 
         # restrict access to hidden files, just in case
-        location ~ /\. {
-            deny all;
-        }
+        #location ~ /\. {
+        #    deny all;
+        #}
         
         # default handling of .php
         #location ~ \.php {
