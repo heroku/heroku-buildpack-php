@@ -72,7 +72,7 @@ http {
         
         include "<?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>";
         
-        index index.php;
+        index index2.php;
             
         # Global restrictions configuration file.
         # Designed to be included in any server {} block.
