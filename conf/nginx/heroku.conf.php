@@ -26,6 +26,17 @@ http {
         server unix:/tmp/heroku.fcgi.<?=getenv('PORT')?:'8080'?>.sock max_fails=3 fail_timeout=3s;
         keepalive 16;
     }
+
+    map $uri $blogname{
+        ~^(?P<blogpath>/[^/]+/)files/(.*)       $blogpath ;
+    }
+
+    map $blogname $blogid{
+        default -999;
+
+        #Ref: http://wordpress.org/extend/plugins/nginx-helper/
+        #include /var/www/wordpress/wp-content/plugins/nginx-helper/map.conf ;
+    }
     
     server {
         # define an easy to reference name that can be used in try_files
