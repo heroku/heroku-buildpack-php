@@ -91,7 +91,7 @@ http {
         }
 
         location / {
-            try_files $uri $uri/ /index.php?$args ;
+            try_files $uri $uri/ /app/html/index.php?$args ;
         }
 
         location ~ \.php$ {
