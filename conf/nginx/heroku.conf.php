@@ -70,6 +70,36 @@ http {
         
         include "<?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>";
         
+        index index.php;
+
+        location ~ ^(/[^/]+/)?files/(.+) {
+            try_files /wp-content/blogs.dir/$blogid/files/$2 /wp-includes/ms-files.php?file=$2 ;
+            access_log off;     log_not_found off; expires max;
+        }
+
+        #avoid php readfile()
+        location ^~ /blogs.dir {
+            internal;
+            alias /var/www/example.com/htdocs/wp-content/blogs.dir ;
+            access_log off;     log_not_found off; expires max;
+        }
+
+        if (!-e $request_filename) {
+            rewrite /wp-admin$ $scheme://$host$uri/ permanent;
+            rewrite ^(/[^/]+)?(/wp-.*) $2 last;
+            rewrite ^(/[^/]+)?(/.*\.php) $2 last;
+        }
+
+        location / {
+            try_files $uri $uri/ /index.php?$args ;
+        }
+
+        location ~ \.php$ {
+            try_files $uri =404;
+            include fastcgi_params;
+            #fastcgi_pass php;
+        }
+
         # restrict access to hidden files, just in case
         location ~ /\. {
             deny all;
