@@ -136,8 +136,8 @@ http {
         }
         
         # default handling of .php
-        location ~ \.php {
-            try_files @heroku-fcgi @heroku-fcgi;
-        }
+        #location ~ \.php {
+        #    try_files @heroku-fcgi @heroku-fcgi;
+        #}
     }
 }
