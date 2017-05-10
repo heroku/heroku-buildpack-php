@@ -120,15 +120,15 @@ http {
 
         location / {
             #try_files $uri $uri/ /app/html/index.php?$args ;
-            try_files $uri $uri/ index.php?$args heroku-fcgi @heroku-fcgi;
+            try_files $uri $uri/ index.php?$args;
         }
 
-        location ~ \.php$ {            
-            try_files @heroku-fcgi @heroku-fcgi;
+        #location ~ \.php$ {            
+            #try_files @heroku-fcgi @heroku-fcgi;
             #try_files $uri =404;
             #include fastcgi_params;
             #fastcgi_pass php;
-        }
+        #}
 
         # restrict access to hidden files, just in case
         location ~ /\. {
