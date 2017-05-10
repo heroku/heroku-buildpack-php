@@ -132,7 +132,7 @@ http {
 		#
 		#
 		location ~ \.php {
-            try_files @heroku-fcgi @heroku-fcgi =404;
+            try_files @heroku-fcgi @heroku-fcgi;
         }
     }
 }
