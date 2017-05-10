@@ -252,7 +252,7 @@ unset COMPOSER_GITHUB_OAUTH_TOKEN
 export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV)$'
 cat "$COMPOSER" | python -c 'import sys,json; sys.exit(not json.load(sys.stdin));' && composer install ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --prefer-dist --optimize-autoloader --no-interaction 2>&1 | indent
 
-composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your '$COMPOSER' requires 'heroku/heroku-buildpack-php'.
+composer show --installed lama-media/heroku-buildpack-php &> /dev/null && error "Your '$COMPOSER' requires 'lama-media/heroku-buildpack-php'.
 This package may only be used as a dependency in 'require-dev'!"
 
 if cat "$COMPOSER" | python -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
@@ -272,7 +272,7 @@ mkdir -p "$build_dir/$hbpdir"
 cp -r "$bp_dir"/* "$build_dir/$hbpdir/"
 # make bin dir, just in case
 mkdir -p "$build_dir/$composer_bindir"
-# figure out shortest relative path from vendor/heroku/heroku-buildpack-php to vendor/bin (or whatever the bin dir is)
+# figure out shortest relative path from vendor/lama-media/heroku-buildpack-php to vendor/bin (or whatever the bin dir is)
 relbin=$(python -c "import os.path; print(os.path.relpath('$hbpdir', '$composer_bindir'))")
 # collect bin names from composer.json
 relbins=$(cat $bp_dir/composer.json | python -c 'from __future__ import print_function; import sys, json; { print(sys.argv[1]+"/"+bin) for bin in json.load(sys.stdin)["bin"] }' $relbin)

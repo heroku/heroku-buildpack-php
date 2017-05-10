@@ -53,7 +53,7 @@ Options:
                           Recommended approach when customizing Nginx's config
                           in most cases, unless you need to set http or
                           fundamental server level options.
-                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf.php]
+                          [default: \$COMPOSER_VENDOR_DIR/lama-media/heroku-buildpack-php/conf/nginx/default_include.conf.php]
   -c <nginx.conf>         The path to the full configuration file that is
                           included after Heroku's (or your local) Nginx config
                           is loaded. It must contain an 'http { ... }' block
@@ -61,13 +61,13 @@ Options:
                           and 'root' (see option -C above), but no global,
                           directives (globals are read from the system's default
                           Nginx configuration files).
-                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php]
+                          [default: \$COMPOSER_VENDOR_DIR/lama-media/heroku-buildpack-php/conf/nginx/heroku.conf.php]
   -h, --help              Display this help screen and exit.
   -I <php.extra.ini>      The path to an extra php.ini to use in addition to the
                           default HHVM php.ini (see option -i below).
   -i <php.ini>            The path to the php.ini file to use. It is highly
                           recommended to use the -I option (see above) instead.
-                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php]
+                          [default: \$COMPOSER_VENDOR_DIR/lama-media/heroku-buildpack-php/conf/hhvm/php.ini.php]
   -l <tailme.log>         Path to additional log file to tail to STDERR so its
                           contents appear in 'heroku logs'. If the file does not
                           exist, it will be created. Wildcards are allowed, but
@@ -218,7 +218,7 @@ if [[ "$#" == "1" ]]; then
 fi
 
 function prepare_hhvm_ini() { # we have to do this twice, as the WEB_CONCURRENCY setting is evaluated using PHP code, not ${...} syntax which HHVM does not support; if a value for $1 is passed then it won't echo messages upon second invocation
-if [[ ( -n ${php_config:-} && ! ${1:-} ) || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php"} && $verbose && ! ${1:-} ) ]]; then
+if [[ ( -n ${php_config:-} && ! ${1:-} ) || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/lama-media/heroku-buildpack-php/conf/hhvm/php.ini.php"} && $verbose && ! ${1:-} ) ]]; then
     echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 fi
 php_configs=( "-c" "$(php_passthrough "$php_config")" )
@@ -230,13 +230,13 @@ fi
 }
 prepare_hhvm_ini
 
-if [[ -n ${nginx_config_include:-} || ( ${nginx_config_include:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/default_include.conf.php"} && $verbose ) ]]; then
+if [[ -n ${nginx_config_include:-} || ( ${nginx_config_include:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/lama-media/heroku-buildpack-php/conf/nginx/default_include.conf.php"} && $verbose ) ]]; then
     echo "Using Nginx server-level configuration include '${nginx_config_include#$HEROKU_APP_DIR/}'" >&2
 fi
 nginx_config_include=$(php_passthrough "$nginx_config_include")
 export HEROKU_PHP_NGINX_CONFIG_INCLUDE="$nginx_config_include"
 
-if [[ -n ${nginx_config:-} || ( ${nginx_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/nginx/heroku.conf.php"} && $verbose) ]]; then
+if [[ -n ${nginx_config:-} || ( ${nginx_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/lama-media/heroku-buildpack-php/conf/nginx/heroku.conf.php"} && $verbose) ]]; then
     echo "Using Nginx configuration file '${nginx_config#$HEROKU_APP_DIR/}'" >&2
 fi
 nginx_config=$(php_passthrough "$nginx_config")
@@ -261,7 +261,7 @@ if [[ -z ${WEB_CONCURRENCY:-} || "${WEB_CONCURRENCY}" == 0* ]]; then
     fi
 
     # determine number of HHVM threads to run
-    read WEB_CONCURRENCY php_memory_limit <<<$(hhvm "${php_configs[@]}" $(composer config vendor-dir 2> /dev/null | tail -n 1)/heroku/heroku-buildpack-php/bin/util/autotune.php "$ram") # tail, as composer echos outdated version warnings to STDOUT
+    read WEB_CONCURRENCY php_memory_limit <<<$(hhvm "${php_configs[@]}" $(composer config vendor-dir 2> /dev/null | tail -n 1)/lama-media/heroku-buildpack-php/bin/util/autotune.php "$ram") # tail, as composer echos outdated version warnings to STDOUT
     [[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
     export WEB_CONCURRENCY
     
