@@ -87,6 +87,8 @@ http {
             access_log off;
         }
 		
-		
+		location / {
+            try_files $uri $uri/ /index.php?$args;
+        }
     }
 }
