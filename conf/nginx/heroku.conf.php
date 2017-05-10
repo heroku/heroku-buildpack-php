@@ -88,7 +88,7 @@ http {
         }
 		
         location / {
-            try_files /index.php?$args;
+            try_files $uri /index.php?$args;
         }
 		
 		location ~ \.php {
