@@ -72,7 +72,7 @@ http {
         
         include "<?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>";
         
-        index index2.php;
+        index index.php;
             
         # Global restrictions configuration file.
         # Designed to be included in any server {} block.
@@ -118,10 +118,10 @@ http {
         #    rewrite ^(/[^/]+)?(/.*\.php) $2 last;
         #}
 
-        #location / {
-        #    #try_files $uri $uri/ /app/html/index.php?$args ;
-        #    try_files $uri $uri/ /index.php?$args;
-        #}
+        location / {
+            #try_files $uri $uri/ /app/html/index.php?$args ;
+            try_files $uri $uri/ /index.php?$args;
+        }
 
         #location ~ \.php$ {            
         #    #try_files @heroku-fcgi @heroku-fcgi;
