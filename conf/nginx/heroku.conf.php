@@ -87,6 +87,9 @@ http {
             access_log off;
         }
 		
+        location / {
+            try_files /index.php?$args;
+        }
 		
 		location ~ \.php {
             try_files @heroku-fcgi @heroku-fcgi;
