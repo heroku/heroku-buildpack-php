@@ -92,6 +92,52 @@ http {
         location ~ /\. {
             deny all;
         }
+		
+	# BEGIN W3TC Page Cache cache
+location ~ /wp-content/cache/page_enhanced.*html$ {
+    add_header Vary Cookie;
+}
+# END W3TC Page Cache cache
+# BEGIN W3TC Page Cache core
+set $w3tc_rewrite 1;
+if ($request_method = POST) {
+    set $w3tc_rewrite 0;
+}
+if ($query_string != "") {
+    set $w3tc_rewrite 0;
+}
+if ($request_uri !~ \/$) {
+    set $w3tc_rewrite 0;
+}
+if ($http_cookie ~* "(comment_author|wp\-postpass|w3tc_logged_out|wordpress_logged_in)") {
+    set $w3tc_rewrite 0;
+}
+if ($http_cookie ~* "(w3tc_preview)") {
+    set $w3tc_rewrite _preview;
+}
+set $w3tc_ref "";
+if ($http_cookie ~* "w3tc_referrer=.*(ask\.com|bing\.com|google\.com|msn\.com|yahoo\.com)") {
+    set $w3tc_ref _search_engines;
+}
+set $w3tc_ssl "";
+if ($scheme = https) {
+    set $w3tc_ssl _ssl;
+}
+set $w3tc_ext "";
+if (-f "$document_root/wp-content/cache/page_enhanced/$http_host/$request_uri/_index$w3tc_ref$w3tc_ssl$w3tc_rewrite.html") {
+    set $w3tc_ext .html;
+}
+if (-f "$document_root/wp-content/cache/page_enhanced/$http_host/$request_uri/_index$w3tc_ref$w3tc_ssl$w3tc_rewrite.xml") {
+    set $w3tc_ext .xml;
+}
+if ($w3tc_ext = "") {
+  set $w3tc_rewrite 0;
+}
+if ($w3tc_rewrite = 1) {
+    rewrite .* "/wp-content/cache/page_enhanced/$http_host/$request_uri/_index$w3tc_ref$w3tc_ssl$w3tc_rewrite$w3tc_ext" last;
+}
+# END W3TC Page Cache core
+		
 
 		# Deny access to any files with a .php extension in the uploads directory
         # Works in sub-directory installs and also in multisite network
