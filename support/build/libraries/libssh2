@@ -1,0 +1,29 @@
+#!/bin/bash
+# Build Path: /app/.heroku/php/
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eux
+
+DEFAULT_VERSION="1.4.3"
+dep_version=${VERSION:-$DEFAULT_VERSION}
+dep_dirname=libssh2-${dep_version}
+dep_archive_name=${dep_dirname}.tar.gz
+dep_url=http://www.libssh2.org/download/${dep_archive_name}
+
+echo "-----> Building libssh2 ${dep_version}..."
+
+curl -L ${dep_url} | tar xz
+pushd ${dep_dirname}
+CPPFLAGS=-I${OUT_PREFIX}/include ./configure \
+    --prefix=${OUT_PREFIX} \
+    --with-openssl \
+    --with-libz
+make -s -j 9
+make install -s
+popd
+
+echo "-----> Done."
