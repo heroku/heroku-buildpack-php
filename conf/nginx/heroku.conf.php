@@ -74,10 +74,7 @@ http {
 
         index index.php;
 
-        <?=if(getenv('PASSWD')==1):?>
-          auth_basic "Restricted";
-          auth_basic_user_file /app/html/.htpasswd;
-        <?=endif;?>
+        <?=getenv('PASSWD')?:'auth_basic "Restricted";auth_basic_user_file /app/html/.htpasswd;'?>
 
 		# Global restrictions configuration file.
         # Designed to be included in any server {} block.
