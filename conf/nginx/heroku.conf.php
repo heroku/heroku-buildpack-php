@@ -186,6 +186,6 @@ http {
             try_files @heroku-fcgi @heroku-fcgi;
         }
 
-        <?=getenv('PASSWD')?'auth_basic "Restricted";auth_basic_user_file /app/html/.htpasswd':?>;
+        <?=getenv('PASSWD')?'auth_basic "Restricted";auth_basic_user_file /app/html/.htpasswd;':?>
     }
 }
