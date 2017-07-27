@@ -72,6 +72,8 @@ http {
 
         include "<?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>";
 
+        <?= getenv('PASSWD')?'auth_basic "Restricted";auth_basic_user_file /app/html/.htpasswd;':'# do nothing'?>
+
         index index.php;
 
 		# Global restrictions configuration file.
@@ -185,10 +187,5 @@ http {
 		location ~ \.php {
             try_files @heroku-fcgi @heroku-fcgi;
         }
-
-        <?= if ( getenv('PASSWD') ) {
-          echo 'auth_basic "Restricted"';
-          echo 'auth_basic_user_file /app/html/.htpasswd';
-        } ?>
     }
 }
