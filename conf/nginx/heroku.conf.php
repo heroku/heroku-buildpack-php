@@ -74,8 +74,6 @@ http {
 
         index index.php;
 
-        <?=getenv('PASSWD')?:'auth_basic "Restricted";auth_basic_user_file /app/html/.htpasswd;'?>
-
 		# Global restrictions configuration file.
         # Designed to be included in any server {} block.
         location = /favicon.ico {
@@ -187,5 +185,7 @@ http {
 		location ~ \.php {
             try_files @heroku-fcgi @heroku-fcgi;
         }
+
+        <?=getenv('PASSWD')?:'auth_basic "Restricted";auth_basic_user_file /app/html/.htpasswd'?>;
     }
 }
