@@ -1,6 +1,6 @@
 # heroku-buildpack-php CHANGELOG
 
-## v122 (2017-04-??)
+## v122 (2017-08-03)
 
 ### ADD
 
