@@ -19,6 +19,7 @@
 
 - Do not auto-enable ext-newrelic and ext-blackfire in Heroku CI runs [David Zuelke]
 - Composer/1.4.2 [David Zuelke]
+- Do not error if buildpack package is installed during Heroku CI runs [David Zuelke]
 
 ## v121 (2017-03-28)
 
