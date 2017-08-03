@@ -97,12 +97,12 @@ fi
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 
-curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.0.17.tar.gz" || error "Failed to download minimal PHP for bootstrapping.
+curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.0.22.tar.gz" || error "Failed to download minimal PHP for bootstrapping.
 Please try again, or contact support if this problem persists."
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
-curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.4.1.tar.gz" || error "Failed to download Composer. Please try again, or contact support if this problem persists."
+curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.4.2.tar.gz" || error "Failed to download Composer. Please try again, or contact support if this problem persists."
 tar xzf $build_dir/.heroku/composer.tar.gz -C $build_dir/.heroku/php
 rm $build_dir/.heroku/composer.tar.gz
 
@@ -252,8 +252,11 @@ unset COMPOSER_GITHUB_OAUTH_TOKEN
 export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV)$'
 cat "$COMPOSER" | python -c 'import sys,json; sys.exit(not json.load(sys.stdin));' && composer install ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --prefer-dist --optimize-autoloader --no-interaction 2>&1 | indent
 
-composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your '$COMPOSER' requires 'heroku/heroku-buildpack-php'.
+# only perform the check for buildpack package if we're not running in Heroku CI
+if [[ -z "${HEROKU_PHP_INSTALL_DEV+are-we-running-in-ci}" ]]; then
+	composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your '$COMPOSER' requires 'heroku/heroku-buildpack-php'.
 This package may only be used as a dependency in 'require-dev'!"
+fi
 
 if cat "$COMPOSER" | python -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
     status "Running 'composer compile'..."
@@ -286,16 +289,22 @@ if [[ ! -f "Procfile" ]]; then
     notice_inline "No Procfile, using 'web: heroku-$engine-apache2'."
 fi
 
+# write empty WEB_CONCURRENCY.sh to overwrite the defaults logic from a prior buildpack, e.g. Node (all buildpacks use the same filename to allow this)
+> $build_dir/.profile.d/WEB_CONCURRENCY.sh
+
 # reset COMPOSER for the platform install step
 COMPOSER_bak="$COMPOSER"
 export COMPOSER=composer.json
 
-status "Checking for additional extensions to install..."
-# special treatment for Blackfire; we enable it if we detect a server id and a server token for it
-install_blackfire_ext
-# special treatment for New Relic; we enable it if we detect a license key for it
-install_newrelic_ext
-install_newrelic_userini
+# unless we're running a CI build...
+if [[ "${HEROKU_PHP_INSTALL_DEV+CI}" != "CI" ]]; then
+    status "Checking for additional extensions to install..."
+    # special treatment for Blackfire; we enable it if we detect a server id and a server token for it
+    install_blackfire_ext
+    # special treatment for New Relic; we enable it if we detect a license key for it
+    install_newrelic_ext
+    install_newrelic_userini
+fi
 
 # done with platform installs; restore COMPOSER from previous value
 export COMPOSER="$COMPOSER_bak"

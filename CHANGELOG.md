@@ -1,12 +1,34 @@
 # heroku-buildpack-php CHANGELOG
 
-## v121 (2017-02-28)
+## v122 (2017-08-03)
+
+### ADD
+
+- ext-mongodb/1.2.9 [David Zuelke]
+- ext-amqp/1.9.1 [David Zuelke]
+- ext-blackfire/1.17.3 [David Zuelke]
+- ext-newrelic/7.4.0.198 [David Zuelke]
+- ext-phalcon/3.2.1 [David Zuelke]
+- ext-pq/2.1.2 [David Zuelke]
+- ext-redis/3.1.3 [David Zuelke]
+- ext-rdkafka/3.0.3 [David Zuelke]
+- PHP/7.0.22 [David Zuelke]
+- PHP/7.1.8 [David Zuelke]
+- PHP/5.6.31 [David Zuelke]
+
+### CHG
+
+- Do not auto-enable ext-newrelic and ext-blackfire in Heroku CI runs [David Zuelke]
+- Composer/1.4.2 [David Zuelke]
+- Do not error if buildpack package is installed during Heroku CI runs [David Zuelke]
+
+## v121 (2017-03-28)
 
 ### ADD
 
 - ext-blackfire/1.15.0 [David Zuelke]
 - PHP/7.0.17 [David Zuelke]
-- PHP/7.1.2 [David Zuelke]
+- PHP/7.1.3 [David Zuelke]
 - ext-cassandra/1.3.0 [David Zuelke]
 - ext-mongodb/1.2.8 [David Zuelke]
 - ext-amqp/1.9.0 (for heroku-16 only) [David Zuelke]
