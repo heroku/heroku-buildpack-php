@@ -9,8 +9,8 @@
 - ext-mongodb/1.2.9 [David Zuelke]
 - PHP/7.0.20 [David Zuelke]
 - PHP/7.1.6 [David Zuelke]
-- ext-blackfire/1.17.1 [David Zuelke]
 - ext-amqp/1.9.1 [David Zuelke]
+- ext-blackfire/1.17.3 [David Zuelke]
 
 ### CHG
 
