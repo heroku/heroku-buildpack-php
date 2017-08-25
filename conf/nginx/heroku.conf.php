@@ -15,6 +15,9 @@ http {
     keepalive_timeout  65;
 
     gzip  on;
+    gzip_disable "MSIE [1-6]\.(?!.*SV1)";
+    gzip_vary on;
+    gzip_types text/plain text/css text/javascript image/svg+xml image/x-icon application/javascript application/x-javascript;
 
     server_tokens off;
 
