@@ -17,7 +17,7 @@ http {
     gzip on;
      gzip_http_version 1.1;
      gzip_vary on;
-     gzip_comp_level 6;
+     gzip_comp_level 9;
      gzip_proxied any;
      gzip_types text/plain text/html text/css application/json application/javascript application/x-javascript text/javascript text/xml application/xml application/rss+xml application/atom+xml application/rdf+xml;
 
