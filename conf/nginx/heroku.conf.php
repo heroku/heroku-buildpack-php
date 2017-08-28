@@ -14,10 +14,12 @@ http {
     #keepalive_timeout  0;
     keepalive_timeout  65;
 
-    gzip  on;
-    gzip_disable "MSIE [1-6]\.(?!.*SV1)";
-    gzip_vary on;
-    gzip_types text/plain text/css text/javascript image/svg+xml image/x-icon application/javascript application/x-javascript;
+    gzip on;
+     gzip_http_version 1.1;
+     gzip_vary on;
+     gzip_comp_level 6;
+     gzip_proxied any;
+     gzip_types text/plain text/html text/css application/json application/javascript application/x-javascript text/javascript text/xml application/xml application/rss+xml application/atom+xml application/rdf+xml;
 
     server_tokens off;
 
