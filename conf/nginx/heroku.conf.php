@@ -20,7 +20,7 @@ http {
      gzip_comp_level 9;
      gzip_proxied any;
      gzip_min_length 256;
-     gzip_types text/plain text/html text/css application/json application/javascript application/x-javascript text/javascript text/xml application/xml application/rss+xml application/atom+xml application/rdf+xml;
+     gzip_types text/plain text/html text/css application/json application/javascript application/x-javascript text/javascript text/xml application/xml application/rss+xml application/atom+xml application/rdf+xml image/svg+xml;
 
     server_tokens off;
 
