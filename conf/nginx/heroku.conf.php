@@ -192,5 +192,11 @@ http {
 		location ~ \.php {
             try_files @heroku-fcgi @heroku-fcgi;
         }
+
+    location ~* \.(?:ico|css|js|gif|jpe?g|png|svg)$ {
+        expires 30d;
+        add_header Pragma public;
+        add_header Cache-Control "public";
+      }
     }
 }
