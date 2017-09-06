@@ -1,5 +1,15 @@
 # heroku-buildpack-php CHANGELOG
 
+## v123 (2017-09-??)
+
+### CHG
+
+- Support "heroku-sys-library" package type in platform installer [David Zuelke]
+- Add new argument for "provide" platform package manifest entry to `manifest.py` [David Zuelke]
+- Move libcassandra to its own package, installed as a dependency by platform installer [David Zuelke]
+- Move libmemcached to its own package, installed as a dependency by platform installer (if the platform doesn't already provide it) [David Zuelke]
+- Move librdkafka to its own package, installed as a dependency by platform installer [David Zuelke]
+
 ## v122 (2017-08-03)
 
 ### ADD

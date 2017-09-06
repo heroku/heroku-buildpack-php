@@ -13,7 +13,7 @@ OUT_PREFIX=$1
 dep_formula=${0#$WORKSPACE_DIR/}
 dep_name=$(basename $BASH_SOURCE)
 dep_version=${dep_formula##*"/${dep_name}-"}
-dep_package=pkg-${dep_name}-${dep_version}
+dep_package=${dep_name}-${dep_version}
 dep_dirname=${dep_name}-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 dep_url=https://launchpad.net/libmemcached/1.0/${dep_version}/+download/${dep_archive_name}
@@ -48,10 +48,20 @@ if [[ "$missing" ]]; then
     popd
 
     rm -rf ${OUT_PREFIX}/share/man
+
+    ABI_VERSION=$(soname_version ${OUT_PREFIX}/lib/libmemcached.so)
+    type="heroku-sys-library"
 else
     echo "-----> System ${dep_name} available, creating empty package..."
+    ABI_VERSION=$(soname_version /usr/lib/x86_64-linux-gnu/libmemcached.so)
+    # we don't want this dummy package to end up in the Composer repository
+    type="heroku-sys-package"
 fi
 
-python $(dirname $BASH_SOURCE)/../_util/include/manifest.py "heroku-sys-package" "heroku-sys/pkg-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" > $dep_manifest
+echo
+echo "ABI version is: ${ABI_VERSION}"
+echo
+
+python $(dirname $BASH_SOURCE)/../_util/include/manifest.py "$type" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "{}" "{}" "{}" "{\"heroku-sys/libmemcached-abi\":\"${ABI_VERSION}\"}" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

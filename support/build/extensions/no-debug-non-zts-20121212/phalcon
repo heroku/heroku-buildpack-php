@@ -55,9 +55,7 @@ popd
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/hhvm\":\"*\"}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{}"}"
-MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 
-python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_EXTRA" > $dep_manifest
+python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

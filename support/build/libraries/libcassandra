@@ -13,7 +13,7 @@ OUT_PREFIX=$1
 dep_formula=${0#$WORKSPACE_DIR/}
 dep_name=$(basename $BASH_SOURCE)
 dep_version=${dep_formula##*"/${dep_name}-"}
-dep_package=pkg-${dep_name}-${dep_version}
+dep_package=${dep_name}-${dep_version}
 dep_dirname=cpp-driver-${dep_version}
 dep_archive_name=${dep_version}.tar.gz
 dep_url=https://github.com/datastax/cpp-driver/archive/${dep_version}.tar.gz
@@ -38,6 +38,11 @@ rm ${OUT_PREFIX}/lib/libcassandra_static.a
 strip --strip-unneeded ${OUT_PREFIX}/lib/libcassandra*.so*
 popd
 
-python $(dirname $BASH_SOURCE)/../_util/include/manifest.py "heroku-sys-package" "heroku-sys/pkg-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" > $dep_manifest
+ABI_VERSION=$(soname_version ${OUT_PREFIX}/lib/libcassandra.so)
+echo
+echo "ABI version is: ${ABI_VERSION}"
+echo
+
+python $(dirname $BASH_SOURCE)/../_util/include/manifest.py "heroku-sys-library" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "{}" "{}" "{}" "{\"heroku-sys/libcassandra-abi\":\"${ABI_VERSION}\"}" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
