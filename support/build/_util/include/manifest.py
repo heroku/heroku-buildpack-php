@@ -19,7 +19,8 @@ manifest = {
     "require": require,
     "conflict": json.loads(sys.argv[6]) if len(sys.argv) > 6 else {},
     "replace": json.loads(sys.argv[7]) if len(sys.argv) > 7 else {},
-    "extra": json.loads(sys.argv[8]) if len(sys.argv) > 8 else {},
+    "provide": json.loads(sys.argv[8]) if len(sys.argv) > 8 else {},
+    "extra": json.loads(sys.argv[9]) if len(sys.argv) > 9 else {},
     "time": datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S")
 }
 

@@ -51,8 +51,9 @@ rm -rf ${OUT_PREFIX}/man ${OUT_PREFIX}/share/apache2/manual
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.apache2.sh\",\"profile\":\"bin/profile.apache2.sh\"}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
+MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.apache2.sh\",\"profile\":\"bin/profile.apache2.sh\"}"}"
 
 mkdir -p ${OUT_PREFIX}/etc/apache2
 cp $(dirname $BASH_SOURCE)/_conf/apache2/httpd.conf ${OUT_PREFIX}/etc/apache2/httpd.conf
@@ -67,6 +68,6 @@ cat > ${OUT_PREFIX}/bin/profile.apache2.sh <<'EOF'
 export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
 EOF
 
-python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_EXTRA" > $dep_manifest
+python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

@@ -5,6 +5,7 @@
 ### CHG
 
 - Support "heroku-sys-library" package type in platform installer [David Zuelke]
+- Add new argument for "provide" platform package manifest entry to `manifest.py` [David Zuelke]
 
 ## v122 (2017-08-03)
 
