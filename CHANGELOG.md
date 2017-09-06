@@ -9,6 +9,7 @@
 - ext-cassandra/1.3.2 [David Zuelke]
 - ext-rdkafka/3.0.4 [David Zuelke]
 - ext-phalcon/3.2.2 [David Zuelke]
+- PHP/7.1.9 [David Zuelke]
 
 ### CHG
 
