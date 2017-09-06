@@ -2,6 +2,10 @@
 
 ## v123 (2017-09-??)
 
+### ADD
+
+- ext-mongo/1.6.16 [David Zuelke]
+
 ### CHG
 
 - Support "heroku-sys-library" package type in platform installer [David Zuelke]
