@@ -19,6 +19,7 @@
 - Move librdkafka to its own package, installed as a dependency by platform installer [David Zuelke]
 - libcassandra/2.7.0 [David Zuelke]
 - librdkafka/0.11.0 [David Zuelke]
+- Composer/1.5.1 [David Zuelke]
 
 ## v122 (2017-08-03)
 
