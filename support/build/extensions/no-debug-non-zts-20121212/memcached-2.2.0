@@ -1,7 +1,5 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: extensions/no-debug-non-zts-20121212/memcached-bare-2.2.0, libraries/libmemcached-1.0.18
-
-# That's it - we're combining the dep build and the extension build here
+# Build Deps: php-5.5.38, libraries/libmemcached-1.0.18
 
 source $(dirname $0)/memcached
