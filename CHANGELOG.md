@@ -10,6 +10,7 @@
 - ext-rdkafka/3.0.4 [David Zuelke]
 - ext-phalcon/3.2.2 [David Zuelke]
 - PHP/7.1.9 [David Zuelke]
+- PHP/7.0.23 [David Zuelke]
 
 ### CHG
 
