@@ -7,6 +7,7 @@
 - ext-mongo/1.6.16 [David Zuelke]
 - ext-newrelic/7.5.0.199 [David Zuelke]
 - ext-cassandra/1.3.2 [David Zuelke]
+- ext-rdkafka/3.0.4 [David Zuelke]
 
 ### CHG
 
