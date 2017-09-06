@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-mongo/1.6.16 [David Zuelke]
+- ext-newrelic/7.5.0.199 [David Zuelke]
 
 ### CHG
 
