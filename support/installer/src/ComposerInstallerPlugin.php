@@ -57,7 +57,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 
 	public function onPostPackageInstall(PackageEvent $event)
 	{
-		if(!in_array($event->getOperation()->getPackage()->getType(), ['heroku-sys-php', 'heroku-sys-hhvm', 'heroku-sys-php-extension', 'heroku-sys-hhvm-extension', 'heroku-sys-webserver'])) return;
+		if(!in_array($event->getOperation()->getPackage()->getType(), ['heroku-sys-php', 'heroku-sys-hhvm', 'heroku-sys-php-extension', 'heroku-sys-hhvm-extension', 'heroku-sys-webserver', 'heroku-sys-library'])) return;
 		
 		$this->initAllPlatformRequirements($event->getOperations());
 		

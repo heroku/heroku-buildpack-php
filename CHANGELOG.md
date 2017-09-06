@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v123 (2017-09-??)
+
+### CHG
+
+- Support "heroku-sys-library" package type in platform installer [David Zuelke]
+
 ## v122 (2017-08-03)
 
 ### ADD
