@@ -19,7 +19,7 @@ dep_version=${dep_formula##*"/${dep_name}-"}
 series=$(php-config --version | cut -d. -f1,2) # get "5.5", "5.6", "7.0" etc for the php requirement in the manifest
 case "$dep_version" in
 	*)
-		MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\",\"heroku-sys/libcassandra\":\"^2.6.0\",\"heroku-sys/libcassandra-abi\":\"^2\"}"}"
+		MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\",\"heroku-sys/libcassandra\":\"^2.7.0\",\"heroku-sys/libcassandra-abi\":\"^2\"}"}"
 		;;
 esac
 
