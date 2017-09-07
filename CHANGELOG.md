@@ -11,6 +11,7 @@
 - ext-phalcon/3.2.2 [David Zuelke]
 - PHP/7.1.9 [David Zuelke]
 - PHP/7.0.23 [David Zuelke]
+- ext-mongodb/1.2.10 [David Zuelke]
 
 ### CHG
 
