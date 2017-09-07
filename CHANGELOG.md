@@ -1,5 +1,29 @@
 # heroku-buildpack-php CHANGELOG
 
+## v123 (2017-09-07)
+
+### ADD
+
+- ext-mongo/1.6.16 [David Zuelke]
+- ext-newrelic/7.5.0.199 [David Zuelke]
+- ext-cassandra/1.3.2 [David Zuelke]
+- ext-rdkafka/3.0.4 [David Zuelke]
+- ext-phalcon/3.2.2 [David Zuelke]
+- PHP/7.1.9 [David Zuelke]
+- PHP/7.0.23 [David Zuelke]
+- ext-mongodb/1.2.10 [David Zuelke]
+
+### CHG
+
+- Support "heroku-sys-library" package type in platform installer [David Zuelke]
+- Add new argument for "provide" platform package manifest entry to `manifest.py` [David Zuelke]
+- Move libcassandra to its own package, installed as a dependency by platform installer [David Zuelke]
+- Move libmemcached to its own package, installed as a dependency by platform installer (if the platform doesn't already provide it) [David Zuelke]
+- Move librdkafka to its own package, installed as a dependency by platform installer [David Zuelke]
+- libcassandra/2.7.0 [David Zuelke]
+- librdkafka/0.11.0 [David Zuelke]
+- Composer/1.5.1 [David Zuelke]
+
 ## v122 (2017-08-03)
 
 ### ADD

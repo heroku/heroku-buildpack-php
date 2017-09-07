@@ -175,8 +175,9 @@ extra=$(echo "${shared[@]}" | python -c 'import sys, json; json.dump({"shared": 
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/hhvm\":\"*\"}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"$extra"}"
 MANIFEST_REPLACE=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b|hhvm\b)' | tr -s " " | cut -d " " -f1,2 | sed -e "s/ $dep_version\$/ self.version/" -e 's/^/heroku-sys\//' | python -c 'import sys, json; json.dump(dict(item.split() for item in sys.stdin), sys.stdout)')
+MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"$extra"}"
 
 # remove temporary ini file that enables all extensions, and the composer download
 rm ${OUT_PREFIX}/etc/php/php.ini composer.phar
@@ -194,6 +195,6 @@ cat > ${OUT_PREFIX}/bin/profile.php.sh <<'EOF'
 export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
 EOF
 
-python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_EXTRA" > $dep_manifest
+python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
