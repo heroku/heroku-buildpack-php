@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v124 (2017-09-07)
+
+### FIX
+
+- Use Composer/1.5.1 [David Zuelke]
+
 ## v123 (2017-09-07)
 
 ### ADD
