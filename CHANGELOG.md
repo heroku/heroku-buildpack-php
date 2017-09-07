@@ -14,6 +14,7 @@
 - Move libcassandra to its own package, installed as a dependency by platform installer [David Zuelke]
 - Move libmemcached to its own package, installed as a dependency by platform installer (if the platform doesn't already provide it) [David Zuelke]
 - Move librdkafka to its own package, installed as a dependency by platform installer [David Zuelke]
+- libcassandra/2.7.0 [David Zuelke]
 
 ## v122 (2017-08-03)
 
