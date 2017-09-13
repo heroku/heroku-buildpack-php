@@ -56,10 +56,12 @@ if [[ "$missing" ]]; then
     apt-get install -q -y $missing
 fi
 
-# look for GMP libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
-sed -i 's/$GMP_DIR\/$PHP_LIBDIR/$GMP_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
-# symlink in gmp.h
-ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h
+if dpkg --compare-versions "$dep_version" "ge" 7.0.0 && dpkg --compare-versions "$dep_version" "lt" 7.0.16 || dpkg --compare-versions "$dep_version" "ge" 7.1.0 && dpkg --compare-versions "$dep_version" "lt" 7.1.2; then
+    # look for GMP libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
+    sed -i 's/$GMP_DIR\/$PHP_LIBDIR/$GMP_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
+    # symlink in gmp.h
+    ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h
+fi
 
 # look for LDAP and SASL libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
 sed -i 's/LDAP_LIBDIR=$i\/$PHP_LIBDIR/LDAP_LIBDIR=$i\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
