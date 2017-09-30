@@ -8,6 +8,7 @@
 - PHP/7.1.10 [David Zuelke]
 - ext-redis/3.1.4 [David Zuelke]
 - ext-mongodb/1.3.0 [David Zuelke]
+- ext-blackfire/1.18.0 [David Zuelke]
 
 ### CHG
 
