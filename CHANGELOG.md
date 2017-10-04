@@ -1,5 +1,19 @@
 # heroku-buildpack-php CHANGELOG
 
+## v125 (2017-10-04)
+
+### ADD
+
+- PHP/7.0.24 [David Zuelke]
+- PHP/7.1.10 [David Zuelke]
+- ext-redis/3.1.4 [David Zuelke]
+- ext-mongodb/1.3.0 [David Zuelke]
+- ext-blackfire/1.18.0 [David Zuelke]
+
+### CHG
+
+- Composer/1.5.2 [David Zuelke]
+
 ## v124 (2017-09-07)
 
 ### FIX
