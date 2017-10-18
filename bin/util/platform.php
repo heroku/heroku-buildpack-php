@@ -165,7 +165,8 @@ $json = [
 	"prefer-stable" => isset($lock["prefer-stable"]) ? $lock["prefer-stable"] : false,
 	"provide" => $provide,
 	"require" => $require,
-	"require-dev" => (object)$requireDev,
+	// only write out require-dev if we're installing in CI, as indicated by the HEROKU_PHP_INSTALL_DEV set (to an empty string)
+	"require-dev" => getenv("HEROKU_PHP_INSTALL_DEV") === false ? (object)[] : (object)$requireDev,
 	// put require before repositories, or a large number of metapackages from above will cause Composer's regexes to hit PCRE limits for backtracking or JIT stack size
 	"repositories" => $repositories,
 ];

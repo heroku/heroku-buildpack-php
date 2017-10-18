@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v126 (2017-10-??)
+
+### CHG
+
+- Ignore `require-dev` when building platform package dependency graph (#240) [David Zuelke]
+
 ## v125 (2017-10-04)
 
 ### ADD
