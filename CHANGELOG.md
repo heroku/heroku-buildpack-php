@@ -19,6 +19,10 @@
 - libcassandra/2.7.1 [David Zuelke]
 - librdkafka/0.11.1 [David Zuelke]
 
+### FIX
+
+- gmp.h lookup patching broken since v125 / d024b14 [David Zuelke]
+
 ## v125 (2017-10-04)
 
 ### ADD
