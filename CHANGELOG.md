@@ -9,6 +9,7 @@
 - PHP/7.1.11 [David Zuelke]
 - ext-newrelic/7.6.0.201 [David Zuelke]
 - ext-mongodb/1.3.1 [David Zuelke]
+- ext-amqp/1.9.3 [David Zuelke]
 
 ### CHG
 
