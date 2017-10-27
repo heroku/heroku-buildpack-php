@@ -2,6 +2,10 @@
 
 ## v126 (2017-10-??)
 
+### ADD
+
+- PHP/5.6.32 [David Zuelke]
+
 ### CHG
 
 - Ignore `require-dev` when building platform package dependency graph (#240) [David Zuelke]
