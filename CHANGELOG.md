@@ -8,6 +8,7 @@
 - PHP/7.0.25 [David Zuelke]
 - PHP/7.1.11 [David Zuelke]
 - ext-newrelic/7.6.0.201 [David Zuelke]
+- ext-mongodb/1.3.1 [David Zuelke]
 
 ### CHG
 
