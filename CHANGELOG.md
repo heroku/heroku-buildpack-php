@@ -11,6 +11,7 @@
 - ext-mongodb/1.3.1 [David Zuelke]
 - ext-amqp/1.9.3 [David Zuelke]
 - ext-phalcon/3.2.4 [David Zuelke]
+- Apache/2.4.29 [David Zuelke]
 
 ### CHG
 
