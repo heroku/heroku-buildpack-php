@@ -7,6 +7,7 @@
 - PHP/5.6.32 [David Zuelke]
 - PHP/7.0.25 [David Zuelke]
 - PHP/7.1.11 [David Zuelke]
+- ext-newrelic/7.6.0.201 [David Zuelke]
 
 ### CHG
 
