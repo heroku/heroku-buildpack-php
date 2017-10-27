@@ -17,6 +17,7 @@
 - Ignore `require-dev` when building platform package dependency graph (#240) [David Zuelke]
 - Rewrite `provide` sections with PHP extensions in package definitions to `replace` for known polyfill packages [David Zuelke]
 - libcassandra/2.7.1 [David Zuelke]
+- librdkafka/0.11.1 [David Zuelke]
 
 ## v125 (2017-10-04)
 
