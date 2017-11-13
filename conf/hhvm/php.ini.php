@@ -1,7 +1,7 @@
 ; php options
 date.timezone = UTC
 expose_php = off
- 
+
 ; hhvm specific 
 hhvm.log.level = Warning
 hhvm.log.always_log_unhandled_exceptions = true

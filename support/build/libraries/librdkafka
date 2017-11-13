@@ -22,8 +22,8 @@ dep_manifest=${dep_package}.composer.json
 needed=( libsasl2-dev )
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
-    apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
-    apt-get install -q -y $missing
+	apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
+	apt-get install -q -y $missing
 fi
 
 echo "-----> Building ${dep_package}..."
