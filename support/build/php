@@ -126,7 +126,6 @@ export PATH=${OUT_PREFIX}/bin:$PATH
     --enable-exif=shared \
     --enable-ftp=shared \
     --with-gd=shared \
-        --enable-gd-native-ttf \
         --with-freetype-dir=/usr \
         --with-jpeg-dir=/usr \
         --with-png-dir=/usr \
