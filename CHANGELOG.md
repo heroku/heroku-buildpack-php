@@ -6,6 +6,7 @@
 
 - ext-rdkafka/3.0.5 [David Zuelke]
 - ext-mongodb/1.3.3 [David Zuelke]
+- ext-memcached/3.0.4 [David Zuelke]
 
 ## v126 (2017-10-29)
 
