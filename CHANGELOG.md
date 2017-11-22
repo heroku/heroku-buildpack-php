@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v127 (2017-11-??)
+
+### ADD
+
+- ext-rdkafka/3.0.5 [David Zuelke]
+
 ## v126 (2017-10-29)
 
 ### ADD
