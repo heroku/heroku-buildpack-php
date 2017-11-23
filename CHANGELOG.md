@@ -10,6 +10,10 @@
 - PHP/7.0.26 [David Zuelke]
 - PHP/7.1.12 [David Zuelke]
 
+### FIX
+
+- Heroku\Buildpack\PHP\Downloader::download() is missing optional third argument [David Zuelke]
+
 ## v126 (2017-10-29)
 
 ### ADD
