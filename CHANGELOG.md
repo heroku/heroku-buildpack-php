@@ -9,6 +9,7 @@
 - ext-memcached/3.0.4 [David Zuelke]
 - PHP/7.0.26 [David Zuelke]
 - PHP/7.1.12 [David Zuelke]
+- PHP/7.2.0 [David Zuelke]
 
 ### FIX
 
