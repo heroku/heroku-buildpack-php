@@ -13,6 +13,7 @@
 ### FIX
 
 - Heroku\Buildpack\PHP\Downloader::download() is missing optional third argument [David Zuelke]
+- Files like `composer.js` or similar are inaccessible in web root (#247) [David Zuelke]
 
 ## v126 (2017-10-29)
 
