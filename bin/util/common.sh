@@ -1,32 +1,62 @@
 error() {
+	# if arguments are given, redirect them to stdin
+	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
+	(( $# )) && exec <<< "$@"
 	echo
-	echo " !     ERROR: $*" | indent no_first_line_indent
+	echo -n " !     ERROR: "
+	# this will be fed from stdin
+	indent no_first_line_indent
 	echo
 	exit 1
 }
 
 warning() {
+	# if arguments are given, redirect them to stdin
+	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
+	(( $# )) && exec <<< "$@"
 	echo
-	echo " !     WARNING: $*" | indent no_first_line_indent
+	echo -n " !     WARNING: "
+	# this will be fed from stdin
+	indent no_first_line_indent
 	echo
 }
 
 warning_inline() {
-	echo " !     WARNING: $*" | indent no_first_line_indent
+	# if arguments are given, redirect them to stdin
+	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
+	(( $# )) && exec <<< "$@"
+	echo -n " !     WARNING: "
+	# this will be fed from stdin
+	indent no_first_line_indent
 }
 
 status() {
-	echo "-----> $*"
+	# if arguments are given, redirect them to stdin
+	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
+	(( $# )) && exec <<< "$@"
+	echo -n "-----> "
+	# this will be fed from stdin
+	cat
 }
 
 notice() {
+	# if arguments are given, redirect them to stdin
+	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
+	(( $# )) && exec <<< "$@"
 	echo
-	echo "NOTICE: $*" | indent
+	echo -n "       NOTICE: "
+	# this will be fed from stdin
+	indent no_first_line_indent
 	echo
 }
 
 notice_inline() {
-	echo "NOTICE: $*" | indent
+	# if arguments are given, redirect them to stdin
+	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
+	(( $# )) && exec <<< "$@"
+	echo -n "       NOTICE: "
+	# this will be fed from stdin
+	indent no_first_line_indent
 }
 
 # sed -l basically makes sed replace and buffer through stdin to stdout

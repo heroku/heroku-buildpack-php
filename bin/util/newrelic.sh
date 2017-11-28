@@ -16,8 +16,10 @@ install_newrelic_ext() {
 install_newrelic_userini() {
 	if [[ "$engine" == "php" && -n "${NEW_RELIC_CONFIG_FILE:-}" ]]; then
 		if [[ ! -f "${NEW_RELIC_CONFIG_FILE}" ]]; then
-			error "Config var 'NEW_RELIC_CONFIG_FILE' points to non existing file
-'${NEW_RELIC_CONFIG_FILE}'"
+			error <<-EOF
+				Config var 'NEW_RELIC_CONFIG_FILE' points to non existing file
+				'${NEW_RELIC_CONFIG_FILE}'
+			EOF
 		fi
 		notice_inline "Using custom New Relic config '${NEW_RELIC_CONFIG_FILE}'"
 		( cd $build_dir/.heroku/php/etc/php/conf.d; ln -s "../../../../../${NEW_RELIC_CONFIG_FILE}" "ext-newrelic.user.ini" )
