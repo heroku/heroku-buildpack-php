@@ -11,6 +11,10 @@
 - PHP/7.1.12 [David Zuelke]
 - PHP/7.2.0 [David Zuelke]
 
+### CHG
+
+- libcassandra/2.8.0 [David Zuelke]
+
 ### FIX
 
 - Heroku\Buildpack\PHP\Downloader::download() is missing optional third argument [David Zuelke]

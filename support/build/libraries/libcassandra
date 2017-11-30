@@ -34,7 +34,6 @@ pushd ${dep_dirname}
 cmake -DCMAKE_CXX_FLAGS="-fPIC" -DCMAKE_INSTALL_PREFIX:PATH=${OUT_PREFIX} -DCMAKE_BUILD_TYPE=RELEASE -DCASS_USE_ZLIB=ON -DCMAKE_INSTALL_LIBDIR:PATH=lib .
 make -s -j9
 make install -s
-rm ${OUT_PREFIX}/lib/libcassandra_static.a
 strip --strip-unneeded ${OUT_PREFIX}/lib/libcassandra*.so*
 popd
 
