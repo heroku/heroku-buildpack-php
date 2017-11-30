@@ -1,5 +1,25 @@
 # heroku-buildpack-php CHANGELOG
 
+## v127 (2017-11-30)
+
+### ADD
+
+- ext-rdkafka/3.0.5 [David Zuelke]
+- ext-mongodb/1.3.3 [David Zuelke]
+- ext-memcached/3.0.4 [David Zuelke]
+- PHP/7.0.26 [David Zuelke]
+- PHP/7.1.12 [David Zuelke]
+- PHP/7.2.0 [David Zuelke]
+
+### CHG
+
+- libcassandra/2.8.0 [David Zuelke]
+
+### FIX
+
+- Heroku\Buildpack\PHP\Downloader::download() is missing optional third argument [David Zuelke]
+- Files like `composer.js` or similar are inaccessible in web root (#247) [David Zuelke]
+
 ## v126 (2017-10-29)
 
 ### ADD

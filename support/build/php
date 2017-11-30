@@ -25,6 +25,8 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
         dep_url=https://downloads.php.net/~ab/${dep_archive_name}
     elif [[ $dep_version == 7.1.* ]]; then
         dep_url=https://downloads.php.net/~krakjoe/${dep_archive_name}
+    elif [[ $dep_version == 7.2.* ]]; then
+        dep_url=https://downloads.php.net/~pollita/${dep_archive_name}
     fi
 else
     dep_url=https://php.net/get/${dep_archive_name}/from/this/mirror
@@ -90,9 +92,13 @@ fi
 configureopts=
 if [[ $dep_version == 7.* ]]; then
     configureopts="\
---with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix} \
 --enable-opcache-file\
 "
+    if [[ $dep_version == 7.0.* || $dep_version == 7.1.* ]]; then
+        configureopts="\
+--with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix} \
+"
+    fi
 else
     configureopts="\
 --with-mcrypt${mcrypt_prefix:+"="}${mcrypt_prefix} \
@@ -126,7 +132,6 @@ export PATH=${OUT_PREFIX}/bin:$PATH
     --enable-exif=shared \
     --enable-ftp=shared \
     --with-gd=shared \
-        --enable-gd-native-ttf \
         --with-freetype-dir=/usr \
         --with-jpeg-dir=/usr \
         --with-png-dir=/usr \

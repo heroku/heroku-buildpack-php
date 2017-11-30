@@ -86,7 +86,7 @@ echo "" >&2
 
 # this mkrepo.sh call won't actually download, but use the given *.composer.json, and echo a generated packages.json
 # we use this to compare to the downloaded packages.json
-$here/mkrepo.sh $src_bucket $src_prefix ${src_tmp}/*.composer.json 2>/dev/null | python -c 'import sys, json; sys.exit(abs(cmp(json.load(open(sys.argv[1])), json.load(sys.stdin))))' ${src_tmp}/packages.json || {
+$here/mkrepo.sh $src_bucket $src_prefix ${src_tmp}/*.composer.json 2>/dev/null | python -c 'import sys, json; sys.exit(json.load(open(sys.argv[1])) != json.load(sys.stdin))' ${src_tmp}/packages.json || {
 	echo "WARNING: packages.json from source does not match its list of manifests!" >&2
 	echo " You should run 'mkrepo.sh' to update, or ask the bucket maintainers to do so." >&2
 	read -p "Would you like to abort this operation? [Yn] " proceed
@@ -123,12 +123,12 @@ for filename in $common; do
 		# same for times, but we'll look at them
 		try:
 		    src_time = datetime.datetime.strptime(src_manifest.pop("time"), "%Y-%m-%d %H:%M:%S") # UTC
-		except KeyError, ValueError:
+		except (KeyError, ValueError):
 		    src_time = datetime.datetime.utcfromtimestamp(os.path.getmtime(sys.argv[1]))
 		    stderrprint("WARNING: source manifest {} has invalid time entry, using mtime: {}".format(os.path.basename(sys.argv[1]), src_time.isoformat()))
 		try:
 		    dst_time = datetime.datetime.strptime(dst_manifest.pop("time"), "%Y-%m-%d %H:%M:%S") # UTC
-		except KeyError, ValueError:
+		except (KeyError, ValueError):
 		    dst_time = datetime.datetime.utcfromtimestamp(os.path.getmtime(sys.argv[2]))
 		    stderrprint("WARNING: destination manifest {} has invalid time entry, using mtime: {}".format(os.path.basename(sys.argv[2]), dst_time.isoformat()))
 		# a newer source time means we will copy
@@ -140,7 +140,7 @@ for filename in $common; do
 		    # 5 = content identical, src_time < dst_time (probably needs sync the other way)
 		    # 7 = content different, src_time < dst_time (probably needs sync the other way)
 		    ret = 1
-		    ret = ret | abs(cmp(src_manifest, dst_manifest))<<1
+		    ret = ret | (src_manifest != dst_manifest)<<1
 		    ret = ret | (src_time < dst_time)<<2
 		    sys.exit(ret)
 		PYTHON
