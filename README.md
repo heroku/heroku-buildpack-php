@@ -1,4 +1,4 @@
-# Heroku buildpack: PHP [![Build Status](https://travis-ci.org/heroku/heroku-buildpack-php.svg?branch=master)](https://travis-ci.org/heroku/heroku-buildpack-php)
+# Heroku buildpack: PHP [![Build Status](https://travis-ci.org/lama-media/heroku-buildpack-php.svg?branch=master)](https://travis-ci.org/lama-media/heroku-buildpack-php)
 
 ![php](https://cloud.githubusercontent.com/assets/51578/8882982/73ea501a-3219-11e5-8f87-311e6b8a86fc.jpg)
 
@@ -21,7 +21,7 @@ If you also have files from other frameworks or languages that could trigger ano
 
 This will use the officially published version. To use the `master` branch from GitHub instead:
 
-    $ heroku buildpacks:set https://github.com/heroku/heroku-buildpack-php
+    $ heroku buildpacks:set https://github.com/lama-media/heroku-buildpack-php
 
 Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for further usage instructions.
 
