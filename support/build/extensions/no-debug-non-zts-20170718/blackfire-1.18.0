@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php/
-# Build Deps: php-5.6.33
 
-source $(dirname $0)/amqp
+source $(dirname $0)/blackfire
