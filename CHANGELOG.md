@@ -13,6 +13,7 @@
 ### CHG
 
 - Composer/1.6.0 [David Zuelke]
+- librdkafka/0.11.3 [David Zuelke]
 
 ## v127 (2017-11-30)
 
