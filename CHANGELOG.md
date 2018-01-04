@@ -9,6 +9,10 @@
 - PHP/7.1.13 [David Zuelke]
 - PHP/7.2.1 [David Zuelke]
 
+### CHG
+
+- Composer/1.6.0 [David Zuelke]
+
 ## v127 (2017-11-30)
 
 ### ADD
