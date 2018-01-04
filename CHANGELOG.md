@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/5.6.33 [David Zuelke]
+- PHP/7.0.27 [David Zuelke]
 
 ## v127 (2017-11-30)
 
