@@ -12,6 +12,7 @@
 - ext-apcu/5.1.9 [David Zuelke]
 - ext-mongodb/1.3.4 [David Zuelke]
 - ext-phalcon/3.3.0 [David Zuelke]
+- ext-redis/3.1.6 [David Zuelke]
 
 ### CHG
 
