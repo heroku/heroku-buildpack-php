@@ -2,6 +2,10 @@
 
 ## v129 (2018-01-10)
 
+### ADD
+
+- ext-phalcon/3.3.1 [David Zuelke]
+
 ### CHG
 
 - Composer/1.6.2 [David Zuelke]
