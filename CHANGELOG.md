@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v129 (2018-01-10)
+
+### CHG
+
+- Composer/1.6.2 [David Zuelke]
+
 ## v128 (2018-01-04)
 
 ### ADD
