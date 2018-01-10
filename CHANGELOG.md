@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-phalcon/3.3.1 [David Zuelke]
+- ext-pq/2.1.3 [David Zuelke]
 
 ### CHG
 
