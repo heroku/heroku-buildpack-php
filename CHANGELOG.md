@@ -1,5 +1,16 @@
 # heroku-buildpack-php CHANGELOG
 
+## v129 (2018-01-10)
+
+### ADD
+
+- ext-phalcon/3.3.1 [David Zuelke]
+- ext-pq/2.1.3 [David Zuelke]
+
+### CHG
+
+- Composer/1.6.2 [David Zuelke]
+
 ## v128 (2018-01-04)
 
 ### ADD
