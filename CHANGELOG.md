@@ -5,6 +5,11 @@
 ### ADD
 
 - PHP/7.1.14 [David Zuelke]
+- PHP/7.2.2 [David Zuelke]
+
+### CHG
+
+- Enable ext-sodium for PHP 7.2 on stack heroku-16 [David Zuelke]
 
 ## v130 (2018-01-11)
 
