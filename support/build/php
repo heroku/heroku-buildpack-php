@@ -45,6 +45,9 @@ if [[ $STACK == "cedar-14" ]]; then
 fi
 # we need libgmp for GMP, libpam0g for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP
 needed=( libgmp10 libpam0g $libicu libsasl2-2 libkrb5-3 libldap-2.4-2 )
+if [[ $STACK != "cedar-14" ]]; then
+    needed+=( libsodium18 )
+fi
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
     echo "Error! Missing libraries: $missing"
@@ -52,6 +55,9 @@ if [[ "$missing" ]]; then
 fi
 # we need libgmp-dev for GMP, libpam0g-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP
 needed=( libgmp-dev libpam0g-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev )
+if [[ $STACK != "cedar-14" ]]; then
+    needed+=( libsodium-dev )
+fi
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
     apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
@@ -65,9 +71,11 @@ if dpkg --compare-versions "$dep_version" "lt" 7.0.16 || dpkg --compare-versions
     ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h
 fi
 
-# look for LDAP and SASL libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
-sed -i 's/LDAP_LIBDIR=$i\/$PHP_LIBDIR/LDAP_LIBDIR=$i\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
-sed -i 's/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
+if dpkg --compare-versions "$dep_version" "lt" 7.1.15 || dpkg --compare-versions "$dep_version" "eq" 7.2.0 || dpkg --compare-versions "$dep_version" "eq" 7.2.1 || dpkg --compare-versions "$dep_version" "eq" 7.2.2; then
+    # look for LDAP and SASL libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
+    sed -i 's/LDAP_LIBDIR=$i\/$PHP_LIBDIR/LDAP_LIBDIR=$i\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
+    sed -i 's/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
+fi
 
 # let's see if mcrypt is there, if not then we have to use the vendored one
 needed=( libmcrypt4 )
@@ -97,6 +105,10 @@ if [[ $dep_version == 7.* ]]; then
     if [[ $dep_version == 7.0.* || $dep_version == 7.1.* ]]; then
         configureopts="\
 --with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix} \
+"
+    elif [[ $STACK != "cedar-14" ]]; then
+        configureopts="\
+--with-sodium=shared \
 "
     fi
 else

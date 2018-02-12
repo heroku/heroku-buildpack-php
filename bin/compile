@@ -102,7 +102,7 @@ Please try again, or contact support if this problem persists."
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
-curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.6.2.tar.gz" || error "Failed to download Composer. Please try again, or contact support if this problem persists."
+curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.6.3.tar.gz" || error "Failed to download Composer. Please try again, or contact support if this problem persists."
 tar xzf $build_dir/.heroku/composer.tar.gz -C $build_dir/.heroku/php
 rm $build_dir/.heroku/composer.tar.gz
 

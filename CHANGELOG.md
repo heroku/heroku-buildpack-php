@@ -1,5 +1,20 @@
 # heroku-buildpack-php CHANGELOG
 
+## v131 (2018-02-12)
+
+### ADD
+
+- PHP/7.1.14 [David Zuelke]
+- PHP/7.2.2 [David Zuelke]
+- ext-blackfire/1.18.2 [David Zuelke]
+- ext-mongodb/1.4.0 [David Zuelke]
+
+### CHG
+
+- Enable ext-sodium for PHP 7.2 on stack heroku-16 [David Zuelke]
+- Composer/1.6.3 [David Zuelke]
+- Use Linux abstract socket for New Relic daemon communications [David Zuelke]
+
 ## v130 (2018-01-11)
 
 ### ADD

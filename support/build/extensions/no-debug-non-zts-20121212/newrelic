@@ -71,7 +71,7 @@ if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
         tail -qF -n 0 /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log 1>&2 &
 
         # daemon start
-        /app/.heroku/php/bin/newrelic-daemon --foreground --logfile "/tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log" --loglevel "${NEW_RELIC_LOG_LEVEL}" --pidfile "/tmp/newrelic-daemon.pid" &
+        /app/.heroku/php/bin/newrelic-daemon --foreground --port "@newrelic-daemon" --logfile "/tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log" --loglevel "${NEW_RELIC_LOG_LEVEL}" --pidfile "/tmp/newrelic-daemon.pid" &
 
         # give it a moment to connect
         sleep 2
@@ -84,7 +84,8 @@ mkdir -p ${OUT_PREFIX}/etc/php/conf.d
 cat > ${OUT_PREFIX}/etc/php/conf.d/newrelic.ini-dist <<'EOF'
 extension = newrelic.so
 
-newrelic.daemon.location = /app/.heroku/php/bin/newrelic-daemon
+newrelic.daemon.location = /app/.heroku/php/bin/newrelic-
+newrelic.daemon.port = @newrelic-daemon
 
 newrelic.loglevel = ${NEW_RELIC_LOG_LEVEL}
 newrelic.daemon.loglevel = ${NEW_RELIC_LOG_LEVEL}
