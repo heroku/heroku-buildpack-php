@@ -7,6 +7,7 @@
 - PHP/7.1.14 [David Zuelke]
 - PHP/7.2.2 [David Zuelke]
 - ext-blackfire/1.18.2 [David Zuelke]
+- ext-mongodb/1.4.0 [David Zuelke]
 
 ### CHG
 
