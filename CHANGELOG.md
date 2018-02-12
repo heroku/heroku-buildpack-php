@@ -13,6 +13,7 @@
 
 - Enable ext-sodium for PHP 7.2 on stack heroku-16 [David Zuelke]
 - Composer/1.6.3 [David Zuelke]
+- Use Linux abstract socket for New Relic daemon communications [David Zuelke]
 
 ## v130 (2018-01-11)
 
