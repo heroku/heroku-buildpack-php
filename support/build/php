@@ -71,9 +71,11 @@ if dpkg --compare-versions "$dep_version" "lt" 7.0.16 || dpkg --compare-versions
     ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h
 fi
 
-# look for LDAP and SASL libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
-sed -i 's/LDAP_LIBDIR=$i\/$PHP_LIBDIR/LDAP_LIBDIR=$i\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
-sed -i 's/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
+if dpkg --compare-versions "$dep_version" "lt" 7.1.15 || dpkg --compare-versions "$dep_version" "eq" 7.2.0 || dpkg --compare-versions "$dep_version" "eq" 7.2.1 || dpkg --compare-versions "$dep_version" "eq" 7.2.2; then
+    # look for LDAP and SASL libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
+    sed -i 's/LDAP_LIBDIR=$i\/$PHP_LIBDIR/LDAP_LIBDIR=$i\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
+    sed -i 's/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
+fi
 
 # let's see if mcrypt is there, if not then we have to use the vendored one
 needed=( libmcrypt4 )
