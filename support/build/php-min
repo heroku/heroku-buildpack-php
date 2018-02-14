@@ -47,6 +47,7 @@ export PATH=${OUT_PREFIX}/bin:$PATH
     --disable-session \
     --disable-simplexml \
     --without-sqlite3 \
+    --with-sodium \
     --enable-sockets \
     --disable-xml \
     --disable-xmlreader \
