@@ -46,7 +46,7 @@ fi
 # we need libgmp for GMP, libpam0g for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP
 needed=( libgmp10 libpam0g $libicu libsasl2-2 libkrb5-3 libldap-2.4-2 )
 if [[ $STACK != "cedar-14" ]]; then
-    needed+=( libsodium18 )
+    needed+=( libsodium23 )
 fi
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
@@ -99,15 +99,15 @@ fi
 
 configureopts=
 if [[ $dep_version == 7.* ]]; then
-    configureopts="\
+    configureopts+="\
 --enable-opcache-file\
 "
     if [[ $dep_version == 7.0.* || $dep_version == 7.1.* ]]; then
-        configureopts="\
+        configureopts+="\
 --with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix} \
 "
     elif [[ $STACK != "cedar-14" ]]; then
-        configureopts="\
+        configureopts+="\
 --with-sodium=shared \
 "
     fi
