@@ -83,8 +83,16 @@ s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
 # prepend the default repo to the list configured by the user
 # list of repositories to use is in ascening order of precedence
 export_env_dir "$env_dir" '^HEROKU_PHP_PLATFORM_REPOSITORIES$'
+export_env_dir "$env_dir" '^BUILDPACK_VENDOR_URL$'
 HEROKU_PHP_PLATFORM_REPOSITORIES="${s3_url} ${HEROKU_PHP_PLATFORM_REPOSITORIES:-}"
-if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
+BUILDPACK_VENDOR_URL="${s3_url} ${BUILDPACK_VENDOR_URL:-}"
+elif [[ "${BUILDPACK_VENDOR_URL}" == *" - "* ]]; then
+	# a single "-" in the user supplied string removes everything to the left of it; can be used to delete the default repo
+	notice_inline "Default platform repository disabled."
+	BUILDPACK_VENDOR_URL=${BUILDPACK_VENDOR_URL#*" - "}
+	s3_url=$(echo "$BUILDPACK_VENDOR_URL" | cut -f1 -d" " | sed 's/[^/]*$//')
+	notice_inline "Bootstrapping using ${s3_url}..."
+elif [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
 	# a single "-" in the user supplied string removes everything to the left of it; can be used to delete the default repo
 	notice_inline "Default platform repository disabled."
 	HEROKU_PHP_PLATFORM_REPOSITORIES=${HEROKU_PHP_PLATFORM_REPOSITORIES#*" - "}
