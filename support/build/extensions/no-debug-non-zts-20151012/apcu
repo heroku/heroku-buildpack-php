@@ -35,7 +35,7 @@ make install -s
 popd
 
 dep2_name=apcu_bc
-dep2_version=1.0.3
+dep2_version=1.0.4
 dep2_dirname=${dep2_name}-${dep2_version}
 dep2_archive_name=${dep2_dirname}.tgz
 dep2_url=https://pecl.php.net/get/${dep2_archive_name}

@@ -9,6 +9,8 @@
 - PHP/7.1.15 [David Zuelke]
 - PHP/7.2.3 [David Zuelke]
 - ext-mongodb/1.4.1 [David Zuelke]
+- ext-apcu/5.1.10 [David Zuelke]
+- ext-apcu_bc/1.0.4 [David Zuelke]
 
 ## v131 (2018-02-12)
 
