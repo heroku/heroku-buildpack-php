@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v132 (2018-03-02)
+
+### ADD
+
+- PHP/5.6.34 [David Zuelke]
+
 ## v131 (2018-02-12)
 
 ### ADD
