@@ -12,6 +12,10 @@
 - ext-apcu/5.1.10 [David Zuelke]
 - ext-apcu_bc/1.0.4 [David Zuelke]
 
+### CHG
+
+- libcassandra/2.8.1 [David Zuelke]
+
 ## v131 (2018-02-12)
 
 ### ADD
