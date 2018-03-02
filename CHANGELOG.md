@@ -1,5 +1,21 @@
 # heroku-buildpack-php CHANGELOG
 
+## v132 (2018-03-02)
+
+### ADD
+
+- PHP/5.6.34 [David Zuelke]
+- PHP/7.0.28 [David Zuelke]
+- PHP/7.1.15 [David Zuelke]
+- PHP/7.2.3 [David Zuelke]
+- ext-mongodb/1.4.1 [David Zuelke]
+- ext-apcu/5.1.10 [David Zuelke]
+- ext-apcu_bc/1.0.4 [David Zuelke]
+
+### CHG
+
+- libcassandra/2.8.1 [David Zuelke]
+
 ## v131 (2018-02-12)
 
 ### ADD
