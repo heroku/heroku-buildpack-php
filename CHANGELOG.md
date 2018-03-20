@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v140 (2018-07-25)
+
+### CHG
+
+- Improved build error messages [David Zuelke]
+
 ## v139 (2018-07-20)
 
 ### ADD

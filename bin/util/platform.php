@@ -155,7 +155,6 @@ if(!$have_runtime_req) {
 		// there is no requirement for a PHP or HHVM version in "require", nor in any dependencies therein, but there is one in "require-dev"
 		// that's problematic, because requirements in there may effectively result in a rule like "7.0.*", but we'd next write "^5.5.17" into our "require" to have a sane default, and that'd blow up in CI where dev dependenies are installed
 		// we can't compute a resulting version rule (that's the whole point of the custom installer that uses Composer's solver), so throwing an error is the best thing we can do here
-		file_put_contents("php://stderr", "ERROR: neither your $COMPOSER 'require' section nor any\ndependency therein requires a runtime version, but 'require-dev'\nor a dependency therein does. Heroku cannot automatically select\na default runtime version in this case.\nPlease add a version requirement for 'php' to section 'require'\nin $COMPOSER, 'composer update', commit, and deploy again.");
 		exit(3);
 	}
 	file_put_contents("php://stderr", "NOTICE: No runtime required in $COMPOSER_LOCK; using PHP ". ($require["heroku-sys/php"] = getenv("HEROKU_PHP_DEFAULT_RUNTIME_VERSION") ?? "^7.0.0") . "\n");
