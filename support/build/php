@@ -17,19 +17,19 @@ dep_package=${dep_name}-${dep_version}
 dep_dirname=php-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_version == *RC* ]]; then
-    if [[ $dep_version == 5.5.* ]]; then
-        dep_url=https://downloads.php.net/~jpauli/${dep_archive_name}
-    elif [[ $dep_version == 5.6.* ]]; then
-        dep_url=https://downloads.php.net/~tyrael/${dep_archive_name}
-    elif [[ $dep_version == 7.0.* ]]; then
-        dep_url=https://downloads.php.net/~ab/${dep_archive_name}
-    elif [[ $dep_version == 7.1.* ]]; then
-        dep_url=https://downloads.php.net/~krakjoe/${dep_archive_name}
-    elif [[ $dep_version == 7.2.* ]]; then
-        dep_url=https://downloads.php.net/~pollita/${dep_archive_name}
-    fi
+	if [[ $dep_version == 5.5.* ]]; then
+		dep_url=https://downloads.php.net/~jpauli/${dep_archive_name}
+	elif [[ $dep_version == 5.6.* ]]; then
+		dep_url=https://downloads.php.net/~tyrael/${dep_archive_name}
+	elif [[ $dep_version == 7.0.* ]]; then
+		dep_url=https://downloads.php.net/~ab/${dep_archive_name}
+	elif [[ $dep_version == 7.1.* ]]; then
+		dep_url=https://downloads.php.net/~krakjoe/${dep_archive_name}
+	elif [[ $dep_version == 7.2.* ]]; then
+		dep_url=https://downloads.php.net/~pollita/${dep_archive_name}
+	fi
 else
-    dep_url=https://php.net/get/${dep_archive_name}/from/this/mirror
+	dep_url=https://php.net/get/${dep_archive_name}/from/this/mirror
 fi
 dep_manifest=${dep_package}.composer.json
 
@@ -41,78 +41,78 @@ pushd ${dep_dirname}
 
 libicu="libicu55"
 if [[ $STACK == "cedar-14" ]]; then
-    libicu="libicu52"
+	libicu="libicu52"
 fi
 # we need libgmp for GMP, libpam0g for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP
 needed=( libgmp10 libpam0g $libicu libsasl2-2 libkrb5-3 libldap-2.4-2 )
 if [[ $STACK != "cedar-14" ]]; then
-    needed+=( libsodium18 )
+	needed+=( libsodium18 )
 fi
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
-    echo "Error! Missing libraries: $missing"
-    exit 1
+	echo "Error! Missing libraries: $missing"
+	exit 1
 fi
 # we need libgmp-dev for GMP, libpam0g-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP
 needed=( libgmp-dev libpam0g-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev )
 if [[ $STACK != "cedar-14" ]]; then
-    needed+=( libsodium-dev )
+	needed+=( libsodium-dev )
 fi
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
-    apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
-    apt-get install -q -y $missing
+	apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
+	apt-get install -q -y $missing
 fi
 
 if dpkg --compare-versions "$dep_version" "lt" 7.0.16 || dpkg --compare-versions "$dep_version" "eq" 7.1.0 || dpkg --compare-versions "$dep_version" "eq" 7.1.1; then
-    # look for GMP libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
-    sed -i 's/$GMP_DIR\/$PHP_LIBDIR/$GMP_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
-    # symlink in gmp.h
-    ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h
+	# look for GMP libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
+	sed -i 's/$GMP_DIR\/$PHP_LIBDIR/$GMP_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
+	# symlink in gmp.h
+	ln -s /usr/include/x86_64-linux-gnu/gmp.h /usr/include/gmp.h
 fi
 
 if dpkg --compare-versions "$dep_version" "lt" 7.1.15 || dpkg --compare-versions "$dep_version" "eq" 7.2.0 || dpkg --compare-versions "$dep_version" "eq" 7.2.1 || dpkg --compare-versions "$dep_version" "eq" 7.2.2; then
-    # look for LDAP and SASL libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
-    sed -i 's/LDAP_LIBDIR=$i\/$PHP_LIBDIR/LDAP_LIBDIR=$i\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
-    sed -i 's/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
+	# look for LDAP and SASL libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
+	sed -i 's/LDAP_LIBDIR=$i\/$PHP_LIBDIR/LDAP_LIBDIR=$i\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
+	sed -i 's/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
 fi
 
 # let's see if mcrypt is there, if not then we have to use the vendored one
 needed=( libmcrypt4 )
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
-    echo "Using vendored libmcrypt..."
-    # use vendored libmcrypt
-    mcrypt_prefix="${OUT_PREFIX}"
+	echo "Using vendored libmcrypt..."
+	# use vendored libmcrypt
+	mcrypt_prefix="${OUT_PREFIX}"
 else
-    echo "Using system libmcrypt..."
-    # use system libmcrypt
-    mcrypt_prefix=
-    # but do we need headers?
-    needed=( libmcrypt-dev )
-    missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
-    if [[ "$missing" ]]; then
-        apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
-        apt-get install -q -y $missing
-    fi
+	echo "Using system libmcrypt..."
+	# use system libmcrypt
+	mcrypt_prefix=
+	# but do we need headers?
+	needed=( libmcrypt-dev )
+	missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
+	if [[ "$missing" ]]; then
+		apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
+		apt-get install -q -y $missing
+	fi
 fi
 
 configureopts=
 if [[ $dep_version == 7.* ]]; then
-    configureopts="\
+	configureopts="\
 --enable-opcache-file\
 "
-    if [[ $dep_version == 7.0.* || $dep_version == 7.1.* ]]; then
-        configureopts="\
+	if [[ $dep_version == 7.0.* || $dep_version == 7.1.* ]]; then
+		configureopts="\
 --with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix} \
 "
-    elif [[ $STACK != "cedar-14" ]]; then
-        configureopts="\
+	elif [[ $STACK != "cedar-14" ]]; then
+		configureopts="\
 --with-sodium=shared \
 "
-    fi
+	fi
 else
-    configureopts="\
+	configureopts="\
 --with-mcrypt${mcrypt_prefix:+"="}${mcrypt_prefix} \
 --with-mysql=shared \
 "
@@ -122,47 +122,47 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 # cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
 # sqlite3 and pdo_sqlite are on by default but we're building them shared on purpose
 ./configure \
-    --prefix=${OUT_PREFIX} \
-    --with-config-file-path=/app/.heroku/php/etc/php \
-    --with-config-file-scan-dir=/app/.heroku/php/etc/php/conf.d \
-    --disable-phpdbg \
-    --enable-fpm \
-    --with-bz2 \
-    --with-curl \
-    --with-pdo-mysql \
-    --with-mysqli \
-    --with-openssl \
-        --with-kerberos \
-    --with-pgsql \
-    --with-pdo-pgsql \
-    --with-readline \
-    --enable-sockets \
-    --enable-zip \
-    --with-zlib \
-    --enable-bcmath=shared \
-    --enable-calendar=shared \
-    --enable-exif=shared \
-    --enable-ftp=shared \
-    --with-gd=shared \
-        --with-freetype-dir=/usr \
-        --with-jpeg-dir=/usr \
-        --with-png-dir=/usr \
-    --with-gettext=shared \
-    --with-gmp=shared \
-    --with-imap=shared,${OUT_PREFIX}/opt/imap-2007f \
-        --with-imap-ssl \
-    --enable-intl=shared \
-    --with-ldap=shared \
-        --with-ldap-sasl \
-    --enable-mbstring=shared \
-    --enable-pcntl=shared \
-    --enable-shmop=shared \
-    --enable-soap=shared \
-    --with-sqlite3=shared \
-    --with-pdo-sqlite=shared \
-    --with-xmlrpc=shared \
-    --with-xsl=shared \
-    $configureopts
+	--prefix=${OUT_PREFIX} \
+	--with-config-file-path=/app/.heroku/php/etc/php \
+	--with-config-file-scan-dir=/app/.heroku/php/etc/php/conf.d \
+	--disable-phpdbg \
+	--enable-fpm \
+	--with-bz2 \
+	--with-curl \
+	--with-pdo-mysql \
+	--with-mysqli \
+	--with-openssl \
+		--with-kerberos \
+	--with-pgsql \
+	--with-pdo-pgsql \
+	--with-readline \
+	--enable-sockets \
+	--enable-zip \
+	--with-zlib \
+	--enable-bcmath=shared \
+	--enable-calendar=shared \
+	--enable-exif=shared \
+	--enable-ftp=shared \
+	--with-gd=shared \
+		--with-freetype-dir=/usr \
+		--with-jpeg-dir=/usr \
+		--with-png-dir=/usr \
+	--with-gettext=shared \
+	--with-gmp=shared \
+	--with-imap=shared,${OUT_PREFIX}/opt/imap-2007f \
+		--with-imap-ssl \
+	--enable-intl=shared \
+	--with-ldap=shared \
+		--with-ldap-sasl \
+	--enable-mbstring=shared \
+	--enable-pcntl=shared \
+	--enable-shmop=shared \
+	--enable-soap=shared \
+	--with-sqlite3=shared \
+	--with-pdo-sqlite=shared \
+	--with-xmlrpc=shared \
+	--with-xsl=shared \
+	$configureopts
 make -s -j 9
 make install -s
 rm -rf ${OUT_PREFIX}/opt/imap-2007f # c-client.a got linked statically
@@ -180,14 +180,14 @@ curl -sS https://getcomposer.org/installer | php
 mkdir -p ${OUT_PREFIX}/etc/php/conf.d
 shared=()
 for f in ${OUT_PREFIX}/lib/php/extensions/*/*.so; do
-    if [[ $(basename $f) == "opcache.so" ]]; then
-        # opcache needs to be loaded using zend_extension
-        echo -n "zend_" >> ${OUT_PREFIX}/etc/php/php.ini
-    else
-        # do not record opcache.so as shared; always on via php.ini
-        shared+=("heroku-sys/ext-$(basename $f .so)")
-    fi
-    echo "extension=$(basename $f)" >> ${OUT_PREFIX}/etc/php/php.ini
+	if [[ $(basename $f) == "opcache.so" ]]; then
+		# opcache needs to be loaded using zend_extension
+		echo -n "zend_" >> ${OUT_PREFIX}/etc/php/php.ini
+	else
+		# do not record opcache.so as shared; always on via php.ini
+		shared+=("heroku-sys/ext-$(basename $f .so)")
+	fi
+	echo "extension=$(basename $f)" >> ${OUT_PREFIX}/etc/php/php.ini
 done
 
 extra=$(echo "${shared[@]}" | python -c 'import sys, json; json.dump({"shared": dict([item.split(":") if ":" in item else (item, True) for item in sys.stdin.read().split()]), "export": "bin/export.php.sh", "profile": "bin/profile.php.sh"}, sys.stdout)')

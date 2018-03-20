@@ -33,19 +33,19 @@ curl -L ${aprutil_url} | tar xz --strip-components=1 -C ${dep_dirname}/srclib/ap
 
 pushd ${dep_dirname}
 ./configure \
-    --enable-layout=GNU \
-    --prefix=${OUT_PREFIX} \
-    --disable-static \
-    --with-included-apr \
-    --with-pcre \
-    --with-z \
-    --with-ssl \
-    --with-mpm=event \
-    --enable-mods-shared=all \
-    --enable-proxy \
-    --enable-proxy-fcgi \
-    --enable-rewrite \
-    --enable-deflate
+	--enable-layout=GNU \
+	--prefix=${OUT_PREFIX} \
+	--disable-static \
+	--with-included-apr \
+	--with-pcre \
+	--with-z \
+	--with-ssl \
+	--with-mpm=event \
+	--enable-mods-shared=all \
+	--enable-proxy \
+	--enable-proxy-fcgi \
+	--enable-rewrite \
+	--enable-deflate
 make -s -j 9
 make install -s
 find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded

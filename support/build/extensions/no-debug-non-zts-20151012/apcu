@@ -28,8 +28,8 @@ curl -L ${dep_url} | tar xz
 pushd ${dep_dirname}
 phpize
 ./configure \
-    --prefix=${OUT_PREFIX} \
-    ${CONFIGURE_EXTRA:-}
+	--prefix=${OUT_PREFIX} \
+	${CONFIGURE_EXTRA:-}
 make -s -j 9
 make install -s
 popd
@@ -47,7 +47,7 @@ curl -L ${dep2_url} | tar xz
 pushd ${dep2_dirname}
 phpize
 ./configure \
-    --prefix=${OUT_PREFIX}
+	--prefix=${OUT_PREFIX}
 make -s -j 9
 # php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
 rm -rf ${OUT_PREFIX}/*
