@@ -9,6 +9,7 @@ install_blackfire_ext() {
 		if $engine -n $(which composer) require --update-no-dev -d "$build_dir/.heroku/php" -- "heroku-sys/ext-blackfire:*" >> $build_dir/.heroku/php/install.log 2>&1; then
 			echo "- Blackfire detected, installed ext-blackfire" | indent
 		else
+			mcount "warnings.addons.blackfire.extension_missing"
 			warning_inline "Blackfire detected, but no suitable extension available"
 		fi
 	fi
