@@ -237,6 +237,9 @@ elif composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/hh
 	engine_r="hhvm --php -r"
 fi
 
+# log number of installed platform packages
+mmeasure "platform.count" $(composer show -d "$build_dir/.heroku/php" --installed "heroku-sys/*" 2> /dev/null | wc -l)
+
 # done with platform installs; restore COMPOSER from previous value
 export COMPOSER="$COMPOSER_bak"
 unset COMPOSER_bak
@@ -262,6 +265,9 @@ composer() {
 	$engine $(which composer) "$@"
 }
 export -f composer
+
+# log runtime version
+mcount "platform.packages.php.$($engine_r "echo ${engine^^}_VERSION;")"
 
 status "Installing dependencies..."
 
@@ -359,6 +365,9 @@ if [[ -z "${HEROKU_PHP_INSTALL_DEV+are-we-running-in-ci}" ]]; then
 		EOF
 	}
 fi
+
+# log number of installed dependencies
+mmeasure "dependencies.count" $(composer show --installed 2> /dev/null | wc -l)
 
 if cat "$COMPOSER" | python -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
 	status "Running 'composer compile'..."
