@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v134 (2018-03-29)
+
+### ADD
+
+- Apache/2.3.44 [David Zuelke]
+
 ## v133 (2018-03-21)
 
 ### CHG
