@@ -5,6 +5,7 @@
 ### ADD
 
 - Apache/2.3.44 [David Zuelke]
+- ext-newrelic/8.0.0.204 [David Zuelke]
 
 ## v133 (2018-03-21)
 
