@@ -8,6 +8,7 @@
 - ext-newrelic/8.0.0.204 [David Zuelke]
 - ext-apcu/5.1.11 [David Zuelke]
 - ext-mongodb/1.4.2 [David Zuelke]
+- PHP/7.0.29 [David Zuelke]
 
 ## v133 (2018-03-21)
 
