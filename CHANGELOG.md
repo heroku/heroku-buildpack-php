@@ -4,7 +4,7 @@
 
 ### ADD
 
-- Apache/2.3.44 [David Zuelke]
+- Apache/2.4.33 [David Zuelke]
 - ext-newrelic/8.0.0.204 [David Zuelke]
 - ext-apcu/5.1.11 [David Zuelke]
 - ext-mongodb/1.4.2 [David Zuelke]
