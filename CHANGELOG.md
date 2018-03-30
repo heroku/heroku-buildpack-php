@@ -14,6 +14,10 @@
 - ext-phalcon/3.3.2 [David Zuelke]
 - PHP/5.6.35 [David Zuelke]
 
+### CHG
+
+- librdkafka/0.11.4 [David Zuelke]
+
 ## v133 (2018-03-21)
 
 ### CHG
