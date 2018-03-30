@@ -12,6 +12,7 @@
 - PHP/7.1.16 [David Zuelke]
 - PHP/7.2.4 [David Zuelke]
 - ext-phalcon/3.3.2 [David Zuelke]
+- PHP/5.6.35 [David Zuelke]
 
 ## v133 (2018-03-21)
 
