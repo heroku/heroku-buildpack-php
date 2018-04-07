@@ -16,14 +16,16 @@ Out of the box, you'll likely want to change `S3_BUCKET` and `S3_PREFIX` to matc
 
 From the root of the Git repository (not from `support/build/_docker/`):
 
-    docker run --tty --interactive --env-file=support/build/_docker/env.default heroku-php-build-cedar-14 /bin/bash
+    docker run --rm --tty --interactive --env-file=support/build/_docker/env.default heroku-php-build-cedar-14 /bin/bash
 
 That runs with values from `env.default`; if you need to pass e.g. `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` because they are not already in your environment, do either:
 
-    AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... docker run --tty --interactive --env-file=support/build/_docker/env.default heroku-php-build-cedar-14 /bin/bash
+    AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... docker run --rm --tty --interactive --env-file=support/build/_docker/env.default heroku-php-build-cedar-14 /bin/bash
 
 or
 
-    docker run --tty --interactive --env-file=support/build/_docker/env.default -e AWS_ACCESS_KEY_ID=... -e AWS_SECRET_ACCESS_KEY=... heroku-php-build-cedar-14 /bin/bash
+    docker run --rm --tty --interactive --env-file=support/build/_docker/env.default -e AWS_ACCESS_KEY_ID=... -e AWS_SECRET_ACCESS_KEY=... heroku-php-build-cedar-14 /bin/bash
 
-You then have a shell where you can run `bob build`, `support/build/_util/deploy.sh` and so forth.
+You then have a shell where you can run `bob build`, `deploy.sh` and so forth.
+
+The `support/build/_util/` directory is on `$PATH` in the image.

@@ -180,7 +180,7 @@ Alternatively, `deploy.sh` can be called with `--publish` as the first argument,
 
 It is often desirable to have a bucket with two repositories under different prefixes, e.g. `dist-cedar-14-develop/` and `dist-cedar-14-stable/`, with the latter usually used by apps for deploys. The "develop" bucket prefix would be set via `S3_PREFIX` on the Heroku package builder app or Docker container, so all builds would always end up there.
 
-After testing builds, the contents of that "develop" repository can then be synced to "stable" using `support/build/_util/mkrepo.sh`:
+After testing builds, the contents of that "develop" repository can then be synced to "stable" using `support/build/_util/sync.sh`:
 
     $ support/build/_util/sync.sh my-bucket dist-cedar-14-stable/ my-bucket dist-cedar-14-develop/
 

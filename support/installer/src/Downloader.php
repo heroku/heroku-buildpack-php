@@ -36,7 +36,7 @@ class Downloader extends ArchiveDownloader
 
 	// ArchiveDownloader unpacks to a temp dir, then replaces the destination
 	// we can't do that, since we need our contents to be merged into the probably existing folder structure
-	public function download(PackageInterface $package, $path)
+	public function download(PackageInterface $package, $path, $output = true)
 	{
 		$temporaryDir = $this->config->get('vendor-dir').'/composer/'.substr(md5(uniqid('', true)), 0, 8);
 		$this->filesystem->ensureDirectoryExists($temporaryDir);

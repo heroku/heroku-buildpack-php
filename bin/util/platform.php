@@ -36,6 +36,15 @@ function mkmetas($package, array &$metapaks, &$have_runtime_req = false) {
 	$ppro = array_filter(isset($package["provide"]) ? $package["provide"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
 	$pcon = array_filter(isset($package["conflict"]) ? $package["conflict"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
 	if(!$preq && !$prep && !$ppro && !$pcon) return false;
+	// for known "polyfill" packages, rewrite any extensions they declare as "provide"d to "replace"
+	// using "provide" will otherwise cause the solver to get stuck on that package from the repository, if it exists, even if it conflicts with other rules (e.g. PHP versions) and could fall back onto that polyfill packge
+	// example: alcaeus/mongo-php-adapter provides "ext-mongo", but installing it together with a PHP 7 requirement will fail, as ext-mongo is only available for PHP 5, and the solver never uses "alcaeus/mongo-php-adapter" as the solution for "ext-mongo" unless it specifies "ext-mongo" in "replace", which it shouldn't, as it's a polyfill (that will quietly let the real extension take over if it's present, e.g. on PHP 5 environments), and not a replacement for the extension
+	// we do not want to do this for all packages that so declare their "provide"s, because many polyfills are just an incomplete or slower fallback (e.g. Symfony mbstring with only UTF-8 support, or intl which is slower than native C ICU bindings), and it's rare that extensions are only available for certain versions of a runtime
+	// see https://github.com/composer/composer/issues/6753
+	if(in_array($package["name"], ["alcaeus/mongo-php-adapter"])) {
+		$prep = $prep + array_filter($ppro, function($k) { return strpos($k, "ext-") === 0; }, ARRAY_FILTER_USE_KEY);
+		$ppro = array_diff_key($ppro, $prep);
+	}
 	$have_runtime_req |= hasreq($preq);
 	$metapaks[] = [
 		"type" => "metapackage",
@@ -165,7 +174,8 @@ $json = [
 	"prefer-stable" => isset($lock["prefer-stable"]) ? $lock["prefer-stable"] : false,
 	"provide" => $provide,
 	"require" => $require,
-	"require-dev" => (object)$requireDev,
+	// only write out require-dev if we're installing in CI, as indicated by the HEROKU_PHP_INSTALL_DEV set (to an empty string)
+	"require-dev" => getenv("HEROKU_PHP_INSTALL_DEV") === false ? (object)[] : (object)$requireDev,
 	// put require before repositories, or a large number of metapackages from above will cause Composer's regexes to hit PCRE limits for backtracking or JIT stack size
 	"repositories" => $repositories,
 ];

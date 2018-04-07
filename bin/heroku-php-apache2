@@ -12,85 +12,86 @@ shopt -s nullglob
 verbose=
 
 php_passthrough() {
-    local dir=$(dirname "$1")
-    local file=$(basename "$1")
-    local out=$(basename "$file" .php)
-    if [[ "$out" != "$file" ]]; then
-        [[ $verbose ]] && echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
-        out="$dir/$out"
-        php -n "$1" > "$out"
-        echo "$out"
-    else
-        echo "$1"
-    fi
+	local dir=$(dirname "$1")
+	local file=$(basename "$1")
+	local out=$(basename "$file" .php)
+	if [[ "$out" != "$file" ]]; then
+		[[ $verbose ]] && echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
+		out="$dir/$out"
+		php -n "$1" > "$out"
+		echo "$out"
+	else
+		echo "$1"
+	fi
 }
 
 check_exists() {
-    if [[ ! -f "$HEROKU_APP_DIR/$1" ]]; then
-        echo "Cannot read -$2 '$1' (relative to '$HEROKU_APP_DIR')" >&2
-        exit 1
-    else
-        echo "$HEROKU_APP_DIR/$1"
-    fi
+	if [[ ! -f "$HEROKU_APP_DIR/$1" ]]; then
+		echo "Cannot read -$2 '$1' (relative to '$HEROKU_APP_DIR')" >&2
+		exit 1
+	else
+		echo "$HEROKU_APP_DIR/$1"
+	fi
 }
 
 touch_log() {
-    mkdir -p $(dirname "$1") && touch "$1"
+	mkdir -p $(dirname "$1") && touch "$1"
 }
 
 print_help() {
-echo "\
-${1:-Boots PHP-FPM together with Apache2 on Heroku and for local development.}
-
-Usage:
-  heroku-php-apache2 [options] [<DOCUMENT_ROOT>]
-
-Options:
-  -C <httpd.inc.conf>     The path to the configuration file to include inside
-                          the Apache2 VHost config (see option -c below). Will
-                          be included inside the '<VirtualHost>' section just
-                          after the '<Directory>' & 'ProxyPassMatch' directives.
-                          Recommended approach when customizing Apache2's config
-                          in most cases, unless you need to set fundamental
-                          server level options.
-                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/default_include.conf]
-  -c <httpd.conf>         The path to the full VHost configuration file that is
-                          included after Heroku's (or your local) Apache2 config
-                          is loaded. Must contain a 'Listen \${PORT}' directive
-                          and should have a '<VirtualHost>' and likely also a
-                          '<Directory>' section (see option -C above).
-                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/heroku.conf]
-  -F <php-fpm.inc.conf>   The path to the configuration file to include at the
-                          end of php-fpm.conf (see option -f below), in the
-                          '[www]' pool section. Recommended approach when
-                          customizing PHP-FPM's configuration in most cases,
-                          unless you need to set global options.
-  -f <php-fpm.conf>       The path to the full PHP-FPM configuration file.
-                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/php/php-fpm.conf]
-  -h, --help              Display this help screen and exit.
-  -i <php.ini>            The path to the php.ini file to use.
-                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/php/php.ini]
-  -l <tailme.log>         Path to additional log file to tail to STDERR so its
-                          contents appear in 'heroku logs'. If the file does not
-                          exist, it will be created. Wildcards are allowed, but
-                          must be quoted and must match already existing files.
-                          Note: this option can be repeated multiple times.
-  -p <PORT>               Port to listen on for HTTP traffic. If this argument
-                          is not given, then the port number to use is read from
-                          the \$PORT environment variable, or a random port is
-                          chosen if that variable does not exist.
-  -v, --verbose           Be more verbose during startup.
-
-All file paths must be relative to '$HEROKU_APP_DIR'.
-
-Any file name that ends in '.php' will be run through the PHP interpreter first.
-You may use this for templating although this is less useful than e.g. for Nginx
-where unlike in Apache2, you cannot reference environment variables in config
-files using a '\${VARNAME}' syntax.
-
-If you would like to use the -C and -c or -F and -f options together, make sure
-you retain the appropriate include mechanisms (see default configs for details).
-" >&2
+	cat >&2 <<-EOF
+		
+		${1:-Boots PHP-FPM together with Apache2 on Heroku and for local development.}
+		
+		Usage:
+		  heroku-php-apache2 [options] [<DOCUMENT_ROOT>]
+		
+		Options:
+		  -C <httpd.inc.conf>     The path to the configuration file to include inside
+		                          the Apache2 VHost config (see option -c below). Will
+		                          be included inside the '<VirtualHost>' section just
+		                          after the '<Directory>' & 'ProxyPassMatch' directives.
+		                          Recommended approach when customizing Apache2's config
+		                          in most cases, unless you need to set fundamental
+		                          server level options.
+		                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/default_include.conf]
+		  -c <httpd.conf>         The path to the full VHost configuration file that is
+		                          included after Heroku's (or your local) Apache2 config
+		                          is loaded. Must contain a 'Listen \${PORT}' directive
+		                          and should have a '<VirtualHost>' and likely also a
+		                          '<Directory>' section (see option -C above).
+		                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/heroku.conf]
+		  -F <php-fpm.inc.conf>   The path to the configuration file to include at the
+		                          end of php-fpm.conf (see option -f below), in the
+		                          '[www]' pool section. Recommended approach when
+		                          customizing PHP-FPM's configuration in most cases,
+		                          unless you need to set global options.
+		  -f <php-fpm.conf>       The path to the full PHP-FPM configuration file.
+		                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/php/php-fpm.conf]
+		  -h, --help              Display this help screen and exit.
+		  -i <php.ini>            The path to the php.ini file to use.
+		                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/php/php.ini]
+		  -l <tailme.log>         Path to additional log file to tail to STDERR so its
+		                          contents appear in 'heroku logs'. If the file does not
+		                          exist, it will be created. Wildcards are allowed, but
+		                          must be quoted and must match already existing files.
+		                          Note: this option can be repeated multiple times.
+		  -p <PORT>               Port to listen on for HTTP traffic. If this argument
+		                          is not given, then the port number to use is read from
+		                          the \$PORT environment variable, or a random port is
+		                          chosen if that variable does not exist.
+		  -v, --verbose           Be more verbose during startup.
+		
+		All file paths must be relative to '$HEROKU_APP_DIR'.
+		
+		Any file name that ends in '.php' will be run through the PHP interpreter first.
+		You may use this for templating although this is less useful than e.g. for Nginx
+		where unlike in Apache2, you cannot reference environment variables in config
+		files using a '\${VARNAME}' syntax.
+		
+		If you would like to use the -C and -c or -F and -f options together, make sure
+		you retain the appropriate include mechanisms (see default configs for details).
+	EOF
 }
 
 # we need this in configs
@@ -106,86 +107,89 @@ optstring=":-:C:c:F:f:i:l:p:vh"
 
 # process flags first
 while getopts "$optstring" opt; do
-    case $opt in
-        -)
-            case "$OPTARG" in
-                verbose)
-                    verbose=1
-                    ;;
-                help)
-                    print_help 2>&1
-                    exit
-                    ;;
-                *)
-                    echo "Invalid option: --$OPTARG" >&2
-                    exit 2
-                    ;;
-            esac
-            ;;
-        v)
-            verbose=1
-            ;;
-        h)
-            print_help 2>&1
-            exit
-            ;;
-    esac
+	case $opt in
+		-)
+			case "$OPTARG" in
+				verbose)
+					verbose=1
+					;;
+				help)
+					print_help 2>&1
+					exit
+					;;
+				*)
+					echo "Invalid option: --$OPTARG" >&2
+					exit 2
+					;;
+			esac
+			;;
+		v)
+			verbose=1
+			;;
+		h)
+			print_help 2>&1
+			exit
+			;;
+	esac
 done
 
 OPTIND=1 # start over with options parsing
 while getopts "$optstring" opt; do
-    case $opt in
-        C)
-            httpd_config_include=$(check_exists "$OPTARG" "C")
-            ;;
-        c)
-            httpd_config=$(check_exists "$OPTARG" "c")
-            ;;
-        F)
-            fpm_config_include=$(check_exists "$OPTARG" "F")
-            ;;
-        f)
-            fpm_config=$(check_exists "$OPTARG" "f")
-            ;;
-        i)
-            php_config=$(check_exists "$OPTARG" "i")
-            ;;
-        l)
-            logarg=( $OPTARG ) # must not quote this or wildcards won't get expanded into individual values
-            if [[ ${#logarg[@]} -eq 0 ]]; then # we set nullglob to detect if a pattern matched nothing (then the array is empty)
-                echo "Pattern '$OPTARG' passed to option -l matched no files" >&2
-                exit 1
-            fi
-            for logfile in "${logarg[@]}"; do
-                if [[ -d "$logfile" ]]; then
-                    echo "-l '$logfile': is a directory" >&2
-                    exit 1
-                fi
-                touch_log "$logfile" || { echo "Could not touch '$logfile'; permissions problem?" >&2; exit 1; }
-                [[ $verbose ]] && echo "Tailing '$logfile' to stderr" >&2
-                logs+=("$logfile") # must quote here in case a wildcard matched a file with a space in the name
-            done
-            ;;
-        p)
-            PORT="$OPTARG"
-            ;;
-        \?)
-            echo "Invalid option: -$OPTARG" >&2
-            exit 2
-            ;;
-        :)
-            echo "Option -$OPTARG requires an argument" >&2
-            exit 2
-            ;;
-    esac
+	case $opt in
+		C)
+			httpd_config_include=$(check_exists "$OPTARG" "C")
+			;;
+		c)
+			httpd_config=$(check_exists "$OPTARG" "c")
+			;;
+		F)
+			fpm_config_include=$(check_exists "$OPTARG" "F")
+			;;
+		f)
+			fpm_config=$(check_exists "$OPTARG" "f")
+			;;
+		i)
+			php_config=$(check_exists "$OPTARG" "i")
+			;;
+		l)
+			logarg=( $OPTARG ) # must not quote this or wildcards won't get expanded into individual values
+			if [[ ${#logarg[@]} -eq 0 ]]; then # we set nullglob to detect if a pattern matched nothing (then the array is empty)
+				echo "Pattern '$OPTARG' passed to option -l matched no files" >&2
+				exit 1
+			fi
+			for logfile in "${logarg[@]}"; do
+				if [[ -d "$logfile" ]]; then
+					echo "-l '$logfile': is a directory" >&2
+					exit 1
+				fi
+				touch_log "$logfile" || { echo "Could not touch '$logfile'; permissions problem?" >&2; exit 1; }
+				[[ $verbose ]] && echo "Tailing '$logfile' to stderr" >&2
+				logs+=("$logfile") # must quote here in case a wildcard matched a file with a space in the name
+			done
+			;;
+		p)
+			PORT="$OPTARG"
+			;;
+		\?)
+			echo "Invalid option: -$OPTARG" >&2
+			exit 2
+			;;
+		:)
+			echo "Option -$OPTARG requires an argument" >&2
+			exit 2
+			;;
+	esac
 done
 # clear processed arguments
 shift $((OPTIND-1))
 
 if [[ "$#" -gt "1" ]]; then
-    print_help "$0: too many arguments. If you're using options,
-make sure to list them before any document root argument you're providing."
-    exit 2
+	print_help "$(cat <<-EOF
+		$(basename $0): too many arguments. If you're using options,
+		make sure to list them before any document root argument you're providing.
+	EOF
+	)"
+	exit 2
 fi
 
 # our standard logs
@@ -198,88 +202,88 @@ php -n -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "T
 
 # make sure we run a local composer.phar if present, or global composer if not
 composer() {
-    local composer_bin=$(which ./composer.phar composer | head -n1)
-    # check if we the composer binary is executable by PHP
-    if file --brief --dereference $composer_bin | grep -e "shell" -e "bash" > /dev/null ; then # newer versions of file return "data" for .phar
-        # run it directly; it's probably a bash script or similar (homebrew-php does this)
-        $composer_bin "$@"
-    else
-        php -n $composer_bin "$@"
-    fi
+	local composer_bin=$(which ./composer.phar composer | head -n1)
+	# check if we the composer binary is executable by PHP
+	if file --brief --dereference $composer_bin | grep -e "shell" -e "bash" > /dev/null ; then # newer versions of file return "data" for .phar
+		# run it directly; it's probably a bash script or similar (homebrew-php does this)
+		$composer_bin "$@"
+	else
+		php -n $composer_bin "$@"
+	fi
 }
 COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer bin-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 
 if [[ "$#" == "1" ]]; then
-    DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
-    if [[ ! -d "$DOCUMENT_ROOT" ]]; then
-        echo "DOCUMENT_ROOT '$1' does not exist" >&2
-        exit 1
-    else
-        # strip trailing slashes if present
-        DOCUMENT_ROOT=${DOCUMENT_ROOT%%*(/)} # powered by extglob
-        if [[ $verbose ]]; then
-            echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
-        else
-            echo "DOCUMENT_ROOT changed to '${1%%*(/)}/'" >&2
-        fi
-    fi
+	DOCUMENT_ROOT="$HEROKU_APP_DIR/$1"
+	if [[ ! -d "$DOCUMENT_ROOT" ]]; then
+		echo "DOCUMENT_ROOT '$1' does not exist" >&2
+		exit 1
+	else
+		# strip trailing slashes if present
+		DOCUMENT_ROOT=${DOCUMENT_ROOT%%*(/)} # powered by extglob
+		if [[ $verbose ]]; then
+			echo "DOCUMENT_ROOT changed to '$DOCUMENT_ROOT'" >&2
+		else
+			echo "DOCUMENT_ROOT changed to '${1%%*(/)}/'" >&2
+		fi
+	fi
 fi
 
 if [[ -n ${fpm_config_include:-} ]]; then
-    echo "Using PHP-FPM configuration include '${fpm_config_include#$HEROKU_APP_DIR/}'" >&2
-    fpm_config_include=$(php_passthrough "$fpm_config_include")
-    export HEROKU_PHP_FPM_CONFIG_INCLUDE="$fpm_config_include"
+	echo "Using PHP-FPM configuration include '${fpm_config_include#$HEROKU_APP_DIR/}'" >&2
+	fpm_config_include=$(php_passthrough "$fpm_config_include")
+	export HEROKU_PHP_FPM_CONFIG_INCLUDE="$fpm_config_include"
 fi
 
 if [[ -n ${fpm_config:-} || ( ${fpm_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/php/php-fpm.conf"} && $verbose ) ]]; then
-    echo "Using PHP-FPM configuration file '${fpm_config#$HEROKU_APP_DIR/}'" >&2
+	echo "Using PHP-FPM configuration file '${fpm_config#$HEROKU_APP_DIR/}'" >&2
 fi
 fpm_config=$(php_passthrough "$fpm_config")
 
 if [[ -n ${php_config:-} ]]; then
-    echo "Using PHP configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
-    php_config=$(php_passthrough "$php_config")
+	echo "Using PHP configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
+	php_config=$(php_passthrough "$php_config")
 fi
 
 if [[ -n ${httpd_config_include:-} || ( ${httpd_config_include:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/default_include.conf"} && $verbose ) ]]; then
-    echo "Using Apache2 VirtualHost-level configuration include '${httpd_config_include#$HEROKU_APP_DIR/}'" >&2
+	echo "Using Apache2 VirtualHost-level configuration include '${httpd_config_include#$HEROKU_APP_DIR/}'" >&2
 fi
 httpd_config_include=$(php_passthrough "$httpd_config_include")
 export HEROKU_PHP_HTTPD_CONFIG_INCLUDE="$httpd_config_include"
 
 if [[ -n ${httpd_config:-} || ( ${httpd_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/heroku.conf"} && $verbose) ]]; then
-    echo "Using Apache2 configuration file '${httpd_config#$HEROKU_APP_DIR/}'" >&2
+	echo "Using Apache2 configuration file '${httpd_config#$HEROKU_APP_DIR/}'" >&2
 fi
 httpd_config=$(php_passthrough "$httpd_config")
 
 if [[ -z ${WEB_CONCURRENCY:-} ]]; then
-    maxprocs=$(ulimit -u)
-    ram="512M"
-    if [[ -n ${DYNO:-} && "$maxprocs" == "32768" ]]; then
-        echo "Optimizing defaults for PX dyno...." >&2
-        ram="6G"
-    elif [[ -n ${DYNO:-} && "$maxprocs" == "16384" ]]; then
-        echo "Optimizing defaults for IX dyno...." >&2
-        ram="2560M"
-    elif [[ -n ${DYNO:-} && "$maxprocs" == "512" ]]; then
-        echo "Optimizing defaults for 2X dyno..." >&2
-        ram="1G"
-    elif [[ -n ${DYNO:-} && "$maxprocs" == "256" ]]; then
-        echo "Optimizing defaults for 1X dyno..." >&2
-    elif [[ -n ${DYNO:-} || $verbose ]]; then
-        echo "No dyno detected; using defaults for 1X..." >&2
-    fi
+	maxprocs=$(ulimit -u)
+	ram="512M"
+	if [[ -n ${DYNO:-} && "$maxprocs" == "32768" ]]; then
+		echo "Optimizing defaults for PX dyno...." >&2
+		ram="6G"
+	elif [[ -n ${DYNO:-} && "$maxprocs" == "16384" ]]; then
+		echo "Optimizing defaults for IX dyno...." >&2
+		ram="2560M"
+	elif [[ -n ${DYNO:-} && "$maxprocs" == "512" ]]; then
+		echo "Optimizing defaults for 2X dyno..." >&2
+		ram="1G"
+	elif [[ -n ${DYNO:-} && "$maxprocs" == "256" ]]; then
+		echo "Optimizing defaults for 1X dyno..." >&2
+	elif [[ -n ${DYNO:-} || $verbose ]]; then
+		echo "No dyno detected; using defaults for 1X..." >&2
+	fi
 
-    # determine number of FPM processes to run
-    # prevent loading of extension INIs (and thus e.g. newrelic) using empty PHP_INI_SCAN_DIR
-    read WEB_CONCURRENCY php_memory_limit <<<$(PHP_INI_SCAN_DIR= php ${php_config:+-c "$php_config"} $(composer config vendor-dir 2> /dev/null | tail -n 1)/heroku/heroku-buildpack-php/bin/util/autotune.php -y "$fpm_config" -t "$DOCUMENT_ROOT" "$ram") # tail, as composer echos outdated version warnings to STDOUT
-    [[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
-    export WEB_CONCURRENCY
-    
-    echo "${WEB_CONCURRENCY} processes at ${php_memory_limit}B memory limit." >&2
+	# determine number of FPM processes to run
+	# prevent loading of extension INIs (and thus e.g. newrelic) using empty PHP_INI_SCAN_DIR
+	read WEB_CONCURRENCY php_memory_limit <<<$(PHP_INI_SCAN_DIR= php ${php_config:+-c "$php_config"} $(composer config vendor-dir 2> /dev/null | tail -n 1)/heroku/heroku-buildpack-php/bin/util/autotune.php -y "$fpm_config" -t "$DOCUMENT_ROOT" "$ram") # tail, as composer echos outdated version warnings to STDOUT
+	[[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
+	export WEB_CONCURRENCY
+
+	echo "${WEB_CONCURRENCY} processes at ${php_memory_limit}B memory limit." >&2
 else
-    echo "Using WEB_CONCURRENCY=${WEB_CONCURRENCY} processes." >&2
+	echo "Using WEB_CONCURRENCY=${WEB_CONCURRENCY} processes." >&2
 fi
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
@@ -306,10 +310,10 @@ trap 'trap - TERM EXIT; cleanup; kill -TERM $$' TERM
 trap 'trap - EXIT; cleanup' EXIT
 # if FD 1 is a TTY (that's the -t 1 check), trap SIGINT/Ctrl+C, then same procedure as for QUIT and TERM above
 if [[ -t 1 ]]; then
-    trap 'trap - INT EXIT; cleanup; kill -INT $$' INT;
+	trap 'trap - INT EXIT; cleanup; kill -INT $$' INT;
 # if FD 1 is not a TTY (e.g. when we're run through 'foreman start'), do nothing on SIGINT; the assumption is that the parent will send us a SIGTERM or something when this happens. With the trap above, Ctrl+C-ing out of a 'foreman start' run would trigger the INT trap both in Foreman and here (because Ctrl+C sends SIGINT to the entire process group, but there is no way to tell the two cases apart), and while the trap is still doing its shutdown work triggered by the SIGTERM from the Ctrl+C, Foreman would then send a SIGTERM because that's what it does when it receives a SIGINT itself.
 else
-    trap '' INT;
+	trap '' INT;
 fi
 
 # we are now launching a subshell for each of the tasks (log tail, app server, web server)
@@ -327,50 +331,50 @@ fi
 
 [[ $verbose ]] && echo "Starting log redirection..." >&2
 (
-    # the TERM trap here is special, because
-    # 1) there is a pipeline from tail to sed
-    # 2) we thus need to kill several children
-    # 3) kill $! will no longer do the job in that case
-    # 4) job control (set -m, where we could then kill %% instead) has weird side effects e.g. on ctrl+c (kills the parent terminal after that too)
-    # 5) so we try to kill all currently running jobs
-    # 5a) gracefully, by redirecting STDERR to /dev/null - one of the children will already be gone
-    # 6) the sed with the Darwin/GNU sed arg case used to be a function, but that was even worse with an extra wrapping subshell for sed
-    # FIXME: fires when the subshell or the tail is killed, but not when the sed is killed, because... pipes :( maybe we can do http://mywiki.wooledge.org/ProcessManagement#My_script_runs_a_pipeline.__When_the_script_is_killed.2C_I_want_the_pipeline_to_die_too.
-    logs_pipe=$(mktemp -t "heroku.logspipe-$$.XXXXXX" -u)
-    rm -f $logs_pipe
-    mkfifo $logs_pipe
-    unset logs_procs
-    
-    trap '' INT;
-    trap 'echo "tail" >&3;' EXIT
-    trap 'trap - TERM; kill -TERM "${logs_procs[@]}" 2> /dev/null || true & wait "${logs_procs[@]}" 2> /dev/null || true; rm -f $logs_pipe; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
-    trap 'trap - USR1 EXIT; kill -TERM "${logs_procs[@]}" 2> /dev/null || true & wait "${logs_procs[@]}" 2> /dev/null || true; rm -f $logs_pipe; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
-    
-    touch "${logs[@]}"
-    
-    if [[ $(uname) == "Darwin" ]]; then
-        sedbufarg="-l" # mac/bsd sed: -l buffers on line boundaries
-    else
-        sedbufarg="-u" # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
-    fi
-    
-    tail -qF -n 0 "${logs[@]}" > "$logs_pipe" & logs_procs+=($!)
-    sed $sedbufarg -E -e 's/^\[[^]]+\] WARNING: \[pool [^]]+\] child [0-9]+ said into std(err|out): "(.*)("|...)$/\2\3/' -e 's/"$//' < "$logs_pipe" 1>&2 & logs_procs+=($!) # messages that are too long are cut off using "..." by FPM instead of closing double quotation marks; we want to preserve those three dots but not the closing double quotes
-    
-    wait
+	# the TERM trap here is special, because
+	# 1) there is a pipeline from tail to sed
+	# 2) we thus need to kill several children
+	# 3) kill $! will no longer do the job in that case
+	# 4) job control (set -m, where we could then kill %% instead) has weird side effects e.g. on ctrl+c (kills the parent terminal after that too)
+	# 5) so we try to kill all currently running jobs
+	# 5a) gracefully, by redirecting STDERR to /dev/null - one of the children will already be gone
+	# 6) the sed with the Darwin/GNU sed arg case used to be a function, but that was even worse with an extra wrapping subshell for sed
+	# FIXME: fires when the subshell or the tail is killed, but not when the sed is killed, because... pipes :( maybe we can do http://mywiki.wooledge.org/ProcessManagement#My_script_runs_a_pipeline.__When_the_script_is_killed.2C_I_want_the_pipeline_to_die_too.
+	logs_pipe=$(mktemp -t "heroku.logspipe-$$.XXXXXX" -u)
+	rm -f $logs_pipe
+	mkfifo $logs_pipe
+	unset logs_procs
+
+	trap '' INT;
+	trap 'echo "tail" >&3;' EXIT
+	trap 'trap - TERM; kill -TERM "${logs_procs[@]}" 2> /dev/null || true & wait "${logs_procs[@]}" 2> /dev/null || true; rm -f $logs_pipe; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
+	trap 'trap - USR1 EXIT; kill -TERM "${logs_procs[@]}" 2> /dev/null || true & wait "${logs_procs[@]}" 2> /dev/null || true; rm -f $logs_pipe; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
+
+	touch "${logs[@]}"
+
+	if [[ $(uname) == "Darwin" ]]; then
+		sedbufarg="-l" # mac/bsd sed: -l buffers on line boundaries
+	else
+		sedbufarg="-u" # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
+	fi
+
+	tail -qF -n 0 "${logs[@]}" > "$logs_pipe" & logs_procs+=($!)
+	sed $sedbufarg -E -e 's/^\[[^]]+\] WARNING: \[pool [^]]+\] child [0-9]+ said into std(err|out): "(.*)("|...)$/\2\3/' -e 's/"$//' < "$logs_pipe" 1>&2 & logs_procs+=($!) # messages that are too long are cut off using "..." by FPM instead of closing double quotation marks; we want to preserve those three dots but not the closing double quotes
+
+	wait
 ) & pids+=($!)
 disown $!
 
 echo "Starting php-fpm..." >&2
 (
-    trap '' INT;
-    trap 'echo "php-fpm" >&3;' EXIT
-    trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
-    trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
-    
-    php-fpm --nodaemonize -y "$fpm_config" ${php_config:+-c "$php_config"} & pid=$!
-    
-    wait
+	trap '' INT;
+	trap 'echo "php-fpm" >&3;' EXIT
+	trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
+	trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
+
+	php-fpm --nodaemonize -y "$fpm_config" ${php_config:+-c "$php_config"} & pid=$!
+
+	wait
 ) & pids+=($!)
 disown $!
 
@@ -379,14 +383,14 @@ sleep 2
 
 echo "Starting httpd..." >&2
 (
-    trap '' INT;
-    trap 'echo "httpd" >&3;' EXIT
-    trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
-    trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
-    
-    httpd -D NO_DETACH -c "Include $httpd_config" & pid=$!
-    
-    wait
+	trap '' INT;
+	trap 'echo "httpd" >&3;' EXIT
+	trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
+	trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
+
+	httpd -D NO_DETACH -c "Include $httpd_config" & pid=$!
+
+	wait
 ) & pids+=($!)
 disown $!
 

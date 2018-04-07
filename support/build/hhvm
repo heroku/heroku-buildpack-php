@@ -18,9 +18,9 @@ dep_version=${dep_formula#"${dep_name}-"}
 dep_package=${dep_name}-${dep_version}
 dep_dirname=hhvm_${dep_version}
 if [[ $STACK == "cedar" ]]; then
-    dep_archive_name=${dep_dirname}~lucid_amd64.deb
+	dep_archive_name=${dep_dirname}~lucid_amd64.deb
 else
-    dep_archive_name=${dep_dirname}~trusty_amd64.deb
+	dep_archive_name=${dep_dirname}~trusty_amd64.deb
 fi
 dep_url=http://dl.hhvm.com/ubuntu/pool/main/h/hhvm/${dep_archive_name}
 dep_manifest=${dep_package}.composer.json
@@ -30,7 +30,7 @@ echo "-----> Building ${dep_package}..."
 mkdir -p $OUT_PREFIX
 
 if [[ $STACK == "cedar" ]]; then
-    deps="${dep_url}
+	deps="${dep_url}
 http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu/pool/main/b/binutils/binutils_2.22-4ubuntu1~10.04.1_amd64.deb
 http://ppa.launchpad.net/ubuntu-toolchain-r/test/ubuntu/pool/main/g/gcc-4.8/libstdc++6_4.8.1-2ubuntu1~10.04.1_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/universe/t/tbb/libtbb2_2.2+r009-1_amd64.deb
@@ -39,7 +39,7 @@ http://mirrors.kernel.org/ubuntu/pool/universe/libm/libmcrypt/libmcrypt4_2.5.8-3
 http://mirrors.kernel.org/ubuntu/pool/universe/u/uw-imap/libc-client2007e_2007e~dfsg-3.1_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/main/e/elfutils/libelf1_0.143-1_amd64.deb"
 else
-    deps="${dep_url}
+	deps="${dep_url}
 http://mirrors.kernel.org/ubuntu/pool/main/b/boost1.54/libboost-filesystem1.54.0_1.54.0-4ubuntu3.1_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/main/b/boost1.54/libboost-program-options1.54.0_1.54.0-4ubuntu3.1_amd64.deb
 http://mirrors.kernel.org/ubuntu/pool/main/b/boost1.54/libboost-regex1.54.0_1.54.0-4ubuntu3.1_amd64.deb
@@ -60,10 +60,10 @@ http://mirrors.kernel.org/ubuntu/pool/main/libu/libunwind/libunwind8_1.1-3.2_amd
 fi
 
 for dep in $deps; do
-    depb=$(basename $dep)
-    echo "        - $depb"
-    curl -LO $dep
-    dpkg -x $depb ${OUT_PREFIX}
+	depb=$(basename $dep)
+	echo "        - $depb"
+	curl -LO $dep
+	dpkg -x $depb ${OUT_PREFIX}
 done
 strip --strip-unneeded ${OUT_PREFIX}/usr/bin/*
 
@@ -74,8 +74,9 @@ curl -sS https://getcomposer.org/installer | hhvm --php
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/php\":\"*\"}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.hhvm.sh\",\"profile\":\"bin/profile.hhvm.sh\"}"}"
 MANIFEST_REPLACE=$(hhvm --php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b|php\b)' | tr -s " " | cut -d " " -f1,2 | sed -e "s/ $dep_version\$/ self.version/" -e 's/^/heroku-sys\//' | python -c 'import sys, json; json.dump(dict(item.split() for item in sys.stdin), sys.stdout)')
+MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.hhvm.sh\",\"profile\":\"bin/profile.hhvm.sh\"}"}"
 
 # remove temporary composer download
 rm composer.phar
@@ -95,6 +96,6 @@ composer() { hhvm $(which composer) "$@"; }
 export -f composer
 EOF
 
-python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-hhvm" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_EXTRA" > $dep_manifest
+python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-hhvm" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

@@ -9,9 +9,6 @@ set -eu
 # move hidden files too, just in case
 shopt -s dotglob
 
-echo "Here $(date)"
-hostname
-
 STACK=${STACK:-cedar-14} # Anvil has none
 build_dir=$1
 cache_dir=$2/php
@@ -19,8 +16,17 @@ mkdir -p "$cache_dir"
 env_dir=${3:-} # Anvil has none
 bp_dir=$(cd $(dirname $0); cd ..; pwd)
 
+export BPLOG_PREFIX="buildpack.php"
+export BUILDPACK_LOG_FILE=${BUILDPACK_LOG_FILE:-/dev/null}
+
 # convenience functions
 source $bp_dir/bin/util/common.sh
+
+# stdlib
+source /dev/stdin <<< "$(curl_retry_on_18 --silent https://lang-common.s3.amazonaws.com/buildpack-stdlib/v8/stdlib.sh)"
+
+# failure counting
+source $bp_dir/bin/util/failures.sh
 
 # for extensions that need special treatment
 source $bp_dir/bin/util/newrelic.sh
@@ -33,40 +39,62 @@ cd $build_dir
 
 export_env_dir "$env_dir" '^COMPOSER$'
 if [[ -n ${COMPOSER:-} ]]; then
-    status "Using '$COMPOSER' (from "'$COMPOSER env var) for installation.'
+	status "Using '$COMPOSER' (from "'$COMPOSER env var) for installation.'
 else
-    export COMPOSER="composer.json"
+	export COMPOSER="composer.json"
 fi
 export COMPOSER_LOCK=$(basename "$COMPOSER" ".json")".lock" # replace .json with .lock if it exists, append .lock otherwise
 
 # a bunch of sanity checks first
 if [[ -s "$COMPOSER" ]]; then
-    cat "$COMPOSER" | python -mjson.tool &> /dev/null || error "Could not parse '$COMPOSER'; make sure it's valid!"
-    if [[ ! -f "$COMPOSER_LOCK" ]]; then
-        cat "$COMPOSER" | python -c 'import sys, json; sys.exit(bool(json.load(sys.stdin).get("require", {})))' 2> /dev/null || error "Your '$COMPOSER' lists dependencies inside 'require',
-but no '$COMPOSER_LOCK' was found. Please run 'composer update' to
-re-generate '$COMPOSER_LOCK' if necessary, and commit it into your
-repository. For more information, please refer to the docs at
-https://devcenter.heroku.com/articles/php-support#activation"
-    else
-        cat "$COMPOSER_LOCK" | python -mjson.tool &> /dev/null || error "Could not parse '$COMPOSER_LOCK'; make sure it's valid!"
-        cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); sys.exit(not(l["minimum-stability"] == "stable"));' 2> /dev/null || warning "Your '$COMPOSER' contains a non-'stable' setting
-for 'minimum-stability'. This may cause the installation of
-unstable versions of runtimes and extensions during this deploy.
-It is recommended that you always use stability flags instead,
-even if you have 'prefer-stable' enabled. For more information,
-see https://getcomposer.org/doc/01-basic-usage.md#stability"
-    fi
+	cat "$COMPOSER" | python -mjson.tool &> /dev/null || {
+		mcount "failures.composer_json.lint"
+		error "Could not parse '$COMPOSER'; make sure it's valid!"
+	}
+	if [[ ! -f "$COMPOSER_LOCK" ]]; then
+		cat "$COMPOSER" | python -c 'import sys, json; sys.exit(bool(json.load(sys.stdin).get("require", {})))' 2> /dev/null || {
+			mcount "failures.composer_lock.missing"
+			error <<-EOF
+				Your '$COMPOSER' lists dependencies inside 'require',
+				but no '$COMPOSER_LOCK' was found. Please run 'composer update' to
+				re-generate '$COMPOSER_LOCK' if necessary, and commit it into your
+				repository. For more information, please refer to the docs at
+				https://devcenter.heroku.com/articles/php-support#activation
+			EOF
+		}
+	else
+		cat "$COMPOSER_LOCK" | python -mjson.tool &> /dev/null || {
+			mcount "failures.composer_lock.lint"
+			error "Could not parse '$COMPOSER_LOCK'; make sure it's valid!"
+		}
+		cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); sys.exit(not(l["minimum-stability"] == "stable"));' 2> /dev/null || {
+			mcount "warnings.composer_lock.minimum_stability"
+			warning <<-EOF
+				Your '$COMPOSER' contains a non-'stable' setting
+				for 'minimum-stability'. This may cause the installation of
+				unstable versions of runtimes and extensions during this deploy.
+				It is recommended that you always use stability flags instead,
+				even if you have 'prefer-stable' enabled. For more information,
+				see https://getcomposer.org/doc/01-basic-usage.md#stability
+			EOF
+		}
+	fi
 else
-    if [[ ! -f "$COMPOSER" ]]; then
-        warning "No '$COMPOSER' found.
-Using 'index.php' to declare app type as PHP is considered legacy
-functionality and may lead to unexpected behavior."
-    else
-        notice "Your '$COMPOSER' is completely empty.
-Please change its contents to at least '{}' so it is valid JSON."
-    fi
-    echo "{}" > $COMPOSER
+	if [[ ! -f "$COMPOSER" ]]; then
+		mcount "warnings.composer_json.missing"
+		warning <<-EOF
+			No '$COMPOSER' found.
+			Using 'index.php' to declare app type as PHP is considered legacy
+			functionality and may lead to unexpected behavior.
+		EOF
+	else
+		mcount "warnings.composer_json.empty"
+		notice <<-EOF
+			Your '$COMPOSER' is completely empty.
+			Please change its contents to at least '{}' so it is valid JSON.
+		EOF
+	fi
+	echo "{}" > $COMPOSER
 fi
 
 # PHP expects to be installed in /app/.heroku/php because of compiled paths, let's set that up!
@@ -80,7 +108,6 @@ mkdir -p $COMPOSER_HOME
 # if the build dir is not "/app", we symlink in the .heroku/php subdir (and only that, to avoid problems with other buildpacks) so that PHP correctly finds its INI files etc
 [[ $build_dir == '/app' ]] || ln -s $build_dir/.heroku/php /app/.heroku/php
 
-echo "boots $(date)"
 status "Bootstrapping..."
 
 s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
@@ -96,29 +123,34 @@ if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
 	notice_inline "Bootstrapping using ${s3_url}..."
 fi
 
-notice_inline "s3 is ${s3_url}..."
-notice_inline "HEROKU_PHP_PLATFORM_REPOSITORIES = '${HEROKU_PHP_PLATFORM_REPOSITORIES}' ..."
 
-
-echo "l99 $(date)"
 # minimal PHP needed for installs, and make "composer" invocations use that for now
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 
-echo "l104 $(date)"
-curl_retry_on_18 --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.0.14.tar.gz" || error "Failed to download minimal PHP for bootstrapping.
-Please try again, or contact support if this problem persists."
+curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.0.29.tar.gz" || {
+	mcount "failures.bootstrap.download.php-min"
+	error <<-EOF
+		Failed to download minimal PHP for bootstrapping.
+		Please try again, or contact support if this problem persists.
+	EOF
+}
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
-echo "l110 $(date)"
-curl_retry_on_18 --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.2.4.tar.gz" || error "Failed to download Composer. Please try again, or contact support if this problem persists."
+curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.6.3.tar.gz" || {
+	mcount "failures.bootstrap.download.composer"
+	error <<-EOF
+		Failed to download Composer.
+		Please try again, or contact support if this problem persists.
+	EOF
+}
 tar xzf $build_dir/.heroku/composer.tar.gz -C $build_dir/.heroku/php
 rm $build_dir/.heroku/composer.tar.gz
 
 # this alias is just for now while we install platform packages
 composer() {
-    /app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer "$@"
+	/app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer "$@"
 }
 export -f composer
 
@@ -133,16 +165,23 @@ echo "export PATH=/app/.heroku/php/bin:\$PATH:/app/$composer_bindir" > $bp_dir/e
 mkdir -p $build_dir/.profile.d
 echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $build_dir/.profile.d/100-composer.sh
 
-echo "l132 $(date)"
 status "Installing platform packages..."
 
-echo "l135 $(date)"
 # extract requirements from composer.lock
-/app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | indent || error "Couldn't load '$COMPOSER_LOCK'; it must be a valid lock
-file generated by Composer and be in a consistent state.
-Check above for any parse errors and address them if necessary.
-Run 'composer update', add/commit the change, then push again."
-echo "l141 $(date)"
+/app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | indent || {
+	code=$?
+	if [[ $code -eq 3 ]]; then
+		mcount "failures.platform.composer_lock.runtime_only_in_dev"
+	else
+		mcount "failures.platform.composer_lock.parse"
+	fi
+	error <<-EOF
+		Couldn't load '$COMPOSER_LOCK'; it must be a valid lock
+		file generated by Composer and be in a consistent state.
+		Check above for any parse errors and address them if necessary.
+		Run 'composer update', add/commit the change, then push again.
+	EOF
+}
 
 # reset COMPOSER for the platform install step
 COMPOSER_bak="$COMPOSER"
@@ -152,180 +191,236 @@ export COMPOSER=composer.json
 # they are also used in later install attempts for add-on extensions (blackfire, newrelic, ...)
 export export_file_path=$bp_dir/export
 export profile_dir_path=$build_dir/.profile.d
-echo "l151 $(date)"
-echo "l153 $(date)"
-
-if composer install -d "$build_dir/.heroku/php" ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} 2>&1 | tee $build_dir/.heroku/php/install.log | grep --line-buffered -E '^  - (Instal|Enab)ling heroku-sys/' | sed -u -E -e 's/^  - (Instal|Enab)ling /- /' -e 's/heroku-sys\///g' | indent; then
-    :
+# grep and sed in a subshell with || true, or a failing grep match will cause the exit code to be 1 if "composer install" fails with code 2
+if composer install -d "$build_dir/.heroku/php" ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} 2>&1 | tee $build_dir/.heroku/php/install.log | ( grep --line-buffered -E '^  - (Instal|Enab)ling heroku-sys/' | sed -u -E -e 's/^  - (Instal|Enab)ling /- /' -e 's/heroku-sys\///g' || true ) | indent; then
+	:
 else
-    error "Failed to install system packages.
-
-Your platform requirements (for runtimes and extensions) could
-not be resolved to an installable set of dependencies, or a
-repository was unreachable.
-
-Full error information from installation attempt:
-
-$(cat $build_dir/.heroku/php/install.log | sed -e 's/heroku-sys\///g' -e 's/^Loading composer repositories with package information/Loading repositories with available runtimes and extensions/' -e 's/^Installing dependencies.*//' -e '/^Potential causes:/,$d' -e 's/^/> /')
-
-Please verify that all requirements for runtime versions in
-'$COMPOSER_LOCK' are compatible with the list below, and ensure
-all required extensions are available for the desired runtimes.
-
-For reference, the following runtimes are currently available:
-
-PHP:  $(composer show -d "$build_dir/.heroku/php" --available heroku-sys/php 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
-HHVM: $(composer show -d "$build_dir/.heroku/php" --available heroku-sys/hhvm 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
-
-For a list of supported runtimes & extensions on Heroku, please
-refer to: https://devcenter.heroku.com/articles/php-support"
+	code=$?
+	install_log=$(cat $build_dir/.heroku/php/install.log | sed -e 's/heroku-sys\///g' -e 's/^Loading composer repositories with package information/Loading repositories with available runtimes and extensions/' -e 's/^Installing dependencies.*//' -e '/^Potential causes:/,$d' -e 's/^/> /')
+	if [[ $code -eq 2 ]]; then
+		# dependency solving failed
+		mcount "failures.platform.solving.$(detect_platform_solving_failures <<< "$install_log")"
+	else
+		# something else
+		mcount "failures.platform.install.$(detect_platform_install_failures <<< "$install_log")"
+	fi
+	error <<-EOF
+		Failed to install system packages.
+		
+		Your platform requirements (for runtimes and extensions) could
+		not be resolved to an installable set of dependencies, or a
+		repository was unreachable.
+		
+		Full error information from installation attempt:
+		
+		$install_log
+		
+		Please verify that all requirements for runtime versions in
+		'$COMPOSER_LOCK' are compatible with the list below, and ensure
+		all required extensions are available for the desired runtimes.
+		
+		For reference, the following runtimes are currently available:
+		
+		PHP:  $(composer show -d "$build_dir/.heroku/php" --available heroku-sys/php 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
+		HHVM: $(composer show -d "$build_dir/.heroku/php" --available heroku-sys/hhvm 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
+		
+		For a list of supported runtimes & extensions on Heroku, please
+		refer to: https://devcenter.heroku.com/articles/php-support
+	EOF
 fi
 
-echo "l178 $(date)"
 if composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/php 2>/dev/null; then
-    engine="php"
-    engine_r="php -r"
+	engine="php"
+	engine_r="php -r"
 elif composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/hhvm 2>/dev/null; then
-    engine="hhvm"
-    engine_r="hhvm --php -r"
+	engine="hhvm"
+	engine_r="hhvm --php -r"
 fi
 
-echo "l187 $(date)"
+# log number of installed platform packages
+mmeasure "platform.count" $(composer show -d "$build_dir/.heroku/php" --installed "heroku-sys/*" 2> /dev/null | wc -l)
+
 # done with platform installs; restore COMPOSER from previous value
 export COMPOSER="$COMPOSER_bak"
 unset COMPOSER_bak
 
-composer validate --no-check-publish --no-check-all --quiet "$COMPOSER" 2>/dev/null || warning "Your '$COMPOSER_LOCK' is not up to date with the latest
-changes in '$COMPOSER'. To ensure you are not getting stale
-dependencies, run 'composer update' on your machine and commit
-any changes to Git before pushing again."
+composer validate --no-check-publish --no-check-all --quiet "$COMPOSER" 2>/dev/null || {
+	mcount "warnings.composer_lock.outdated"
+	warning <<-EOF
+		Your '$COMPOSER_LOCK' is not up to date with the latest
+		changes in '$COMPOSER'. To ensure you are not getting stale
+		dependencies, run 'composer update' on your machine and commit
+		any changes to Git before pushing again.
+	EOF
+}
 
 # clean up
 rm -rf /app/.heroku/php-min $build_dir/.heroku/php-min
 unset -f composer
-echo "l200 $(date)"
 
 # earlier we wrote at least one $PATH entry that we'll need now, and installed packages will likely have added to it too
 source $bp_dir/export
 
 composer() {
-    $engine $(which composer) "$@"
+	$engine $(which composer) "$@"
 }
 export -f composer
-echo "l209 $(date)"
+
+# log runtime version
+mcount "platform.packages.php.$($engine_r "echo ${engine^^}_VERSION;")"
 
 status "Installing dependencies..."
 
 # check if we should use a composer.phar version bundled with the project
 if [[ -f "composer.phar" ]]; then
-    [[ -x "composer.phar" ]] || error "File '/composer.phar' isn't executable; please 'chmod +x'!"
-    $engine_r 'new Phar("composer.phar");' &> /dev/null || error "File '/composer.phar' is not a valid PHAR archive!"
-    composer() {
-        $engine composer.phar "$@"
-    }
-    export -f composer
-    composer --version 2>&1 | grep "^Composer version" > /dev/null || error "File '/composer.phar' is not a Composer executable!"
-    notice_inline "Using '/composer.phar' to install dependencies."
+	[[ -x "composer.phar" ]] || {
+		mcount "failures.composer_phar.not_executable"
+		error "File '/composer.phar' isn't executable; please 'chmod +x'!"
+	}
+	$engine_r 'new Phar("composer.phar");' &> /dev/null || {
+		mcount "failures.composer_phar.invalid_phar"
+		error "File '/composer.phar' is not a valid PHAR archive!"
+	}
+	composer() {
+		$engine composer.phar "$@"
+	}
+	export -f composer
+	composer --version 2>&1 | grep "^Composer version" > /dev/null || {
+		mcount "failures.composer_phar.not_composer"
+		error "File '/composer.phar' is not a Composer executable!"
+	}
+	notice_inline "Using '/composer.phar' to install dependencies."
 fi
 # echo composer version for info purposes
 # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 composer --version 2> /dev/null | tail -n 1 | indent
-echo "l227 $(date)"
 
 # throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
 if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer" ]]; then
-    # we should not do this check separately; there is no reliable way of telling whether or not it really is the real Composer bin dir or if it comes from somewhere else
-    composer_warn_bindir=""
-    if [[ ! "$composer_bindir/" == "$composer_vendordir"/* && -d "$composer_bindir" ]]; then
-        composer_warn_bindir="
-Your Composer bin dir is configured to reside outside of vendor
-dir, so please repeat the two steps above for '$composer_bindir/'."
-    fi
-    warning "Your Composer vendor dir is part of your Git repository.
-This directory should not be under version control; only your
-'$COMPOSER' and '$COMPOSER_LOCK' files should be added, which
-will let Composer handle installation of dependencies on deploy.
-To suppress this notice, first remove the folder from your index
-by running 'git rm -r --cached $composer_vendordir/'.
-Next, edit your project's '.gitignore' file and add the folder
-'/$composer_vendordir/' to the list.$composer_warn_bindir
-For more info, refer to the Composer FAQ: http://bit.ly/1rlCSZU"
+	# we should not do this check separately; there is no reliable way of telling whether or not it really is the real Composer bin dir or if it comes from somewhere else
+	composer_warn_bindir=""
+	if [[ ! "$composer_bindir/" == "$composer_vendordir"/* && -d "$composer_bindir" ]]; then
+		composer_warn_bindir=$(cat <<-EOF
+			
+			Your Composer bin dir is configured to reside outside of vendor
+			dir, so please repeat the two steps above for '$composer_bindir/'.
+		EOF
+		)
+	fi
+	mcount "warnings.vendor_dir"
+	warning <<-EOF
+		Your Composer vendor dir is part of your Git repository.
+		This directory should not be under version control; only your
+		'$COMPOSER' and '$COMPOSER_LOCK' files should be added, which
+		will let Composer handle installation of dependencies on deploy.
+		To suppress this notice, first remove the folder from your index
+		by running 'git rm -r --cached $composer_vendordir/'.
+		Next, edit your project's '.gitignore' file and add the folder
+		'/$composer_vendordir/' to the list.$composer_warn_bindir
+		For more info, refer to the Composer FAQ: http://bit.ly/1rlCSZU
+	EOF
 fi
 
-echo "l249 $(date)"
 # handle custom oauth keys
 export_env_dir "$env_dir" '^COMPOSER_GITHUB_OAUTH_TOKEN$'
 COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
 if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
-    if curl --fail --silent -H "Authorization: token $COMPOSER_GITHUB_OAUTH_TOKEN" https://api.github.com/rate_limit > /dev/null; then
-        composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
-        notice_inline 'Using $COMPOSER_GITHUB_OAUTH_TOKEN for GitHub OAuth.'
-    else
-        error 'Invalid $COMPOSER_GITHUB_OAUTH_TOKEN for GitHub OAuth!'
-    fi
+	if curl --fail --silent -H "Authorization: token $COMPOSER_GITHUB_OAUTH_TOKEN" https://api.github.com/rate_limit > /dev/null; then
+		composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+		notice_inline 'Using $COMPOSER_GITHUB_OAUTH_TOKEN for GitHub OAuth.'
+	else
+		mcount "failures.dependencies.auth.COMPOSER_GITHUB_OAUTH_TOKEN"
+		error 'Invalid $COMPOSER_GITHUB_OAUTH_TOKEN for GitHub OAuth!'
+	fi
 else
-    # don't forget to remove any stored key if it's gone from the env
-    composer config -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+	# don't forget to remove any stored key if it's gone from the env
+	composer config -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 fi
 # no need for the token to stay around in the env
 unset COMPOSER_GITHUB_OAUTH_TOKEN
-echo "l266 $(date)"
 
 # install dependencies unless composer.json is completely empty (in which case it'd talk to packagist.org which may be slow and is unnecessary)
-export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV)$'
-cat "$COMPOSER" | python -c 'import sys,json; sys.exit(not json.load(sys.stdin));' && composer install ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --prefer-dist --optimize-autoloader --no-interaction 2>&1 | indent
+export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV|BPLOG_PREFIX|BUILDPACK_LOG_FILE)$'
+if cat "$COMPOSER" | python -c 'import sys,json; sys.exit(not json.load(sys.stdin));'; then
+	install_log=$(mktemp -t heroku-buildpack-php-composer-install-log-XXXX)
+	composer install ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --prefer-dist --optimize-autoloader --no-interaction 2>&1 | tee "$install_log" | indent || {
+		code=$?
+		if [[ $code -eq 2 ]]; then
+			# dependency solving failed, which should only ever happen if people have platform overrides in their config
+			mcount "failures.dependencies.solving.$(detect_dependencies_solving_failures < "$install_log")"
+		else
+			mcount "failures.dependencies.install.$(detect_dependencies_install_failures < "$install_log")"
+		fi
+		exit $code
+	}
+fi
 
-echo "l272 $(date)"
-composer show --installed heroku/heroku-buildpack-php &> /dev/null && error "Your '$COMPOSER' requires 'heroku/heroku-buildpack-php'.
-This package may only be used as a dependency in 'require-dev'!"
+# only perform the check for buildpack package if we're not running in Heroku CI
+if [[ -z "${HEROKU_PHP_INSTALL_DEV+are-we-running-in-ci}" ]]; then
+	composer show --installed heroku/heroku-buildpack-php &> /dev/null && {
+		mcount "failures.dependencies.buildpack_as_dependency"
+		error <<-EOF
+			Your '$COMPOSER' requires 'heroku/heroku-buildpack-php'.
+			This package may only be used as a dependency in 'require-dev'!
+		EOF
+	}
+fi
+
+# log number of installed dependencies
+mmeasure "dependencies.count" $(composer show --installed 2> /dev/null | wc -l)
 
 if cat "$COMPOSER" | python -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
-    status "Running 'composer compile'..."
-    composer run-script ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --no-interaction compile 2>&1 | indent
+	status "Running 'composer compile'..."
+	composer run-script ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --no-interaction compile 2>&1 | indent || {
+		code=$?
+		mcount "failures.compile_step"
+		exit $code
+	}
 fi
 
 status "Preparing runtime environment..."
-echo "l282 $(date)"
 
 # install this buildpack like a composer package
 # it will contain the apache/nginx/php configs and the boot script
 # TODO: warn if require-dev has the package using a different branch
 shopt -u dotglob # we don't want .git, .gitignore et al
 # figure out the package dir name to write to and copy to it
-hbpdir="$composer_vendordir/$(cat $bp_dir/composer.json | python -c 'import sys, json; print json.load(sys.stdin)["name"]')"
+hbpdir="$composer_vendordir/$(cat $bp_dir/composer.json | python -c 'import sys, json; print(json.load(sys.stdin)["name"])')"
 mkdir -p "$build_dir/$hbpdir"
 cp -r "$bp_dir"/* "$build_dir/$hbpdir/"
 # make bin dir, just in case
 mkdir -p "$build_dir/$composer_bindir"
 # figure out shortest relative path from vendor/heroku/heroku-buildpack-php to vendor/bin (or whatever the bin dir is)
-relbin=$(python -c "import os.path; print os.path.relpath('$hbpdir', '$composer_bindir')")
+relbin=$(python -c "import os.path; print(os.path.relpath('$hbpdir', '$composer_bindir'))")
 # collect bin names from composer.json
 relbins=$(cat $bp_dir/composer.json | python -c 'from __future__ import print_function; import sys, json; { print(sys.argv[1]+"/"+bin) for bin in json.load(sys.stdin)["bin"] }' $relbin)
 # link to bins
 cd $build_dir/$composer_bindir
 ln -fs $relbins .
 cd $build_dir
-echo "l302 $(date)"
 
 if [[ ! -f "Procfile" ]]; then
-    echo "web: $composer_bindir/heroku-$engine-apache2" > Procfile
-    notice_inline "No Procfile, using 'web: $composer_bindir/heroku-$engine-apache2'."
+	echo "web: heroku-$engine-apache2" > Procfile
+	notice_inline "No Procfile, using 'web: heroku-$engine-apache2'."
 fi
+
+# write empty WEB_CONCURRENCY.sh to overwrite the defaults logic from a prior buildpack, e.g. Node (all buildpacks use the same filename to allow this)
+> $build_dir/.profile.d/WEB_CONCURRENCY.sh
 
 # reset COMPOSER for the platform install step
 COMPOSER_bak="$COMPOSER"
 export COMPOSER=composer.json
-echo "l312 $(date)"
 
-status "Checking for additional extensions to install..."
-# special treatment for Blackfire; we enable it if we detect a server id and a server token for it
-install_blackfire_ext
-# special treatment for New Relic; we enable it if we detect a license key for it
-install_newrelic_ext
-install_newrelic_userini
+# unless we're running a CI build...
+if [[ "${HEROKU_PHP_INSTALL_DEV+CI}" != "CI" ]]; then
+	status "Checking for additional extensions to install..."
+	# special treatment for Blackfire; we enable it if we detect a server id and a server token for it
+	install_blackfire_ext
+	# special treatment for New Relic; we enable it if we detect a license key for it
+	install_newrelic_ext
+	install_newrelic_userini
+fi
 
-echo "l321 $(date)"
 # done with platform installs; restore COMPOSER from previous value
 export COMPOSER="$COMPOSER_bak"
 unset COMPOSER_bak
-echo "l325 $(date)"

@@ -16,7 +16,7 @@ dep_version=${dep_formula#"${dep_name}-"}
 dep_package=pkg-${dep_name}-${dep_version}
 dep_dirname=php-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
-dep_url=http://us1.php.net/get/${dep_archive_name}/from/this/mirror
+dep_url=https://php.net/get/${dep_archive_name}/from/this/mirror
 dep_manifest=${dep_package}.composer.json
 
 echo "-----> Building minimal PHP ${dep_version}..."
@@ -29,30 +29,30 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 # cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
 # sqlite3 and pdo_sqlite are on by default but we're building them shared on purpose
 ./configure \
-    --prefix=${OUT_PREFIX} \
-    --with-config-file-path=/app/.heroku/php-min/etc/php \
-    --with-config-file-scan-dir=/app/.heroku/php-min/etc/php/conf.d \
-    --enable-static \
-    --disable-phpdbg \
-    --disable-cgi \
-    --enable-cli\
-    --with-bz2 \
-    --disable-dom \
-    --disable-libxml \
-    --with-openssl \
-    --without-pear \
-    --disable-pdo \
-    --without-pdo-sqlite \
-    --with-readline \
-    --disable-session \
-    --disable-simplexml \
-    --without-sqlite3 \
-    --enable-sockets \
-    --disable-xml \
-    --disable-xmlreader \
-    --disable-xmlwriter \
-    --enable-zip \
-    --with-zlib
+	--prefix=${OUT_PREFIX} \
+	--with-config-file-path=/app/.heroku/php-min/etc/php \
+	--with-config-file-scan-dir=/app/.heroku/php-min/etc/php/conf.d \
+	--enable-static \
+	--disable-phpdbg \
+	--disable-cgi \
+	--enable-cli\
+	--with-bz2 \
+	--disable-dom \
+	--disable-libxml \
+	--with-openssl \
+	--without-pear \
+	--disable-pdo \
+	--without-pdo-sqlite \
+	--with-readline \
+	--disable-session \
+	--disable-simplexml \
+	--without-sqlite3 \
+	--enable-sockets \
+	--disable-xml \
+	--disable-xmlreader \
+	--disable-xmlwriter \
+	--enable-zip \
+	--with-zlib
 make -s -j 9
 
 mkdir -p ${OUT_PREFIX}/bin

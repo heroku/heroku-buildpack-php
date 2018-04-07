@@ -33,6 +33,9 @@ case ${ZEND_MODULE_API_VERSION} in
 	20160303)
 		series=7.1
 		;;
+	20170718)
+		series=7.2
+		;;
 esac
 dep_manifest=${dep_package}_php-$series.composer.json
 
@@ -54,34 +57,35 @@ mkdir -p ${OUT_PREFIX}/bin
 # gets sourced on dyno boot
 cat > ${OUT_PREFIX}/bin/profile.newrelic.sh <<'EOF'
 if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
-    if [[ -f "/app/.heroku/php/bin/newrelic-daemon" ]]; then
-        export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-"PHP Application on Heroku"}
-        export NEW_RELIC_LOG_LEVEL=${NEW_RELIC_LOG_LEVEL:-"warning"}
-        
-        # The daemon is a started in foreground mode so it will not daemonize
-        # (i.e. disassociate from the controlling TTY and disappear into the
-        # background).
-        #
-        # Perpetually tail and redirect the daemon log file to stderr so that it
-        # may be observed via 'heroku logs'.
-        touch /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log
-        tail -qF -n 0 /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log 1>&2 &
-        
-        # daemon start
-        /app/.heroku/php/bin/newrelic-daemon --foreground --logfile "/tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log" --loglevel "${NEW_RELIC_LOG_LEVEL}" --pidfile "/tmp/newrelic-daemon.pid" &
-        
-        # give it a moment to connect
-        sleep 2
-    else
-        echo >&2 "WARNING: Add-on 'newrelic' detected, but PHP extension not yet installed. Push an update to the application to finish installation of the add-on; an empty change ('git commit --allow-empty') is sufficient."
-    fi
+	if [[ -f "/app/.heroku/php/bin/newrelic-daemon" ]]; then
+		export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-${HEROKU_APP_NAME:-"PHP Application on Heroku"}}
+		export NEW_RELIC_LOG_LEVEL=${NEW_RELIC_LOG_LEVEL:-"warning"}
+
+		# The daemon is a started in foreground mode so it will not daemonize
+		# (i.e. disassociate from the controlling TTY and disappear into the
+		# background).
+		#
+		# Perpetually tail and redirect the daemon log file to stderr so that it
+		# may be observed via 'heroku logs'.
+		touch /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log
+		tail -qF -n 0 /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log 1>&2 &
+
+		# daemon start
+		/app/.heroku/php/bin/newrelic-daemon --foreground --port "@newrelic-daemon" --logfile "/tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log" --loglevel "${NEW_RELIC_LOG_LEVEL}" --pidfile "/tmp/newrelic-daemon.pid" &
+
+		# give it a moment to connect
+		sleep 2
+	else
+		echo >&2 "WARNING: Add-on 'newrelic' detected, but PHP extension not yet installed. Push an update to the application to finish installation of the add-on; an empty change ('git commit --allow-empty') is sufficient."
+	fi
 fi
 EOF
 mkdir -p ${OUT_PREFIX}/etc/php/conf.d
 cat > ${OUT_PREFIX}/etc/php/conf.d/newrelic.ini-dist <<'EOF'
 extension = newrelic.so
 
-newrelic.daemon.location = /app/.heroku/php/bin/newrelic-daemon
+newrelic.daemon.location = /app/.heroku/php/bin/newrelic-
+newrelic.daemon.port = @newrelic-daemon
 
 newrelic.loglevel = ${NEW_RELIC_LOG_LEVEL}
 newrelic.daemon.loglevel = ${NEW_RELIC_LOG_LEVEL}
@@ -104,9 +108,10 @@ EOF
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/hhvm\":\"*\"}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/newrelic.ini-dist\",\"profile\":\"bin/profile.newrelic.sh\"}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
+MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/newrelic.ini-dist\",\"profile\":\"bin/profile.newrelic.sh\"}"}"
 
-python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_EXTRA" > $dep_manifest
+python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

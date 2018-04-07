@@ -1,5 +1,282 @@
 # heroku-buildpack-php CHANGELOG
 
+## v134 (2018-03-30)
+
+### ADD
+
+- Apache/2.3.44 [David Zuelke]
+- ext-newrelic/8.0.0.204 [David Zuelke]
+- ext-apcu/5.1.11 [David Zuelke]
+- ext-mongodb/1.4.2 [David Zuelke]
+- PHP/7.0.29 [David Zuelke]
+- PHP/7.1.16 [David Zuelke]
+- PHP/7.2.4 [David Zuelke]
+- ext-phalcon/3.3.2 [David Zuelke]
+- PHP/5.6.35 [David Zuelke]
+
+### CHG
+
+- librdkafka/0.11.4 [David Zuelke]
+
+## v133 (2018-03-21)
+
+### CHG
+
+- Internal changes only [David Zuelke]
+
+## v132 (2018-03-02)
+
+### ADD
+
+- PHP/5.6.34 [David Zuelke]
+- PHP/7.0.28 [David Zuelke]
+- PHP/7.1.15 [David Zuelke]
+- PHP/7.2.3 [David Zuelke]
+- ext-mongodb/1.4.1 [David Zuelke]
+- ext-apcu/5.1.10 [David Zuelke]
+- ext-apcu_bc/1.0.4 [David Zuelke]
+
+### CHG
+
+- libcassandra/2.8.1 [David Zuelke]
+
+## v131 (2018-02-12)
+
+### ADD
+
+- PHP/7.1.14 [David Zuelke]
+- PHP/7.2.2 [David Zuelke]
+- ext-blackfire/1.18.2 [David Zuelke]
+- ext-mongodb/1.4.0 [David Zuelke]
+
+### CHG
+
+- Enable ext-sodium for PHP 7.2 on stack heroku-16 [David Zuelke]
+- Composer/1.6.3 [David Zuelke]
+- Use Linux abstract socket for New Relic daemon communications [David Zuelke]
+
+## v130 (2018-01-11)
+
+### ADD
+
+- ext-newrelic/7.7.0.203 [David Zuelke]
+
+## v129 (2018-01-10)
+
+### ADD
+
+- ext-phalcon/3.3.1 [David Zuelke]
+- ext-pq/2.1.3 [David Zuelke]
+
+### CHG
+
+- Composer/1.6.2 [David Zuelke]
+
+## v128 (2018-01-04)
+
+### ADD
+
+- PHP/5.6.33 [David Zuelke]
+- PHP/7.0.27 [David Zuelke]
+- PHP/7.1.13 [David Zuelke]
+- PHP/7.2.1 [David Zuelke]
+- ext-blackfire/1.18.0 for PHP 7.2 [David Zuelke]
+- ext-apcu/5.1.9 [David Zuelke]
+- ext-mongodb/1.3.4 [David Zuelke]
+- ext-phalcon/3.3.0 [David Zuelke]
+- ext-redis/3.1.6 [David Zuelke]
+
+### CHG
+
+- Composer/1.6.0 [David Zuelke]
+- librdkafka/0.11.3 [David Zuelke]
+
+## v127 (2017-11-30)
+
+### ADD
+
+- ext-rdkafka/3.0.5 [David Zuelke]
+- ext-mongodb/1.3.3 [David Zuelke]
+- ext-memcached/3.0.4 [David Zuelke]
+- PHP/7.0.26 [David Zuelke]
+- PHP/7.1.12 [David Zuelke]
+- PHP/7.2.0 [David Zuelke]
+
+### CHG
+
+- libcassandra/2.8.0 [David Zuelke]
+
+### FIX
+
+- Heroku\Buildpack\PHP\Downloader::download() is missing optional third argument [David Zuelke]
+- Files like `composer.js` or similar are inaccessible in web root (#247) [David Zuelke]
+
+## v126 (2017-10-29)
+
+### ADD
+
+- PHP/5.6.32 [David Zuelke]
+- PHP/7.0.25 [David Zuelke]
+- PHP/7.1.11 [David Zuelke]
+- ext-newrelic/7.6.0.201 [David Zuelke]
+- ext-mongodb/1.3.1 [David Zuelke]
+- ext-amqp/1.9.3 [David Zuelke]
+- ext-phalcon/3.2.4 [David Zuelke]
+- Apache/2.4.29 [David Zuelke]
+
+### CHG
+
+- Ignore `require-dev` when building platform package dependency graph (#240) [David Zuelke]
+- Rewrite `provide` sections with PHP extensions in package definitions to `replace` for known polyfill packages [David Zuelke]
+- libcassandra/2.7.1 [David Zuelke]
+- librdkafka/0.11.1 [David Zuelke]
+
+### FIX
+
+- gmp.h lookup patching broken since v125 / d024b14 [David Zuelke]
+
+## v125 (2017-10-04)
+
+### ADD
+
+- PHP/7.0.24 [David Zuelke]
+- PHP/7.1.10 [David Zuelke]
+- ext-redis/3.1.4 [David Zuelke]
+- ext-mongodb/1.3.0 [David Zuelke]
+- ext-blackfire/1.18.0 [David Zuelke]
+
+### CHG
+
+- Composer/1.5.2 [David Zuelke]
+
+## v124 (2017-09-07)
+
+### FIX
+
+- Use Composer/1.5.1 [David Zuelke]
+
+## v123 (2017-09-07)
+
+### ADD
+
+- ext-mongo/1.6.16 [David Zuelke]
+- ext-newrelic/7.5.0.199 [David Zuelke]
+- ext-cassandra/1.3.2 [David Zuelke]
+- ext-rdkafka/3.0.4 [David Zuelke]
+- ext-phalcon/3.2.2 [David Zuelke]
+- PHP/7.1.9 [David Zuelke]
+- PHP/7.0.23 [David Zuelke]
+- ext-mongodb/1.2.10 [David Zuelke]
+
+### CHG
+
+- Support "heroku-sys-library" package type in platform installer [David Zuelke]
+- Add new argument for "provide" platform package manifest entry to `manifest.py` [David Zuelke]
+- Move libcassandra to its own package, installed as a dependency by platform installer [David Zuelke]
+- Move libmemcached to its own package, installed as a dependency by platform installer (if the platform doesn't already provide it) [David Zuelke]
+- Move librdkafka to its own package, installed as a dependency by platform installer [David Zuelke]
+- libcassandra/2.7.0 [David Zuelke]
+- librdkafka/0.11.0 [David Zuelke]
+- Composer/1.5.1 [David Zuelke]
+
+## v122 (2017-08-03)
+
+### ADD
+
+- ext-mongodb/1.2.9 [David Zuelke]
+- ext-amqp/1.9.1 [David Zuelke]
+- ext-blackfire/1.17.3 [David Zuelke]
+- ext-newrelic/7.4.0.198 [David Zuelke]
+- ext-phalcon/3.2.1 [David Zuelke]
+- ext-pq/2.1.2 [David Zuelke]
+- ext-redis/3.1.3 [David Zuelke]
+- ext-rdkafka/3.0.3 [David Zuelke]
+- PHP/7.0.22 [David Zuelke]
+- PHP/7.1.8 [David Zuelke]
+- PHP/5.6.31 [David Zuelke]
+
+### CHG
+
+- Do not auto-enable ext-newrelic and ext-blackfire in Heroku CI runs [David Zuelke]
+- Composer/1.4.2 [David Zuelke]
+- Do not error if buildpack package is installed during Heroku CI runs [David Zuelke]
+
+## v121 (2017-03-28)
+
+### ADD
+
+- ext-blackfire/1.15.0 [David Zuelke]
+- PHP/7.0.17 [David Zuelke]
+- PHP/7.1.3 [David Zuelke]
+- ext-cassandra/1.3.0 [David Zuelke]
+- ext-mongodb/1.2.8 [David Zuelke]
+- ext-amqp/1.9.0 (for heroku-16 only) [David Zuelke]
+- ext-newrelic/7.1.0.187 [David Zuelke]
+- ext-redis/3.1.2 [David Zuelke]
+- ext-event/2.3.0 [David Zuelke]
+- ext-phalcon/3.1.1 [David Zuelke]
+
+### CHG
+
+- Default to `web: heroku-php-apache2` process in case of empty `Procfile` [David Zuelke]
+- libcassandra-2.6.0 [David Zuelke]
+- librdkafka/0.9.4 [David Zuelke]
+- Composer/1.4.1 [David Zuelke]
+- Default to `web: heroku-php-apache2` (without explicit composer bin dir) process in case of missing `Procfile` [David Zuelke]
+
+### FIX
+
+- Failed download during bootstrap fails without meaningful error message [David Zuelke]
+
+## v120 (2017-02-20)
+
+### ADD
+
+- ext-blackfire/1.14.3 [David Zuelke]
+- ext-mongodb/1.2.5 [David Zuelke]
+- ext-redis/3.1.1 [David Zuelke]
+- ext-imagick/3.4.3 [David Zuelke]
+- ext-rdkafka/3.0.1 [David Zuelke]
+- PHP/7.0.16 [David Zuelke]
+- PHP/7.1.2 [David Zuelke]
+- ext-memcached/3.0.3 [David Zuelke]
+
+### CHG
+
+- Allow overwriting of Apache access log format (now named `heroku`) in config include [David Zuelke]
+- Composer/1.3.2 [David Zuelke]
+- Use system libmcrypt and libmemcached on heroku-16 [David Zuelke]
+- librdkafka/0.9.3 [David Zuelke]
+- Enable `mod_proxy_wstunnel` in Apache config [David Zuelke]
+
+## v119 (2017-01-21)
+
+### FIX
+
+- Revert: ext-redis/3.1.0 [David Zuelke]
+- Revert: Composer/1.3.1 [David Zuelke]
+
+## v118 (2017-01-20)
+
+### ADD
+
+- ext-redis/3.1.0 [David Zuelke]
+- ext-rdkafka/3.0.0 [David Zuelke]
+- ext-phalcon/3.0.3 [David Zuelke]
+- ext-blackfire/1.14.2 [David Zuelke]
+- ext-apcu/5.1.8 [David Zuelke]
+- ext-mongodb/1.2.3 [David Zuelke]
+- PHP/5.6.30 [David Zuelke]
+- PHP/7.0.15 [David Zuelke]
+- PHP/7.1.1 [David Zuelke]
+- ext-newrelic/6.9.0 [David Zuelke]
+
+### CHG
+
+- Composer/1.3.1 [David Zuelke]
+- Ignore `WEB_CONCURRENCY` values with leading zeroes [David Zuelke]
+- Default `NEW_RELIC_APP_NAME` to `HEROKU_APP_NAME` [Christophe Coevoet]
+
 ## v117 (2016-12-09)
 
 ### ADD

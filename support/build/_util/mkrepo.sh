@@ -5,6 +5,19 @@ set -o pipefail
 # fail harder
 set -eu
 
+function s3cmd_get_progress() {
+	len=0
+	while read line; do
+		if [[ "$len" -gt 0 ]]; then
+			# repeat a backspace $len times
+			# need to use seq; {1..$len} doesn't work
+			printf '%0.s\b' $(seq 1 $len)
+		fi
+		echo -n "$line"
+		len=${#line}
+	done < <(grep --line-buffered -o -E '\[[0-9]+ of [0-9]+\]') # filter only the "[1 of 99]" bits from 's3cmd get' output
+}
+
 upload=false
 
 # process flags
@@ -27,14 +40,16 @@ done
 shift $((OPTIND-1))
 
 if [[ $# == "1" ]]; then
-	echo "Usage: $(basename $0) [--upload] [S3_BUCKET S3_PREFIX [MANIFEST...]]" >&2
-	echo "  S3_BUCKET: S3 bucket name for packages.json upload; default: '\$S3_BUCKET'." >&2
-	echo "  S3_PREFIX: S3 prefix, e.g. '' or 'dist-stable/'; default: '\${S3_PREFIX}'." >&2
-	echo "  If MANIFEST arguments are given, those are used to build the repo; otherwise," >&2
-	echo "   all manifests from given or default S3_BUCKET+S3_PREFIX are downloaded." >&2
-	echo "  A --upload flag triggers immediate upload, otherwise instructions are printed." >&2
-	echo " If --upload, or if stdout is a terminal, packages.json will be written to cwd." >&2
-	echo " If no --upload, and if stdout is a pipe, repo JSON will be echo'd to stdout." >&2
+	cat >&2 <<-EOF
+		Usage: $(basename $0) [--upload] [S3_BUCKET S3_PREFIX [MANIFEST...]]
+		  S3_BUCKET: S3 bucket name for packages.json upload; default: '\$S3_BUCKET'.
+		  S3_PREFIX: S3 prefix, e.g. '' or 'dist-stable/'; default: '\${S3_PREFIX}'.
+		  If MANIFEST arguments are given, those are used to build the repo; otherwise,
+		  all manifests from given or default S3_BUCKET+S3_PREFIX are downloaded.
+		  A --upload flag triggers immediate upload, otherwise instructions are printed.
+		  If --upload, or if stdout is a terminal, packages.json will be written to cwd.
+		  If no --upload, and if stdout is a pipe, repo JSON will be echo'd to stdout.
+	EOF
 	exit 2
 fi
 
@@ -48,11 +63,13 @@ fi
 if [[ $# == "0" ]]; then
 	manifests_tmp=$(mktemp -d -t "dst-repo.XXXXX")
 	trap 'rm -rf $manifests_tmp;' EXIT
-	echo "-----> Fetching manifests..." >&2
+	echo -n "-----> Fetching manifests... " >&2
 	(
 		cd $manifests_tmp
-		s3cmd --ssl get s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json 1>&2
+		s3cmd --ssl --progress get s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
+		rm download.log
 	)
+	echo "" >&2
 	manifests=$manifests_tmp/*.composer.json
 else
 	manifests="$@"
