@@ -24,6 +24,10 @@ echo "-----> Building ${dep_package}..."
 curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
+
+# patch a bunch of fallthrough cases with missing comments, which would error on GCC7
+curl -L https://github.com/nginx/nginx/commit/8449f750e62cd229026e9df3bd023ec7e073a7d4.patch | patch -p1
+
 ETC=${OUT_PREFIX}/etc
 VAR=${OUT_PREFIX}/var
 ./configure \
