@@ -158,7 +158,7 @@ if(!$have_runtime_req) {
 		file_put_contents("php://stderr", "ERROR: neither your $COMPOSER 'require' section nor any\ndependency therein requires a runtime version, but 'require-dev'\nor a dependency therein does. Heroku cannot automatically select\na default runtime version in this case.\nPlease add a version requirement for 'php' to section 'require'\nin $COMPOSER, 'composer update', commit, and deploy again.");
 		exit(3);
 	}
-	file_put_contents("php://stderr", "NOTICE: No runtime required in $COMPOSER_LOCK; using PHP ". ($require["heroku-sys/php"] = "^5.5.17") . "\n");
+	file_put_contents("php://stderr", "NOTICE: No runtime required in $COMPOSER_LOCK; using PHP ". ($require["heroku-sys/php"] = getenv("HEROKU_PHP_DEFAULT_RUNTIME_VERSION") ?? "^7.0.0") . "\n");
 } elseif(!isset($root["require"]["php"]) && !isset($root["require"]["hhvm"])) {
 	file_put_contents("php://stderr", "NOTICE: No runtime required in $COMPOSER; requirements\nfrom dependencies in $COMPOSER_LOCK will be used for selection\n");
 }
