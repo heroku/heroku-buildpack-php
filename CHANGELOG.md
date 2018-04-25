@@ -8,6 +8,7 @@
 - PHP/7.0.30 [David Zuelke]
 - PHP/7.1.17 [David Zuelke]
 - PHP/7.2.5 [David Zuelke]
+- ext-mongodb/1.4.3 [David Zuelke]
 
 ## v134 (2018-03-30)
 
