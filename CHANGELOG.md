@@ -10,6 +10,10 @@
 - PHP/7.2.5 [David Zuelke]
 - ext-mongodb/1.4.3 [David Zuelke]
 
+### CHG
+
+- Composer/1.6.4 [David Zuelke]
+
 ## v134 (2018-03-30)
 
 ### ADD
