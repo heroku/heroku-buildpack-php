@@ -13,6 +13,7 @@
 ### CHG
 
 - Composer/1.6.4 [David Zuelke]
+- libcassandra/2.9.0 [David Zuelke]
 
 ## v134 (2018-03-30)
 
