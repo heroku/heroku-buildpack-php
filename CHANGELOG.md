@@ -1,10 +1,26 @@
 # heroku-buildpack-php CHANGELOG
 
+## v135 (2018-04-26)
+
+### ADD
+
+- PHP/5.6.36 [David Zuelke]
+- PHP/7.0.30 [David Zuelke]
+- PHP/7.1.17 [David Zuelke]
+- PHP/7.2.5 [David Zuelke]
+- ext-mongodb/1.4.3 [David Zuelke]
+- ext-redis/4.0.2 [David Zuelke]
+
+### CHG
+
+- Composer/1.6.4 [David Zuelke]
+- libcassandra/2.9.0 [David Zuelke]
+
 ## v134 (2018-03-30)
 
 ### ADD
 
-- Apache/2.3.44 [David Zuelke]
+- Apache/2.4.33 [David Zuelke]
 - ext-newrelic/8.0.0.204 [David Zuelke]
 - ext-apcu/5.1.11 [David Zuelke]
 - ext-mongodb/1.4.2 [David Zuelke]
