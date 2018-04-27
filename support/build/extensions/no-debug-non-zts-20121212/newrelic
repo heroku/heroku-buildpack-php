@@ -68,14 +68,9 @@ fi
 # The daemon is a started in foreground mode so it will not daemonize
 # (i.e. disassociate from the controlling TTY and disappear into the
 # background).
-#
-# Perpetually tail and redirect the daemon log file to stderr so that it
-# may be observed via 'heroku logs'.
-touch /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log
-tail -qF -n 0 /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log 1>&2 &
 
 # daemon start
-/app/.heroku/php/bin/newrelic-daemon --watchdog-foreground --port "@newrelic-daemon" --logfile "/tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log" --loglevel "${NEW_RELIC_DAEMON_LOG_LEVEL}" --pidfile "/tmp/newrelic-daemon.pid" &
+/app/.heroku/php/bin/newrelic-daemon --watchdog-foreground --port "@newrelic-daemon" --logfile "/dev/stderr" --loglevel "${NEW_RELIC_DAEMON_LOG_LEVEL}" --pidfile "/tmp/newrelic-daemon.pid" &
 
 # give it a moment to connect
 sleep 2
@@ -99,8 +94,7 @@ newrelic.daemon.port = @newrelic-daemon
 
 newrelic.daemon.loglevel = ${NEW_RELIC_DAEMON_LOG_LEVEL}
 
-; the newrelic start script runs a perpetual tail command which will redirect daemon logs to stderr so that they may be observed via 'heroku logs'
-newrelic.daemon.logfile = /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log
+newrelic.daemon.logfile = /dev/stderr
 
 ; or else:
 ; 2015-05-18 13:00:43.144 (28 28) warning: unable to find suitable pidfile location, using none
