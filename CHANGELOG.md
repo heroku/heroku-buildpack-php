@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v146 (2018-11-08)
+
+### CHG
+
+- Translate `NEW_RELIC_LOG_LEVEL` values "verbose" and "verbosedebug" to "debug" for `newrelic-daemon` [David Zuelke]
+
 ## v145 (2019-10-16)
 
 ### ADD

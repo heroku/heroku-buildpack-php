@@ -60,6 +60,10 @@ if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
 	if [[ -f "/app/.heroku/php/bin/newrelic-daemon" ]]; then
 		export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-${HEROKU_APP_NAME:-"PHP Application on Heroku"}}
 		export NEW_RELIC_LOG_LEVEL=${NEW_RELIC_LOG_LEVEL:-"warning"}
+		export NEW_RELIC_DAEMON_LOG_LEVEL="$NEW_RELIC_LOG_LEVEL"
+		if [[ "$NEW_RELIC_DAEMON_LOG_LEVEL" == verbose* || "$NEW_RELIC_DAEMON_LOG_LEVEL" == *debug ]]; then
+			NEW_RELIC_DAEMON_LOG_LEVEL="debug"
+		fi
 
 		# The daemon is a started in foreground mode so it will not daemonize
 		# (i.e. disassociate from the controlling TTY and disappear into the
@@ -71,7 +75,7 @@ if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
 		tail -qF -n 0 /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log 1>&2 &
 
 		# daemon start
-		/app/.heroku/php/bin/newrelic-daemon --foreground --port "@newrelic-daemon" --logfile "/tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log" --loglevel "${NEW_RELIC_LOG_LEVEL}" --pidfile "/tmp/newrelic-daemon.pid" &
+		/app/.heroku/php/bin/newrelic-daemon --foreground --port "@newrelic-daemon" --logfile "/tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log" --loglevel "${NEW_RELIC_DAEMON_LOG_LEVEL}" --pidfile "/tmp/newrelic-daemon.pid" &
 
 		# give it a moment to connect
 		sleep 2
@@ -88,7 +92,7 @@ newrelic.daemon.location = /app/.heroku/php/bin/newrelic-daemon
 newrelic.daemon.port = @newrelic-daemon
 
 newrelic.loglevel = ${NEW_RELIC_LOG_LEVEL}
-newrelic.daemon.loglevel = ${NEW_RELIC_LOG_LEVEL}
+newrelic.daemon.loglevel = ${NEW_RELIC_DAEMON_LOG_LEVEL}
 
 newrelic.license = ${NEW_RELIC_LICENSE_KEY}
 newrelic.appname = ${NEW_RELIC_APP_NAME}
