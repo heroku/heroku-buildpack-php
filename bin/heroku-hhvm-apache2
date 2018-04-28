@@ -69,6 +69,23 @@ findconfig() {
 	return 1;
 }
 
+wait_pidfile() {
+	while ! test -f "$1"; do
+		[[ $verbose && ${2:-} ]] && echo "$2" >&2
+		sleep 0.1
+	done
+}
+
+wait_pid_and_pidfile() {
+	while ! test -f "$2"; do
+		if ! kill -0 "$1" 2> /dev/null; then # kill -0 checks if process exists
+			break;
+		fi
+		[[ $verbose && ${3:-} ]] && echo "$3" >&2
+		sleep 0.1
+	done
+}
+
 print_help() {
 	cat >&2 <<-EOF
 		
@@ -387,43 +404,47 @@ fi
 	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
 ) & pids+=($!)
 
+hhvm_pidfile=$(mktemp -t "heroku.hhvm.pid-$PORT.XXXXXX" -u)
 (
 	trap 'echo "hhvm" >&3;' EXIT
 	trap '' INT;
 
 	echo "Starting hhvm..." >&2
 
-	hhvm --mode server "${php_configs[@]}" & pid=$!
-
-	# TODO: wait for pidfile in trap, otherwise a previous subshell failing will bring things down and send us a SIGTERM before the process may be able to react to the signal we're sending it
-	trap 'echo "Stopping hhvm..." >&2; kill -HUP $pid 2> /dev/null || true' TERM
+	hhvm --mode server -d hhvm.pid_file="$hhvm_pidfile" "${php_configs[@]}" & pid=$!
+	# wait for the pidfile in the trap; otherwise, a previous subshell failing may result in us getting a SIGTERM and forwarding it to the child process before that child process is ready to process signals
+	trap 'echo "Stopping hhvm..." >&2; wait_pid_and_pidfile $pid "$hhvm_pidfile"; kill -HUP $pid 2> /dev/null || true' TERM
 
 	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
 	trap - TERM
 	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
 ) & pids+=($!)
 
+httpd_pidfile=$(httpd -t -D DUMP_RUN_CFG 2> /dev/null | sed -n -E 's/PidFile: "(.+)"/\1/p') # get PidFile location
 (
 	trap 'echo "httpd" >&3;' EXIT
 	trap '' INT;
 
-	# wait a few seconds for HHVM to finish initializing; otherwise an early request might break the web server with the FastCGI pipe not being ready
-	sleep 2
+	# wait for HHVM to write its PID file, which it does after initialization
+	# if we didn't wait, the web server would start sending traffic to the FCGI backend before it's ready (or before the socket is even created)
+	# if HHVM fails to start, the while loop below will not loop forever, because the HHVM subshell will exit, causing the main cleanup procedure to run, which sends this subshell a SIGTERM, which terminates the while loop below after the next sleep execution
+	wait_pidfile "$hhvm_pidfile" "Waiting for hhvm to finish initializing..."
 
 	echo "Starting httpd..." >&2
 
 	httpd -D NO_DETACH -c "Include $httpd_config" & pid=$!
-	# TODO: wait for pidfile in trap, otherwise a previous subshell failing will bring things down and send us a SIGTERM before the process may be able to react to the signal we're sending it
-	trap 'echo "Stopping httpd..." >&2; kill -WINCH $pid 2> /dev/null || true' TERM
+	# wait for the pidfile in the trap; otherwise, a previous subshell failing may result in us getting a SIGTERM and forwarding it to the child process before that child process is ready to process signals
+	trap 'echo "Stopping httpd..." >&2; wait_pid_and_pidfile $pid "$httpd_pidfile"; kill -WINCH $pid 2> /dev/null || true' TERM
+
+	# first, we wait for the pid file to be written, so that we can emit a ready message
+	wait_pid_and_pidfile $pid "$httpd_pidfile"
+	# on Heroku, there is a "state changed from starting to up", but for local execution, we want a "ready" message
+	[[ -z ${DYNO:-} || $verbose ]] && kill -0 $pid 2> /dev/null && echo "Application ready for connections on port $PORT." >&2
 
 	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
 	trap - TERM
 	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
 ) & pids+=($!)
-
-# TODO: wait for pidfile here
-# on Heroku, there is a "state changed from starting to up", but for local execution, we want a "ready" message
-[[ -z ${DYNO:-} || $verbose ]] && echo "Application ready for connections on port $PORT." >&2
 
 # wait for something to come from the FIFO attached to FD 3, which means that the given process was killed or has failed
 # this will be interrupted by a SIGTERM or SIGINT in the traps further up
