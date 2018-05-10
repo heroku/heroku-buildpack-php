@@ -2,6 +2,10 @@
 
 ## v136 (2018-05-??)
 
+### ADD
+
+- ext-blackfire/1.20.0 [David Zuelke]
+
 ### CHG
 
 - Default to PHP 7 for heroku-18 and later [David Zuelke]
