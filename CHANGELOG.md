@@ -10,6 +10,7 @@
 ### CHG
 
 - Default to PHP 7 for heroku-18 and later [David Zuelke]
+- Composer/1.6.5 [David Zuelke]
 
 ## v135 (2018-04-26)
 
