@@ -6,6 +6,7 @@
 
 - ext-blackfire/1.20.0 [David Zuelke]
 - ext-newrelic/8.1.0.209 [David Zuelke]
+- PHP/7.1.18 [David Zuelke]
 
 ### CHG
 
