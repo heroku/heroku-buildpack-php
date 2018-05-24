@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v146 (2019-11-06)
+
+### CHG
+
+- Install buildpack to .heroku/php/ instead of vendor/heroku/heroku-buildpack-php/ [David Zuelke]
+
 ## v145 (2019-10-16)
 
 ### ADD
