@@ -4,7 +4,7 @@
 
 **After every change to your formulae, perform the following** from the root of the Git repository (not from `support/build/_docker/`):
 
-    $ docker build --tag heroku-php-build-cedar-14 --file $(pwd)/support/build/_docker/cedar-14.Dockerfile .
+    $ docker build --pull --tag heroku-php-build-cedar-14 --file $(pwd)/support/build/_docker/cedar-14.Dockerfile .
 
 ## Configuration
 
