@@ -39,14 +39,16 @@ curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
 
-libicu="libicu55"
-if [[ $STACK == "cedar-14" ]]; then
-	libicu="libicu52"
-fi
 # we need libgmp for GMP, libpam0g for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP
-needed=( libgmp10 libpam0g $libicu libsasl2-2 libkrb5-3 libldap-2.4-2 )
-if [[ $STACK != "cedar-14" ]]; then
+needed=( libgmp10 libpam0g libsasl2-2 libkrb5-3 libldap-2.4-2 )
+if [[ $STACK == "cedar-14" ]]; then
+	needed+=( libicu52 )
+elif [[ $STACK == "heroku-16" ]]; then
+	needed+=( libicu55 )
 	needed+=( libsodium18 )
+elif [[ $STACK != "heroku-18" ]]; then
+	needed+=( libicu60 )
+	needed+=( libsodium23 )
 fi
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then

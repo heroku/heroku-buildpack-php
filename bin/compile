@@ -138,7 +138,7 @@ curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
-curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.6.4.tar.gz" || {
+curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.6.5.tar.gz" || {
 	mcount "failures.bootstrap.download.composer"
 	error <<-EOF
 		Failed to download Composer.
@@ -167,6 +167,12 @@ echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $buil
 
 status "Installing platform packages..."
 
+if [[ $STACK == "cedar-14" || $STACK == "heroku-16" ]]; then
+	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^5.5.17"
+else
+	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.0.0"
+fi
+export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # extract requirements from composer.lock
 /app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | indent || {
 	code=$?

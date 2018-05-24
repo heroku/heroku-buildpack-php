@@ -1,0 +1,8 @@
+[buildpack]
+name = "PHP"
+
+	[publish.Ignore]
+	files = [
+		".gitignore",
+		".github/"
+	]

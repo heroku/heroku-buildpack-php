@@ -1,5 +1,19 @@
 # heroku-buildpack-php CHANGELOG
 
+## v136 (2018-05-24)
+
+### ADD
+
+- ext-blackfire/1.20.0 [David Zuelke]
+- ext-newrelic/8.1.0.209 [David Zuelke]
+- PHP/7.1.18 [David Zuelke]
+- PHP/7.2.6 [David Zuelke]
+
+### CHG
+
+- Default to PHP 7 for heroku-18 and later [David Zuelke]
+- Composer/1.6.5 [David Zuelke]
+
 ## v135 (2018-04-26)
 
 ### ADD
