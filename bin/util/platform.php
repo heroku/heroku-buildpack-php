@@ -64,6 +64,9 @@ array_shift($argv);
 // base repos we need - no packagist, and the installer plugin path (first arg)
 $repositories = [
 	["packagist" => false],
+	# this installer
+	["type" => "path", "url" => array_shift($argv), "options" => ["symlink" => false]],
+	# the whole buildpack
 	["type" => "path", "url" => array_shift($argv), "options" => ["symlink" => false]],
 ];
 // all other args are repo URLs; they get passed in ascending order of precedence, so we reverse
@@ -164,6 +167,10 @@ if(!$have_runtime_req) {
 
 $require["heroku-sys/apache"] = "^2.4.10";
 $require["heroku-sys/nginx"] = "~1.8.0";
+
+// we want the buildpack itself to also get installed
+// the dev stability flag is there because Composer defaults to "dev-master" in the absence of a version field in composer.json
+$require["heroku/heroku-buildpack-php"] = "*@dev";
 
 preg_match("#^([^-]+)(?:-([0-9]+))?\$#", $STACK, $stack);
 $provide = ["heroku-sys/".$stack[1] => (isset($stack[2])?$stack[2]:"1").gmdate(".Y.m.d")]; # cedar: 14.2016.02.16 etc

@@ -347,7 +347,7 @@ else
 fi
 export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # extract requirements from composer.lock
-/app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | indent || {
+/app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php "$bp_dir/support/installer/" "$bp_dir/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | indent || {
 	code=$?
 	if [[ $code -eq 3 ]]; then
 		mcount "failures.platform.composer_lock.runtime_only_in_dev"
@@ -704,18 +704,13 @@ fi
 
 status "Preparing runtime environment..."
 
-# install this buildpack like a composer package
+# this buildpack was installed as a composer package in the platform install step
 # it will contain the apache/nginx/php configs and the boot script
-# TODO: warn if require-dev has the package using a different branch
-shopt -u dotglob # we don't want .git, .gitignore et al
-# figure out the package dir name to write to and copy to it
-hbpdir="$composer_vendordir/$(cat $bp_dir/composer.json | python -c 'import sys, json; print(json.load(sys.stdin)["name"])')"
-mkdir -p "$build_dir/$hbpdir"
-cp -r "$bp_dir"/* "$build_dir/$hbpdir/"
+# we used to write this to /app/vendor/, so we need to put symlinks to the binaries in place, as most Procfiles will have "vendor/bin/heroku-php-apache2" and similar
 # make bin dir, just in case
 mkdir -p "$build_dir/$composer_bindir"
-# figure out shortest relative path from vendor/heroku/heroku-buildpack-php to vendor/bin (or whatever the bin dir is)
-relbin=$(python -c "import os.path; print(os.path.relpath('$hbpdir', '$composer_bindir'))")
+# figure out shortest relative path from .heroku/php/vendor/heroku/heroku-buildpack-php to vendor/bin (or whatever the bin dir is)
+relbin=$(python -c "import os.path; print(os.path.relpath('.heroku/php/vendor/heroku/heroku-buildpack-php', '$composer_bindir'))")
 # collect bin names from composer.json
 relbins=$(cat $bp_dir/composer.json | python -c 'from __future__ import print_function; import sys, json; { print(sys.argv[1]+"/"+bin) for bin in json.load(sys.stdin)["bin"] }' $relbin)
 # link to bins
