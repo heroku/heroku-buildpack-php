@@ -444,36 +444,37 @@ export COMPOSER="$COMPOSER_bak"
 unset COMPOSER_bak
 
 if [[ $app_type = "laravel" ]]; then
-	cd $build_dir
+cd $build_dir
 
-	# generate .env file
-	echo 'Generating .env file...'
-	rm -f .env
-	echo "APP_NAME=$APP_NAME
-	APP_ENV=$APP_ENV
-	APP_KEY=
-	APP_DEBUG=$APP_DEBUG
-	APP_URL=$APP_URL
-	DB_CONNECTION=$DB_CONN
-	DB_HOST=$DB_HOST
-	DB_PORT=$DB_PORT
-	DB_DATABASE=$DB_NAME
-	DB_USERNAME=$DB_USER
-	DB_PASSWORD=$DB_PASS
-	BROADCAST_DRIVER=log
-	CACHE_DRIVER=file
-	SESSION_DRIVER=file
-	QUEUE_DRIVER=sync
-	MAIL_DRIVER=$MAIL_DRIVER
-	MAIL_HOST=$MAIL_HOST
-	MAIL_PORT=$MAIL_PORT
-	MAIL_USERNAME=$MAIL_USER
-	MAIL_PASSWORD= $MAIL_PASS
-	MAIL_ENCRYPTION=null" > .env && echo '.env file created.'
+# generate .env file
+echo 'Generating .env file...'
+rm -f .env
+echo "APP_NAME=$APP_NAME
+APP_ENV=$APP_ENV
+APP_KEY=base64:Rsxq0PCSrXkE/DX2/GorlsuFnnpAOZvITbCBrB0M7IY=
+APP_DEBUG=$APP_DEBUG
+APP_URL=$APP_URL
+DB_CONNECTION=$DB_CONN
+DB_HOST=$DB_HOST
+DB_PORT=$DB_PORT
+DB_DATABASE=$DB_NAME
+DB_USERNAME=$DB_USER
+DB_PASSWORD=$DB_PASS
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+QUEUE_DRIVER=sync
+MAIL_DRIVER=$MAIL_DRIVER
+MAIL_HOST=$MAIL_HOST
+MAIL_PORT=$MAIL_PORT
+MAIL_USERNAME=$MAIL_USER
+MAIL_PASSWORD= $MAIL_PASS
+MAIL_ENCRYPTION=null" > .env && echo '.env file created.'
 
-	# deploy task
-	if [ -n "$DEPLOY_TASKS" ]; then
-		php artisan key:generate
-		$DEPLOY_TASKS
-	fi
+php artisan key:generate
+
+# deploy task
+if [ -n "$DEPLOY_TASKS" ]; then		
+    $DEPLOY_TASKS
+fi
 fi
