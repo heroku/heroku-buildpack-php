@@ -1,9 +1,8 @@
-# Heroku buildpack: PHP + Laravel
+# Heroku Buildpack: PHP + Laravel
 
-![laravel](https://laravel.com/assets/img/components/logo-laravel.svg)
+![Laravel Buildpack](https://bosnadev.com/wp-content/uploads/2014/09/laravel_heroku.jpg)
 
-
-Forked official [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) for PHP applications with added support for Laravel based applications.
+Forked official [Heroku PHP Buildpack](https://github.com/heroku/heroku-buildpack-php) with added support for Laravel based applications.
 
 ## Usage
 
