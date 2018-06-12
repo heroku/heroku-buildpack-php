@@ -18,7 +18,7 @@ If you also have files from other frameworks or languages that could trigger ano
 
 Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for further usage instructions.
 
-## Generating .env File
+## Generating .env file
 By default, this will replace the existing *.env* file. It will automatically populate the basic variables from your *Heroku Config Vars*.
 
     heroku config:set *VARIABLE_NAME*=*VALUE*
