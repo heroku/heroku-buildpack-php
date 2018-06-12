@@ -406,8 +406,8 @@ ln -fs $relbins .
 cd $build_dir
 
 if [[ ! -f "Procfile" ]]; then
-	echo "web: heroku-$engine-apache2" > Procfile
-	notice_inline "No Procfile, using 'web: heroku-$engine-apache2'."
+	echo "web: heroku-$engine-apache2 public/" > Procfile
+	notice_inline "No Procfile, using 'web: heroku-$engine-apache2 public/'."
 fi
 
 # write empty WEB_CONCURRENCY.sh to overwrite the defaults logic from a prior buildpack, e.g. Node (all buildpacks use the same filename to allow this)
@@ -430,3 +430,42 @@ fi
 # done with platform installs; restore COMPOSER from previous value
 export COMPOSER="$COMPOSER_bak"
 unset COMPOSER_bak
+
+# move to build directory
+cd $build_dir
+
+# generate .env file
+echo 'Generating .env file...'
+rm -f .env
+echo "APP_NAME=$APP_NAME
+APP_ENV=$APP_ENV
+APP_KEY=
+APP_DEBUG=$APP_DEBUG
+APP_URL=$APP_URL
+DB_CONNECTION=$DB_CONN
+DB_HOST=$DB_HOST
+DB_PORT=$DB_PORT
+DB_DATABASE=$DB_NAME
+DB_USERNAME=$DB_USER
+DB_PASSWORD=$DB_PASS
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+QUEUE_DRIVER=sync
+MAIL_DRIVER=$MAIL_DRIVER
+MAIL_HOST=$MAIL_HOST
+MAIL_PORT=$MAIL_PORT
+MAIL_USERNAME=$MAIL_USER
+MAIL_PASSWORD= $MAIL_PASS
+MAIL_ENCRYPTION=nul" > .env && echo '.env file created.'
+
+if [ -z "$DEPLOY_TASKS" ]; then
+  echo "DEPLOY_TASKS has not been set"
+  echo "You can set it with:"
+  echo 'heroku config:set DEPLOY_TASKS="set to any thing"'
+  exit 0
+fi
+
+# deploy tasks
+php artisan key:generate
+$DEPLOY_TASKS
