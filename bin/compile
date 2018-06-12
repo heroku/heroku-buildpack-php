@@ -413,7 +413,11 @@ ln -fs $relbins .
 cd $build_dir
 
 if [[ ! -f "Procfile" ]]; then
-	procfile="web: heroku-$engine-apache2 public/"
+	if [[ $app_type = "laravel" ]]; then
+		procfile="web: heroku-$engine-apache2 public/"
+	else
+		procfile="web: heroku-$engine-apache2"
+	fi
 	echo $procfile > Procfile
 	notice_inline "No Procfile, using '$procfile'."
 fi
