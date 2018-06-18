@@ -447,11 +447,11 @@ unset COMPOSER_bak
 if [[ -n $HT_AUTH ]]; then
 	cd $build_dir
 	if [[ $app_type = "laravel" ]]; then
-		$htpasswd = .htpasswd
-		$htaccess = public/.htaccess
+		ht_pass=".htpasswd"
+		ht_file="public/.htaccess"
 	else
-		$htpasswd = $(readlink ../.htpasswd -f)
-		$htaccess = .htaccess
+		ht_pass=$(readlink ../.htpasswd -f)
+		ht_file=".htaccess"
 	fi
 	
 htpasswd -cb $htpasswd $HT_AUTH
