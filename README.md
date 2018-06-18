@@ -45,9 +45,23 @@ For email configuration variables:
 - MAIL_PASS
 - MAIL_PORT
 
-To run post deploy commands set config variable 
+To run post deploy commands set config variable:
     
-    heroku config:set DEPLOY_TASKS=php artisan migrate:refresh --force -seed
- 
+    heroku config:set DEPLOY_TASKS=migrate:refresh --force --seed
+    # will run php artisan migrate:refresh --force --seed
+
 ## Generating environment key
 By default, this buildpack also runs `php artisan key:generate`.
+
+## .HTACCESS Basic Authentication
+This will generate a .htpasswd file based of the config variable **HT_AUTH**
+
+    heroku config:set HT_AUTH={username} {password}
+    # runs htpasswd -cb .htpasswd {username} {password}
+    
+It will also append the authentication code in **public/.htaccess**
+
+    AuthType Basic
+    AuthName "Restricted Access"
+    AuthUserFile /app/.htpasswd
+    Require valid-user
