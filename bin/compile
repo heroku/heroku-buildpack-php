@@ -465,7 +465,7 @@ AuthName "Restricted Access"
 AuthUserFile $ht_pass
 Require valid-user
 
-EOL && echo ".htaccess file updated."
+EOL
 fi
 
 if [[ $app_type = "laravel" ]]; then
