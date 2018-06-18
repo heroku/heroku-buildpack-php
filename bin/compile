@@ -443,6 +443,28 @@ fi
 export COMPOSER="$COMPOSER_bak"
 unset COMPOSER_bak
 
+# generate http authentication
+if [[ -n $HT_AUTH ]]; then
+	cd $build_dir
+	if [[ $app_type = "laravel" ]]; then
+		$htpasswd = .htpasswd
+		$htaccess = public/.htaccess
+	else
+		$htpasswd = $(readlink ../.htpasswd -f)
+		$htaccess = .htaccess
+	fi
+	
+htpasswd -cb $htpasswd $HT_AUTH
+cat >> $htaccess <<EOL
+
+AuthType Basic
+AuthName "Restricted Access"
+AuthUserFile $htpasswd
+Require valid-user
+
+EOL
+fi
+
 if [[ $app_type = "laravel" ]]; then
 cd $build_dir
 
@@ -475,6 +497,6 @@ php artisan key:generate
 
 # deploy task
 if [ -n "$DEPLOY_TASKS" ]; then		
-    $DEPLOY_TASKS
+php artisan $DEPLOY_TASKS
 fi
 fi
