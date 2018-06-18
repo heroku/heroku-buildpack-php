@@ -450,16 +450,16 @@ if [[ -n $HT_AUTH ]]; then
 		ht_pass=".htpasswd"
 		ht_file="public/.htaccess"
 	else
-		ht_pass=$(readlink ../.htpasswd -f)
+		ht_pass="$(readlink ../.htpasswd -f)"
 		ht_file=".htaccess"
 	fi
 	
-htpasswd -cb $htpasswd $HT_AUTH
-cat >> $htaccess <<EOL
+htpasswd -cb $ht_pass $HT_AUTH
+cat >> $ht_file <<EOL
 
 AuthType Basic
 AuthName "Restricted Access"
-AuthUserFile $htpasswd
+AuthUserFile $ht_pass
 Require valid-user
 
 EOL
