@@ -447,22 +447,25 @@ unset COMPOSER_bak
 if [[ -n $HT_AUTH ]]; then
 	cd $build_dir
 	if [[ $app_type = "laravel" ]]; then
-		ht_pass=".htpasswd"
-		ht_file="public/.htaccess"
+		ht_pass="$(readlink .htpasswd -f)"
+		ht_file="$(readlink public/.htaccess -f)"
 	else
 		ht_pass="$(readlink ../.htpasswd -f)"
-		ht_file=".htaccess"
+		ht_file="$(readlink .htaccess -f)"
 	fi
 	
+echo "HTACCESS FILE: $ht_file"
+echo "HTPASSWD FILE: $ht_pass"
 htpasswd -cb $ht_pass $HT_AUTH
 cat >> $ht_file <<EOL
+
 
 AuthType Basic
 AuthName "Restricted Access"
 AuthUserFile $ht_pass
 Require valid-user
 
-EOL
+EOL && ".htaccess file updated."
 fi
 
 if [[ $app_type = "laravel" ]]; then
