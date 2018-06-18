@@ -448,8 +448,8 @@ cd $build_dir
 
 # generate http authentication
 if [[ -n $HT_AUTH ]]; then
-htpasswd -cb .htaccess $HT_AUTH
-cat >> .htpasswd <<EOL
+htpasswd -cb .htpasswd $HT_AUTH
+cat >> public/.htaccess <<EOL
 
 
 AuthType Basic
