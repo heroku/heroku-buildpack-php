@@ -485,6 +485,7 @@ MAIL_PASSWORD= $MAIL_PASS
 MAIL_ENCRYPTION=null" > .env && echo '.env file created.'
 
 php artisan key:generate
+php artisan view:clear
 
 # deploy task
 if [ -n "$DEPLOY_TASKS" ]; then		
