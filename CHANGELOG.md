@@ -1,5 +1,20 @@
 # heroku-buildpack-php CHANGELOG
 
+## v137 (2018-06-26)
+
+### ADD
+
+- PHP/7.1.19 [David Zuelke]
+- PHP/7.2.7 [David Zuelke]
+- ext-blackfire/1.20.1 [David Zuelke]
+- ext-phalcon/3.4.0 [David Zuelke]
+- ext-pq/2.1.4 [David Zuelke]
+- ext-mongodb/1.5.0 [David Zuelke]
+
+### FIX
+
+- New Relic daemon location is broken in PHP INI [David Zuelke]
+
 ## v136 (2018-05-24)
 
 ### ADD
