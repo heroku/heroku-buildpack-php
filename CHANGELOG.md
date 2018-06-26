@@ -1,6 +1,6 @@
 # heroku-buildpack-php CHANGELOG
 
-## v137 (2018-06-??)
+## v137 (2018-06-26)
 
 ### ADD
 
@@ -9,6 +9,7 @@
 - ext-mongodb/1.4.4 [David Zuelke]
 - ext-blackfire/1.20.1 [David Zuelke]
 - ext-phalcon/3.4.0 [David Zuelke]
+- ext-pq/2.1.4 [David Zuelke]
 
 ### FIX
 
