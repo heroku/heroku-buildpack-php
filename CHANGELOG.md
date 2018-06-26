@@ -8,6 +8,7 @@
 - PHP/7.2.7 [David Zuelke]
 - ext-mongodb/1.4.4 [David Zuelke]
 - ext-blackfire/1.20.1 [David Zuelke]
+- ext-phalcon/3.4.0 [David Zuelke]
 
 ### FIX
 
