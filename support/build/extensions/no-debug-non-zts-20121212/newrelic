@@ -84,7 +84,7 @@ mkdir -p ${OUT_PREFIX}/etc/php/conf.d
 cat > ${OUT_PREFIX}/etc/php/conf.d/newrelic.ini-dist <<'EOF'
 extension = newrelic.so
 
-newrelic.daemon.location = /app/.heroku/php/bin/newrelic-
+newrelic.daemon.location = /app/.heroku/php/bin/newrelic-daemon
 newrelic.daemon.port = @newrelic-daemon
 
 newrelic.loglevel = ${NEW_RELIC_LOG_LEVEL}

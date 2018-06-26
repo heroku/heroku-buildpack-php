@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v137 (2018-06-??)
+
+### FIX
+
+- New Relic daemon location is broken in PHP INI [David Zuelke]
+
 ## v136 (2018-05-24)
 
 ### ADD
