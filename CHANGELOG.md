@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/7.1.19 [David Zuelke]
+- PHP/7.2.7 [David Zuelke]
 
 ### FIX
 
