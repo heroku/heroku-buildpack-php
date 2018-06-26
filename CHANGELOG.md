@@ -2,6 +2,10 @@
 
 ## v137 (2018-06-??)
 
+### ADD
+
+- PHP/7.1.19 [David Zuelke]
+
 ### FIX
 
 - New Relic daemon location is broken in PHP INI [David Zuelke]
