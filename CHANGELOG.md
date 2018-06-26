@@ -7,6 +7,7 @@
 - PHP/7.1.19 [David Zuelke]
 - PHP/7.2.7 [David Zuelke]
 - ext-mongodb/1.4.4 [David Zuelke]
+- ext-blackfire/1.20.1 [David Zuelke]
 
 ### FIX
 
