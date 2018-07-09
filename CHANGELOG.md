@@ -6,6 +6,10 @@
 
 - ext-blackfire/1.22.0 [David Zuelke]
 
+### FIX
+
+- PHP 7 built with --enable-opcache-file only on cedar-14 [David Zuelke]
+
 ## v137 (2018-06-26)
 
 ### ADD
