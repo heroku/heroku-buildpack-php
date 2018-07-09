@@ -105,8 +105,13 @@ if [[ $dep_version == 7.* ]]; then
 
 	if [[ $dep_version == 7.0.* || $dep_version == 7.1.* ]]; then
 		configureopts+=("--with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix}")
-	elif [[ $STACK != "cedar-14" ]]; then
-		configureopts+=("--with-sodium=shared")
+	else
+		if [[ $STACK != "cedar-14" ]]; then
+			configureopts+=("--with-sodium=shared")
+		fi
+		if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
+			configureopts+=("--with-password-argon2")
+		fi
 	fi
 else
 	configureopts+=("--with-mcrypt${mcrypt_prefix:+"="}${mcrypt_prefix}" "--with-mysql=shared")

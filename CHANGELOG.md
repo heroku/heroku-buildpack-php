@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-blackfire/1.22.0 [David Zuelke]
+- Argon2 support for PHP 7.2 and heroku-18 [David Zuelke]
 
 ### FIX
 
