@@ -6,6 +6,7 @@
 
 - ext-blackfire/1.22.0 [David Zuelke]
 - Argon2 support for PHP 7.2 and heroku-18 [David Zuelke]
+- ext-apcu/5.1.12 [David Zuelke]
 
 ### FIX
 
