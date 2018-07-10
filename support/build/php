@@ -99,25 +99,22 @@ else
 	fi
 fi
 
-configureopts=
+configureopts=()
 if [[ $dep_version == 7.* ]]; then
-	configureopts="\
---enable-opcache-file\
-"
+	configureopts+=("--enable-opcache-file")
+
 	if [[ $dep_version == 7.0.* || $dep_version == 7.1.* ]]; then
-		configureopts="\
---with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix} \
-"
-	elif [[ $STACK != "cedar-14" ]]; then
-		configureopts="\
---with-sodium=shared \
-"
+		configureopts+=("--with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix}")
+	else
+		if [[ $STACK != "cedar-14" ]]; then
+			configureopts+=("--with-sodium=shared")
+		fi
+		if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
+			configureopts+=("--with-password-argon2")
+		fi
 	fi
 else
-	configureopts="\
---with-mcrypt${mcrypt_prefix:+"="}${mcrypt_prefix} \
---with-mysql=shared \
-"
+	configureopts+=("--with-mcrypt${mcrypt_prefix:+"="}${mcrypt_prefix}" "--with-mysql=shared")
 fi
 
 export PATH=${OUT_PREFIX}/bin:$PATH
@@ -164,7 +161,7 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--with-pdo-sqlite=shared \
 	--with-xmlrpc=shared \
 	--with-xsl=shared \
-	$configureopts
+	"${configureopts[@]}"
 make -s -j 9
 make install -s
 rm -rf ${OUT_PREFIX}/opt/imap-2007f # c-client.a got linked statically

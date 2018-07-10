@@ -1,5 +1,18 @@
 # heroku-buildpack-php CHANGELOG
 
+## v138 (2018-07-10)
+
+### ADD
+
+- ext-blackfire/1.22.0 [David Zuelke]
+- Argon2 support for PHP 7.2 and heroku-18 [David Zuelke]
+- ext-apcu/5.1.12 [David Zuelke]
+- ext-mongodb/1.5.1 [David Zuelke]
+
+### FIX
+
+- PHP 7 built with --enable-opcache-file only on cedar-14 [David Zuelke]
+
 ## v137 (2018-06-26)
 
 ### ADD
