@@ -444,26 +444,6 @@ mcount "platform.packages.php.$($engine_r "echo ${engine^^}_VERSION;")"
 
 status "Installing dependencies..."
 
-# check if we should use a composer.phar version bundled with the project
-if [[ -f "composer.phar" ]]; then
-	[[ -x "composer.phar" ]] || {
-		mcount "failures.composer_phar.not_executable"
-		error "File '/composer.phar' isn't executable; please 'chmod +x'!"
-	}
-	$engine_r 'new Phar("composer.phar");' &> /dev/null || {
-		mcount "failures.composer_phar.invalid_phar"
-		error "File '/composer.phar' is not a valid PHAR archive!"
-	}
-	composer() {
-		$engine composer.phar "$@"
-	}
-	export -f composer
-	composer --version 2>&1 | grep "^Composer version" > /dev/null || {
-		mcount "failures.composer_phar.not_composer"
-		error "File '/composer.phar' is not a Composer executable!"
-	}
-	notice_inline "Using '/composer.phar' to install dependencies."
-fi
 # echo composer version for info purposes
 # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 composer --version 2> /dev/null | tail -n 1 | indent
