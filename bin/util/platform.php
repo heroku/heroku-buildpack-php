@@ -157,9 +157,9 @@ if(!$have_runtime_req) {
 		// we can't compute a resulting version rule (that's the whole point of the custom installer that uses Composer's solver), so throwing an error is the best thing we can do here
 		exit(3);
 	}
-	file_put_contents("php://stderr", "NOTICE: No runtime required in $COMPOSER_LOCK; using PHP ". ($require["heroku-sys/php"] = getenv("HEROKU_PHP_DEFAULT_RUNTIME_VERSION") ?? "^7.0.0") . "\n");
+	file_put_contents("php://stderr", "\033[1;33mNOTICE:\033[0m No runtime required in $COMPOSER_LOCK; using PHP ". ($require["heroku-sys/php"] = getenv("HEROKU_PHP_DEFAULT_RUNTIME_VERSION") ?? "^7.0.0") . "\n");
 } elseif(!isset($root["require"]["php"]) && !isset($root["require"]["hhvm"])) {
-	file_put_contents("php://stderr", "NOTICE: No runtime required in $COMPOSER; requirements\nfrom dependencies in $COMPOSER_LOCK will be used for selection\n");
+	file_put_contents("php://stderr", "\033[1;33mNOTICE:\033[0m No runtime required in $COMPOSER; requirements\nfrom dependencies in $COMPOSER_LOCK will be used for selection\n");
 }
 
 $require["heroku-sys/apache"] = "^2.4.10";

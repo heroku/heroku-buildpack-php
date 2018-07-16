@@ -2,11 +2,11 @@ error() {
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
-	echo
+	echo -e "\033[1;31m" # bold; red
 	echo -n " !     ERROR: "
 	# this will be fed from stdin
 	indent no_first_line_indent
-	echo
+	echo -e "\033[0m" # reset style
 	exit 1
 }
 
@@ -14,20 +14,22 @@ warning() {
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
-	echo
+	echo -e "\033[1;33m" # bold; yellow
 	echo -n " !     WARNING: "
 	# this will be fed from stdin
 	indent no_first_line_indent
-	echo
+	echo -e "\033[0m" # reset style
 }
 
 warning_inline() {
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
+	echo -n -e "\033[1;33m" # bold; yellow
 	echo -n " !     WARNING: "
 	# this will be fed from stdin
 	indent no_first_line_indent
+	echo -n -e "\033[0m" # reset style
 }
 
 status() {
@@ -44,7 +46,9 @@ notice() {
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
 	echo
+	echo -n -e "\033[1;33m" # bold; yellow
 	echo -n "       NOTICE: "
+	echo -n -e "\033[0m" # reset style
 	# this will be fed from stdin
 	indent no_first_line_indent
 	echo
@@ -54,7 +58,9 @@ notice_inline() {
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
+	echo -n -e "\033[1;33m" # bold; yellow
 	echo -n "       NOTICE: "
+	echo -n -e "\033[0m" # reset style
 	# this will be fed from stdin
 	indent no_first_line_indent
 }
