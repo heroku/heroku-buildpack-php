@@ -1,5 +1,9 @@
 http {
 	include       mime.types;
+	# woff2 support, as the default nginx mime types don't include it before 1.15.1
+	types {
+		font/woff2  woff2;
+	}
 	default_type  application/octet-stream;
 
 	#log_format  main  '$remote_addr - $remote_user [$time_local] "$request" '
