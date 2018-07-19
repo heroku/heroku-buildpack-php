@@ -102,3 +102,19 @@ curl_retry_on_18() {
 	done
 	return $ec
 }
+
+err_trap() {
+	error <<-EOF
+		An unknown internal error occurred.
+	
+		Contact Heroku Support for assistance if this problem persists.
+		
+		Stack trace follows for debugging purposes:
+		$(
+			local frame=0
+			while caller $frame; do
+				((frame++));
+			done
+		)
+	EOF
+}
