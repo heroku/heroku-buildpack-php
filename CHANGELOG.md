@@ -6,6 +6,7 @@
 
 - PHP/5.6.37 [David Zuelke]
 - PHP/7.0.31 [David Zuelke]
+- PHP/7.1.20 [David Zuelke]
 
 ## v138 (2018-07-10)
 
