@@ -1,5 +1,20 @@
 # heroku-buildpack-php CHANGELOG
 
+## v139 (2018-07-20)
+
+### ADD
+
+- PHP/5.6.37 [David Zuelke]
+- PHP/7.0.31 [David Zuelke]
+- PHP/7.1.20 [David Zuelke]
+- PHP/7.2.8 [David Zuelke]
+- Apache/2.4.34 [David Zuelke]
+- ext-redis/4.1.0 [David Zuelke]
+
+### CHG
+
+- librdkafka/0.11.5 [David Zuelke]
+
 ## v138 (2018-07-10)
 
 ### ADD
