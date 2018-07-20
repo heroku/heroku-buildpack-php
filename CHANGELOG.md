@@ -8,6 +8,7 @@
 - PHP/7.0.31 [David Zuelke]
 - PHP/7.1.20 [David Zuelke]
 - PHP/7.2.8 [David Zuelke]
+- Apache/2.4.34 [David Zuelke]
 
 ### CHG
 
