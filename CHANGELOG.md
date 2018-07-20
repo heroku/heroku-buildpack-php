@@ -9,6 +9,10 @@
 - PHP/7.1.20 [David Zuelke]
 - PHP/7.2.8 [David Zuelke]
 
+### CHG
+
+- librdkafka/0.11.5 [David Zuelke]
+
 ## v138 (2018-07-10)
 
 ### ADD
