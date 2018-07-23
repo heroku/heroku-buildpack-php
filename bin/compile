@@ -357,7 +357,16 @@ if composer install -d "$build_dir/.heroku/php" ${HEROKU_PHP_INSTALL_DEV-"--no-d
 	:
 else
 	code=$?
-	install_log=$(cat $build_dir/.heroku/php/install.log | sed -e 's/heroku-sys\///g' -e 's/^Loading composer repositories with package information/Loading repositories with available runtimes and extensions/' -e 's/^Installing dependencies.*//' -e '/^Potential causes:/,$d' -e 's/^/> /')
+	install_log=$(
+		cat $build_dir/.heroku/php/install.log | sed -E \
+			-e 's/heroku-sys\///g' \
+			-e 's/^Loading composer repositories with package information/Loading repositories with available runtimes and extensions/' \
+			-e 's/^Installing dependencies.*//' \
+			-e '/^Potential causes:/,$d' \
+			-e "\#satisfiable by ${COMPOSER}/${COMPOSER_LOCK}#d" \
+			-e "s#(${COMPOSER}/${COMPOSER_LOCK}) dev-[0-9a-f]+#\1#" \
+			-e 's/^/> /'
+	)
 	if [[ $code -eq 2 ]]; then
 		# dependency solving failed
 		mcount "failures.platform.solving.$(detect_platform_solving_failures <<< "$install_log")"
