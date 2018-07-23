@@ -10,6 +10,10 @@
 - Trap unhandled build errors with dedicated message [David Zuelke]
 - Summarize all emitted warnings if subsequent build error occurs [David Zuelke]
 
+### FIX
+
+- stdlib download during build init may theoretically fail on download restart [David Zuelke]
+
 ## v139 (2018-07-20)
 
 ### ADD
