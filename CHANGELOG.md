@@ -8,6 +8,7 @@
 - Colors for build errors, warnings and notices [David Zuelke]
 - Remove use of composer.phar in project root [David Zuelke]
 - Trap unhandled build errors with dedicated message [David Zuelke]
+- Summarize all emitted warnings if subsequent build error occurs [David Zuelke]
 
 ## v139 (2018-07-20)
 

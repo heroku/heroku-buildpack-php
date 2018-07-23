@@ -1,3 +1,7 @@
+# a file to write captured warnings to
+# it cannot be a variable, because the warnings function may be used in a pipeline, which causes a subshell, which can't modify parent scope variables
+_captured_warnings_file=$(mktemp -t heroku-buildpack-php-captured-warnings-XXXX)
+
 error() {
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
@@ -6,6 +10,12 @@ error() {
 	echo -n " !     ERROR: "
 	# this will be fed from stdin
 	indent no_first_line_indent " !     "
+	if [[ -s "$_captured_warnings_file" ]]; then
+		echo "" | indent "" " !     "
+		echo "REMINDER: the following warnings were emitted during the build;" | indent "" " !     "
+		echo "check the details above, as they may be related to the error:" | indent "" " !     "
+		cat "$_captured_warnings_file" | indent "" " !     - "
+	fi
 	echo -e "\033[0m" # reset style
 	exit 1
 }
@@ -16,8 +26,10 @@ warning() {
 	(( $# )) && exec <<< "$@"
 	echo -e "\033[1;33m" # bold; yellow
 	echo -n " !     WARNING: "
-	# this will be fed from stdin
-	indent no_first_line_indent " !     "
+	# indent will be fed from stdin
+	# we tee to FD 5, which is linked to STDOUT, and capture the real stdout into the warnings array
+	# we must cat in the process substitution to read the remaining lines, because head only reads one line, and then the pipe would close, leading tee to fail
+	indent no_first_line_indent " !     " | tee >(head -n1 >> "$_captured_warnings_file"; cat > /dev/null)
 	echo -e "\033[0m" # reset style
 }
 
@@ -27,8 +39,10 @@ warning_inline() {
 	(( $# )) && exec <<< "$@"
 	echo -n -e "\033[1;33m" # bold; yellow
 	echo -n " !     WARNING: "
-	# this will be fed from stdin
-	indent no_first_line_indent " !     "
+	# indent will be fed from stdin
+	# we tee to FD 5, which is linked to STDOUT, and capture the real stdout into the warnings array
+	# we must cat in the process substitution to read the remaining lines, because head only reads one line, and then the pipe would close, leading tee to fail
+	indent no_first_line_indent " !     " | tee >(head -n1 >> "$_captured_warnings_file"; cat > /dev/null)
 	echo -n -e "\033[0m" # reset style
 }
 
