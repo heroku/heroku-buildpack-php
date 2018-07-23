@@ -3,6 +3,8 @@
 _captured_warnings_file=$(mktemp -t heroku-buildpack-php-captured-warnings-XXXX)
 
 error() {
+	# send all of our output to stderr
+	exec 1>&2
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
@@ -21,6 +23,8 @@ error() {
 }
 
 warning() {
+	# send all of our output to stderr
+	exec 1>&2
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
@@ -34,6 +38,8 @@ warning() {
 }
 
 warning_inline() {
+	# send all of our output to stderr
+	exec 1>&2
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
@@ -47,6 +53,8 @@ warning_inline() {
 }
 
 status() {
+	# send all of our output to stderr
+	exec 1>&2
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
@@ -56,6 +64,8 @@ status() {
 }
 
 notice() {
+	# send all of our output to stderr
+	exec 1>&2
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
@@ -69,6 +79,8 @@ notice() {
 }
 
 notice_inline() {
+	# send all of our output to stderr
+	exec 1>&2
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
