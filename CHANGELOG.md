@@ -1,5 +1,19 @@
 # heroku-buildpack-php CHANGELOG
 
+## v140 (2018-07-25)
+
+### CHG
+
+- Improved build error messages [David Zuelke]
+- Colors for build errors, warnings and notices [David Zuelke]
+- Remove use of composer.phar in project root [David Zuelke]
+- Trap unhandled build errors with dedicated message [David Zuelke]
+- Summarize all emitted warnings if subsequent build error occurs [David Zuelke]
+
+### FIX
+
+- stdlib download during build init may theoretically fail on download restart [David Zuelke]
+
 ## v139 (2018-07-20)
 
 ### ADD
