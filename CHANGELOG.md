@@ -5,6 +5,7 @@
 ### CHG
 
 - Verbose error messasge on `bin/detect` failure [David Zuelke]
+- Emit brief warnings for common regexed build failure cases [David Zuelke]
 
 ## v140 (2018-07-25)
 
