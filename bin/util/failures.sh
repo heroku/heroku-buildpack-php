@@ -114,6 +114,12 @@ regex_failures() {
 	local regexes=("${!name}")
 	local name=$2[@]
 	local failures=("${!name}")
+	if (( $# > 2 )); then
+		local name=$3[@]
+		local warnings=("${!name}")
+	else
+		local warnings=()
+	fi
 	
 	# buffer input, as we have to read it many times
 	local input=$(</dev/stdin)
@@ -122,6 +128,8 @@ regex_failures() {
 	for i in "${!regexes[@]}"; do
 		if grep -qE "${regexes[$i]}" <<< "$input"; then
 			echo "${failures[$i]}"
+			# if there is a warnings entry for this index and it is not empty...
+			[[ "${warnings[$i]:+isset}" ]] && warning_inline "${warnings[$i]}"
 			return 0;
 		fi
 	done
