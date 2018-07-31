@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v141 (2018-08-??)
+
+### CHG
+
+- Verbose error messasge on `bin/detect` failure [David Zuelke]
+
 ## v140 (2018-07-25)
 
 ### CHG
