@@ -6,6 +6,7 @@
 
 - Verbose error messasge on `bin/detect` failure [David Zuelke]
 - Emit brief warnings for common regexed build failure cases [David Zuelke]
+- Run most internal 'composer' invocations using '--no-plugins' [David Zuelke]
 
 ## v140 (2018-07-25)
 

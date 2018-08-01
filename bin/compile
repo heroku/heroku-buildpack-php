@@ -268,8 +268,9 @@ composer() {
 }
 export -f composer
 
-composer_vendordir=$(composer config vendor-dir)
-composer_bindir=$(composer config bin-dir)
+# we use --no-plugins just in case the vendor dir is there, see e.g. https://github.com/Ocramius/PackageVersions/issues/64
+composer_vendordir=$(composer config --no-plugins vendor-dir)
+composer_bindir=$(composer config --no-plugins bin-dir)
 
 # packages that get installed will add to this file, it's both for us and for buildpacks that follow
 # composer bin-dir goes last to avoid any conflicts
@@ -281,7 +282,7 @@ echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $buil
 
 # we perform this check early so people with stale lock files are reminded why if their lock file errors in the next step
 composer_lock_outdated=false
-composer validate --no-check-publish --no-check-all --quiet "$COMPOSER" 2>/dev/null || {
+composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPOSER" 2>/dev/null || {
 	mcount "warnings.composer_lock.outdated"
 	composer_lock_outdated=true
 	warning <<-EOF
@@ -470,7 +471,7 @@ status "Installing dependencies..."
 
 # echo composer version for info purposes
 # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
-composer --version 2> /dev/null | tail -n 1 | indent
+composer --no-plugins --version 2> /dev/null | tail -n 1 | indent
 
 # throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
 if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer" ]]; then
@@ -506,7 +507,7 @@ export_env_dir "$env_dir" '^COMPOSER_GITHUB_OAUTH_TOKEN$'
 COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
 if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
 	if curl --fail --silent -H "Authorization: token $COMPOSER_GITHUB_OAUTH_TOKEN" https://api.github.com/rate_limit > /dev/null; then
-		composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+		composer config --no-plugins -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 		notice_inline 'Using $COMPOSER_GITHUB_OAUTH_TOKEN for GitHub OAuth.'
 	else
 		mcount "failures.dependencies.auth.COMPOSER_GITHUB_OAUTH_TOKEN"
@@ -521,7 +522,7 @@ if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
 	fi
 else
 	# don't forget to remove any stored key if it's gone from the env
-	composer config -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+	composer config --no-plugins -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 fi
 # no need for the token to stay around in the env
 unset COMPOSER_GITHUB_OAUTH_TOKEN
