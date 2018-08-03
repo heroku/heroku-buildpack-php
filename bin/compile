@@ -483,7 +483,7 @@ if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer"
 		Your Composer vendor dir is part of your Git repository.
 		
 		This directory should not be under version control; only your
-		'$COMPOSER' and '$COMPOSER_LOCK' files should be added, because
+		'$COMPOSER' and '$COMPOSER_LOCK' files should be added, as
 		Composer will handle installation of dependencies on deploy.
 		
 		To suppress this notice, first remove the folder from the index
