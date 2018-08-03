@@ -480,16 +480,16 @@ if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer"
 	warning <<-EOF
 		Composer vendor dir found in project!
 		
-		Your Composer vendor dir is part of your Git repository.
+		Your Git repository contains Composer's '$composer_vendordir' directory.
 		
 		This directory should not be under version control; only your
-		'$COMPOSER' and '$COMPOSER_LOCK' files should be added, as
+		'$COMPOSER' and '$COMPOSER_LOCK' files need to be added, as
 		Composer will handle installation of dependencies on deploy.
 		
 		To suppress this notice, first remove the folder from the index
 		by running 'git rm -r --cached $composer_vendordir/'.
 		Next, edit your project's '.gitignore' file and add the folder
-		'/$composer_vendordir/' to the list.
+		'/$composer_vendordir/' to the list, then commit the changes.
 		$(
 			[[ ! "$composer_bindir/" == "$composer_vendordir"/* && -d "$composer_bindir" ]] && cat <<-EOF2
 			
