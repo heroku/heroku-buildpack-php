@@ -2,6 +2,10 @@
 
 ## v141 (2018-08-??)
 
+### ADD
+
+- ext-redis/4.1.1 [David Zuelke]
+
 ### CHG
 
 - Verbose error messasge on `bin/detect` failure [David Zuelke]
