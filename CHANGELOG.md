@@ -8,6 +8,10 @@
 - Emit brief warnings for common regexed build failure cases [David Zuelke]
 - Run most internal 'composer' invocations using '--no-plugins' [David Zuelke]
 
+### FIX
+
+- Generate Composer package repositories with empty JSON objects, not arrays, where required by Composer 1.7+ [David Zuelke]
+
 ## v140 (2018-07-25)
 
 ### CHG

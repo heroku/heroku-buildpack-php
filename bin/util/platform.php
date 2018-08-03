@@ -51,10 +51,10 @@ function mkmetas($package, array &$metapaks, &$have_runtime_req = false) {
 		// we re-use the dep name and version, makes for nice error messages if dependencies cannot be fulfilled :)
 		"name" => $package["name"],
 		"version" => $package["version"],
-		"require" => mkdep($preq),
-		"replace" => mkdep($prep),
-		"provide" => mkdep($ppro),
-		"conflict" => mkdep($pcon),
+		"require" => (object) mkdep($preq),
+		"replace" => (object) mkdep($prep),
+		"provide" => (object) mkdep($ppro),
+		"conflict" => (object) mkdep($pcon),
 	];
 	return true;
 }
