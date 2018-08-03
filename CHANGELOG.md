@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-redis/4.1.1 [David Zuelke]
+- ext-mongodb/1.5.2 [David Zuelke]
 
 ### CHG
 
