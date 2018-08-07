@@ -297,22 +297,44 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 	EOF
 }
 
-[[ -f "$COMPOSER_LOCK" ]] && cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); sys.exit(not(l["minimum-stability"] == "stable"));' 2> /dev/null || {
+# if prefer-stable is false and minimum-stability is not stable, warn about potential unstable platform installs
+[[ -f "$COMPOSER_LOCK" ]] && minimum_stability=$(cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); print(l.get("minimum-stability")); sys.exit(l.get("minimum-stability", "stable") != "stable" and l.get("prefer-stable", False) == False);' 2> /dev/null) || {
+	possible_stabilities="dev, alpha, beta, or RC"
+	case $minimum_stability in
+		alpha)
+			possible_stabilities="alpha, beta, or RC"
+			;;
+		beta)
+			possible_stabilities="beta or RC"
+			;;
+		[rR][cC])
+			possible_stabilities="release candidate"
+			;;
+	esac
 	mcount "warnings.composer_lock.minimum_stability"
 	warning <<-EOF
 		Non-stable 'minimum-stability'!
 	
-		Your '$COMPOSER' contains a non-'stable' value for the
-		for the 'minimum-stability' setting.
-	
-		This setting affects behavior globally and may result in the
-		installation of unstable versions of PHP and extensions in
-		addition to your dependencies.
-	
-		It is strongly recommended that you always use stability flags
-		on the specific packages which you want in a non-stable version
-		instead, even if you have 'prefer-stable' enabled. More info:
+		Your '$COMPOSER' contains a 'minimum-stability' setting of
+		'$minimum_stability', and the 'prefer-stable' setting is not enabled.
+		
+		This combination of options may negatively impact the stability
+		of your app and result in crashes as it permits installation of
+		$possible_stabilities versions of PHP runtimes and extensions.
+		
+		If possible, you should always use explicit stability flags on
+		only those dependencies that you want unstable versions of, and
+		leave 'minimum-stability' at its default 'stable' setting.
+		
+		If you really need a global 'minimum-stability' setting lower
+		than 'stable', it is strongly recommended that you enable the
+		'prefer-stable' setting in '$COMPOSER'.
+		
+		For more information, refer to the following documentation:
+		https://getcomposer.org/doc/articles/versions.md
 		https://getcomposer.org/doc/04-schema.md#package-links
+		https://getcomposer.org/doc/04-schema.md#minimum-stability
+		https://getcomposer.org/doc/04-schema.md#prefer-stable
 	EOF
 }
 

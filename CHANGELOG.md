@@ -13,6 +13,7 @@
 - Emit brief warnings for common regexed build failure cases [David Zuelke]
 - Run most internal 'composer' invocations using '--no-plugins' [David Zuelke]
 - Composer/1.7.1 [David Zuelke]
+- Warn about 'minimum-stability' only if 'prefer-stable' is off [David Zuelke]
 
 ### FIX
 
