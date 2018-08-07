@@ -1,5 +1,24 @@
 # heroku-buildpack-php CHANGELOG
 
+## v141 (2018-08-07)
+
+### ADD
+
+- ext-redis/4.1.1 [David Zuelke]
+- ext-mongodb/1.5.2 [David Zuelke]
+
+### CHG
+
+- Verbose error messasge on `bin/detect` failure [David Zuelke]
+- Emit brief warnings for common regexed build failure cases [David Zuelke]
+- Run most internal 'composer' invocations using '--no-plugins' [David Zuelke]
+- Composer/1.7.1 [David Zuelke]
+- Warn about 'minimum-stability' only if 'prefer-stable' is off [David Zuelke]
+
+### FIX
+
+- Generate Composer package repositories with empty JSON objects, not arrays, where required by Composer 1.7+ [David Zuelke]
+
 ## v140 (2018-07-25)
 
 ### CHG

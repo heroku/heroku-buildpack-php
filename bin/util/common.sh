@@ -14,9 +14,9 @@ error() {
 	indent no_first_line_indent " !     "
 	if [[ -s "$_captured_warnings_file" ]]; then
 		echo "" | indent "" " !     "
-		echo "REMINDER: the following warnings were emitted during the build;" | indent "" " !     "
-		echo "check the details above, as they may be related to the error:" | indent "" " !     "
-		cat "$_captured_warnings_file" | indent "" " !     - "
+		echo -e "\033[1;33mREMINDER:\033[1;31m the following \033[1;33mwarnings\033[1;31m were emitted during the build;" | indent "" " !     "
+		echo "check the details above, as they may be related to this error:" | indent "" " !     "
+		cat "$_captured_warnings_file" | indent "" "$(echo -e " !     \033[1;33m-\033[1;31m ")"
 	fi
 	echo -e "\033[0m" # reset style
 	exit 1

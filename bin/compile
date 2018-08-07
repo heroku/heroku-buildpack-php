@@ -148,24 +148,6 @@ if [[ -s "$COMPOSER" ]]; then
 			mcount "failures.composer_lock.lint"
 			error "$composer_lock_parse_error"
 		}
-		cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); sys.exit(not(l["minimum-stability"] == "stable"));' 2> /dev/null || {
-			mcount "warnings.composer_lock.minimum_stability"
-			warning <<-EOF
-				Non-stable 'minimum-stability'!
-				
-				Your '$COMPOSER' contains a non-'stable' value for the
-				for the 'minimum-stability' setting.
-				
-				This setting affects behavior globally and may result in the
-				installation of unstable versions of PHP and extensions in
-				addition to your dependencies.
-				
-				It is strongly recommended that you always use stability flags
-				on the specific packages which you want in a non-stable version
-				instead, even if you have 'prefer-stable' enabled. More info:
-				https://getcomposer.org/doc/04-schema.md#package-links
-			EOF
-		}
 	fi
 else
 	if [[ ! -f "$COMPOSER" ]]; then
@@ -249,7 +231,7 @@ curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
-curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.6.5.tar.gz" || {
+curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.7.1.tar.gz" || {
 	mcount "failures.bootstrap.download.composer"
 	error <<-EOF
 		Failed to download Composer for bootstrapping!
@@ -268,8 +250,9 @@ composer() {
 }
 export -f composer
 
-composer_vendordir=$(composer config vendor-dir)
-composer_bindir=$(composer config bin-dir)
+# we use --no-plugins just in case the vendor dir is there, see e.g. https://github.com/Ocramius/PackageVersions/issues/64
+composer_vendordir=$(composer config --no-plugins vendor-dir)
+composer_bindir=$(composer config --no-plugins bin-dir)
 
 # packages that get installed will add to this file, it's both for us and for buildpacks that follow
 # composer bin-dir goes last to avoid any conflicts
@@ -281,7 +264,7 @@ echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $buil
 
 # we perform this check early so people with stale lock files are reminded why if their lock file errors in the next step
 composer_lock_outdated=false
-composer validate --no-check-publish --no-check-all --quiet "$COMPOSER" 2>/dev/null || {
+composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPOSER" 2>/dev/null || {
 	mcount "warnings.composer_lock.outdated"
 	composer_lock_outdated=true
 	warning <<-EOF
@@ -311,6 +294,47 @@ composer validate --no-check-publish --no-check-all --quiet "$COMPOSER" 2>/dev/n
 		Please refer to the Composer documentation for further details:
 		https://getcomposer.org/doc/
 		https://getcomposer.org/doc/01-basic-usage.md
+	EOF
+}
+
+# if prefer-stable is false and minimum-stability is not stable, warn about potential unstable platform installs
+[[ -f "$COMPOSER_LOCK" ]] && minimum_stability=$(cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); print(l.get("minimum-stability")); sys.exit(l.get("minimum-stability", "stable") != "stable" and l.get("prefer-stable", False) == False);' 2> /dev/null) || {
+	possible_stabilities="dev, alpha, beta, or RC"
+	case $minimum_stability in
+		alpha)
+			possible_stabilities="alpha, beta, or RC"
+			;;
+		beta)
+			possible_stabilities="beta or RC"
+			;;
+		[rR][cC])
+			possible_stabilities="release candidate"
+			;;
+	esac
+	mcount "warnings.composer_lock.minimum_stability"
+	warning <<-EOF
+		Non-stable 'minimum-stability'!
+	
+		Your '$COMPOSER' contains a 'minimum-stability' setting of
+		'$minimum_stability', and the 'prefer-stable' setting is not enabled.
+		
+		This combination of options may negatively impact the stability
+		of your app and result in crashes as it permits installation of
+		$possible_stabilities versions of PHP runtimes and extensions.
+		
+		If possible, you should always use explicit stability flags on
+		only those dependencies that you want unstable versions of, and
+		leave 'minimum-stability' at its default 'stable' setting.
+		
+		If you really need a global 'minimum-stability' setting lower
+		than 'stable', it is strongly recommended that you enable the
+		'prefer-stable' setting in '$COMPOSER'.
+		
+		For more information, refer to the following documentation:
+		https://getcomposer.org/doc/articles/versions.md
+		https://getcomposer.org/doc/04-schema.md#package-links
+		https://getcomposer.org/doc/04-schema.md#minimum-stability
+		https://getcomposer.org/doc/04-schema.md#prefer-stable
 	EOF
 }
 
@@ -470,7 +494,7 @@ status "Installing dependencies..."
 
 # echo composer version for info purposes
 # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
-composer --version 2> /dev/null | tail -n 1 | indent
+composer --no-plugins --version 2> /dev/null | tail -n 1 | indent
 
 # throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
 if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer" ]]; then
@@ -479,16 +503,16 @@ if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer"
 	warning <<-EOF
 		Composer vendor dir found in project!
 		
-		Your Composer vendor dir is part of your Git repository.
+		Your Git repository contains Composer's '$composer_vendordir' directory.
 		
 		This directory should not be under version control; only your
-		'$COMPOSER' and '$COMPOSER_LOCK' files should be added, because
+		'$COMPOSER' and '$COMPOSER_LOCK' files need to be added, as
 		Composer will handle installation of dependencies on deploy.
 		
 		To suppress this notice, first remove the folder from the index
 		by running 'git rm -r --cached $composer_vendordir/'.
 		Next, edit your project's '.gitignore' file and add the folder
-		'/$composer_vendordir/' to the list.
+		'/$composer_vendordir/' to the list, then commit the changes.
 		$(
 			[[ ! "$composer_bindir/" == "$composer_vendordir"/* && -d "$composer_bindir" ]] && cat <<-EOF2
 			
@@ -506,7 +530,7 @@ export_env_dir "$env_dir" '^COMPOSER_GITHUB_OAUTH_TOKEN$'
 COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
 if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
 	if curl --fail --silent -H "Authorization: token $COMPOSER_GITHUB_OAUTH_TOKEN" https://api.github.com/rate_limit > /dev/null; then
-		composer config -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+		composer config --no-plugins -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 		notice_inline 'Using $COMPOSER_GITHUB_OAUTH_TOKEN for GitHub OAuth.'
 	else
 		mcount "failures.dependencies.auth.COMPOSER_GITHUB_OAUTH_TOKEN"
@@ -521,7 +545,7 @@ if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
 	fi
 else
 	# don't forget to remove any stored key if it's gone from the env
-	composer config -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+	composer config --no-plugins -g --unset github-oauth.github.com &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 fi
 # no need for the token to stay around in the env
 unset COMPOSER_GITHUB_OAUTH_TOKEN
