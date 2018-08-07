@@ -148,24 +148,6 @@ if [[ -s "$COMPOSER" ]]; then
 			mcount "failures.composer_lock.lint"
 			error "$composer_lock_parse_error"
 		}
-		cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); sys.exit(not(l["minimum-stability"] == "stable"));' 2> /dev/null || {
-			mcount "warnings.composer_lock.minimum_stability"
-			warning <<-EOF
-				Non-stable 'minimum-stability'!
-				
-				Your '$COMPOSER' contains a non-'stable' value for the
-				for the 'minimum-stability' setting.
-				
-				This setting affects behavior globally and may result in the
-				installation of unstable versions of PHP and extensions in
-				addition to your dependencies.
-				
-				It is strongly recommended that you always use stability flags
-				on the specific packages which you want in a non-stable version
-				instead, even if you have 'prefer-stable' enabled. More info:
-				https://getcomposer.org/doc/04-schema.md#package-links
-			EOF
-		}
 	fi
 else
 	if [[ ! -f "$COMPOSER" ]]; then
@@ -312,6 +294,25 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 		Please refer to the Composer documentation for further details:
 		https://getcomposer.org/doc/
 		https://getcomposer.org/doc/01-basic-usage.md
+	EOF
+}
+
+[[ -f "$COMPOSER_LOCK" ]] && cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); sys.exit(not(l["minimum-stability"] == "stable"));' 2> /dev/null || {
+	mcount "warnings.composer_lock.minimum_stability"
+	warning <<-EOF
+		Non-stable 'minimum-stability'!
+	
+		Your '$COMPOSER' contains a non-'stable' value for the
+		for the 'minimum-stability' setting.
+	
+		This setting affects behavior globally and may result in the
+		installation of unstable versions of PHP and extensions in
+		addition to your dependencies.
+	
+		It is strongly recommended that you always use stability flags
+		on the specific packages which you want in a non-stable version
+		instead, even if you have 'prefer-stable' enabled. More info:
+		https://getcomposer.org/doc/04-schema.md#package-links
 	EOF
 }
 
