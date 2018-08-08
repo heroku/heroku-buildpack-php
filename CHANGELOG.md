@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v142 (2018-08-08)
+
+### FIX
+
+- Check for 'minimum-stability' may fail if no 'composer.lock' present [David Zuelke]
+
 ## v141 (2018-08-07)
 
 ### ADD
