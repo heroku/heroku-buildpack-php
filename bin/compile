@@ -298,7 +298,7 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 }
 
 # if prefer-stable is false and minimum-stability is not stable, warn about potential unstable platform installs
-[[ -f "$COMPOSER_LOCK" ]] && minimum_stability=$(cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); print(l.get("minimum-stability")); sys.exit(l.get("minimum-stability", "stable") != "stable" and l.get("prefer-stable", False) == False);' 2> /dev/null) || {
+[[ ! -f "$COMPOSER_LOCK" ]] || minimum_stability=$(cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); print(l.get("minimum-stability")); sys.exit(l.get("minimum-stability", "stable") != "stable" and l.get("prefer-stable", False) == False);' 2> /dev/null) || {
 	possible_stabilities="dev, alpha, beta, or RC"
 	case $minimum_stability in
 		alpha)
