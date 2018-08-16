@@ -6,6 +6,7 @@
 
 - PHP/7.2.9 [David Zuelke]
 - PHP/7.1.21 [David Zuelke]
+- ext-event/2.4.1 [David Zuelke]
 
 ## v142 (2018-08-08)
 
