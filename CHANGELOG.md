@@ -1,5 +1,17 @@
 # heroku-buildpack-php CHANGELOG
 
+## v143 (2018-08-17)
+
+### ADD
+
+- PHP/7.2.9 [David Zuelke]
+- PHP/7.1.21 [David Zuelke]
+- ext-event/2.4.1 [David Zuelke]
+
+### CHG
+
+- Composer/1.7.2 [David Zuelke]
+
 ## v142 (2018-08-08)
 
 ### FIX
