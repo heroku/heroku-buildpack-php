@@ -14,7 +14,11 @@ You'll need to use at least an empty `composer.json` in your application.
 
 If you also have files from other frameworks or languages that could trigger another buildpack to detect your application as one of its own, e.g. a `package.json` which might cause your code to be detected as a Node.js application even if it is a PHP application, then you need to manually set your application to use this buildpack:
 
-    heroku buildpacks:set https://github.com/gerardbalaoro/heroku-buildpack-laravel.git
+    heroku buildpacks:set gerardbalaoro/php-laravel
+    
+The `gerardbalaoro/php-laravel` buildpack from the [Heroku Registry](https://devcenter.heroku.com/articles/buildpack-registry) represents the latest stable version of the buildpack. If you'd like to use the code from this Github repository, you can set your buildpack to the Github URL:
+
+    heroku buildpacks:set https://github.com/GerardBalaoro/heroku-buildpack-laravel.git
 
 Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for further usage instructions.
 
