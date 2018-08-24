@@ -449,7 +449,7 @@ if [[ $app_type = "laravel" ]]; then
 cd $build_dir
 
 # generate http authentication
-if [[ -n ${HT_AUTH} ]]; then
+if [[ -n ${HT_AUTH:-} ]]; then
 htpasswd -cb .htpasswd $HT_AUTH
 cat >> public/.htaccess <<EOL
 
@@ -486,7 +486,7 @@ php artisan key:generate
 php artisan view:clear
 
 # deploy task
-if [ -n "${DEPLOY_TASKS}" ]; then		
+if [ -n "${DEPLOY_TASKS:-}" ]; then		
 php artisan $DEPLOY_TASKS
 fi
 fi
