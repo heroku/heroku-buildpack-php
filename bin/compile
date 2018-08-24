@@ -466,57 +466,57 @@ APP_KEY=
 APP_DEBUG=$APP_DEBUG
 APP_URL=$APP_URL" > .env
 
-if [ -n "$DB_CONN" ]; then		
+if [ ! -z "$DB_CONN" ]; then		
 echo "DB_CONNECTION=$DB_CONN
 " >> .env
 fi
 
-if [ -n "$DB_HOST" ]; then		
+if [ ! -z "$DB_HOST" ]; then		
 echo "DB_HOST=$DB_HOST
 " >> .env
 fi
 
-if [ -n "$DB_PORT" ]; then		
+if [ ! -z "$DB_PORT" ]; then		
 echo "DB_PORT=$DB_PORT
 " >> .env
 fi
 
-if [ -n "$DB_NAME" ]; then		
+if [ ! -z "$DB_NAME" ]; then		
 echo "DB_DATABASE=$DB_NAME
 " >> .env
 fi
 
-if [ -n "$DB_USER" ]; then		
+if [ ! -z "$DB_USER" ]; then		
 echo "DB_USERNAME=$DB_USER
 " >> .env
 fi
 
-if [ -n "$DB_PASS" ]; then		
+if [ ! -z "$DB_PASS" ]; then		
 echo "DB_PASSWORD=$DB_PASS
 " >> .env
 fi
 
-if [ -n "$MAIL_DRIVER" ]; then		
+if [ ! -z "$MAIL_DRIVER" ]; then		
 echo "MAIL_DRIVER=$MAIL_DRIVER
 " >> .env
 fi
 
-if [ -n "$MAIL_HOST" ]; then		
+if [ ! -z "$MAIL_HOST" ]; then		
 echo "MAIL_HOST=$MAIL_HOST
 " >> .env
 fi
 
-if [ -n "$MAIL_PORT" ]; then		
+if [ ! -z "$MAIL_PORT" ]; then		
 echo "MAIL_PORT=$MAIL_PORT
 " >> .env
 fi
 
-if [ -n "$MAIL_USER" ]; then		
+if [ ! -z "$MAIL_USER" ]; then		
 echo "MAIL_USERNAME=$MAIL_USER
 " >> .env
 fi
 
-if [ -n "$MAIL_PASS" ]; then		
+if [ ! -z "$MAIL_PASS" ]; then		
 echo "MAIL_PASSWORD=$MAIL_USER
 " >> .env
 fi
@@ -525,7 +525,7 @@ php artisan key:generate
 php artisan view:clear
 
 # deploy task
-if [ -n "$DEPLOY_TASKS" ]; then		
+if [ ! -z "$DEPLOY_TASKS" ]; then		
 php artisan $DEPLOY_TASKS
 fi
 fi
