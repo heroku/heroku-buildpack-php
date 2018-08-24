@@ -443,6 +443,8 @@ fi
 export COMPOSER="$COMPOSER_bak"
 unset COMPOSER_bak
 
+set -o nounset
+
 if [[ $app_type = "laravel" ]]; then
 cd $build_dir
 
@@ -450,6 +452,8 @@ cd $build_dir
 if [[ -n $HT_AUTH ]]; then
 htpasswd -cb .htpasswd $HT_AUTH
 cat >> public/.htaccess <<EOL
+
+
 AuthType Basic
 AuthName "Restricted Access"
 AuthUserFile /app/.htpasswd
@@ -462,70 +466,32 @@ echo 'Generating .env file...'
 rm -f .env
 echo "APP_NAME=$APP_NAME
 APP_ENV=$APP_ENV
-APP_KEY=
+APP_KEY=base64:Rsxq0PCSrXkE/DX2/GorlsuFnnpAOZvITbCBrB0M7IY=
 APP_DEBUG=$APP_DEBUG
-APP_URL=$APP_URL" > .env
-
-if [ ! -z "$DB_CONN" ]; then		
-echo "DB_CONNECTION=$DB_CONN
-" >> .env
-fi
-
-if [ ! -z "$DB_HOST" ]; then		
-echo "DB_HOST=$DB_HOST
-" >> .env
-fi
-
-if [ ! -z "$DB_PORT" ]; then		
-echo "DB_PORT=$DB_PORT
-" >> .env
-fi
-
-if [ ! -z "$DB_NAME" ]; then		
-echo "DB_DATABASE=$DB_NAME
-" >> .env
-fi
-
-if [ ! -z "$DB_USER" ]; then		
-echo "DB_USERNAME=$DB_USER
-" >> .env
-fi
-
-if [ ! -z "$DB_PASS" ]; then		
-echo "DB_PASSWORD=$DB_PASS
-" >> .env
-fi
-
-if [ ! -z "$MAIL_DRIVER" ]; then		
-echo "MAIL_DRIVER=$MAIL_DRIVER
-" >> .env
-fi
-
-if [ ! -z "$MAIL_HOST" ]; then		
-echo "MAIL_HOST=$MAIL_HOST
-" >> .env
-fi
-
-if [ ! -z "$MAIL_PORT" ]; then		
-echo "MAIL_PORT=$MAIL_PORT
-" >> .env
-fi
-
-if [ ! -z "$MAIL_USER" ]; then		
-echo "MAIL_USERNAME=$MAIL_USER
-" >> .env
-fi
-
-if [ ! -z "$MAIL_PASS" ]; then		
-echo "MAIL_PASSWORD=$MAIL_USER
-" >> .env
-fi
+APP_URL=$APP_URL
+DB_CONNECTION=$DB_CONN
+DB_HOST=$DB_HOST
+DB_PORT=$DB_PORT
+DB_DATABASE=$DB_NAME
+DB_USERNAME=$DB_USER
+DB_PASSWORD=$DB_PASS
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+SESSION_DRIVER=file
+QUEUE_DRIVER=sync
+MAIL_DRIVER=$MAIL_DRIVER
+MAIL_HOST=$MAIL_HOST
+MAIL_PORT=$MAIL_PORT
+MAIL_USERNAME=$MAIL_USER
+MAIL_PASSWORD= $MAIL_PASS
+MAIL_ENCRYPTION=null
+HTTPS=on" > .env && echo '.env file created.'
 
 php artisan key:generate
 php artisan view:clear
 
 # deploy task
-if [ ! -z "$DEPLOY_TASKS" ]; then		
+if [ -n "$DEPLOY_TASKS" ]; then		
 php artisan $DEPLOY_TASKS
 fi
 fi
