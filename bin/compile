@@ -455,6 +455,17 @@ else
 		'$COMPOSER_LOCK' are compatible with the list above, and ensure
 		all required extensions are available for the desired runtimes.
 		
+		When choosing a PHP runtimes and extensions, please also ensure
+		they are available on your app's stack ($STACK), and select
+		a different stack if needed after consulting the article below.
+		$(
+			[[ "$STACK" == "heroku-18" ]] && cat <<-EOF2
+				$(echo -e "\033[1;33m")
+				Be advised that the heroku-18 stack you're currently using only
+				supports PHP version 7.1 and later.
+				$(echo -e "\033[1;31m")
+			EOF2
+		)
 		For a list of supported runtimes & extensions on Heroku, please
 		refer to: https://devcenter.heroku.com/articles/php-support
 	EOF
