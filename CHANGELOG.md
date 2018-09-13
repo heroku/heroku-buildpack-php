@@ -15,6 +15,7 @@
 
 - Extra reminders about runtimes and stacks if runtime platform install fails [David Zuelke]
 - Warn users of PHP versions that are close to, or have reached, end of life or end of active support [David Zuelke]
+- Default to listen.mode=0666 for PHP-FPM socket to allow running in both Heroku Dynos and containers [David Zuelke]
 
 ## v143 (2018-08-17)
 
