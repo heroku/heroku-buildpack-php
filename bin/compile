@@ -501,6 +501,66 @@ export -f composer
 # log runtime version
 mcount "platform.packages.php.$($engine_r "echo ${engine^^}_VERSION;")"
 
+if eoldate=$($engine $bp_dir/bin/util/eol.php); then
+	:
+else
+	code=$?
+	eolmsg=$(
+		cat <<-EOF
+			It is strongly recommended you update your app to a version of
+			PHP with "active support" status immediately to ensure you get
+			the latest bugfixes and security updates each time you deploy.
+			
+			You may check the list of versions supported by the PHP Group
+			and their EOL dates here: http://php.net/supported-versions.php
+			
+			For a list of supported runtimes & extensions on Heroku, please
+			refer to: https://devcenter.heroku.com/articles/php-support
+		EOF
+	)
+	if (( $code == 2 )); then
+		mcount "warnings.runtime_eol.eol_reached"
+		warning <<-EOF
+			Your selected PHP version has reached end-of-life
+			
+			No updates or security fixes have been provided for your PHP
+			version series by the PHP Group since $eoldate.
+			
+			$eolmsg
+		EOF
+	elif (( $code == 3 )); then
+		mcount "warnings.runtime_eol.eol_close"
+		warning <<-EOF
+			Your selected PHP version is close to end-of-life
+			
+			No updates or security fixes will be provided for your PHP
+			version series by the PHP Group as of $eoldate.
+			
+			$eolmsg
+		EOF
+	elif (( $code == 4 )); then
+		mcount "warnings.runtime_eol.eom_reached"
+		warning <<-EOF
+			Your app's PHP version is no longer actively maintained
+			
+			Only security updates will be provided for your PHP version
+			series by the PHP Group until its end-of-life on $eoldate.
+			
+			$eolmsg
+		EOF
+	elif (( $code == 5 )); then
+		mcount "warnings.runtime_eol.eom_close"
+		warning <<-EOF
+			Your app's PHP version is close to end of maintenance
+			
+			Only security updates will be provided for your PHP version
+			series by the PHP Group as of $eoldate.
+			
+			$eolmsg
+		EOF
+	fi
+fi
+
 status "Installing dependencies..."
 
 # echo composer version for info purposes

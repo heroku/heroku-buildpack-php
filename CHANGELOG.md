@@ -14,6 +14,7 @@
 ### CHG
 
 - Extra reminders about runtimes and stacks if runtime platform install fails [David Zuelke]
+- Warn users of PHP versions that are close to, or have reached, end of life or end of active support [David Zuelke]
 
 ## v143 (2018-08-17)
 
