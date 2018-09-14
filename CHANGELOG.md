@@ -1,5 +1,22 @@
 # heroku-buildpack-php CHANGELOG
 
+## v144 (2019-09-13)
+
+### ADD
+
+- PHP/5.6.38 [David Zuelke]
+- PHP/7.0.32 [David Zuelke]
+- PHP/7.1.22 [David Zuelke]
+- PHP/7.2.10 [David Zuelke]
+- ext-newrelic/8.2.0.221 [David Zuelke]
+- ext-phalcon/3.4.1 [David Zuelke]
+
+### CHG
+
+- Extra reminders about runtimes and stacks if runtime platform install fails [David Zuelke]
+- Warn users of PHP versions that are close to, or have reached, end of life or end of active support [David Zuelke]
+- Default to listen.mode=0666 for PHP-FPM socket to allow running in both Heroku Dynos and containers [David Zuelke]
+
 ## v143 (2018-08-17)
 
 ### ADD
