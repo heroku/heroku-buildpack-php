@@ -596,6 +596,15 @@ if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer"
 	EOF
 fi
 
+# handle custom packagist token
+export_env_dir "$env_dir" '^COMPOSER_PACKAGIST_TOKEN$'
+COMPOSER_PACKAGIST_TOKEN=${COMPOSER_PACKAGIST_TOKEN:-}
+if [[ -n "$COMPOSER_PACKAGIST_TOKEN" ]]; then
+	composer config --global --auth http-basic.repo.packagist.com token $COMPOSER_PACKAGIST_TOKEN
+	notice_inline 'Using $COMPOSER_PACKAGIST_TOKEN for Packagist Auth.'
+fi
+unset COMPOSER_PACKAGIST_TOKEN
+
 # handle custom oauth keys
 export_env_dir "$env_dir" '^COMPOSER_GITHUB_OAUTH_TOKEN$'
 COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
