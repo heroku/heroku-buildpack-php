@@ -195,6 +195,18 @@ mkdir -p $build_dir/.heroku/php
 export COMPOSER_HOME=$cache_dir/.composer
 mkdir -p $COMPOSER_HOME
 
+export_env_dir "$env_dir" '^PRIVATE_PACKAGIST_(USERNAME|TOKEN)$'
+if [[ -n ${PRIVATE_PACKAGIST_USERNAME:-} && -n ${PRIVATE_PACKAGIST_TOKEN:-} ]]; then
+    echo "{
+    \"http-basic\": {
+        \"repo.packagist.com\": {
+            \"username\": \"$PRIVATE_PACKAGIST_USERNAME\",
+            \"password\": \"$PRIVATE_PACKAGIST_TOKEN\"
+        }
+    }
+}" > $COMPOSER_HOME/auth.json
+fi
+
 # if the build dir is not "/app", we symlink in the .heroku/php subdir (and only that, to avoid problems with other buildpacks) so that PHP correctly finds its INI files etc
 [[ $build_dir == '/app' ]] || ln -s $build_dir/.heroku/php /app/.heroku/php
 
