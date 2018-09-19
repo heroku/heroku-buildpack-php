@@ -1,23 +1,20 @@
 #!/bin/bash
 
-main() {
-    # name the argument to this function
-    declare build_dir="${1:-}"
-
-    # check if composer tests are available
-    if cd "$build_dir" && composer run-script -l 2>/dev/null | grep -q '^\s*test\b'; then
-        # cd into the build directory and run the tests via composer
-        cd "$build_dir" && composer test
-    else # if no tests are defined...
-        # ...display a friendly reminder to define some
-        printf "\033[0;31mNo test command found! Please define a test command in the composer.json in order to run test.\033[0m\n"
-    fi
-}
 
 # fail hard
 set -eo pipefail
 # fail harder
 set -eu
 
-# execute the main function with command line arguments
-main "$@"
+
+# name the argument to this function
+declare build_dir="${1:-}"
+
+# check if composer tests are available
+if cd "$build_dir" && composer run-script -l 2>/dev/null | grep -q '^\s*test\b'; then
+    # cd into the build directory and run the tests via composer
+    cd "$build_dir" && composer test
+else # if no tests are defined...
+    # ...display a friendly reminder to define some
+    printf "\033[0;31mNo test command found! Please define a test command in the composer.json in order to run test.\033[0m\n"
+fi
