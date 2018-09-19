@@ -1,11 +1,11 @@
 #!/bin/bash
 
 main() {
-    # parse the arguments into variables
+    # name the argument to this function
     declare build_dir="${1:-}"
 
     # check if composer tests are available
-    if composer run-script -l 2>/dev/null | grep -q '^\s*test\b'; then
+    if cd "$build_dir" && composer run-script -l 2>/dev/null | grep -q '^\s*test\b'; then
         # cd into the build directory and run the tests via composer
         cd "$build_dir" && composer test
     else # if no tests are defined...
