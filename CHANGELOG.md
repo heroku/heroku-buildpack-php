@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v145 (2019-10-??)
+
+### FIX
+
+- Nginx reports "localhost" instead of requested hostname in SERVER_NAME FastCGI variable (#264) [David Zuelke]
+
 ## v144 (2019-09-13)
 
 ### ADD

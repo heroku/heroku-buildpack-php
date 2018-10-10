@@ -36,6 +36,8 @@ http {
 			fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
 			# try_files resets $fastcgi_path_info, see http://trac.nginx.org/nginx/ticket/321, so we use the if instead
 			fastcgi_param PATH_INFO $fastcgi_path_info if_not_empty;
+			# pass actual request host instead of localhost
+			fastcgi_param SERVER_NAME $host;
 
 			if (!-f $document_root$fastcgi_script_name) {
 				# check if the script exists
@@ -46,7 +48,6 @@ http {
 			fastcgi_pass heroku-fcgi;
 		}
 
-		# TODO: use X-Forwarded-Host? http://comments.gmane.org/gmane.comp.web.nginx.english/2170
 		server_name localhost;
 		listen <?=getenv('PORT')?:'8080'?>;
 		# FIXME: breaks redirects with foreman
