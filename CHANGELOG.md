@@ -2,6 +2,10 @@
 
 ## v145 (2019-10-??)
 
+### ADD
+
+- PHP/7.1.23 [David Zuelke]
+
 ### FIX
 
 - Nginx reports "localhost" instead of requested hostname in SERVER_NAME FastCGI variable (#264) [David Zuelke]
