@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/7.1.23 [David Zuelke]
+- PHP/7.2.11 [David Zuelke]
 
 ### FIX
 
