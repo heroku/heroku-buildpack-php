@@ -9,6 +9,7 @@
 - ext-oauth/2.0.3 [David Zuelke]
 - ext-mongodb/1.5.3 [David Zuelke]
 - ext-blackfire/1.23.1 [David Zuelke]
+- ext-newrelic/8.3.0.226 [David Zuelke]
 
 ### FIX
 
