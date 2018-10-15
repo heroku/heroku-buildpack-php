@@ -7,6 +7,8 @@
 - PHP/7.1.23 [David Zuelke]
 - PHP/7.2.11 [David Zuelke]
 - ext-oauth/2.0.3 [David Zuelke]
+- ext-mongodb/1.5.3 [David Zuelke]
+- ext-blackfire/1.23.1 [David Zuelke]
 
 ### FIX
 
