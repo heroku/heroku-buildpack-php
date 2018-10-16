@@ -1,5 +1,20 @@
 # heroku-buildpack-php CHANGELOG
 
+## v145 (2019-10-16)
+
+### ADD
+
+- PHP/7.1.23 [David Zuelke]
+- PHP/7.2.11 [David Zuelke]
+- ext-oauth/2.0.3 [David Zuelke]
+- ext-mongodb/1.5.3 [David Zuelke]
+- ext-blackfire/1.23.1 [David Zuelke]
+- ext-newrelic/8.3.0.226 [David Zuelke]
+
+### FIX
+
+- Nginx reports "localhost" instead of requested hostname in SERVER_NAME FastCGI variable (#264) [David Zuelke]
+
 ## v144 (2019-09-13)
 
 ### ADD
