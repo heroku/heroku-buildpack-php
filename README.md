@@ -41,6 +41,17 @@ For instructions on how to build custom platform packages (and a repository to h
 
 **Please note that Heroku cannot provide support for issues related to custom platform repositories and packages.**
 
+## PHP Support for Heroku add-on providers
+
+If you're a Heroku add-on partner and would like to support PHP and install a binary dependency, the process might look like:
+
+* Create a custom composer repository that holds your binary extensions for your targetted versions of PHP,
+* Have Heroku customers install your add-on into their application,
+* Instruct your customers to modify their `composer.json` to include your package as a dependency requirement,
+* Have your Heroku customers include your composer repository by setting the `HEROKU_PHP_PLATFORM_REPOSITORIES` config variable per the above.
+
+We're working to smooth this process in the future.
+
 ## Development
 
 The following information only applies if you're forking and hacking on this buildpack for your own purposes.
