@@ -1,5 +1,18 @@
 # heroku-buildpack-php CHANGELOG
 
+## v146 (2018-11-08)
+
+### ADD
+
+- Apache/2.4.37 [David Zuelke]
+- PHP/7.1.24 [David Zuelke]
+- PHP/7.2.12 [David Zuelke]
+
+### CHG
+
+- Translate `NEW_RELIC_LOG_LEVEL` values "verbose" and "verbosedebug" to "debug" for `newrelic-daemon` [David Zuelke]
+- librdkafka/0.11.6
+
 ## v145 (2019-10-16)
 
 ### ADD
