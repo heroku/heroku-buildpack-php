@@ -2,6 +2,10 @@
 
 ## v146 (2018-11-08)
 
+### ADD
+
+- Apache/2.4.37 [David Zuelke]
+
 ### CHG
 
 - Translate `NEW_RELIC_LOG_LEVEL` values "verbose" and "verbosedebug" to "debug" for `newrelic-daemon` [David Zuelke]
