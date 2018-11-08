@@ -5,6 +5,7 @@
 ### ADD
 
 - Apache/2.4.37 [David Zuelke]
+- PHP/7.1.24 [David Zuelke]
 
 ### CHG
 
