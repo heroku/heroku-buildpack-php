@@ -6,6 +6,7 @@
 
 - Apache/2.4.37 [David Zuelke]
 - PHP/7.1.24 [David Zuelke]
+- PHP/7.2.12 [David Zuelke]
 
 ### CHG
 
