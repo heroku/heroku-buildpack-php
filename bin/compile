@@ -498,6 +498,6 @@ if [[ $app_type = "laravel" ]]; then
 
 	if [ -n "${LARAVEL_COMMANDS:-}" ]; then		
 		status "Running Laravel Commands..."
-		$LARAVEL_COMMANDS
+		eval "$LARAVEL_COMMANDS"
 	fi
 fi
