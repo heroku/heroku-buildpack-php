@@ -357,7 +357,7 @@ export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH
 
 # check if dev composer packages should be installed
 if [[ -n ${APP_ENV:-} ]]; then
-	notice "DETECTED ENV: ${APP_ENV}"	
+	notice "Detected Enviroment - ${APP_ENV}"	
 	if [[ ${APP_ENV:-} == 'testing' ]] || [[ ${APP_ENV:-} == 'development' ]]; then
 		export COMPOSER_DEV="--dev"
 	fi
@@ -456,10 +456,11 @@ unset COMPOSER_bak
 set -o nounset
 
 if [[ $app_type = "laravel" ]]; then
+	notice "Initializing Laravel Environment"
 	cd $build_dir
 
 	if [[ -n ${HT_AUTH:-} ]]; then
-		status "Generating HTTP authentication..."
+		notice "Generating HTTP Authentication"
 		htpasswd -cb .htpasswd $HT_AUTH
 		cat >> public/.htaccess <<- EOF
 		AuthType Basic
@@ -469,7 +470,7 @@ if [[ $app_type = "laravel" ]]; then
 		EOF
 	fi
 
-	status "Generating .ENV file..."
+	notice "Generating .ENV File..."
 
 	cat > .env <<- EOF
 	APP_NAME=${APP_NAME:=Laravel}
@@ -491,11 +492,12 @@ if [[ $app_type = "laravel" ]]; then
 	${LARAVEL_ENV_VARS:-}
 	EOF
 
+	notice "Running Artisan Commands"
 	php artisan key:generate
 	php artisan view:clear
 
 	if [ -n "${LARAVEL_COMMANDS:-}" ]; then		
-		status "Running Laravel Commands..."
+		notice "Running Laravel Commands"
 		$LARAVEL_COMMANDS
 	fi
 fi
