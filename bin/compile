@@ -118,9 +118,9 @@ mkdir -p $COMPOSER_HOME
 # check if dev composer packages should be installed
 if [[ ${APP_ENV:-} == 'testing' || ${APP_ENV:-} == 'development' ]]; then
 	notice "Development environment detected"
-	COMPOSER_DEV="--dev"
+	export COMPOSER_DEV="--dev"
 else
-	COMPOSER_DEV=${HEROKU_PHP_INSTALL_DEV}
+	export COMPOSER_DEV=${HEROKU_PHP_INSTALL_DEV:-}
 fi
 
 status "Bootstrapping..."
