@@ -115,16 +115,6 @@ mkdir -p $COMPOSER_HOME
 # if the build dir is not "/app", we symlink in the .heroku/php subdir (and only that, to avoid problems with other buildpacks) so that PHP correctly finds its INI files etc
 [[ $build_dir == '/app' ]] || ln -s $build_dir/.heroku/php /app/.heroku/php
 
-if [[ -n ${APP_ENV:-} ]]; then
-	notice "DETECTED ENV: ${APP_ENV}"
-fi
-
-# check if dev composer packages should be installed
-if [[ ${APP_ENV:-} == 'testing' || ${APP_ENV:-} == 'development' ]]; then
-	notice "Development environment detected"
-	export COMPOSER_DEV="--dev"
-fi
-
 status "Bootstrapping..."
 
 s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
@@ -209,6 +199,16 @@ export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # reset COMPOSER for the platform install step
 COMPOSER_bak="$COMPOSER"
 export COMPOSER=composer.json
+
+if [[ -n ${APP_ENV:-} ]]; then
+	notice "DETECTED ENV: ${APP_ENV}"
+fi
+
+# check if dev composer packages should be installed
+if [[ ${APP_ENV:-} == 'testing' || ${APP_ENV:-} == 'development' ]]; then
+	notice "Development environment detected"
+	export COMPOSER_DEV="--dev"
+fi
 
 # pass export_file_path and profile_dir_path to composer install; they will be used by the installer plugin
 # they are also used in later install attempts for add-on extensions (blackfire, newrelic, ...)
