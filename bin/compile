@@ -115,12 +115,14 @@ mkdir -p $COMPOSER_HOME
 # if the build dir is not "/app", we symlink in the .heroku/php subdir (and only that, to avoid problems with other buildpacks) so that PHP correctly finds its INI files etc
 [[ $build_dir == '/app' ]] || ln -s $build_dir/.heroku/php /app/.heroku/php
 
+if [[ -n ${APP_ENV:-} ]]; then
+	notice "DETECTED ENV: ${APP_ENV}"
+fi
+
 # check if dev composer packages should be installed
 if [[ ${APP_ENV:-} == 'testing' || ${APP_ENV:-} == 'development' ]]; then
 	notice "Development environment detected"
 	export COMPOSER_DEV="--dev"
-else
-	export COMPOSER_DEV=${HEROKU_PHP_INSTALL_DEV:-}
 fi
 
 status "Bootstrapping..."
@@ -493,6 +495,6 @@ if [[ $app_type = "laravel" ]]; then
 	php artisan view:clear
 
 	if [ -n "${LARAVEL_COMMANDS:-}" ]; then		
-		php artisan $LARAVEL_COMMANDS
+		$LARAVEL_COMMANDS
 	fi
 fi
