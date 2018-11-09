@@ -22,7 +22,7 @@ If you also have files from other frameworks or languages that could trigger ano
 ```sh
 heroku buildpacks:set gerardbalaoro/laravel
 ``` 
-The `gerardbalaoro/php-laravel` buildpack from the [Heroku Registry](https://devcenter.heroku.com/articles/buildpack-registry) represents the latest stable version of the buildpack. If you'd like to use the code from this Github repository, you can set your buildpack to the Github URL:
+The `gerardbalaoro/laravel` buildpack from the [Heroku Registry](https://devcenter.heroku.com/articles/buildpack-registry) represents the latest stable version of the buildpack. If you'd like to use the code from this Github repository, you can set your buildpack to the Github URL:
 
 ```sh
 heroku buildpacks:set https://github.com/gerardbalaoro/heroku-buildpack-laravel.git
