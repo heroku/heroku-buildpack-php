@@ -446,55 +446,47 @@ unset COMPOSER_bak
 set -o nounset
 
 if [[ $app_type = "laravel" ]]; then
-cd $build_dir
+	cd $build_dir
 
-# generate http authentication
-if [[ -n ${HT_AUTH:-} ]]; then
-htpasswd -cb .htpasswd $HT_AUTH
-cat >> public/.htaccess <<EOL
+	# generate http authentication
+	if [[ -n ${HT_AUTH:-} ]]; then
+		htpasswd -cb .htpasswd $HT_AUTH
+		cat >> public/.htaccess <<- EOF
+		AuthType Basic
+		AuthName "Restricted Access"
+		AuthUserFile /app/.htpasswd
+		Require valid-user
+		EOF
+	fi
 
+	# generate .env file
+	echo 'Generating .env file...'
 
-AuthType Basic
-AuthName "Restricted Access"
-AuthUserFile /app/.htpasswd
-Require valid-user
-EOL
-fi
+	cat > .env <<- EOF
+	APP_NAME=${APP_NAME:=Laravel}
+	APP_ENV=${APP_ENV:=production}
+	APP_KEY=
+	APP_DEBUG=${APP_DEBUG:=false}
+	APP_URL=${APP_URL:=http://localhost}
+	DB_CONNECTION=${DB_CONN:-}
+	DB_HOST=${DB_HOST:-}
+	DB_PORT=${DB_PORT:-}
+	DB_DATABASE=${DB_NAME:-}
+	DB_USERNAME=${DB_USER:-}
+	DB_PASSWORD=${DB_PASS:-}
+	MAIL_DRIVER=${MAIL_DRIVER:-}
+	MAIL_HOST=${MAIL_HOST:-}
+	MAIL_PORT=${MAIL_PORT:-}
+	MAIL_USERNAME=${MAIL_USER:-}
+	MAIL_PASSWORD=${MAIL_PASS:-}
+	${LARAVEL_ENV_VARS:-}
+	EOF
 
-# generate .env file
-echo 'Generating .env file...'
-rm -f .env
-echo "APP_NAME=${APP_NAME:=Laravel}
-APP_ENV=${APP_ENV:=production}
-APP_KEY=
-APP_DEBUG=${APP_DEBUG:=false}
-APP_URL=${APP_URL:=http://localhost}
-DB_CONNECTION=${DB_CONN:-}
-DB_HOST=${DB_HOST:-}
-DB_PORT=${DB_PORT:-}
-DB_DATABASE=${DB_NAME:-}
-DB_USERNAME=${DB_USER:-}
-DB_PASSWORD=${DB_PASS:-}
-MAIL_DRIVER=${MAIL_DRIVER:-}
-MAIL_HOST=${MAIL_HOST:-}
-MAIL_PORT=${MAIL_PORT:-}
-MAIL_USERNAME=${MAIL_USER:-}
-MAIL_PASSWORD=${MAIL_PASS:-}
-FILESYSTEM_DRIVER=${FILESYSTEM_DRIVER:-}
-FTP_HOST=${FTP_HOST:-}
-FTP_PORT=${FTP_PORT:-}
-FTP_ROOT=${FTP_ROOT:-}
-FTP_SSL=${FTP_SSL:-}
-FTP_USERNAME=${FTP_USERNAME:-}
-FTP_PASSWORD=${FTP_PASSWORD:-}
-${ENV_VARS:-}
-" > .env && echo '.env file created.'
+	php artisan key:generate
+	php artisan view:clear
 
-php artisan key:generate
-php artisan view:clear
-
-# deploy task
-if [ -n "${DEPLOY_TASKS:-}" ]; then		
-php artisan $DEPLOY_TASKS
-fi
+	# deploy task
+	if [ -n "${LARAVEL_COMMANDS:-}" ]; then		
+		php artisan $LARAVEL_COMMANDS
+	fi
 fi
