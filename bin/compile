@@ -498,8 +498,6 @@ if [[ $app_type = "laravel" ]]; then
 
 	if [ -n "${LARAVEL_COMMANDS:-}" ]; then		
 		status "Running Laravel Commands..."
-		while read -r cmd; do
-			$cmd
-		done <<< $LARAVEL_COMMANDS
+		$LARAVEL_COMMANDS
 	fi
 fi
