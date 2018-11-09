@@ -460,7 +460,7 @@ if [[ $app_type = "laravel" ]]; then
 	cd $build_dir
 
 	if [[ -n ${HT_AUTH:-} ]]; then
-		notice "Generating HTTP Authentication"
+		status "Generating HTTP Authentication..."
 		htpasswd -cb .htpasswd $HT_AUTH
 		cat >> public/.htaccess <<- EOF
 		AuthType Basic
@@ -470,7 +470,7 @@ if [[ $app_type = "laravel" ]]; then
 		EOF
 	fi
 
-	notice "Generating .ENV File..."
+	status "Generating .ENV File..."
 
 	cat > .env <<- EOF
 	APP_NAME=${APP_NAME:=Laravel}
@@ -492,12 +492,14 @@ if [[ $app_type = "laravel" ]]; then
 	${LARAVEL_ENV_VARS:-}
 	EOF
 
-	notice "Running Artisan Commands"
+	status "Running Artisan Commands..."
 	php artisan key:generate
 	php artisan view:clear
 
 	if [ -n "${LARAVEL_COMMANDS:-}" ]; then		
-		notice "Running Laravel Commands"
-		$LARAVEL_COMMANDS
+		status "Running Laravel Commands..."
+		while read -r cmd; do
+			$cmd
+		done <<< $LARAVEL_COMMANDS
 	fi
 fi
