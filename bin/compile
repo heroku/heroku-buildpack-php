@@ -352,6 +352,9 @@ fi
 # no need for the token to stay around in the env
 unset COMPOSER_GITHUB_OAUTH_TOKEN
 
+# export environment variables
+export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV|BPLOG_PREFIX|BUILDPACK_LOG_FILE)$'
+
 # check if dev composer packages should be installed
 if [[ -n ${APP_ENV:-} ]]; then
 	notice "DETECTED ENV: ${APP_ENV}"	
@@ -361,8 +364,6 @@ if [[ -n ${APP_ENV:-} ]]; then
 fi
 
 # install dependencies unless composer.json is completely empty (in which case it'd talk to packagist.org which may be slow and is unnecessary)
-export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV|BPLOG_PREFIX|BUILDPACK_LOG_FILE)$'
-
 if cat "$COMPOSER" | python -c 'import sys,json; sys.exit(not json.load(sys.stdin));'; then
 	install_log=$(mktemp -t heroku-buildpack-php-composer-install-log-XXXX)
 	composer install ${COMPOSER_DEV-"--no-dev"} --prefer-dist --optimize-autoloader --no-interaction 2>&1 | tee "$install_log" | indent || {
@@ -494,6 +495,7 @@ if [[ $app_type = "laravel" ]]; then
 	php artisan view:clear
 
 	if [ -n "${LARAVEL_COMMANDS:-}" ]; then		
+		status "Running Laravel Commands..."
 		$LARAVEL_COMMANDS
 	fi
 fi
