@@ -20,7 +20,7 @@ git commit -m "add composer.json for PHP app detection"
 If you also have files from other frameworks or languages that could trigger another buildpack to detect your application as one of its own, e.g. a `package.json` which might cause your code to be detected as a Node.js application even if it is a PHP application, then you need to manually set your application to use this buildpack:
 
 ```sh
-heroku buildpacks:set gerardbalaoro/php-laravel
+heroku buildpacks:set gerardbalaoro/laravel
 ``` 
 The `gerardbalaoro/php-laravel` buildpack from the [Heroku Registry](https://devcenter.heroku.com/articles/buildpack-registry) represents the latest stable version of the buildpack. If you'd like to use the code from this Github repository, you can set your buildpack to the Github URL:
 
@@ -110,7 +110,7 @@ heroku config:set HT_AUTH={username} {password}
 
 It will also append the authentication code in **public/.htaccess**
 
-```apa
+```apache
 AuthType Basic
 AuthName "Restricted Access"
 AuthUserFile /app/.htpasswd
