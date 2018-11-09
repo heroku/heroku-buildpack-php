@@ -202,12 +202,12 @@ export COMPOSER=composer.json
 
 if [[ -n ${APP_ENV:-} ]]; then
 	notice "DETECTED ENV: ${APP_ENV}"
-fi
 
-# check if dev composer packages should be installed
-if [[ ${APP_ENV:-} == 'testing' || ${APP_ENV:-} == 'development' ]]; then
-	notice "Development environment detected"
-	export COMPOSER_DEV="--dev"
+	# check if dev composer packages should be installed
+	if [[ ${APP_ENV:-} == 'testing' ]] || [[ ${APP_ENV:-} == 'development' ]]; then
+		notice "Development environment detected"
+		export COMPOSER_DEV="--dev"
+	fi
 fi
 
 # pass export_file_path and profile_dir_path to composer install; they will be used by the installer plugin
