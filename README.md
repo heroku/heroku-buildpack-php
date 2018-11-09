@@ -11,13 +11,17 @@
 
 You'll need to use at least an empty `composer.json` in your application.
 
-    echo '{}' > composer.json
-    git add composer.json
-    git commit -m "add composer.json for PHP app detection"
+```sh
+echo '{}' > composer.json
+git add composer.json
+git commit -m "add composer.json for PHP app detection"
+```
 
 If you also have files from other frameworks or languages that could trigger another buildpack to detect your application as one of its own, e.g. a `package.json` which might cause your code to be detected as a Node.js application even if it is a PHP application, then you need to manually set your application to use this buildpack:
 
-    heroku buildpacks:set https://github.com/gerardbalaoro/heroku-buildpack-laravel.git
+```sh
+heroku buildpacks:set https://github.com/gerardbalaoro/heroku-buildpack-laravel.git
+```
 
 Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for further usage instructions.
 
@@ -84,14 +88,14 @@ php artisan view:clear
 To run additional commands, set assign them to the config variable **LARAVEL_COMMANDS**
 
 ```sh
-# Executes php artisan migrate:refresh
-heroku config:set LARAVEL_COMMANDS=php artisan migrate:refresh
+# Executes php artisan migrate and php artisan db:seed
+heroku config:set LARAVEL_COMMANDS=php artisan migrate && php artisan db:seed
 ```
 
 
 
 ## HTTP Basic Authentication
-This will generate an **.htpasswd** file based of the config variable **HT_AUTH**
+This will generate an **.htpasswd** file based on the config variable **HT_AUTH**
 
 ```sh
 # Executes htpasswd -cb .htpasswd {username} {password}
@@ -106,4 +110,3 @@ AuthName "Restricted Access"
 AuthUserFile /app/.htpasswd
 Require valid-user
 ```
-
