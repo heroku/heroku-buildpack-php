@@ -115,6 +115,14 @@ mkdir -p $COMPOSER_HOME
 # if the build dir is not "/app", we symlink in the .heroku/php subdir (and only that, to avoid problems with other buildpacks) so that PHP correctly finds its INI files etc
 [[ $build_dir == '/app' ]] || ln -s $build_dir/.heroku/php /app/.heroku/php
 
+# check if dev composer packages should be installed
+if [[ ${APP_ENV:-} == 'testing' || ${APP_ENV:-} == 'development' ]]; then
+	notice "Development environment detected"
+	COMPOSER_DEV="--dev"
+else
+	COMPOSER_DEV=${HEROKU_PHP_INSTALL_DEV}
+fi
+
 status "Bootstrapping..."
 
 s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
@@ -448,8 +456,8 @@ set -o nounset
 if [[ $app_type = "laravel" ]]; then
 	cd $build_dir
 
-	# generate http authentication
 	if [[ -n ${HT_AUTH:-} ]]; then
+		status "Generating HTTP authentication..."
 		htpasswd -cb .htpasswd $HT_AUTH
 		cat >> public/.htaccess <<- EOF
 		AuthType Basic
@@ -459,8 +467,7 @@ if [[ $app_type = "laravel" ]]; then
 		EOF
 	fi
 
-	# generate .env file
-	echo 'Generating .env file...'
+	status "Generating .ENV file..."
 
 	cat > .env <<- EOF
 	APP_NAME=${APP_NAME:=Laravel}
@@ -485,7 +492,6 @@ if [[ $app_type = "laravel" ]]; then
 	php artisan key:generate
 	php artisan view:clear
 
-	# deploy task
 	if [ -n "${LARAVEL_COMMANDS:-}" ]; then		
 		php artisan $LARAVEL_COMMANDS
 	fi
