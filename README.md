@@ -1,4 +1,4 @@
-<h1 align="center">Heroku Buildpack: PHP + Laravel</h1>
+<h1 align="center">Heroku Buildpack: Laravel</h1>
 <p align="center"><img src="assets/laravel-heroku.jpg" alt="Laravel Heroku Buildpack"></p>
 <p align="center">
 	Forked from the Official <a href="https://github.com/heroku/heroku-buildpack-php">Heroku PHP Buildpack</a> with added support for Laravel Applications.
