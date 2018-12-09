@@ -9,8 +9,16 @@ shopt -s extglob
 # for detecting when -l 'logs/*.log' matches nothing
 shopt -s nullglob
 
+if ! type -p "realpath" > /dev/null; then
+	# cedar-14 doesn't have realpath
+	# must be a function so subshells, including $(…), can use it
+	realpath() {
+		readlink "$@"
+	}
+fi
+
 # we very likely got called via a symlink, so we have to realpath $0 first to find the base buildpack directory
-bp_dir=$(cd $(dirname $(realpath $0)); cd ..; pwd)
+bp_dir=$(cd $(dirname $(realpath -e $0)); cd ..; pwd)
 
 verbose=
 
@@ -41,6 +49,25 @@ touch_log() {
 	mkdir -p $(dirname "$1") && touch "$1"
 }
 
+findconfig() {
+	local dir=$(dirname "$2")
+	local file=$(basename "$2")
+	IFS='.' read -r -a version <<< "$1" # read the parts of $1 (version number) into an array, e.g. (7 2 33)
+
+	# iterate "backwards" over version parts so we try "7/2/11" first, then "7/2", then "7" for a version "7.2.11"
+	# we go down to 0, which will yield an empty string, for the last fallback layer without any version number
+	for (( i = ${#version[@]}; i >= 0; i--)); do
+		version_dir=$(IFS=/; echo "${version[*]:0:$i}") # set IFS to "/" for merging, but echo is a builtin, so it must be a subshell and a separate command
+		full_path="${dir}/${version_dir}${version_dir:+/}${file}" # concat, but if scandir is empty (last fallback), don't produce a double slash
+		if [[ -f "$full_path" ]]; then
+			echo "$full_path";
+			return 0;
+		fi
+	done
+	echo "$2"
+	return 1;
+}
+
 print_help() {
 	cat >&2 <<-EOF
 		
@@ -57,20 +84,23 @@ print_help() {
 		                          Recommended approach when customizing Apache2's config
 		                          in most cases, unless you need to set fundamental
 		                          server level options.
-		                          [default: <BPDIR>/conf/apache2/default_include.conf]
+		                          [default: <BPDIR>/conf/apache2/default_include.conf,
+		                          or a more version-specific file from a subdirectory]
 		  -c <httpd.conf>         The path to the full VHost configuration file that is
 		                          included after Heroku's (or your local) Apache2 config
 		                          is loaded. Must contain a 'Listen \${PORT}' directive
 		                          and should have a '<VirtualHost>' and likely also a
 		                          '<Directory>' section (see option -C above).
-		                          [default: <BPDIR>/conf/apache2/heroku.conf]
+		                          [default: <BPDIR>/conf/apache2/heroku.conf,
+		                          or a more version-specific file from a subdirectory]
 		  -F <php-fpm.inc.conf>   The path to the configuration file to include at the
 		                          end of php-fpm.conf (see option -f below), in the
 		                          '[www]' pool section. Recommended approach when
 		                          customizing PHP-FPM's configuration in most cases,
 		                          unless you need to set global options.
 		  -f <php-fpm.conf>       The path to the full PHP-FPM configuration file.
-		                          [default: <BPDIR>/conf/php/php-fpm.conf]
+		                          [default: <BPDIR>/conf/php/php-fpm.conf,
+		                          or a more version-specific file from a subdirectory]
 		  -h, --help              Display this help screen and exit.
 		  -i <php.ini>            The path to the php.ini file to use.
 		                          [default: <BPDIR>/conf/php/php.ini]
@@ -206,6 +236,9 @@ php -n -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "T
 { php-fpm -n -v | php -n -r 'exit((int)version_compare(preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin")), "5.5.11", "<"));'; } || { echo "This program requires PHP 5.5.11 or newer; check your 'php-fpm' command." >&2; exit 1; }
 { { httpd -v | php -n -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.10", "<"));'; } && { httpd -t -D DUMP_MODULES | grep 'proxy_fcgi_module' > /dev/null; }; } || { echo "This program requires Apache 2.4.10 or newer with mod_proxy and mod_proxy_fcgi enabled; check your 'httpd' command." >&2; exit 1; }
 
+php_version="$(php-fpm -n -v | php -n -r 'echo preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin"));')"
+httpd_version="$(httpd -v | php -n -r 'echo preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin"));')"
+
 # make sure we run a local composer.phar if present, or global composer if not
 composer() {
 	local composer_bin=$(which ./composer.phar composer | head -n1)
@@ -243,7 +276,7 @@ if [[ -n ${fpm_config_include:-} ]]; then
 	export HEROKU_PHP_FPM_CONFIG_INCLUDE="$fpm_config_include"
 fi
 
-if [[ -n ${fpm_config:-} || ( ${fpm_config:="$bp_dir/conf/php/php-fpm.conf"} && $verbose ) ]]; then
+if [[ -n ${fpm_config:-} || ( ${fpm_config:=$(findconfig "$php_version" "$bp_dir/conf/php/php-fpm.conf")} && $verbose ) ]]; then
 	echo "Using PHP-FPM configuration file '${fpm_config#$HEROKU_APP_DIR/}'" >&2
 fi
 fpm_config=$(php_passthrough "$fpm_config")
@@ -253,13 +286,13 @@ if [[ -n ${php_config:-} ]]; then
 	php_config=$(php_passthrough "$php_config")
 fi
 
-if [[ -n ${httpd_config_include:-} || ( ${httpd_config_include:="$bp_dir/conf/apache2/default_include.conf"} && $verbose ) ]]; then
+if [[ -n ${httpd_config_include:-} || ( ${httpd_config_include:=$(findconfig "$httpd_version" "$bp_dir/conf/apache2/default_include.conf")} && $verbose ) ]]; then
 	echo "Using Apache2 VirtualHost-level configuration include '${httpd_config_include#$HEROKU_APP_DIR/}'" >&2
 fi
 httpd_config_include=$(php_passthrough "$httpd_config_include")
 export HEROKU_PHP_HTTPD_CONFIG_INCLUDE="$httpd_config_include"
 
-if [[ -n ${httpd_config:-} || ( ${httpd_config:="$bp_dir/conf/apache2/heroku.conf"} && $verbose) ]]; then
+if [[ -n ${httpd_config:-} || ( ${httpd_config:=$(findconfig "$httpd_version" "$bp_dir/conf/apache2/heroku.conf")} && $verbose) ]]; then
 	echo "Using Apache2 configuration file '${httpd_config#$HEROKU_APP_DIR/}'" >&2
 fi
 httpd_config=$(php_passthrough "$httpd_config")

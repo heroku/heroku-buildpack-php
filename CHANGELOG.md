@@ -5,6 +5,7 @@
 ### CHG
 
 - Look for configs relative to buildpack dir, and not to $CWD/vendor/heroku/…, in boot scripts [David Zuelke]
+- Look for default configs using version specific paths first in boot scripts [David Zuelke]
 
 ## v146 (2018-11-08)
 

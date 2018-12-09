@@ -9,8 +9,16 @@ shopt -s extglob
 # for detecting when -l 'logs/*.log' matches nothing
 shopt -s nullglob
 
+if ! type -p "realpath" > /dev/null; then
+	# cedar-14 doesn't have realpath
+	# must be a function so subshells, including $(…), can use it
+	realpath() {
+		readlink "$@"
+	}
+fi
+
 # we very likely got called via a symlink, so we have to realpath $0 first to find the base buildpack directory
-bp_dir=$(cd $(dirname $(realpath $0)); cd ..; pwd)
+bp_dir=$(cd $(dirname $(realpath -e $0)); cd ..; pwd)
 
 verbose=
 
@@ -41,6 +49,25 @@ touch_log() {
 	mkdir -p $(dirname "$1") && touch "$1"
 }
 
+findconfig() {
+	local dir=$(dirname "$2")
+	local file=$(basename "$2")
+	IFS='.' read -r -a version <<< "$1" # read the parts of $1 (version number) into an array, e.g. (7 2 33)
+
+	# iterate "backwards" over version parts so we try "7/2/11" first, then "7/2", then "7" for a version "7.2.11"
+	# we go down to 0, which will yield an empty string, for the last fallback layer without any version number
+	for (( i = ${#version[@]}; i >= 0; i--)); do
+		version_dir=$(IFS=/; echo "${version[*]:0:$i}") # set IFS to "/" for merging, but echo is a builtin, so it must be a subshell and a separate command
+		full_path="${dir}/${version_dir}${version_dir:+/}${file}" # concat, but if scandir is empty (last fallback), don't produce a double slash
+		if [[ -f "$full_path" ]]; then
+			echo "$full_path";
+			return 0;
+		fi
+	done
+	echo "$2"
+	return 1;
+}
+
 print_help() {
 	cat >&2 <<-EOF
 		
@@ -57,7 +84,8 @@ print_help() {
 		                          Recommended approach when customizing Nginx's config
 		                          in most cases, unless you need to set http or
 		                          fundamental server level options.
-		                          [default: <BPDIR>/conf/nginx/default_include.conf.php]
+		                          [default: <BPDIR>/conf/nginx/default_include.conf.php,
+		                          or a more version-specific file from a subdirectory]
 		  -c <nginx.conf>         The path to the full configuration file that is
 		                          included after Heroku's (or your local) Nginx config
 		                          is loaded. It must contain an 'http { ... }' block
@@ -65,13 +93,15 @@ print_help() {
 		                          and 'root' (see option -C above), but no global,
 		                          directives (globals are read from the system's default
 		                          Nginx configuration files).
-		                          [default: <BPDIR>/conf/nginx/heroku.conf.php]
+		                          [default: <BPDIR>/conf/nginx/heroku.conf.php,
+		                          or a more version-specific file from a subdirectory]
 		  -h, --help              Display this help screen and exit.
 		  -I <php.extra.ini>      The path to an extra php.ini to use in addition to the
 		                          default HHVM php.ini (see option -i below).
 		  -i <php.ini>            The path to the php.ini file to use. It is highly
 		                          recommended to use the -I option (see above) instead.
-		                          [default: <BPDIR>/conf/hhvm/php.ini.php]
+		                          [default: <BPDIR>/conf/hhvm/php.ini.php,
+		                          or a more version-specific file from a subdirectory]
 		  -l <tailme.log>         Path to additional log file to tail to STDERR so its
 		                          contents appear in 'heroku logs'. If the file does not
 		                          exist, it will be created. Wildcards are allowed, but
@@ -197,6 +227,9 @@ logs+=( "/tmp/heroku.nginx_access.$PORT.log" )
 
 hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { echo "This program requires HHVM 3.0.1 or newer" >&2; exit 1; }
 
+hhvm_version="$(hhvm --php -r 'echo HHVM_VERSION;')"
+nginx_version="$(nginx -v 2>&1 | grep -oP "nginx\/\K[\d\.]+")" # \K, available with -P, resets the start of the match
+
 # make sure we run a local composer.phar if present, or global composer if not
 composer() {
 	local composer_bin=$(which ./composer.phar composer | head -n1)
@@ -229,7 +262,7 @@ if [[ "$#" == "1" ]]; then
 fi
 
 function prepare_hhvm_ini() { # we have to do this twice, as the WEB_CONCURRENCY setting is evaluated using PHP code, not ${...} syntax which HHVM does not support; if a value for $1 is passed then it won't echo messages upon second invocation
-if [[ ( -n ${php_config:-} && ! ${1:-} ) || ( ${php_config:="$bp_dir/conf/hhvm/php.ini.php"} && $verbose && ! ${1:-} ) ]]; then
+if [[ ( -n ${php_config:-} && ! ${1:-} ) || ( ${php_config:=$(findconfig "$hhvm_version" "$bp_dir/conf/hhvm/php.ini.php")} && $verbose && ! ${1:-} ) ]]; then
 	echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 fi
 php_configs=( "-c" "$(php_passthrough "$php_config")" )
@@ -241,13 +274,13 @@ fi
 }
 prepare_hhvm_ini
 
-if [[ -n ${nginx_config_include:-} || ( ${nginx_config_include:="$bp_dir/conf/nginx/default_include.conf.php"} && $verbose ) ]]; then
+if [[ -n ${nginx_config_include:-} || ( ${nginx_config_include:=$(findconfig "$nginx_version" "$bp_dir/conf/nginx/default_include.conf.php")} && $verbose ) ]]; then
 	echo "Using Nginx server-level configuration include '${nginx_config_include#$HEROKU_APP_DIR/}'" >&2
 fi
 nginx_config_include=$(php_passthrough "$nginx_config_include")
 export HEROKU_PHP_NGINX_CONFIG_INCLUDE="$nginx_config_include"
 
-if [[ -n ${nginx_config:-} || ( ${nginx_config:="$bp_dir/conf/nginx/heroku.conf.php"} && $verbose) ]]; then
+if [[ -n ${nginx_config:-} || ( ${nginx_config:=$(findconfig "$nginx_version" "$bp_dir/conf/nginx/heroku.conf.php")} && $verbose) ]]; then
 	echo "Using Nginx configuration file '${nginx_config#$HEROKU_APP_DIR/}'" >&2
 fi
 nginx_config=$(php_passthrough "$nginx_config")
