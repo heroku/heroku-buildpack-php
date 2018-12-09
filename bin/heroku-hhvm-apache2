@@ -9,6 +9,9 @@ shopt -s extglob
 # for detecting when -l 'logs/*.log' matches nothing
 shopt -s nullglob
 
+# we very likely got called via a symlink, so we have to realpath $0 first to find the base buildpack directory
+bp_dir=$(cd $(dirname $(realpath $0)); cd ..; pwd)
+
 verbose=
 
 php_passthrough() {
@@ -54,19 +57,19 @@ print_help() {
 		                          Recommended approach when customizing Apache2's config
 		                          in most cases, unless you need to set fundamental
 		                          server level options.
-		                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/default_include.conf]
+		                          [default: <BPDIR>/conf/apache2/default_include.conf]
 		  -c <httpd.conf>         The path to the full VHost configuration file that is
 		                          included after Heroku's (or your local) Apache2 config
 		                          is loaded. Must contain a 'Listen \${PORT}' directive
 		                          and should have a '<VirtualHost>' and likely also a
 		                          '<Directory>' section (see option -C above).
-		                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/heroku.conf]
+		                          [default: <BPDIR>/conf/apache2/heroku.conf]
 		  -h, --help              Display this help screen and exit.
 		  -I <php.extra.ini>      The path to an extra php.ini to use in addition to the
 		                          default HHVM php.ini (see option -i below).
 		  -i <php.ini>            The path to the php.ini file to use. It is highly
 		                          recommended to use the -I option (see above) instead.
-		                          [default: \$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php]
+		                          [default: <BPDIR>/conf/hhvm/php.ini.php]
 		  -l <tailme.log>         Path to additional log file to tail to STDERR so its
 		                          contents appear in 'heroku logs'. If the file does not
 		                          exist, it will be created. Wildcards are allowed, but
@@ -77,6 +80,9 @@ print_help() {
 		                          the \$PORT environment variable, or a random port is
 		                          chosen if that variable does not exist.
 		  -v, --verbose           Be more verbose during startup.
+		
+		The <BPDIR> placeholder above represents the base directory of this buildpack:
+		$bp_dir
 		
 		All file paths must be relative to '$HEROKU_APP_DIR'.
 		
@@ -202,6 +208,7 @@ composer() {
 		hhvm $composer_bin "$@"
 	fi
 }
+# these exports are used in default web server configs to lock down access to composer directories
 COMPOSER_VENDOR_DIR=$(composer config vendor-dir 2> /dev/null | tail -n 1) && export COMPOSER_VENDOR_DIR || { echo "Unable to determine Composer vendor-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 COMPOSER_BIN_DIR=$(composer config bin-dir 2> /dev/null | tail -n 1) && export COMPOSER_BIN_DIR || { echo "Unable to determine Composer bin-dir setting; is 'composer' executable on path or 'composer.phar' in current working directory?" >&2; exit 1; } # tail, as composer echos outdated version warnings to STDOUT; export after the assignment or exit status will that be of 'export
 
@@ -222,7 +229,7 @@ if [[ "$#" == "1" ]]; then
 fi
 
 function prepare_hhvm_ini() { # we have to do this twice, as the WEB_CONCURRENCY setting is evaluated using PHP code, not ${...} syntax which HHVM does not support; if a value for $1 is passed then it won't echo messages upon second invocation
-if [[ ( -n ${php_config:-} && ! ${1:-} ) || ( ${php_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/hhvm/php.ini.php"} && $verbose && ! ${1:-} ) ]]; then
+if [[ ( -n ${php_config:-} && ! ${1:-} ) || ( ${php_config:="$bp_dir/conf/hhvm/php.ini.php"} && $verbose && ! ${1:-} ) ]]; then
 	echo "Using HHVM configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 fi
 php_configs=( "-c" "$(php_passthrough "$php_config")" )
@@ -234,13 +241,13 @@ fi
 }
 prepare_hhvm_ini
 
-if [[ -n ${httpd_config_include:-} || ( ${httpd_config_include:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/default_include.conf"} && $verbose ) ]]; then
+if [[ -n ${httpd_config_include:-} || ( ${httpd_config_include:="$bp_dir/conf/apache2/default_include.conf"} && $verbose ) ]]; then
 	echo "Using Apache2 VirtualHost-level configuration include '${httpd_config_include#$HEROKU_APP_DIR/}'" >&2
 fi
 httpd_config_include=$(php_passthrough "$httpd_config_include")
 export HEROKU_PHP_HTTPD_CONFIG_INCLUDE="$httpd_config_include"
 
-if [[ -n ${httpd_config:-} || ( ${httpd_config:="$HEROKU_APP_DIR/$COMPOSER_VENDOR_DIR/heroku/heroku-buildpack-php/conf/apache2/heroku.conf"} && $verbose) ]]; then
+if [[ -n ${httpd_config:-} || ( ${httpd_config:="$bp_dir/conf/apache2/heroku.conf"} && $verbose) ]]; then
 	echo "Using Apache2 configuration file '${httpd_config#$HEROKU_APP_DIR/}'" >&2
 fi
 httpd_config=$(php_passthrough "$httpd_config")
@@ -264,7 +271,7 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 	fi
 
 	# determine number of HHVM threads to run
-	read WEB_CONCURRENCY php_memory_limit <<<$(hhvm "${php_configs[@]}" $(composer config vendor-dir 2> /dev/null | tail -n 1)/heroku/heroku-buildpack-php/bin/util/autotune.php "$ram") # tail, as composer echos outdated version warnings to STDOUT
+	read WEB_CONCURRENCY php_memory_limit <<<$(hhvm "${php_configs[@]}" $bp_dir/bin/util/autotune.php "$ram")
 	[[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
 	export WEB_CONCURRENCY
 
