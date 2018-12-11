@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/7.3.0 [David Zuelke]
+- PHP/7.2.13 [David Zuelke]
 
 ### CHG
 
