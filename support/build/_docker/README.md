@@ -4,7 +4,6 @@
 
 **After every change to your formulae, perform the following** from the root of the Git repository (not from `support/build/_docker/`) to rebuild the images for each stack:
 
-    $ docker build --pull --tag heroku-php-build-cedar-14 --file $(pwd)/support/build/_docker/cedar-14.Dockerfile .
     $ docker build --pull --tag heroku-php-build-heroku-16 --file $(pwd)/support/build/_docker/heroku-16.Dockerfile .
     $ docker build --pull --tag heroku-php-build-heroku-18 --file $(pwd)/support/build/_docker/heroku-18.Dockerfile .
     $ docker build --pull --tag heroku-php-build-heroku-20 --file $(pwd)/support/build/_docker/heroku-20.Dockerfile .
@@ -19,7 +18,6 @@ Out of the box, each `Dockerfile` has the correct values predefined for `S3_BUCK
 
 From the root of the Git repository (not from `support/build/_docker/`), you can e.g. `bash` into each of the images you built using their tag:
 
-    docker run --rm -ti heroku-php-build-cedar-14 bash
     docker run --rm -ti heroku-php-build-heroku-16 bash
     docker run --rm -ti heroku-php-build-heroku-18 bash
     docker run --rm -ti heroku-php-build-heroku-20 bash

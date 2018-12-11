@@ -157,13 +157,12 @@ The following environment variables are required:
 - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with credentials for the S3 bucket
 - `S3_BUCKET` with the name of the S3 bucket to use for builds
 - `S3_PREFIX` (just a slash, or a prefix directory name **with a trailing, but no leading, slash**)
-- `STACK` (currently, only "`cedar-14`", "`heroku-16`", "`heroku-18`" or "`heroku-20`" make any sense)
+- `STACK` (currently, only "`heroku-16`", "`heroku-18`" or "`heroku-20`" make any sense)
 
 The following environment variables are highly recommended (see section *Understanding Upstream Buckets*):
 
 - `UPSTREAM_S3_BUCKET` where dependencies are pulled from if they can't be found in `S3_BUCKET+S3_PREFIX`, should probably be set to "`lang-php`", the official Heroku bucket
 - `UPSTREAM_S3_PREFIX`, where dependencies are pulled from if they can't be found in `S3_BUCKET+S3_PREFIX` should probably be set to
-  - "`dist-cedar-14-stable/`", the official Heroku stable repository prefix for the [cedar-14 stack](https://devcenter.heroku.com/articles/stack).
   - "`dist-heroku-16-stable/`", the official Heroku stable repository prefix for the [heroku-16 stack](https://devcenter.heroku.com/articles/stack).
   - "`dist-heroku-18-stable/`", the official Heroku stable repository prefix for the [heroku-18 stack](https://devcenter.heroku.com/articles/stack).
   - "`dist-heroku-20-stable/`", the official Heroku stable repository prefix for the [heroku-20 stack](https://devcenter.heroku.com/articles/stack).
