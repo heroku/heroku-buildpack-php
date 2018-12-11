@@ -202,7 +202,6 @@ rm ${OUT_PREFIX}/etc/php/php.ini composer.phar
 
 cp $(dirname $BASH_SOURCE)/_conf/php/php.ini ${OUT_PREFIX}/etc/php/
 cp $(dirname $BASH_SOURCE)/_conf/php/conf.d/*.ini ${OUT_PREFIX}/etc/php/conf.d/
-cp $(dirname $BASH_SOURCE)/../../conf/php/php-fpm.conf ${OUT_PREFIX}/etc/php/
 
 # this gets sourced after package install, so that the buildpack and following buildpacks can invoke
 cat > ${OUT_PREFIX}/bin/export.php.sh <<'EOF'
