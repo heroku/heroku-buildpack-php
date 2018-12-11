@@ -200,8 +200,14 @@ MANIFEST_EXTRA="${MANIFEST_EXTRA:-"$extra"}"
 # remove temporary ini file that enables all extensions, and the composer download
 rm ${OUT_PREFIX}/etc/php/php.ini composer.phar
 
-cp $(dirname $BASH_SOURCE)/_conf/php/php.ini ${OUT_PREFIX}/etc/php/
-cp $(dirname $BASH_SOURCE)/_conf/php/conf.d/*.ini ${OUT_PREFIX}/etc/php/conf.d/
+IFS='.' read -r -a version <<< "$dep_version" # read the parts of $dep_version into an array, e.g. (7 2 33)
+# iterate over version parts so we try "" (from index 0) first, then "7", then "7/2/", then "7/2/11" for a version "7.2.11"
+# in each case, we copy anything that's in that directory; more specific version configs will this overwrite less specific ones
+for (( i = 0; i < ${#version[@]}; i++)); do
+	version_dir=$(IFS=/; echo "${version[*]:0:$i}") # set IFS to "/" for merging, but echo is a builtin, so it must be a subshell and a separate command
+	cp $(dirname $BASH_SOURCE)/_conf/php/${version_dir}/php.ini ${OUT_PREFIX}/etc/php/ 2> /dev/null || true
+	cp $(dirname $BASH_SOURCE)/_conf/php/${version_dir}/conf.d/*.ini ${OUT_PREFIX}/etc/php/conf.d/ 2> /dev/null || true
+done
 
 # this gets sourced after package install, so that the buildpack and following buildpacks can invoke
 cat > ${OUT_PREFIX}/bin/export.php.sh <<'EOF'
