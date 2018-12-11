@@ -12,6 +12,7 @@
 - ext-phalcon/3.4.2 [David Zuelke]
 - ext-newrelic/8.4.0.231 [David Zuelke]
 - ext-redis/4.2.0 [David Zuelke]
+- ext-apcu/5.1.14 [David Zuelke]
 
 ### CHG
 
