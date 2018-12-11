@@ -27,6 +27,8 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
 		dep_url=https://downloads.php.net/~krakjoe/${dep_archive_name}
 	elif [[ $dep_version == 7.2.* ]]; then
 		dep_url=https://downloads.php.net/~pollita/${dep_archive_name}
+	elif [[ $dep_version == 7.3.* ]]; then
+		dep_url=https://downloads.php.net/~cmb/${dep_archive_name}
 	fi
 else
 	dep_url=https://php.net/get/${dep_archive_name}/from/this/mirror
@@ -102,7 +104,8 @@ fi
 configureopts=()
 if [[ $dep_version == 7.* ]]; then
 	configureopts+=("--enable-opcache-file")
-
+	configureopts+=("--without-libzip") # FIXME: change to --with-libzip once cedar-14 is EOL, as the other stacks have an up to date enough version
+	
 	if [[ $dep_version == 7.0.* || $dep_version == 7.1.* ]]; then
 		configureopts+=("--with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix}")
 	else

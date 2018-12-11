@@ -2,6 +2,10 @@
 
 ## v147 (2018-??-??)
 
+### ADD
+
+- PHP/7.3.0 [David Zuelke]
+
 ### CHG
 
 - Look for configs relative to buildpack dir, and not to $CWD/vendor/heroku/…, in boot scripts [David Zuelke]
