@@ -3,7 +3,7 @@
 
 $COMPOSER = getenv("COMPOSER")?:"composer.json";
 $COMPOSER_LOCK = getenv("COMPOSER_LOCK")?:"composer.lock";
-$STACK = getenv("STACK")?:"cedar-14";
+$STACK = getenv("STACK")?:"heroku-18";
 
 // prefix keys with "heroku-sys/"
 function mkdep($require) { return array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require); }
