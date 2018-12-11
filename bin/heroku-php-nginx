@@ -235,7 +235,6 @@ logs+=( "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.php-fpm.www.$PORT.log" "/tm
 # a bunch of checks; don't load any INIs to prevent newrelic etc from loading, we don't need all that stuff
 php -n -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This program requires PHP 5.5.11 or newer; check your 'php' command." >&2; exit 1; }
 { php-fpm -n -v | php -n -r 'exit((int)version_compare(preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin")), "5.5.11", "<"));'; } || { echo "This program requires PHP 5.5.11 or newer; check your 'php-fpm' command." >&2; exit 1; }
-unset -f php-fpm # remove the alias we made earlier that would prevent newrelic from starting on php-fpm -v
 
 php_version="$(php-fpm -n -v | php -n -r 'echo preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin"));')"
 nginx_version="$(nginx -v 2>&1 | grep -oP "nginx\/\K[\d\.]+")" # \K, available with -P, resets the start of the match
