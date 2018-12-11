@@ -9,6 +9,7 @@
 - PHP/7.1.25 [David Zuelke]
 - PHP/7.0.33 [David Zuelke]
 - PHP/5.6.39 [David Zuelke]
+- ext-phalcon/3.4.2 [David Zuelke]
 
 ### CHG
 
