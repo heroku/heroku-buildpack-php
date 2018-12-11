@@ -10,6 +10,7 @@
 - PHP/7.0.33 [David Zuelke]
 - PHP/5.6.39 [David Zuelke]
 - ext-phalcon/3.4.2 [David Zuelke]
+- ext-newrelic/8.4.0.231 [David Zuelke]
 
 ### CHG
 
