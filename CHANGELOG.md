@@ -18,7 +18,7 @@
 ### CHG
 
 - Translate `NEW_RELIC_LOG_LEVEL` values "verbose" and "verbosedebug" to "debug" for `newrelic-daemon` [David Zuelke]
-- librdkafka/0.11.6
+- librdkafka/0.11.6 [David Zuelke]
 
 ## v145 (2019-10-16)
 
