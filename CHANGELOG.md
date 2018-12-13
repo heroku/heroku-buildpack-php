@@ -1,11 +1,26 @@
 # heroku-buildpack-php CHANGELOG
 
-## v147 (2018-??-??)
+## v147 (2018-12-13)
+
+### ADD
+
+- PHP/7.3.0 [David Zuelke]
+- PHP/7.2.13 [David Zuelke]
+- PHP/7.1.25 [David Zuelke]
+- PHP/7.0.33 [David Zuelke]
+- PHP/5.6.39 [David Zuelke]
+- ext-phalcon/3.4.2 [David Zuelke]
+- ext-newrelic/8.4.0.231 [David Zuelke]
+- ext-redis/4.2.0 [David Zuelke]
+- ext-apcu/5.1.14 [David Zuelke]
+- ext-event/2.4.2 [David Zuelke]
 
 ### CHG
 
 - Look for configs relative to buildpack dir, and not to $CWD/vendor/heroku/…, in boot scripts [David Zuelke]
 - Look for default configs using version specific paths first in boot scripts [David Zuelke]
+- Apply non-default opcache INI settings only to the PHP 5 builds that need them [David Zuelke]
+- Composer/1.8.0 [David Zuelke]
 
 ## v146 (2018-11-08)
 
@@ -18,7 +33,7 @@
 ### CHG
 
 - Translate `NEW_RELIC_LOG_LEVEL` values "verbose" and "verbosedebug" to "debug" for `newrelic-daemon` [David Zuelke]
-- librdkafka/0.11.6
+- librdkafka/0.11.6 [David Zuelke]
 
 ## v145 (2019-10-16)
 

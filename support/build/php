@@ -27,6 +27,8 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
 		dep_url=https://downloads.php.net/~krakjoe/${dep_archive_name}
 	elif [[ $dep_version == 7.2.* ]]; then
 		dep_url=https://downloads.php.net/~pollita/${dep_archive_name}
+	elif [[ $dep_version == 7.3.* ]]; then
+		dep_url=https://downloads.php.net/~cmb/${dep_archive_name}
 	fi
 else
 	dep_url=https://php.net/get/${dep_archive_name}/from/this/mirror
@@ -102,7 +104,8 @@ fi
 configureopts=()
 if [[ $dep_version == 7.* ]]; then
 	configureopts+=("--enable-opcache-file")
-
+	configureopts+=("--without-libzip") # FIXME: change to --with-libzip once cedar-14 is EOL, as the other stacks have an up to date enough version
+	
 	if [[ $dep_version == 7.0.* || $dep_version == 7.1.* ]]; then
 		configureopts+=("--with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix}")
 	else
@@ -200,9 +203,14 @@ MANIFEST_EXTRA="${MANIFEST_EXTRA:-"$extra"}"
 # remove temporary ini file that enables all extensions, and the composer download
 rm ${OUT_PREFIX}/etc/php/php.ini composer.phar
 
-cp $(dirname $BASH_SOURCE)/_conf/php/php.ini ${OUT_PREFIX}/etc/php/
-cp $(dirname $BASH_SOURCE)/_conf/php/conf.d/*.ini ${OUT_PREFIX}/etc/php/conf.d/
-cp $(dirname $BASH_SOURCE)/../../conf/php/php-fpm.conf ${OUT_PREFIX}/etc/php/
+IFS='.' read -r -a version <<< "$dep_version" # read the parts of $dep_version into an array, e.g. (7 2 33)
+# iterate over version parts so we try "" (from index 0) first, then "7", then "7/2/", then "7/2/11" for a version "7.2.11"
+# in each case, we copy anything that's in that directory; more specific version configs will this overwrite less specific ones
+for (( i = 0; i < ${#version[@]}; i++)); do
+	version_dir=$(IFS=/; echo "${version[*]:0:$i}") # set IFS to "/" for merging, but echo is a builtin, so it must be a subshell and a separate command
+	cp $(dirname $BASH_SOURCE)/_conf/php/${version_dir}/php.ini ${OUT_PREFIX}/etc/php/ 2> /dev/null || true
+	cp $(dirname $BASH_SOURCE)/_conf/php/${version_dir}/conf.d/*.ini ${OUT_PREFIX}/etc/php/conf.d/ 2> /dev/null || true
+done
 
 # this gets sourced after package install, so that the buildpack and following buildpacks can invoke
 cat > ${OUT_PREFIX}/bin/export.php.sh <<'EOF'
