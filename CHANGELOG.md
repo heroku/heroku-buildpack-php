@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-apcu/5.1.16 [David Zuelke]
+- ext-blackfire/1.24.2 [David Zuelke]
 
 ### FIX
 
