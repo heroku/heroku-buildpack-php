@@ -2,6 +2,10 @@
 
 ## v148 (2018-12-??)
 
+### ADD
+
+- ext-apcu/5.1.16 [David Zuelke]
+
 ### FIX
 
 - BSD grep doesn't support Perl expression mode (#311) [David Zuelke]
