@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v???? (2019-??-??)
+
+### CHG
+
+- Restructure Nginx configs and add compatibility with Nginx/1.9.3+ (#198) [David Zuelke]
+
 ## v151 (2019-03-08)
 
 ### ADD

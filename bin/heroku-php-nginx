@@ -88,12 +88,10 @@ print_help() {
 		                          [default: <BPDIR>/conf/nginx/default_include.conf.php,
 		                          or a more version-specific file from a subdirectory]
 		  -c <nginx.conf>         The path to the full configuration file that is
-		                          included after Heroku's (or your local) Nginx config
-		                          is loaded. It must contain an 'http { ... }' block
-		                          with a 'server { ... }' inside that contains 'listen'
-		                          and 'root' (see option -C above), but no global,
-		                          directives (globals are read from the system's default
-		                          Nginx configuration files).
+		                          included after Heroku's main Nginx config has been
+		                          loaded. It must contain an 'http { ... }' block with a
+		                          'server { ... }' inside that contains 'listen' and
+		                          'root' (see option -C above) directives.
 		                          [default: <BPDIR>/conf/nginx/heroku.conf.php,
 		                          or a more version-specific file from a subdirectory]
 		  -F <php-fpm.inc.conf>   The path to the configuration file to include at the  
@@ -298,6 +296,8 @@ if [[ -n ${nginx_config:-} || ( ${nginx_config:=$(findconfig "$nginx_version" "$
 fi
 nginx_config=$(php_passthrough "$nginx_config")
 
+nginx_main=$(findconfig "$nginx_version" "$bp_dir/conf/nginx/main.conf")
+
 if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 	maxprocs=$(ulimit -u)
 	ram="512M"
@@ -429,7 +429,7 @@ echo "Starting nginx..." >&2
 	trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
 	trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
 
-	nginx -g "daemon off; include $nginx_config;" & pid=$!
+	nginx -c "$nginx_main" -g "include $nginx_config;" & pid=$!
 
 	wait
 ) & pids+=($!)

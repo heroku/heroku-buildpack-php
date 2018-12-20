@@ -57,9 +57,6 @@ MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.nginx.sh\",\"profile\":\"bin/profile.nginx.sh\"}"}"
 
-mkdir -p ${OUT_PREFIX}/etc/nginx
-cp $(dirname $BASH_SOURCE)/_conf/nginx/nginx.conf ${OUT_PREFIX}/etc/nginx/nginx.conf
-
 mkdir -p ${OUT_PREFIX}/bin
 # this gets sourced after package install, so that the buildpack and following buildpacks can invoke
 cat > ${OUT_PREFIX}/bin/export.nginx.sh <<'EOF'
