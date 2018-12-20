@@ -1,3 +1,7 @@
+<?php if(getenv('HEROKU_PHP_NGINX_BASE_INCLUDE')): ?>
+include "<?=getenv('HEROKU_PHP_NGINX_BASE_INCLUDE')?>";
+<?php endif; ?>
+
 http {
 	include       mime.types;
 	default_type  application/octet-stream;
@@ -26,6 +30,10 @@ http {
 		server unix:/tmp/heroku.fcgi.<?=getenv('PORT')?:'8080'?>.sock max_fails=3 fail_timeout=3s;
 		keepalive 16;
 	}
+
+<?php if(getenv('HEROKU_PHP_NGINX_HTTP_INCLUDE')): ?>
+	include "<?=getenv('HEROKU_PHP_NGINX_HTTP_INCLUDE')?>";
+<?php endif; ?>
 
 	server {
 		# define an easy to reference name that can be used in try_files

@@ -78,22 +78,40 @@ print_help() {
 		  heroku-hhvm-nginx [options] [<DOCUMENT_ROOT>]
 		
 		Options:
-		  -C <nginx.inc.conf>     The path to the configuration file to include inside
+		  -B <nginx.inc.conf>     The path to the configuration file to include inside
+		                          the base level ("main") config section (also see
+		                          options -C and -H below).
+		                          Will be included in the main config section just
+		                          before the 'http' block of directives.
+		                          Recommended approach when customizing Nginx's config
+		                          in most cases if you need to set main level options.
+		  -C <server.inc.conf>    The path to the configuration file to include inside
 		                          the Nginx server config (see option -c below). Will
 		                          be included inside the 'server { ... }' block just
 		                          after the 'listen', 'root' etc directives.
 		                          Recommended approach when customizing Nginx's config
-		                          in most cases, unless you need to set http or
-		                          fundamental server level options.
+		                          in most cases, unless you need to set http (also see
+		                          option -H below) or main (see option -B above) level
+		                          directives.
 		                          [default: <BPDIR>/conf/nginx/default_include.conf.php,
 		                          or a more version-specific file from a subdirectory]
 		  -c <nginx.conf>         The path to the full configuration file that is
 		                          included after Heroku's main Nginx config has been
 		                          loaded. It must contain an 'http { ... }' block with a
 		                          'server { ... }' inside that contains 'listen' and
-		                          'root' (see option -C above) directives.
+		                          'root'. It is not recommended to use this option, but
+		                          to instead use the -C and -H options to include any
+		                          custom directives in the appropriate locations.
 		                          [default: <BPDIR>/conf/nginx/heroku.conf.php,
 		                          or a more version-specific file from a subdirectory]
+		  -H <http.inc.conf>      The path to the configuration file to include inside
+		                          the http config section (also see option -C above).
+		                          Will be included inside the 'http { ... }' block just
+		                          before the 'server' block of directives.
+		                          Recommended approach when customizing Nginx's config
+		                          in most cases if you need to set http level options,
+		                          unless you need to set main level directives, in which
+		                          case you may use the -B option.
 		  -h, --help              Display this help screen and exit.
 		  -I <php.extra.ini>      The path to an extra php.ini to use in addition to the
 		                          default HHVM php.ini (see option -i below).
@@ -135,7 +153,7 @@ export PORT=${PORT:-$(( $RANDOM+1024 ))}
 # init logs array here as empty before parsing options; -l could append to it, but the default list gets added later since we use $PORT in there and that can be set using -p
 declare -a logs
 
-optstring=":-:C:c:I:i:l:p:vh"
+optstring=":-:B:C:c:H:I:i:l:p:vh"
 
 # process flags first
 while getopts "$optstring" opt; do
@@ -168,11 +186,17 @@ done
 OPTIND=1 # start over with options parsing
 while getopts "$optstring" opt; do
 	case $opt in
+		B)
+			nginx_base_include=$(check_exists "$OPTARG" "B")
+			;;
 		C)
 			nginx_config_include=$(check_exists "$OPTARG" "C")
 			;;
 		c)
 			nginx_config=$(check_exists "$OPTARG" "c")
+			;;
+		H)
+			nginx_http_include=$(check_exists "$OPTARG" "H")
 			;;
 		I)
 			hhvm_config_extra=$(check_exists "$OPTARG" "I")
@@ -272,6 +296,18 @@ if [[ -n ${hhvm_config_extra:-} ]]; then
 fi
 }
 prepare_hhvm_ini
+
+if [[ -n ${nginx_base_include:-} ]]; then
+	echo "Using Nginx main-level configuration include '${nginx_base_include#$HEROKU_APP_DIR/}'" >&2
+	nginx_base_include=$(php_passthrough "$nginx_base_include")
+	export HEROKU_PHP_NGINX_BASE_INCLUDE="$nginx_base_include"
+fi
+
+if [[ -n ${nginx_http_include:-} ]]; then
+	echo "Using Nginx http-level configuration include '${nginx_http_include#$HEROKU_APP_DIR/}'" >&2
+	nginx_http_include=$(php_passthrough "$nginx_http_include")
+	export HEROKU_PHP_NGINX_HTTP_INCLUDE="$nginx_http_include"
+fi
 
 if [[ -n ${nginx_config_include:-} || ( ${nginx_config_include:=$(findconfig "$nginx_version" "$bp_dir/conf/nginx/default_include.conf.php")} && $verbose ) ]]; then
 	echo "Using Nginx server-level configuration include '${nginx_config_include#$HEROKU_APP_DIR/}'" >&2

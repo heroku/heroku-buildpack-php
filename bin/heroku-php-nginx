@@ -78,20 +78,30 @@ print_help() {
 		  heroku-php-nginx [options] [<DOCUMENT_ROOT>]
 		
 		Options:
-		  -C <nginx.inc.conf>     The path to the configuration file to include inside
+		  -B <nginx.inc.conf>     The path to the configuration file to include inside
+		                          the base level ("main") config section (also see
+		                          options -C and -H below).
+		                          Will be included in the main config section just
+		                          before the 'http' block of directives.
+		                          Recommended approach when customizing Nginx's config
+		                          in most cases if you need to set main level options.
+		  -C <server.inc.conf>    The path to the configuration file to include inside
 		                          the Nginx server config (see option -c below). Will
 		                          be included inside the 'server { ... }' block just
 		                          after the 'listen', 'root' etc directives.
 		                          Recommended approach when customizing Nginx's config
-		                          in most cases, unless you need to set http or
-		                          fundamental server level options.
+		                          in most cases, unless you need to set http (also see
+		                          option -H below) or main (see option -B above) level
+		                          directives.
 		                          [default: <BPDIR>/conf/nginx/default_include.conf.php,
 		                          or a more version-specific file from a subdirectory]
 		  -c <nginx.conf>         The path to the full configuration file that is
 		                          included after Heroku's main Nginx config has been
 		                          loaded. It must contain an 'http { ... }' block with a
 		                          'server { ... }' inside that contains 'listen' and
-		                          'root' (see option -C above) directives.
+		                          'root'. It is not recommended to use this option, but
+		                          to instead use the -C and -H options to include any
+		                          custom directives in the appropriate locations.
 		                          [default: <BPDIR>/conf/nginx/heroku.conf.php,
 		                          or a more version-specific file from a subdirectory]
 		  -F <php-fpm.inc.conf>   The path to the configuration file to include at the  
@@ -102,6 +112,14 @@ print_help() {
 		  -f <php-fpm.conf>       The path to the full PHP-FPM configuration file.
 		                          [default: <BPDIR>/conf/php/php-fpm.conf,
 		                          or a more version-specific file from a subdirectory]
+		  -H <http.inc.conf>      The path to the configuration file to include inside
+		                          the http config section (also see option -C above).
+		                          Will be included inside the 'http { ... }' block just
+		                          before the 'server' block of directives.
+		                          Recommended approach when customizing Nginx's config
+		                          in most cases if you need to set http level options,
+		                          unless you need to set main level directives, in which
+		                          case you may use the -B option.
 		  -h, --help              Display this help screen and exit.
 		  -i <php.ini>            The path to the php.ini file to use.
 		                          [default: <BPDIR>/conf/php/php.ini]
@@ -139,7 +157,7 @@ export PORT=${PORT:-$(( $RANDOM+1024 ))}
 # init logs array here as empty before parsing options; -l could append to it, but the default list gets added later since we use $PORT in there and that can be set using -p
 declare -a logs
 
-optstring=":-:C:c:F:f:i:l:p:vh"
+optstring=":-:B:C:c:F:f:H:i:l:p:vh"
 
 # process flags first
 while getopts "$optstring" opt; do
@@ -172,6 +190,9 @@ done
 OPTIND=1 # start over with options parsing
 while getopts "$optstring" opt; do
 	case $opt in
+		B)
+			nginx_base_include=$(check_exists "$OPTARG" "B")
+			;;
 		C)
 			nginx_config_include=$(check_exists "$OPTARG" "C")
 			;;
@@ -183,6 +204,9 @@ while getopts "$optstring" opt; do
 			;;
 		f)
 			fpm_config=$(check_exists "$OPTARG" "f")
+			;;
+		H)
+			nginx_http_include=$(check_exists "$OPTARG" "H")
 			;;
 		i)
 			php_config=$(check_exists "$OPTARG" "i")
@@ -283,6 +307,18 @@ fpm_config=$(php_passthrough "$fpm_config")
 if [[ -n ${php_config:-} ]]; then
 	echo "Using PHP configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 	php_config=$(php_passthrough "$php_config")
+fi
+
+if [[ -n ${nginx_base_include:-} ]]; then
+	echo "Using Nginx main-level configuration include '${nginx_base_include#$HEROKU_APP_DIR/}'" >&2
+	nginx_base_include=$(php_passthrough "$nginx_base_include")
+	export HEROKU_PHP_NGINX_BASE_INCLUDE="$nginx_base_include"
+fi
+
+if [[ -n ${nginx_http_include:-} ]]; then
+	echo "Using Nginx http-level configuration include '${nginx_http_include#$HEROKU_APP_DIR/}'" >&2
+	nginx_http_include=$(php_passthrough "$nginx_http_include")
+	export HEROKU_PHP_NGINX_HTTP_INCLUDE="$nginx_http_include"
 fi
 
 if [[ -n ${nginx_config_include:-} || ( ${nginx_config_include:=$(findconfig "$nginx_version" "$bp_dir/conf/nginx/default_include.conf.php")} && $verbose ) ]]; then
