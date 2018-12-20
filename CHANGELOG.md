@@ -1,5 +1,18 @@
 # heroku-buildpack-php CHANGELOG
 
+## v148 (2018-12-20)
+
+### ADD
+
+- ext-apcu/5.1.16 [David Zuelke]
+- ext-blackfire/1.24.2 [David Zuelke]
+- ext-event/2.4.3 [David Zuelke]
+- ext-newrelic/8.5.0.235 [David Zuelke]
+
+### FIX
+
+- BSD grep doesn't support Perl expression mode (#311) [David Zuelke]
+
 ## v147 (2018-12-13)
 
 ### ADD

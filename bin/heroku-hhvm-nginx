@@ -228,7 +228,7 @@ logs+=( "/tmp/heroku.nginx_access.$PORT.log" )
 hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { echo "This program requires HHVM 3.0.1 or newer" >&2; exit 1; }
 
 hhvm_version="$(hhvm --php -r 'echo HHVM_VERSION;')"
-nginx_version="$(nginx -v 2>&1 | grep -oP "nginx\/\K[\d\.]+")" # \K, available with -P, resets the start of the match
+nginx_version="$(nginx -v 2>&1 | hhvm --php -r 'echo preg_replace("#.*nginx/([\d\.]+)$#sm", "\\1", file_get_contents("php://stdin"));')"
 
 # make sure we run a local composer.phar if present, or global composer if not
 composer() {
