@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v148 (2018-12-??)
+
+### FIX
+
+- BSD grep doesn't support Perl expression mode (#311) [David Zuelke]
+
 ## v147 (2018-12-13)
 
 ### ADD
