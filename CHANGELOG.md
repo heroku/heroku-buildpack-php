@@ -7,6 +7,7 @@
 - ext-apcu/5.1.16 [David Zuelke]
 - ext-blackfire/1.24.2 [David Zuelke]
 - ext-event/2.4.3 [David Zuelke]
+- ext-newrelic/8.5.0.235 [David Zuelke]
 
 ### FIX
 
