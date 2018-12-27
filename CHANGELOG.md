@@ -6,6 +6,10 @@
 
 - ext-memcached/3.1.3 [David Zuelke]
 
+### CHG
+
+- Use PHP 7.3 for bootstrapping [David Zuelke]
+
 ## v148 (2018-12-20)
 
 ### ADD
