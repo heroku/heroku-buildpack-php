@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v149 (2019-01-??)
+
+### ADD
+
+- ext-memcached/3.1.3 [David Zuelke]
+
 ## v148 (2018-12-20)
 
 ### ADD
