@@ -10,15 +10,16 @@ shopt -s extglob
 shopt -s nullglob
 
 if ! type -p "realpath" > /dev/null; then
-	# cedar-14 doesn't have realpath
+	# cedar-14 and macOS don't have realpath
+	# readlink is not an option because BSD readlink does not have the GNU -f option
 	# must be a function so subshells, including $(…), can use it
 	realpath() {
-		readlink "$@"
+		python -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$@"
 	}
 fi
 
 # we very likely got called via a symlink, so we have to realpath $0 first to find the base buildpack directory
-bp_dir=$(cd $(dirname $(realpath -e $0)); cd ..; pwd)
+bp_dir=$(cd $(dirname $(realpath $0)); cd ..; pwd)
 
 verbose=
 

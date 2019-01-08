@@ -11,6 +11,10 @@
 
 - Use PHP 7.3 for bootstrapping [David Zuelke]
 
+### FIX
+
+- Boot scripts fail without GNU realpath or GNU readlink (#317) [David Zuelke]
+
 ## v148 (2018-12-20)
 
 ### ADD
