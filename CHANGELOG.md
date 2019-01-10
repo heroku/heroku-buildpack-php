@@ -8,6 +8,7 @@
 - ext-amqp/1.9.4 [David Zuelke]
 - PHP/5.6.40 [David Zuelke]
 - PHP/7.1.26 [David Zuelke]
+- PHP/7.2.14 [David Zuelke]
 
 ### CHG
 
