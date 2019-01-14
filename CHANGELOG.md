@@ -1,5 +1,25 @@
 # heroku-buildpack-php CHANGELOG
 
+## v149 (2019-01-14)
+
+### ADD
+
+- ext-memcached/3.1.3 [David Zuelke]
+- ext-amqp/1.9.4 [David Zuelke]
+- PHP/5.6.40 [David Zuelke]
+- PHP/7.1.26 [David Zuelke]
+- PHP/7.2.14 [David Zuelke]
+- PHP/7.3.1 [David Zuelke]
+- ext-pq/2.1.5 [David Zuelke]
+
+### CHG
+
+- Use PHP 7.3 for bootstrapping [David Zuelke]
+
+### FIX
+
+- Boot scripts fail without GNU realpath or GNU readlink (#317) [David Zuelke]
+
 ## v148 (2018-12-20)
 
 ### ADD
