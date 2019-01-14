@@ -1,6 +1,6 @@
 # heroku-buildpack-php CHANGELOG
 
-## v149 (2019-01-11)
+## v149 (2019-01-14)
 
 ### ADD
 
@@ -10,6 +10,7 @@
 - PHP/7.1.26 [David Zuelke]
 - PHP/7.2.14 [David Zuelke]
 - PHP/7.3.1 [David Zuelke]
+- ext-pq/2.1.5 [David Zuelke]
 
 ### CHG
 
