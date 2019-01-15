@@ -1,5 +1,199 @@
 # heroku-buildpack-php CHANGELOG
 
+## v149 (2019-01-14)
+
+### ADD
+
+- ext-memcached/3.1.3 [David Zuelke]
+- ext-amqp/1.9.4 [David Zuelke]
+- PHP/5.6.40 [David Zuelke]
+- PHP/7.1.26 [David Zuelke]
+- PHP/7.2.14 [David Zuelke]
+- PHP/7.3.1 [David Zuelke]
+- ext-pq/2.1.5 [David Zuelke]
+
+### CHG
+
+- Use PHP 7.3 for bootstrapping [David Zuelke]
+
+### FIX
+
+- Boot scripts fail without GNU realpath or GNU readlink (#317) [David Zuelke]
+
+## v148 (2018-12-20)
+
+### ADD
+
+- ext-apcu/5.1.16 [David Zuelke]
+- ext-blackfire/1.24.2 [David Zuelke]
+- ext-event/2.4.3 [David Zuelke]
+- ext-newrelic/8.5.0.235 [David Zuelke]
+
+### FIX
+
+- BSD grep doesn't support Perl expression mode (#311) [David Zuelke]
+
+## v147 (2018-12-13)
+
+### ADD
+
+- PHP/7.3.0 [David Zuelke]
+- PHP/7.2.13 [David Zuelke]
+- PHP/7.1.25 [David Zuelke]
+- PHP/7.0.33 [David Zuelke]
+- PHP/5.6.39 [David Zuelke]
+- ext-phalcon/3.4.2 [David Zuelke]
+- ext-newrelic/8.4.0.231 [David Zuelke]
+- ext-redis/4.2.0 [David Zuelke]
+- ext-apcu/5.1.14 [David Zuelke]
+- ext-event/2.4.2 [David Zuelke]
+
+### CHG
+
+- Look for configs relative to buildpack dir, and not to $CWD/vendor/heroku/…, in boot scripts [David Zuelke]
+- Look for default configs using version specific paths first in boot scripts [David Zuelke]
+- Apply non-default opcache INI settings only to the PHP 5 builds that need them [David Zuelke]
+- Composer/1.8.0 [David Zuelke]
+
+## v146 (2018-11-08)
+
+### ADD
+
+- Apache/2.4.37 [David Zuelke]
+- PHP/7.1.24 [David Zuelke]
+- PHP/7.2.12 [David Zuelke]
+
+### CHG
+
+- Translate `NEW_RELIC_LOG_LEVEL` values "verbose" and "verbosedebug" to "debug" for `newrelic-daemon` [David Zuelke]
+- librdkafka/0.11.6 [David Zuelke]
+
+## v145 (2019-10-16)
+
+### ADD
+
+- PHP/7.1.23 [David Zuelke]
+- PHP/7.2.11 [David Zuelke]
+- ext-oauth/2.0.3 [David Zuelke]
+- ext-mongodb/1.5.3 [David Zuelke]
+- ext-blackfire/1.23.1 [David Zuelke]
+- ext-newrelic/8.3.0.226 [David Zuelke]
+
+### FIX
+
+- Nginx reports "localhost" instead of requested hostname in SERVER_NAME FastCGI variable (#264) [David Zuelke]
+
+## v144 (2019-09-13)
+
+### ADD
+
+- PHP/5.6.38 [David Zuelke]
+- PHP/7.0.32 [David Zuelke]
+- PHP/7.1.22 [David Zuelke]
+- PHP/7.2.10 [David Zuelke]
+- ext-newrelic/8.2.0.221 [David Zuelke]
+- ext-phalcon/3.4.1 [David Zuelke]
+
+### CHG
+
+- Extra reminders about runtimes and stacks if runtime platform install fails [David Zuelke]
+- Warn users of PHP versions that are close to, or have reached, end of life or end of active support [David Zuelke]
+- Default to listen.mode=0666 for PHP-FPM socket to allow running in both Heroku Dynos and containers [David Zuelke]
+
+## v143 (2018-08-17)
+
+### ADD
+
+- PHP/7.2.9 [David Zuelke]
+- PHP/7.1.21 [David Zuelke]
+- ext-event/2.4.1 [David Zuelke]
+
+### CHG
+
+- Composer/1.7.2 [David Zuelke]
+
+## v142 (2018-08-08)
+
+### FIX
+
+- Check for 'minimum-stability' may fail if no 'composer.lock' present [David Zuelke]
+
+## v141 (2018-08-07)
+
+### ADD
+
+- ext-redis/4.1.1 [David Zuelke]
+- ext-mongodb/1.5.2 [David Zuelke]
+
+### CHG
+
+- Verbose error messasge on `bin/detect` failure [David Zuelke]
+- Emit brief warnings for common regexed build failure cases [David Zuelke]
+- Run most internal 'composer' invocations using '--no-plugins' [David Zuelke]
+- Composer/1.7.1 [David Zuelke]
+- Warn about 'minimum-stability' only if 'prefer-stable' is off [David Zuelke]
+
+### FIX
+
+- Generate Composer package repositories with empty JSON objects, not arrays, where required by Composer 1.7+ [David Zuelke]
+
+## v140 (2018-07-25)
+
+### CHG
+
+- Improved build error messages [David Zuelke]
+- Colors for build errors, warnings and notices [David Zuelke]
+- Remove use of composer.phar in project root [David Zuelke]
+- Trap unhandled build errors with dedicated message [David Zuelke]
+- Summarize all emitted warnings if subsequent build error occurs [David Zuelke]
+
+### FIX
+
+- stdlib download during build init may theoretically fail on download restart [David Zuelke]
+
+## v139 (2018-07-20)
+
+### ADD
+
+- PHP/5.6.37 [David Zuelke]
+- PHP/7.0.31 [David Zuelke]
+- PHP/7.1.20 [David Zuelke]
+- PHP/7.2.8 [David Zuelke]
+- Apache/2.4.34 [David Zuelke]
+- ext-redis/4.1.0 [David Zuelke]
+
+### CHG
+
+- librdkafka/0.11.5 [David Zuelke]
+
+## v138 (2018-07-10)
+
+### ADD
+
+- ext-blackfire/1.22.0 [David Zuelke]
+- Argon2 support for PHP 7.2 and heroku-18 [David Zuelke]
+- ext-apcu/5.1.12 [David Zuelke]
+- ext-mongodb/1.5.1 [David Zuelke]
+
+### FIX
+
+- PHP 7 built with --enable-opcache-file only on cedar-14 [David Zuelke]
+
+## v137 (2018-06-26)
+
+### ADD
+
+- PHP/7.1.19 [David Zuelke]
+- PHP/7.2.7 [David Zuelke]
+- ext-blackfire/1.20.1 [David Zuelke]
+- ext-phalcon/3.4.0 [David Zuelke]
+- ext-pq/2.1.4 [David Zuelke]
+- ext-mongodb/1.5.0 [David Zuelke]
+
+### FIX
+
+- New Relic daemon location is broken in PHP INI [David Zuelke]
+
 ## v136 (2018-05-24)
 
 ### ADD

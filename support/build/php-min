@@ -52,7 +52,8 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--disable-xmlreader \
 	--disable-xmlwriter \
 	--enable-zip \
-	--with-zlib
+	--with-zlib \
+	--without-libzip # FIXME: change to --with-libzip once cedar-14 is EOL, as the other stacks have an up to date enough version
 make -s -j 9
 
 mkdir -p ${OUT_PREFIX}/bin

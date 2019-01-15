@@ -63,11 +63,11 @@ cp $(dirname $BASH_SOURCE)/_conf/nginx/nginx.conf ${OUT_PREFIX}/etc/nginx/nginx.
 mkdir -p ${OUT_PREFIX}/bin
 # this gets sourced after package install, so that the buildpack and following buildpacks can invoke
 cat > ${OUT_PREFIX}/bin/export.nginx.sh <<'EOF'
-export PATH="/app/.heroku/php/bin:/app/.heroku/php/sbin:$PATH"
+export PATH="/app/.heroku/php/sbin:$PATH"
 EOF
 # this gets sourced on dyno boot
 cat > ${OUT_PREFIX}/bin/profile.nginx.sh <<'EOF'
-export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
+export PATH="$HOME/.heroku/php/sbin:$PATH"
 EOF
 
 python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
