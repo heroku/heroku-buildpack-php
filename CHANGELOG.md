@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v150 (2019-02-07)
+
+### FIX
+
+- ext-oauth doesn't find libcurl headers on heroku-18 (#322) [David Zuelke]
+
 ## v149 (2019-01-14)
 
 ### ADD
