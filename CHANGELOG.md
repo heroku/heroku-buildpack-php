@@ -6,6 +6,10 @@
 
 - ext-blackfire/1.24.4 [David Zuelke]
 
+### CHG
+
+- Composer/1.8.3 [David Zuelke]
+
 ### FIX
 
 - ext-oauth doesn't find libcurl headers on heroku-18 (#322) [David Zuelke]
