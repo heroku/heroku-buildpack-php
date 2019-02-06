@@ -2,6 +2,10 @@
 
 ## v150 (2019-02-07)
 
+### ADD
+
+- ext-blackfire/1.24.4 [David Zuelke]
+
 ### FIX
 
 - ext-oauth doesn't find libcurl headers on heroku-18 (#322) [David Zuelke]
