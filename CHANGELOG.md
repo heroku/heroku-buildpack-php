@@ -1,5 +1,22 @@
 # heroku-buildpack-php CHANGELOG
 
+## v150 (2019-02-07)
+
+### ADD
+
+- ext-blackfire/1.24.4 [David Zuelke]
+- Apache/2.4.38 [David Zuelke]
+- PHP/7.2.15 [David Zuelke]
+- PHP/7.3.2 [David Zuelke]
+
+### CHG
+
+- Composer/1.8.3 [David Zuelke]
+
+### FIX
+
+- ext-oauth doesn't find libcurl headers on heroku-18 (#322) [David Zuelke]
+
 ## v149 (2019-01-14)
 
 ### ADD
