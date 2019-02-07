@@ -6,6 +6,7 @@
 
 - ext-blackfire/1.24.4 [David Zuelke]
 - Apache/2.4.38 [David Zuelke]
+- PHP/7.2.15 [David Zuelke]
 
 ### CHG
 
