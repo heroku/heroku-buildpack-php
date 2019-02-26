@@ -7,6 +7,7 @@
 - Nginx/1.14.2 (#241, #285) [David Zuelke]
 - Update Nginx MIME types for woff and woff2 formats (#286) [David Zuelke]
 - Add -B and -H options to heroku-php-nginx to allow inclusion of config fragment at the base and "http" levels (#84) [David Zuelke]
+- Add -B option to heroku-php-apache2 to allow inclusion of config fragment at the base config level [David Zuelke]
 
 ### CHG
 

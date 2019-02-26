@@ -78,20 +78,28 @@ print_help() {
 		  heroku-php-apache2 [options] [<DOCUMENT_ROOT>]
 		
 		Options:
-		  -C <httpd.inc.conf>     The path to the configuration file to include inside
+		  -B <httpd.inc.conf>     The path to the configuration file to include inside
+		                          the base server config (also see option -C below).
+		                          Will be included before the '<VirtualHost>' block.
+		                          Recommended approach when customizing Apache2's config
+		                          in most cases if you need to set server level options.
+		  -C <vhost.inc.conf>     The path to the configuration file to include inside
 		                          the Apache2 VHost config (see option -c below). Will
 		                          be included inside the '<VirtualHost>' section just
 		                          after the '<Directory>' & 'ProxyPassMatch' directives.
 		                          Recommended approach when customizing Apache2's config
 		                          in most cases, unless you need to set fundamental
-		                          server level options.
+		                          server level options, for which option -B can be used.
 		                          [default: <BPDIR>/conf/apache2/default_include.conf,
 		                          or a more version-specific file from a subdirectory]
 		  -c <httpd.conf>         The path to the full VHost configuration file that is
 		                          included after Heroku's (or your local) Apache2 config
 		                          is loaded. Must contain a 'Listen \${PORT}' directive
 		                          and should have a '<VirtualHost>' and likely also a
-		                          '<Directory>' section (see option -C above).
+		                          '<Directory>' section.
+		                          It is not recommended to use this option, but to
+		                          instead use the -C and -H options to include any
+		                          custom directives in the appropriate locations.
 		                          [default: <BPDIR>/conf/apache2/heroku.conf,
 		                          or a more version-specific file from a subdirectory]
 		  -F <php-fpm.inc.conf>   The path to the configuration file to include at the
@@ -140,7 +148,7 @@ export PORT=${PORT:-$(( $RANDOM+1024 ))}
 # init logs array here as empty before parsing options; -l could append to it, but the default list gets added later since we use $PORT in there and that can be set using -p
 declare -a logs
 
-optstring=":-:C:c:F:f:i:l:p:vh"
+optstring=":-:B:C:c:F:f:i:l:p:vh"
 
 # process flags first
 while getopts "$optstring" opt; do
@@ -173,6 +181,9 @@ done
 OPTIND=1 # start over with options parsing
 while getopts "$optstring" opt; do
 	case $opt in
+		B)
+			httpd_base_include=$(check_exists "$OPTARG" "B")
+			;;
 		C)
 			httpd_config_include=$(check_exists "$OPTARG" "C")
 			;;
@@ -285,6 +296,12 @@ fpm_config=$(php_passthrough "$fpm_config")
 if [[ -n ${php_config:-} ]]; then
 	echo "Using PHP configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 	php_config=$(php_passthrough "$php_config")
+fi
+
+if [[ -n ${httpd_base_include:-} ]]; then
+	echo "Using Apache2 server-level configuration include '${httpd_base_include#$HEROKU_APP_DIR/}'" >&2
+	httpd_base_include=$(php_passthrough "$httpd_base_include")
+	export HEROKU_PHP_HTTPD_BASE_INCLUDE="$httpd_base_include"
 fi
 
 if [[ -n ${httpd_config_include:-} || ( ${httpd_config_include:=$(findconfig "$httpd_version" "$bp_dir/conf/apache2/default_include.conf")} && $verbose ) ]]; then
