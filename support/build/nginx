@@ -42,7 +42,8 @@ VAR=${OUT_PREFIX}/var
 	--http-scgi-temp-path=${VAR}/run/nginx/scgi_temp \
 	--http-log-path=${VAR}/log/nginx/access.log \
 	--error-log-path=${VAR}/log/nginx/error.log \
-	--with-http_realip_module
+	--with-http_realip_module \
+	--with-http_ssl_module
 make -s -j 9
 make install -s
 find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
