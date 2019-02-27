@@ -5,6 +5,7 @@
 ### CHG
 
 - Restructure Nginx configs and add compatibility with Nginx/1.9.3+ (#198) [David Zuelke]
+- Build Nginx with `ngx_http_ssl_module` (#182) [David Zuelke]
 
 ## v151 (2019-03-08)
 
