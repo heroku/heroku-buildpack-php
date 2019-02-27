@@ -2,6 +2,10 @@
 
 ## v???? (2019-??-??)
 
+### ADD
+
+- Nginx/1.14.2 (#241, #285) [David Zuelke]
+
 ### CHG
 
 - Restructure Nginx configs and add compatibility with Nginx/1.9.3+ (#198) [David Zuelke]
