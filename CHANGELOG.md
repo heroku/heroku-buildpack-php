@@ -1,5 +1,19 @@
 # heroku-buildpack-php CHANGELOG
 
+## v151 (2019-03-08)
+
+### ADD
+
+- PHP/7.1.27 [David Zuelke]
+- PHP/7.2.16 [David Zuelke]
+- PHP/7.3.3 [David Zuelke]
+- ext-phalcon/3.4.3 [David Zuelke]
+- ext-apcu/5.1.17 [David Zuelke]
+
+### CHG
+
+- Composer/1.8.4 [David Zuelke]
+
 ## v150 (2019-02-07)
 
 ### ADD
