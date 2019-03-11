@@ -141,6 +141,51 @@ shared_examples "A PHP application with a composer.json" do |series|
 					expect_exit(expect: :not_to, code: 124) { @app.run("timeout 5 heroku-php-#{server} --what -u erp") }
 				end
 			end
+			
+			context "setting concurrency via .user.ini memory_limit" do
+				it "calculates concurrency correctly" do
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} docroot/") })
+						.to match("16 processes at 32MB memory limit")
+				end
+				it "always launches at least one worker" do
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} docroot/onegig/") })
+						.to match("1 processes at 1024MB memory limit")
+				end
+				it "is only done for a .user.ini directly in the document root" do
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}") })
+						.to match("4 processes at 128MB memory limit")
+				end
+			end
+			
+			context "setting concurrency via FPM config memory_limit" do
+				it "calculates concurrency correctly" do
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.include.conf") })
+						.to match("16 processes at 32MB memory limit")
+				end
+				it "always launches at least one worker" do
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.onegig.conf") })
+						.to match("1 processes at 1024MB memory limit")
+				end
+				it "takes precedence over a .user.ini memory_limit" do
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.include.conf docroot/onegig/") })
+						.to match("16 processes at 32MB memory limit")
+				end
+			end
+			
+			context "setting WEB_CONCURRENCY explicitly" do
+				it "uses the explicit value" do
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", nil, {:heroku => {:env => "WEB_CONCURRENCY=22"}}) })
+						.to match "Using WEB_CONCURRENCY=22"
+				end
+				it "overrides a .user.ini memory_limit" do
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} docroot/onegig/", nil, {:heroku => {:env => "WEB_CONCURRENCY=22"}}) })
+						.to match "Using WEB_CONCURRENCY=22"
+				end
+				it "overrides an FPM config memory_limit" do
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.onegig.conf", nil, {:heroku => {:env => "WEB_CONCURRENCY=22"}}) })
+						.to match "Using WEB_CONCURRENCY=22"
+				end
+			end
 		end
 	end
 end
