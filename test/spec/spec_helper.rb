@@ -41,3 +41,12 @@ def expect_exit(expect: :to, operator: :eq, code: 0)
 	)
 	output # so that can be tested too
 end
+
+def expected_default_php(stack)
+	case stack
+		when "cedar-14", "heroku-16"
+			"5.6"
+		else
+			"7.3"
+	end
+end
