@@ -24,6 +24,7 @@ RSpec.configure do |config|
 	config.expect_with :rspec do |c|
 		c.syntax = :expect
 	end
+	config.filter_run_excluding :requires_php_on_stack => lambda { |series| !php_on_stack?(series) }
 end
 
 def successful_body(app, options = {})
@@ -49,4 +50,16 @@ def expected_default_php(stack)
 		else
 			"7.3"
 	end
+end
+
+def php_on_stack?(series)
+	case ENV["STACK"]
+		when "cedar-14"
+			available = ["5.5", "5.6", "7.0", "7.1", "7.2", "7.3"]
+		when "heroku-16"
+			available = ["5.6", "7.0", "7.1", "7.2", "7.3"]
+		else
+			available = ["7.1", "7.2", "7.3"]
+	end
+	available.include?(series)
 end
