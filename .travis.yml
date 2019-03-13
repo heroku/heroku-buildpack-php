@@ -1,2 +1,32 @@
+language: generic
+dist: xenial
 sudo: false
-script: exit 0
+before_install:
+- gem install bundler
+install:
+- bundle install
+before_script:
+- bundle exec hatchet ci:setup
+script: bundle exec parallel_rspec -n6 test/spec/
+env:
+  global:
+  - HATCHET_RETRIES=3
+  - IS_RUNNING_ON_CI=true
+  - HATCHET_APP_LIMIT=80
+  - HEROKU_APP_LIMIT=9999
+  - HATCHET_DEPLOY_STRATEGY=git
+  - HATCHET_BUILDPACK_BASE="https://github.com/heroku/heroku-buildpack-php"
+matrix:
+    include:
+      - env: STACK=cedar-14
+        if: branch = master OR tag IS present
+      - env: STACK=heroku-16
+        if: branch = master OR tag IS present
+      - env: STACK=heroku-18
+        if: branch = master OR tag IS present
+      - env: STACK=cedar-14 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-cedar-14-develop/"
+        if: branch != master
+      - env: STACK=heroku-16 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-heroku-16-develop/"
+        if: branch != master
+      - env: STACK=heroku-18 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-heroku-18-develop/"
+        if: branch != master
