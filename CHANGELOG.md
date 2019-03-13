@@ -1,5 +1,17 @@
 # heroku-buildpack-php CHANGELOG
 
+## v152 (2019-03-13)
+
+### ADD
+
+- Nginx/1.14.2 (#241, #285) [David Zuelke]
+- Update Nginx MIME types for woff and woff2 formats (#286) [David Zuelke]
+
+### CHG
+
+- Restructure Nginx configs and add compatibility with Nginx/1.9.3+ (#198) [David Zuelke]
+- Build Nginx with `ngx_http_ssl_module` (#182) [David Zuelke]
+
 ## v151 (2019-03-08)
 
 ### ADD

@@ -3,7 +3,7 @@ require_relative "spec_helper"
 shared_examples "A PHP application with a composer.json" do |series|
 	context "requiring PHP #{series}" do
 		let(:app) {
-			Hatchet::Runner.new('test/fixtures/default', stack: ENV["STACK"],
+			new_app_with_stack_and_platrepo('test/fixtures/default',
 				before_deploy: -> { system("composer require --quiet --no-update php '#{series}.*' && composer update --quiet --ignore-platform-reqs") or raise "Failed to require PHP version" }
 			)
 		}
@@ -90,7 +90,7 @@ shared_examples "A PHP application with a composer.json" do |series|
 	matrices.each do |server, matrix|
 		context "running PHP #{series} and the #{server} web server" do
 			before(:all) do
-				@app = Hatchet::Runner.new('test/fixtures/bootopts', stack: ENV["STACK"],
+				@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 					before_deploy: -> { system("composer require --quiet --no-update php '#{series}.*' && composer update --quiet --ignore-platform-reqs") or raise "Failed to require PHP version" }
 				)
 				@app.deploy

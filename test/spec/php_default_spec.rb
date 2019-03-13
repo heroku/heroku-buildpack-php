@@ -3,7 +3,7 @@ require_relative "spec_helper"
 describe "A PHP application" do
 	context "with just an index.php" do
 		let(:app) {
-			Hatchet::Runner.new('test/fixtures/default', stack: ENV["STACK"])
+			new_app_with_stack_and_platrepo('test/fixtures/default')
 		}
 		it "picks a default version from the expected series" do
 			app.deploy do |app|
