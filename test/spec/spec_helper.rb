@@ -63,3 +63,11 @@ def php_on_stack?(series)
 	end
 	available.include?(series)
 end
+
+def new_app_with_stack_and_platrepo(*args, **kwargs)
+	kwargs[:stack] ||= ENV["STACK"]
+	kwargs[:config] ||= {}
+	kwargs[:config]["HEROKU_PHP_PLATFORM_REPOSITORIES"] ||= ENV["HEROKU_PHP_PLATFORM_REPOSITORIES"]
+	kwargs[:config].compact!
+	Hatchet::Runner.new(*args, **kwargs)
+end
