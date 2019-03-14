@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v153 (2019-03-??)
+
+### ADD
+
+- ext-newrelic/8.6.0.238 [David Zuelke]
+
 ## v152 (2019-03-13)
 
 ### ADD
