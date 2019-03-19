@@ -137,11 +137,11 @@ These build formulae can have dependencies (e.g. an extension formula depends on
 
 The build formulae are also expected to generate a [manifest](#about-manifests), which is a `composer.json` containing all relevant information about a package.
 
-In `support/build/_util`, three scripts (`deploy.sh` to deploy a package with its [manifest](#about-manifests), `mkrepo.sh` to (re-)generate a [repository](#about-repositories) from all existing manifests, and `sync.sh` to [sync between repos](#syncing-repositories)) take care of most of the heavy lifting.
+In `support/build/_util`, three scripts (`deploy.sh` to deploy a package with its [manifest](#about-manifests), `mkrepo.sh` to (re-)generate a [repository](#about-repositories) from all existing manifests, and `sync.sh` to [sync between repos](#syncing-repositories)) take care of most of the heavy lifting. The directory is added to `$PATH` in `Dockerfile`, so the helpers can be invoked directly.
 
 ## Preparations
 
-You may either build packages on a Heroku dyno, or locally using a Docker container. The instructions below use `heroku run`; simply replace them with the appropriate `docker run` call if you are using Docker.
+Packages for a platform repository are best built using a Docker container (either locally, or using on a platform like Heroku). The instructions below use `docker run…` locally.
 
 The following environment variables are required:
 
@@ -149,12 +149,15 @@ The following environment variables are required:
 - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with credentials for the S3 bucket
 - `S3_BUCKET` with the name of the S3 bucket to use for builds
 - `S3_PREFIX` (just a slash, or a prefix directory name **with a trailing, but no leading, slash**)
-- `STACK` (currently, only "`cedar-14`" makes any sense)
+- `STACK` (currently, only "`cedar-14`", "`heroku-16`" or "`heroku-18`" make any sense)
 
 The following environment variables are highly recommended (see section *Understanding Upstream Buckets*):
 
 - `UPSTREAM_S3_BUCKET` where dependencies are pulled from if they can't be found in `S3_BUCKET+S3_PREFIX`, should probably be set to "`lang-php`", the official Heroku bucket
-- `UPSTREAM_S3_PREFIX`, where dependencies are pulled from if they can't be found in `S3_BUCKET+S3_PREFIX` should probably be set to "`dist-cedar-14-stable/`", the official Heroku stable repository prefix for the [cedar-14 stack](https://devcenter.heroku.com/articles/stack#cedar).
+- `UPSTREAM_S3_PREFIX`, where dependencies are pulled from if they can't be found in `S3_BUCKET+S3_PREFIX` should probably be set to
+  - "`dist-cedar-14-stable/`", the official Heroku stable repository prefix for the [cedar-14 stack](https://devcenter.heroku.com/articles/stack).
+  - "`dist-heroku-16-stable/`", the official Heroku stable repository prefix for the [heroku-16 stack](https://devcenter.heroku.com/articles/stack).
+  - "`dist-heroku-18-stable/`", the official Heroku stable repository prefix for the [heroku-18 stack](https://devcenter.heroku.com/articles/stack).
 
 The following environment variables are optional:
 
@@ -162,7 +165,7 @@ The following environment variables are optional:
 
 ### Understanding Prefixes
 
-It is recommended to use a prefix like "`dist-cedar-14-develop/`" for `$S3_PREFIX`. The contents of this prefix will act as a development repository, where all building happens. The `support/build/_util/sync.sh` helper can later be used to synchronize to another prefix, e.g. "`dist-cedar-14-stable/`" that is used for production. For more info, see the [section on syncing repositories](#syncing-repositories) further below.
+It is recommended to use a prefix like "`dist-heroku-18-develop/`" for `$S3_PREFIX`. The contents of this prefix will act as a development repository, where all building happens. The `sync.sh` helper can later be used to synchronize to another prefix, e.g. "`dist-heroku-18-stable/`" that is used for production. For more info, see the [section on syncing repositories](#syncing-repositories) further below.
 
 ### Understanding Upstream Buckets
 
@@ -170,34 +173,16 @@ If you want to, for example, host only a few PECL extensions in a custom reposit
 
 Due to the order in which Composer looks up packages from repositories, including PHP builds in your custom repositories may lead to those builds getting used on deploy, which is not what you want - you want to use Heroku's official PHP builds, but still have access to your custom-built extensions.
 
-That's where the `UPSTREAM_S3_BUCKET` and `UPSTREAM_S3_PREFIX` env vars come into play; you'll usually set them to "`lang-php`" and "`dist-cedar-14-stable/`", respectively.
+That's where the `UPSTREAM_S3_BUCKET` and `UPSTREAM_S3_PREFIX` env vars documented above come into play; you'll usually set them to "`lang-php`" and "`dist-heroku-18-stable/`", respectively (or whatever stack you're trying to build for).
 
 That way, if your Bob formula for an extension contains e.g. this dependency declaration at the top:
 
-    # Build Path: /app/.heroku/php/
-    # Build Deps: php-7.0.4
+    # Build Path: /app/.heroku/php
+    # Build Deps: php-7.3.3
 
-then on build, Bob will first look for "`php-7.0.4`" in your S3 bucket, and then fall back to pulling it from the upstream bucket. This frees you of the burden of hosting and maintaining unnecessary packages yourself.
+then on build, Bob will first look for "`php-7.3.3`" in your S3 bucket, and then fall back to pulling it from the upstream bucket. This frees you of the burden of hosting and maintaining unnecessary packages yourself.
 
 ### Build Environment Setup
-
-#### Using Heroku
-
-To get started, create a Python app (*Bob* is a Python application) on Heroku inside a clone of this repository, and set your S3 config vars:
-
-    $ heroku create --buildpack heroku/python
-    $ heroku config:set WORKSPACE_DIR=/app/support/build
-    $ heroku config:set AWS_ACCESS_KEY_ID=<your_aws_key>
-    $ heroku config:set AWS_SECRET_ACCESS_KEY=<your_aws_secret>
-    $ heroku config:set S3_BUCKET=<your_s3_bucket_name>
-    $ heroku config:set S3_PREFIX=<optional_s3_subfolder_to_upload_to_without_leading_but_with_trailing_slash>
-    $ heroku config:set UPSTREAM_S3_BUCKET=lang-php
-    $ heroku config:set UPSTREAM_S3_PREFIX=dist-cedar-14-stable/
-    $ heroku config:set STACK=cedar-14
-    $ git push heroku master
-    $ heroku ps:scale web=0
-
-#### Using Docker
 
 Refer to the [README in `support/build/_docker/`](_docker/README.md) for setup instructions.
 
@@ -205,22 +190,21 @@ Refer to the [README in `support/build/_docker/`](_docker/README.md) for setup i
 
 To verify a formula, `bob build` can be used to build it:
 
-    $ heroku run bash
-    Running `bash` attached to terminal... up, run.6880
-    ~ $ bob build extensions/no-debug-non-zts-20121212/yourextension-1.2.3
+    $ docker run -ti --rm <yourimagetagname> bash
+    ~ $ bob build extensions/no-debug-non-zts-20180731/yourextension-1.2.3
     
     Fetching dependencies... found 1:
-      - php-5.5.31
-    Building formula extensions/no-debug-non-zts-20121212/yourextension-1.2.3
+      - php-7.3.3
+    Building formula extensions/no-debug-non-zts-20180731/yourextension-1.2.3
     ...
 
 If that works, a `bob deploy` would build it first, and then upload it to your bucket (you can specify `--overwrite` to overwrite existing packages).
 
 However, that alone is not enough - the *manifest* needs to be in place as well, and using that manifest, you can then generate a Composer repository metadata file.
 
-The next two sections contain important info about manifests and repositories; the *tl;dr* is: **do not use `bob deploy`, but `support/build/_util/deploy.sh`, to deploy a package**, because it will take care of manifest uploading:
+The next two sections contain important info about manifests and repositories; the *tl;dr* is: **do not use `bob deploy`, but `deploy.sh`, to deploy a package**, because it will take care of manifest uploading:
 
-    $ support/build/_util/deploy.sh extensions/no-debug-non-zts-20121212/yourextension-1.2.3
+    ~ $ deploy.sh extensions/no-debug-non-zts-20180731/yourextension-1.2.3
 
 In addition to an `--overwrite` option, the `deploy.sh` script also accepts a `--publish` option that will cause the package to immediately be published into the repository by [re-generating that repo](#re-generating-repositories). **This should be used with caution**, as several parallel `deploy.sh` invocations could result in a race condition when re-generating the repository.
 
@@ -228,9 +212,9 @@ In addition to an `--overwrite` option, the `deploy.sh` script also accepts a `-
 
 After a `bob build` or `bob deploy`, you'll be prompted to upload a manifest. It obviously only makes sense to perform this upload after a `bob deploy`.
 
-To perform the deploy and the manifest upload in one step, **the `deploy.sh` utility in `support/build/_util/` should be used instead of `bob deploy`**:
+To perform the deploy and the manifest upload in one step, **the `deploy.sh` utility (it's on `$PATH`) should be used instead of `bob deploy`**:
 
-    $ support/build/_util/deploy.sh extensions/no-debug-non-zts-20121212/yourextension-1.2.3
+    ~ $ deploy.sh extensions/no-debug-non-zts-20180731/yourextension-1.2.3
 
 This will upload the manifest to the S3 bucket if the package build and deploy succeeded. Like `bob deploy`, this script accepts a `--overwrite` flag.
 
@@ -240,7 +224,7 @@ All packages in the official Heroku S3 bucket use manifests, even for packages t
 
 ### Manifest Contents
 
-A manifest looks roughly like this (example is for `ext-apcu/5.1.3` for PHP 7):
+A manifest looks roughly like this (example is for `ext-apcu/5.1.17` for PHP 7.3 on stack `heroku-18`):
 
     {
     	"conflict": {
@@ -248,24 +232,24 @@ A manifest looks roughly like this (example is for `ext-apcu/5.1.3` for PHP 7):
     	},
     	"dist": {
     		"type": "heroku-sys-tar",
-    		"url": "https://lang-php.s3.amazonaws.com/dist-cedar-14-stable/extensions/no-debug-non-zts-20151012/apcu-5.1.3.tar.gz"
+    		"url": "https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/extensions/no-debug-non-zts-20180731/apcu-5.1.17.tar.gz"
     	},
     	"name": "heroku-sys/ext-apcu",
     	"require": {
-    		"heroku-sys/cedar": "^14.0.0",
-    		"heroku-sys/php": "7.0.*",
+    		"heroku-sys/heroku": "^18.0.0",
+    		"heroku-sys/php": "7.3.*",
     		"heroku/installer-plugin": "^1.2.0"
     	},
-    	"time": "2016-02-16 01:18:50",
+    	"time": "2019-02-16 01:18:50",
     	"type": "heroku-sys-php-extension",
-    	"version": "5.1.3"
+    	"version": "5.1.17"
     }
 
 Package `name`s must be prefixed with "`heroku-sys/`". Possible `type`s are `heroku-sys-php`, `heroku-sys-hhvm`, `heroku-sys-php-extension` or `heroku-sys-webserver`. The `dist` type must be "`heroku-sys-tar`". If the package is a `heroku-sys-php-extension`, it's important to specify a `conflict` with "`heroku-sys/hhvm`".
 
 The special package type `heroku-sys-php-package` is used for generic packages that should not be available to applications during app deploys (such as vendored libraries used to build PHP or an extension).
 
-The `require`d package `heroku/installer-plugin` will be available during install. Package `heroku-sys/cedar` is a virtual package `provide`d by the platform `composer.json` generated in `bin/compile` and has the right stack version; the selector for `heroku-sys/php` ensures that the package only applies to PHP 7.0.x.
+The `require`d package `heroku/installer-plugin` will be available during install. Package `heroku-sys/heroku` is a virtual package `provide`d by the platform `composer.json` generated in `bin/compile` and has the right stack version (either "`16`" or "`18`"); the selector for `heroku-sys/php` ensures that the package only applies to PHP 7.0.x.
 
 ### Manifest Helpers
 
@@ -279,25 +263,25 @@ The repository is a `packages.json` of all manifests, which can be used by Compo
 
 ### (Re-)generating Repositories
 
-The normal flow is to run `support/build/_util/deploy.sh` first to deploy one or more packages, and then to use `support/build/_util/mkrepo.sh` to re-generate the repo:
+The normal flow is to run `deploy.sh` first to deploy one or more packages, and then to use `mkrepo.sh` to re-generate the repo:
 
-    $ support/build/_util/mkrepo.sh --upload
+    ~ $ mkrepo.sh --upload
 
 This will generate `packages.json` and upload it right away, or, if the `--upload` is not given, print upload instructions for `s3cmd`.
 
 Alternatively, `deploy.sh` can be called with `--publish` as the first argument, in which case `mkrepo.sh --upload` will be called after the package deploy and manifest upload was successful:
 
-    $ support/build/_util/deploy.sh --publish php-6.0.0
+    ~ $ deploy.sh --publish php-6.0.0
 
 **This should be used with caution, as several parallel `deploy.sh` invocations could result in a race condition when re-generating the repository.**
 
 ### Syncing Repositories
 
-It is often desirable to have a bucket with two repositories under different prefixes, e.g. `dist-cedar-14-develop/` and `dist-cedar-14-stable/`, with the latter usually used by apps for deploys. The "develop" bucket prefix would be set via `S3_PREFIX` on the Heroku package builder app or Docker container, so all builds would always end up there.
+It is often desirable to have a bucket with two repositories under different prefixes, e.g. `dist-heroku-18-develop/` and `dist-heroku-18-stable/`, with the latter usually used by apps for deploys. The "develop" bucket prefix would be set via `S3_PREFIX` on the Heroku package builder app or Docker container, so all builds would always end up there.
 
-After testing builds, the contents of that "develop" repository can then be synced to "stable" using `support/build/_util/sync.sh`:
+After testing builds, the contents of that "develop" repository can then be synced to "stable" using `sync.sh`:
 
-    $ support/build/_util/sync.sh my-bucket dist-cedar-14-stable/ my-bucket dist-cedar-14-develop/
+    ~ $ sync.sh my-bucket dist-heroku-18-stable/ my-bucket dist-heroku-18-develop/
 
 *The `sync.sh` script takes destination bucket info as arguments first, then source bucket info*.
 
@@ -309,13 +293,13 @@ You will usually use an [Upstream Bucket](#understanding-upstream-buckets) to en
 
 However, in rare circumstances, such as when you want to fully host all platform packages including PHP yourself and have the official repository disabled for your app, you either need to build all packages from scratch, or sync the Heroku builds from the official repository:
 
-    $ heroku run "support/build/_util/sync.sh $S3_BUCKET $S3_PREFIX $UPSTREAM_S3_BUCKET $UPSTREAM_S3_PREFIX"
+    ~ $ sync.sh $S3_BUCKET $S3_PREFIX $UPSTREAM_S3_BUCKET $UPSTREAM_S3_PREFIX
 
 ### Removing Packages
 
-The `support/build/_util/remove.sh` helper removes a package manifest and its tarball from a bucket, and re-generates the repository. It accepts one or more names of a JSON manifest file from the bucket (optionally without "`.composer.json`" suffix) as arguments:
+The `remove.sh` helper removes a package manifest and its tarball from a bucket, and re-generates the repository. It accepts one or more names of a JSON manifest file from the bucket (optionally without "`.composer.json`" suffix) as arguments:
 
-    $ support/build/_util/remove.sh ext-imagick-3.3.0_php-5.5.composer.json ext-imagick-3.3.0_php-5.6.composer.json
+    ~ $ remove.sh ext-imagick-3.3.0_php-5.5.composer.json ext-imagick-3.3.0_php-5.6.composer.json
 
 Unless the `--no-publish` option is given, the repository will be re-generated immediately after removal. Otherwise, the manifests and tarballs would be removed, but the main repository would remain in place, pointing to non-existing packages, so usage of this flag is only recommended for debugging purposes or similar.
 
@@ -325,6 +309,5 @@ Please refer to [the instructions in the main README](../../README.md#custom-pla
 
 ## Tips & Tricks
 
-- To speed things up drastically during compilation, it'll usually be a good idea to `heroku run bash --size Performance-L`.
-- All manifests generated by Bob formulas, by `support/build/_util/mkrepo.sh` and by `support/build/_util/sync.sh` use an S3 region of "s3" by default, so resulting URLs look like "`https://your-bucket.s3.amazonaws.com/your-prefix/...`". You can `heroku config:set S3_REGION` to change "s3" to another region such as "s3-eu-west-1".
+- All manifests generated by Bob formulas, by `mkrepo.sh` and by `sync.sh` use an S3 region of "s3" by default, so resulting URLs look like "`https://your-bucket.s3.amazonaws.com/your-prefix/...`". You can `heroku config:set S3_REGION` to change "s3" to another region such as "s3-eu-west-1".
 - If any dependencies are not yet deployed, you need to deploy them first, or use `UPSTREAM_S3_BUCKET` and `UPSTREAM_S3_PREFIX` (recommended).
