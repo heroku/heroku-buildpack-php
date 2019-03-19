@@ -1,18 +1,133 @@
 # Building Custom Platform Packages and Repositories
 
-## Introduction
-
 **Please note that Heroku cannot provide support for issues related to custom platform repositories and packages.**
 
-### How it all works
+## Introduction
 
-When an application is deployed, `bin/compile` extracts all platform dependencies from the application's `composer.lock` and constructs a new `composer.json` (with all package names prefixed with `heroku-sys/`, so `php` becomes `heroku-sys/php`), which gets `composer install`ed using a custom Composer repository.
+### Background
 
-This `composer.json` gets written to `.heroku/php/` and is distinct from the application's `composer.json`. It only holds information on required platform packages.
+PHP can be extended with so-called *extensions*, which are typically written in C and interface with the engine through specific APIs. These extensions most commonly provide bindings to native system libraries (e.g. `ext-amqp` for `libamqp`) to expose functionality to applications, but they can also hook into the PHP engine to enable certain features or insights (e.g. `ext-newrelic` for instrumentation).
 
-The custom Composer repository, running off an S3 bucket, provides all of these packages; the Composer installer plugin in `support/installer/` handles extraction, activation, configuration etc.
+Unlike language ecosystems such as Python or Ruby, PHP has no widely established and standardized method of compiling installing native extensions on a per-project basis during installation of an application's dependencies.
 
-### Custom platform packages and repositories
+The [Composer](https://getcomposer.org) project is PHP's de-facto standard package manager. Through a `composer.json` file, applications express their dependencies; a dependency can be another user-land package, or a so-called *platform package*: a PHP runtime, or an extension. For user-land dependencies, the graph of requirements is reconciled at `composer update` time; platform package requirements are recorded separately. Together, they are written to the lock file, `composer.lock`, which enables reliable, stable installation of dependencies across environments.
+
+If a given platform dependency cannot be fulfilled during a `composer install` attempt, the operation will fail. It is therefore necessary to provide the PHP runtime version that fulfills all package's requirements, and enable any required extensions (via the [`extension=…`](http://php.net/manual/en/ini.core.php#ini.extension) directive in `php.ini` or a [`.ini` scan dir](http://php.net/manual/en/configuration.file.php#configuration.file.scan) config) ahead of a `composer install` attempt.
+
+On Heroku, when a PHP application is deployed, the `composer.lock` file is evaluated, and a new dependency graph that mirrors the application's platform dependencies (both direct ones and those required by other dependencies) is constructed. These requirements consist of special dependencies that contain actual platform packages, and this set of packages is then installed, before the regular installation of the application's dependencies (using a normal `composer install`) is performed.
+
+### How Heroku installs platform dependencies
+
+When an application is deployed, `bin/compile` extracts all platform dependencies from the application's `composer.lock` and constructs a new `composer.json`. This bulk of this process is performed in `bin/util/platform.php`. All platform requirements (for package `php`, `php-64bit`, and any package named `ext-…`) are extracted, their relative structure preserved, and all required package names are prefixed with "`heroku-sys/`" (so `php` becomes `heroku-sys/php`).
+
+The resulting `composer.json` gets written to `.heroku/php/` and is distinct from the application's `composer.json`. It now only holds information on required platform packages, as well as a few other details such as the custom repository to use.
+
+Assuming the following `composer.json` for an application:
+
+    {
+    	"require": {
+    		"php": "~7.2",
+    		"ext-mbstring": "*",
+    		"mongodb/mongodb": "^1.4"
+    	}
+    }
+
+The relevant parts of the corresponding `composer.lock` would look roughly like the following:
+
+    {
+    	"packages": [
+    		{
+    			"name": "mongodb/mongodb",
+    			"version": "1.4.2",
+    			…
+    			"require": {
+    				"ext-hash": "*",
+    				"ext-json": "*",
+    				"ext-mongodb": "^1.5.0",
+    				"php": ">=5.5"
+    			}
+    		},
+    	],
+    	"platform": {
+    		"php": "~7.2",
+    		"ext-mbstring": "*",
+    		"ext-pq": "*"
+    	}
+    }
+
+From this, the buildpack would create a "platform package" `.heroku/php/composer.json` like the following, with the main [packagist.org](https://packagist.org) repository disabled, and a few custom repositories as well as static package definitions added:
+
+    {
+    	"provide": {
+    		"heroku-sys/heroku": "18.2019.03.19"
+    	},
+    	"require": {
+    		"composer.json/composer.lock": "dev-5f0dbc6293250a40259245759f113f27",
+    		"mongodb/mongodb": "1.4.2"
+    	},
+    	"repositories": [
+    		{
+    			"packagist": false
+    		},
+    		{
+    			"type": "path",
+    			"url": "…/support/installer/",
+    			"options": {
+    				"symlink": false
+    			}
+    		},
+    		{
+    			"type": "composer",
+    			"url": "https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/"
+    		},
+    		{
+    			"type": "package",
+    			"package": [
+    				{
+    					"type": "metapackage",
+    					"name": "mongodb/mongodb",
+    					"version": "1.4.2",
+    					"require": {
+    						"heroku-sys/ext-hash": "*",
+    						"heroku-sys/ext-json": "*",
+    						"heroku-sys/ext-mongodb": "^1.5.0",
+    						"heroku-sys/php": ">=5.5"
+    					}
+    				},
+    				{
+    					"type": "metapackage",
+    					"name": "composer.json/composer.lock",
+    					"version": "dev-5f0dbc6293250a40259245759f113f27",
+    					"require": {
+    						"heroku-sys/php": "~7.2",
+    						"heroku-sys/ext-mbstring": "*",
+    						"heroku-sys/ext-pq": "*"
+    					}
+    				}
+    			]
+    		}
+    	]
+    }
+
+The structure of the originally required packages, such as `mongodb/mongodb`, is kept intact. This is done both to ensure that combinations requirements are taken into account the same way Composer does (two packages can have requirements for the same, say, `php` platform package), as well as to aid debugging: if, in the example above, `ext-mongodb` wasn't available on Heroku, then the error message from Composer would indicate that package `mongodb/mongodb` requires a non-existent package, and the user attempting the deploy would immediately understand why.
+
+The requirements from the main `composer.json`, which in `composer.lock` are located in the `platform` key, are moved to their own meta-package named "`composer.json/composer.lock`"; this is again to ensure that these dependencies are honored correctly in combination will all the other requirements, and that users would get an immediately readable error message if a required package isn't available.
+
+Also included, but omitted from the above example for brevity, are other packages such as the Nginx and Apache web servers, which users cannot directly specify as dependencies, but which are installed using the same mechanism as PHP or PHP extensions.
+
+The two special repositories listed are the so-called *platform repository*, hosted here on S3, which holds all the required packages, and the *platform installer*, which is pulled in from a relative path location in the buildpack itself.
+
+The custom Composer repository in the S3 bucket provides all of these magic `heroku-sys/…` packages; they are tarballs containing a binary build of PHP, or an extension, or a web server. Their metadata indicates their package type, download location, special installation hooks e.g. for activation of startup scripts, export instructions for e.g. `$PATH`, configuration files to copy on installation, and so forth.
+
+The platform installer, implemented as a Heroku plugin, knows how to deal with all these details: it unpacks the binary tarballs, copies configuration files, prepares environment variable exports for `$PATH` so that binaries like `php` can be invoked.
+
+In the example above, the `ext-mbstring` extension is, for example, not a separate package, but provided by the `php` package. Unlike the `ext-json` and `ext-hash` requirements from `mongodb/mongodb`, which are also bundled with PHP, but always enabled, the `ext-mbstring` extension is built as a shared extension, and must explicitly be loaded. The metadata information for the `php` package contains the details of all provided extensions, so the installer knows, based on a list of requirements and Composer's internal installer and dependency state, that a `php.ini` include that explicitly loads the `mbstring.so` library must be generated for the application to function.
+
+The application also contains a requirement for the `ext-pq` PostgreSQL extension. This extension in turn internally requires `ext-raphf`. This dependency is contained in the platform repository that is used for installation, so the dependency graph will automatically contain this package, and it will be installed in the correct order: `ext-raphf` before `ext-pq`. As a result, the platform installer will generate the `extension=raphf.so` INI directive before the `extension=pq.so` INI directive, and PHP will start successfully. Were this not the case, PHP would fail to load `ext-pq` on startup, as `pq.so` could not find the `raphf.so` shared library it needs to function.
+
+All these steps happen when the buildpack performs a simple `composer install` inside `.heroku/php/` - the generated `composer.json`, together with the repository and plugin information inside it, takes care of the rest.
+
+### Building custom platform packages and repositories
 
 To use custom platform packages (either new ones, or modifications of existing ones), a new Composer repository has to be created (see [the instructions in the main README](../../README.md#custom-platform-repositories) for usage info). All the tooling in here is designed to work with S3, since it is reliable and cheap. The bucket permissions should be set up so that a public listing is allowed.
 
