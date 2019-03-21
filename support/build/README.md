@@ -127,7 +127,13 @@ The application also contains a requirement for the `ext-pq` PostgreSQL extensio
 
 All these steps happen when the buildpack performs a simple `composer install` inside `.heroku/php/` - the generated `composer.json`, together with the repository and plugin information inside it, takes care of the rest.
 
-### Building custom platform packages and repositories
+## Usage in Applications
+
+Please refer to [the instructions in the main README](../../README.md#custom-platform-repositories) for details on how to use a custom repository during application builds.
+
+## Building Custom Platform Packages
+
+### Overview
 
 To use custom platform packages (either new ones, or modifications of existing ones), a new Composer repository has to be created (see [the instructions in the main README](../../README.md#custom-platform-repositories) for usage info). All the tooling in here is designed to work with S3, since it is reliable and cheap. The bucket permissions should be set up so that a public listing is allowed.
 
@@ -139,9 +145,11 @@ The build formulae are also expected to generate a [manifest](#about-manifests),
 
 In `support/build/_util`, three scripts (`deploy.sh` to deploy a package with its [manifest](#about-manifests), `mkrepo.sh` to (re-)generate a [repository](#about-repositories) from all existing manifests, and `sync.sh` to [sync between repos](#syncing-repositories)) take care of most of the heavy lifting. The directory is added to `$PATH` in `Dockerfile`, so the helpers can be invoked directly.
 
-## Preparations
+### Preparations
 
 Packages for a platform repository are best built using a Docker container (either locally, or using on a platform like Heroku). The instructions below use `docker run…` locally.
+
+Refer to the [README in `support/build/_docker/`](_docker/README.md) for setup instructions.
 
 The following environment variables are required:
 
@@ -163,11 +171,11 @@ The following environment variables are optional:
 
 - `S3_REGION`, to be set to the AWS region name (e.g. "`s3-eu-west-1`") for any non-standard region, otherwise "`s3`" (for region "us-east-1")
 
-### Understanding Prefixes
+#### Understanding Prefixes
 
 It is recommended to use a prefix like "`dist-heroku-18-develop/`" for `$S3_PREFIX`. The contents of this prefix will act as a development repository, where all building happens. The `sync.sh` helper can later be used to synchronize to another prefix, e.g. "`dist-heroku-18-stable/`" that is used for production. For more info, see the [section on syncing repositories](#syncing-repositories) further below.
 
-### Understanding Upstream Buckets
+#### Understanding Upstream Buckets
 
 If you want to, for example, host only a few PECL extensions in a custom repository, your bucket would still have to contain the build-time dependencies for those extensions - that's PHP in its various versions.
 
@@ -182,11 +190,7 @@ That way, if your Bob formula for an extension contains e.g. this dependency dec
 
 then on build, Bob will first look for "`php-7.3.3`" in your S3 bucket, and then fall back to pulling it from the upstream bucket. This frees you of the burden of hosting and maintaining unnecessary packages yourself.
 
-### Build Environment Setup
-
-Refer to the [README in `support/build/_docker/`](_docker/README.md) for setup instructions.
-
-## Building a Package
+### Building a Package
 
 To verify a formula, `bob build` can be used to build it:
 
@@ -302,10 +306,6 @@ The `remove.sh` helper removes a package manifest and its tarball from a bucket,
     ~ $ remove.sh ext-imagick-3.3.0_php-5.5.composer.json ext-imagick-3.3.0_php-5.6.composer.json
 
 Unless the `--no-publish` option is given, the repository will be re-generated immediately after removal. Otherwise, the manifests and tarballs would be removed, but the main repository would remain in place, pointing to non-existing packages, so usage of this flag is only recommended for debugging purposes or similar.
-
-## Usage in Applications
-
-Please refer to [the instructions in the main README](../../README.md#custom-platform-repositories) for details on how to use a custom repository during application builds.
 
 ## Tips & Tricks
 
