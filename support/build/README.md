@@ -403,7 +403,26 @@ In order for the custom platform installer to know that an extension is built as
 
 The repository is a `packages.json` of all manifests, which can be used by Composer as a `packagist` repository type. See [Usage in Applications](#usage-in-applications) for instructions on how to use such a repository with an application.
 
-**Important: due to a limitation of Composer, extensions of identical version but for different PHP versions must be ordered within the repository in descending PHP version order, i.e. `ext-mongodb:1.1.2` for `php:7.0.*` must appear before `ext-mongodb:1.1.2` for `php:5.6.*`. Otherwise, deploys may select a lower PHP version than possible. The `mkrepo.sh` script takes care of this ordering.**
+The structure of a `packagist` type repository is a struct with a single key "`packages`", which is an array containing another array (!) which is a list of all the manifest structs:
+
+    {
+    	"packages": [
+    		[
+    			{
+    				"name": "heroku-sys/php"
+    				…
+    			},
+    			…
+    			{
+    				"name": "heroku-sys/ext-foobar"
+    				…
+    			}
+    		]
+    	]
+    }
+
+
+**Important: due to a peculiarity of Composer's dependency solver, extensions of identical version but for different PHP versions must be ordered within the repository in descending PHP version order, i.e. `ext-foobar:1.2.3` for `php:7.3.*` must appear before `ext-foobar:1.2.3` for `php:7.2.*`. Otherwise, deploys may select a lower PHP version than possible. The `mkrepo.sh` script takes care of this ordering.**
 
 ### (Re-)generating Repositories
 
