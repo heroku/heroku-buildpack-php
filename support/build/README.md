@@ -259,6 +259,122 @@ The `require`d package `heroku/installer-plugin` will be available during instal
 
 All formulae use the `manifest.py` helper to generate the information above. **Use it for maximum reliability!** You can take a look at the existing formulae and the script to get a feeling for how it works.
 
+For example, the Apache HTTPD web server is built roughly as follows:
+
+    source $(dirname $BASH_SOURCE)/_util/include/manifest.sh
+    curl … # download httpd
+    ./configure --prefix="$1" …
+    make && make install
+    
+    MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
+    MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
+    MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
+    MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
+    MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.apache2.sh\",\"profile\":\"bin/profile.apache2.sh\"}"}"
+    
+    # this gets sourced after package install, so that the buildpack and following buildpacks can invoke
+    cat > ${OUT_PREFIX}/bin/export.apache2.sh <<'EOF'
+    export PATH="/app/.heroku/php/bin:/app/.heroku/php/sbin:$PATH"
+    EOF
+    # this gets sourced on dyno boot
+    cat > ${OUT_PREFIX}/bin/profile.apache2.sh <<'EOF'
+    export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
+    EOF
+    
+    python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+    
+    print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
+
+In this example, after building the program from source and "installing" it to the right prefix, two scripts are added that take care of adding HTTPD's `bin/` and `sbin/` directories to `$PATH` during build (for following buildpacks to access), and during dyno boot (for the application to work at runtime).
+
+Afterwards, `manifest.py` is passed several JSON objects as arguments for the various parts that make up the manifest. The `print_or_export_manifest_cmd` is then used to automatically either output instructions (when the formula is invoked via a `bob build` or `bob deploy`) on how to upload the manifest, or export the necessary manifest upload commands for automatic execution (when the formula is invoked via `deploy.sh`).
+
+### Manifest Specification
+
+The manifest for a package follows the [Composer package schema](https://getcomposer.org/doc/04-schema.md), with the following changes or additions.
+
+#### Minimum Information
+
+A package must at minimum expose the following details in its manifest:
+
+- `name`
+- `type`
+- `dist` (with download type and URL)
+- `time`
+- `require`
+
+The `require` key must contain dependencies on at least the following packages:
+
+- `heroku/installer-plugin`, version 1.2.0 or newer (use version selector `^1.2.0`)
+
+If a package is built against a specific (or multiple) stacks, there must be a dependency on the following packages:
+
+- `heroku-sys/heroku`, version "16" for `heroku-16` or version "18" for `heroku-18` (use version selectors `^16.0.0` or `^18.0.0`, or a valid Composer combination)
+
+If a package is of type `heroku-php-extension`, there must be a dependency on the following packages to ensure that the right PHP extension API is targeted during installs:
+
+- `heroku-sys/php`, with major.minor version parts specified for the PHP version series in question (either as e.g. `7.3.*`, or as `~7.3.0`)
+
+Additional dependencies can be expressed as well; for example, if an extension requires another extension at runtime, it may be listed in `require`, with its full `heroku-sys/ext-…` name and a suitable version (often "`*`").
+
+#### Package Name
+
+The name of a package must begin with "`heroku-sys/`", and the part after this suffix must be the name Composer expects for the corresponding platform package. A PHP runtime package must thus be named "`heroku-sys/php`", and a "foobar" extension, known to Composer as "`ext-foobar`", must be named "`heroku-sys/ext-foobar`".
+
+#### Package Type
+
+The `type` of a package must be one of the following:
+
+- 'heroku-sys-library', for a system library
+- 'heroku-sys-php', for a PHP runtime
+- 'heroku-sys-php-extension', for a PHP extension
+- 'heroku-sys-webserver', for a web server
+
+#### Dist Type and URL
+
+The `dist` key must contain a struct with key `type` set to "`heroku-sys-tar`", and key `url` set to the `.tar.gz` tarball URL of the package.
+
+#### Replaces
+
+Composer packages may replace other packages. In the case of platform packages, this is useful mostly in case of a runtime. PHP is bundled with many extensions out of the box, so the manifest for the PHP package must indicate that it contains `ext-standard`, `ext-dom`, and so forth, and thus its manifest contains a long list of `heroku-sys/ext-…` entries under the `replace` key.
+
+#### Extra: Config
+
+A package of type `heroku-sys-php-extension` may contain a `config` key inside the `extra` struct holding a string with a config filename. If this key is not given, an automatic config that only loads the extension `.so` is generated. Otherwise, the given config file is used; it is then also responsible for loading the extension `.so` itself.
+
+This feature can be used if an extension should have default configuration in place. For instance, when building an extension named "`foobar`" that you want some default INI settings to use, write a file named `$1/etc/php/conf.d/foobar.ini-dist` in your formula, with the following contents:
+
+    extension=foobar.so
+    foobar.some_default = different
+
+If `extra`.`config` in the manifest is then set to "`etc/php/conf.d/memcached.ini-dist`", this config file will be used.
+
+#### Extra: Export & Profile
+
+Any package may generate shell scripts that are evaluated during app build, and during dyno startup, respectively. This is most commonly used for ensuring that built binaries are available on `$PATH` (for both cases), and for e.g. launching a sidecar process such as a proxy or agent (for the dyno startup case).
+
+For example, a PHP runtime will want to make its `bin/` (for `php`) and `sbin/` (for `php-fpm`) available on `$PATH` both during a build (so that something like `composer install` can work at all during a build, or so a subsequent buildpack can invoke PHP), as well as on dyno startup (so that the application may function).
+
+To achieve this, the formula would write a `bin/export.sh` with the following contents (the `/app` user directory must explicitly be given here):
+
+    export PATH="/app/.heroku/php/bin:/app/.heroku/php/sbin:$PATH"
+
+If the `extra`.`export` key in the manifest is then set to a string value of "`bin/export.sh`", the platform installer will ensure all packages have their export instructions executed after platform installation is complete.
+
+In addition, a `bin/profile.sh` would also be necessary, with similar contents (but this time using `$HOME` instead of `/app`, for portability):
+
+    export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
+
+If the `extra`.`profile` key in the manifest is then set to a string value of "`bin/profile.sh`", the platform installer will ensure that this script is executed, together with scripts from any other packages, during the startup of a dyno.
+
+For most packages, the `export` key is never needed; the `profile` key is sometimes used to perform operations during dyno boot. For example, the `newrelic` extension uses it to start the `newrelic-daemon` background process.
+
+#### Extra: Shared
+
+As package of type `heroku-sys-php` may come bundled with a bunch of extensions, it must list these extensions in the `replace` section of its manifest. However, not all of these bundled extensions may be built into the engine, but instead may have been built as `shared`, meaning their `.so` needs to be loaded into the engine using an [`extension=…`](http://php.net/manual/en/ini.core.php#ini.extension) INI directive.
+
+In order for the custom platform installer to know that an extension is built as shared, the names of all shared extensions (in full "`heroku-sys/ext-…`" format) must be listed inside the `extra`.`shared` struct as keys, each with a value of boolean `true`.
+
 ## About Repositories
 
 The repository is a `packages.json` of all manifests, which can be used by Composer as a `packagist` repository type. See [Usage in Applications](#usage-in-applications) for instructions on how to use such a repository with an application.
