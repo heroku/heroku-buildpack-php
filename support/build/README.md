@@ -555,6 +555,242 @@ The `remove.sh` helper removes a package manifest and its tarball from a bucket,
 
 Unless the `--no-publish` option is given, the repository will be re-generated immediately after removal. Otherwise, the manifests and tarballs would be removed, but the main repository would remain in place, pointing to non-existing packages, so usage of this flag is only recommended for debugging purposes or similar.
 
+## Examples
+
+### Building a Different Nginx Version Using A Buildpack Fork
+
+#### Approach
+
+In this example, you will fork the buildpack and add your own formula to it. **The fork is only used for building the package and publishing the repository, it is not used to build and run applications.**
+
+Both the `heroku-16` and the `heroku-18` stack variants of the package will be hosted in the same repository.
+
+A development and a stable S3 bucket prefix are used for the repository, and helpers are used for synchronization between them.
+
+The package in this example is a mainline release of Nginx, whose formula simply re-uses the existing Nginx base formula.
+
+#### Prerequisites
+
+- Docker
+- An S3 bucket with public read (and ideally public list) permissions
+- A fork of https://github.com/heroku/heroku-buildpack-php
+
+#### Preparations
+
+First, create, in a secure location on your file system, a `heroku-php-s3.dockerenv` file with the following contents:
+
+    AWS_ACCESS_KEY_ID=<yourkeyid>
+    AWS_SECRET_ACCESS_KEY=<yourkey>
+    S3_BUCKET=<yourbucketname>
+    S3_PREFIX=dist-develop/ # overriding the Dockerfile default here, which contains the stack
+    S3_REGION=… # only needed if you want to use a region other than "dist-$STACK-"
+
+Have your Git fork ready:
+
+    $ git clone <yourforkof/heroku-buildpack-php>
+    $ cd heroku-buildpack-php
+
+#### Formula Creation
+
+Next, make and commit your change; it's enough to simply copy the existing stable nginx formula stub (take a look inside it to understand why):
+
+    $ cp support/build/nginx-{1.14.2,1.15.4} # or whatever versions are applicable
+    $ git add support/build/
+    $ git commit -m "new nginx version"
+
+The versions in the example above may have to be updated to reflect newer releases.
+
+Finally, build the containers for each stack:
+
+    $ docker build --pull --tag heroku-php-build-heroku-18 --file $(pwd)/support/build/_docker/heroku-18.Dockerfile .
+    $ docker build --pull --tag heroku-php-build-heroku-16 --file $(pwd)/support/build/_docker/heroku-16.Dockerfile .
+
+#### Building and Deploying
+
+Verify that the build works:
+
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-18 bob build nginx-1.15.4
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-16 bob build nginx-1.15.4
+
+If all went well, deploy it using the helper script:
+
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-18 deploy.sh nginx-1.15.4
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-16 deploy.sh nginx-1.15.4
+
+#### Repository Creation
+
+From the two manifests that are now in your S3 bucket, make a repository:
+
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-18 mkrepo.sh --upload
+
+You can now test this repository on a Heroku app:
+
+    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://<yourbucketname>.s3.amazonaws.com/dist-develop/"
+    $ git commit --allow-empty -m "test new nginx"
+    $ git push heroku master
+
+#### Repository Synchronization
+
+You deployed to the prefix `dist-develop/` in your bucket; as that one is your test environment, you should also have a stable prefix, which you can synchronize to:
+
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-18 sync.sh <yourbucketname> dist-stable/
+
+You can then use that repository:
+
+    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://<yourbucketname>.s3.amazonaws.com/dist-stable/"
+
+### Building a New Extension Using Heroku Tooling and Composer
+
+#### Approach
+
+The Heroku PHP buildpack will be pulled in as a Composer dependency. Its build `Dockerfile`s are built and tagged locally, and a custom `Dockerfile` for each targeted stack builds upon those tagged images.
+
+Both the `heroku-16` and the `heroku-18` stack variants of the package will be hosted in the same repository.
+
+The package in this example is the Xdebug extension. The extension formula can re-use an existing buildpack base formula for PECL extensions.
+
+#### Preparations
+
+First, create, in a secure location on your file system, a `heroku-php-s3.dockerenv` file with the following contents:
+
+    AWS_ACCESS_KEY_ID=<yourkeyid>
+    AWS_SECRET_ACCESS_KEY=<yourkey>
+    S3_BUCKET=<yourbucketname>
+    S3_PREFIX=dist-stable/ # overriding the Dockerfile default here, which contains the stack
+    S3_REGION=… # only needed if you want to use a region other than "dist-$STACK-"
+
+Pull in the buildpack as a Composer dependency:
+
+    $ composer require heroku/heroku-buildpack-php:*
+
+Build the base Docker images from the buildpack for stacks `heroku-16` and `heroku-18`:
+
+    $ cd vendor/heroku/heroku-buildpack-php
+    $ docker build --pull --tag php-heroku-18 --file $(pwd)/support/build/_docker/heroku-18.Dockerfile .
+    $ docker build --pull --tag php-heroku-16 --file $(pwd)/support/build/_docker/heroku-16.Dockerfile .
+    $ cd -
+
+#### Creating Custom Dockerfiles
+
+Create a `heroku-18.Dockerfile` with the following contents:
+
+    FROM formulatest-heroku-18:latest
+    ENV WORKSPACE_DIR=/app
+    ENV UPSTREAM_S3_BUCKET=lang-php
+    ENV UPSTREAM_S3_PREFIX=dist-heroku-18-stable/
+    COPY . /app
+
+Create a `heroku-16.Dockerfile` with the following contents:
+
+    FROM formulatest-heroku-16:latest
+    ENV WORKSPACE_DIR=/app
+    ENV UPSTREAM_S3_BUCKET=lang-php
+    ENV UPSTREAM_S3_PREFIX=dist-heroku-16-stable/
+    COPY . /app
+
+Both set the correct upstream S3 bucket and prefix, so that formula dependencies like PHP are pulled from the official Heroku S3 locations.
+
+#### Create an Extension Base Formula
+
+In the project root directory, create a file named `xdebug` with the following contents:
+
+    #!/usr/bin/env bash
+    
+    dep_name=$(basename $BASH_SOURCE)
+    source $(dirname $BASH_SOURCE)/vendor/heroku/heroku-buildpack-php/support/build/extensions/pecl
+
+#### Create Extension Formulae per Version and PHP Series
+
+For each PHP version, create a separate directory, and in there, create a formula for the specific version.
+
+For instance, for PHP 7.3 and Xdebug version 2.7.0, have a `php-7.3/xdebug-2.7.0` with the following contents:
+
+    #!/usr/bin/env bash
+    # Build Path: /app/.heroku/php
+    # Build Deps: php-7.3.3
+    
+    source $(dirname $0)/../xdebug
+
+The `php-7.3.3` dependency will not be found in the current S3 bucket and prefix, so Bob will fall back to `UPSTREAM_S3_BUCKET` and `UPSTREAM_S3_PREFIX`.
+
+It's possible that the `php-…` version in the example above no longer exists, so it may have to be adjusted to a newer version.
+
+#### Build Dockerfiles
+
+Build one Docker image for each stack:
+
+    $ docker build --tag xdebug-heroku-18 --file heroku-18.Dockerfile .
+    $ docker build --tag xdebug-heroku-16 --file heroku-16.Dockerfile .
+
+#### Building and Deploying
+
+Verify that the build works by building a specific formula for a specific PHP version:
+
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-18 bob build php-7.3/xdebug-2.7.0
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-16 bob build php-7.3/xdebug-2.7.0
+
+If all went well, deploy it using the helper script:
+
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-18 deploy.sh php-7.3/xdebug-2.7.0
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-16 deploy.sh php-7.3/xdebug-2.7.0
+
+#### Repository Creation
+
+From the two manifests that are now in your S3 bucket, make a repository:
+
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-18 mkrepo.sh --upload
+
+You can now test this repository on a Heroku app by pushing an app that requires `ext-xdebug` in `composer.json`:
+
+    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://<yourbucketname>.s3.amazonaws.com/dist-stable/"
+    $ composer require "ext-xdebug:*"
+    $ git add composer.{json,lock}
+    $ git commit -m "require xdebug"
+    $ git push heroku master
+
+### Hosting a Proprietary Extension Using Custom Tooling
+
+Let's say you already have your proprietary extension, "`myext`", built as `.so` files for each PHP runtime series. All you would like to do is make them available for installation. Let's say your extension is currently at version 1.2.3, and you would like to host the repository for Heroku at `https://download.example.com/heroku/`. For this example, we will package a PHP 7.3 version only.
+
+If your extension filename is `myext-1.2.3_php-7.3_linux-x64.so`, make a tarball with the `.so` file renamed to only `myext.so`, in a directory named `lib/php/extensions/no-debug-non-zts-20180731` (`20180731` is the PHP extension API version for PHP 7.3), so the tarball only contains a single file:
+
+    lib/php/extensions/no-debug-non-zts-20180731/myext.so
+
+Name this tarball `ext-myext-1.2.3_php-7.3.tar.gz` and make it available at `https://download.example.com/heroku/ext-myext-1.2.3_php-7.3.tar.gz`
+
+Assuming that the extension has no stack-specific requirements (meaning it can run on any stack), you can then have a repository at `https://download.example.com/heroku/packages.json` with the following contents:
+
+    {
+    	"packages": [
+    		[
+    			{
+    				"name": "heroku-sys/ext-myext",
+    				"version": "1.2.3",
+    				"type": "heroku-sys-php-extension",
+    				"require": {
+    					"php": "7.3.*",
+    					"heroku/installer-plugin": "^1.2.0",
+    				},
+    				"dist": {
+    					"type": "heroku-sys-tar",
+    					"url": "https://download.example.com/heroku/ext-myext-1.2.3_php-7.3.tar.gz",
+    				},
+    				"time": "WHEN DID MCFLY COME BACK FROM THE FUTURE",
+    			}
+    		]
+    	]
+    }
+
+**Remember the warning above about version ordering: the PHP 7.3 variant of `ext-myext` version 1.2.3 must be listed before the PHP 7.2 variant, and so forth, to ensure Composer picks the highest possible PHP version.**
+
+The extension is then ready for use in applications by requiring it in `composer.json` and instructing the Heroku app to use your custom repository:
+
+    $ composer require ext-myext:*
+    $ git add composer.{json,lock}
+    $ git commit -m "use ext-myext"
+    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://download.example.com/heroku/"
+    $ git push heroku master
+
 ## Tips & Tricks
 
 - All manifests generated by Bob formulas, by `mkrepo.sh` and by `sync.sh` use an S3 region of "s3" by default, so resulting URLs look like "`https://your-bucket.s3.amazonaws.com/your-prefix/...`". You can `heroku config:set S3_REGION` to change "s3" to another region such as "s3-eu-west-1".
