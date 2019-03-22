@@ -249,6 +249,8 @@ A manifest looks roughly like this (example is for `ext-apcu/5.1.17` for PHP 7.3
     	"version": "5.1.17"
     }
 
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php-extension" and .name == "heroku-sys/ext-apcu") ] | .[0]'`*
+
 Package `name`s must be prefixed with "`heroku-sys/`". Possible `type`s are `heroku-sys-php`, `heroku-sys-hhvm`, `heroku-sys-php-extension` or `heroku-sys-webserver`. The `dist` type must be "`heroku-sys-tar`". If the package is a `heroku-sys-php-extension`, it's important to specify a `conflict` with "`heroku-sys/hhvm`".
 
 The special package type `heroku-sys-php-package` is used for generic packages that should not be available to applications during app deploys (such as vendored libraries used to build PHP or an extension).
@@ -307,15 +309,23 @@ The `require` key must contain dependencies on at least the following packages:
 
 - `heroku/installer-plugin`, version 1.2.0 or newer (use version selector `^1.2.0`)
 
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {require}'`*
+
 If a package is built against a specific (or multiple) stacks, there must be a dependency on the following packages:
 
 - `heroku-sys/heroku`, version "16" for `heroku-16` or version "18" for `heroku-18` (use version selectors `^16.0.0` or `^18.0.0`, or a valid Composer combination)
+
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {require}'`*
 
 If a package is of type `heroku-php-extension`, there must be a dependency on the following packages to ensure that the right PHP extension API is targeted during installs:
 
 - `heroku-sys/php`, with major.minor version parts specified for the PHP version series in question (either as e.g. `7.3.*`, or as `~7.3.0`)
 
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php-extension") ][0] | {require}'`*
+
 Additional dependencies can be expressed as well; for example, if an extension requires another extension at runtime, it may be listed in `require`, with its full `heroku-sys/ext-…` name and a suitable version (often "`*`").
+
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.name == "heroku-sys/ext-pq") ][0] | {require}'`*
 
 #### Package Name
 
@@ -334,9 +344,13 @@ The `type` of a package must be one of the following:
 
 The `dist` key must contain a struct with key `type` set to "`heroku-sys-tar`", and key `url` set to the `.tar.gz` tarball URL of the package.
 
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {dist}'`*
+
 #### Replaces
 
 Composer packages may replace other packages. In the case of platform packages, this is useful mostly in case of a runtime. PHP is bundled with many extensions out of the box, so the manifest for the PHP package must indicate that it contains `ext-standard`, `ext-dom`, and so forth, and thus its manifest contains a long list of `heroku-sys/ext-…` entries under the `replace` key.
+
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {replace}'`*
 
 #### Extra: Config
 
@@ -349,6 +363,8 @@ This feature can be used if an extension should have default configuration in pl
 
 If `extra`.`config` in the manifest is then set to "`etc/php/conf.d/memcached.ini-dist`", this config file will be used.
 
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.name == "heroku-sys/ext-newrelic") ][0] | {extra: {config: .extra.config}}'`*
+
 #### Extra: Export & Profile
 
 Any package may generate shell scripts that are evaluated during app build, and during dyno startup, respectively. This is most commonly used for ensuring that built binaries are available on `$PATH` (for both cases), and for e.g. launching a sidecar process such as a proxy or agent (for the dyno startup case).
@@ -359,21 +375,29 @@ To achieve this, the formula would write a `bin/export.sh` with the following co
 
     export PATH="/app/.heroku/php/bin:/app/.heroku/php/sbin:$PATH"
 
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-webserver") ][0] | {extra: {export: .extra.export}}'`*
+
 If the `extra`.`export` key in the manifest is then set to a string value of "`bin/export.sh`", the platform installer will ensure all packages have their export instructions executed after platform installation is complete.
 
 In addition, a `bin/profile.sh` would also be necessary, with similar contents (but this time using `$HOME` instead of `/app`, for portability):
 
     export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
 
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-webserver") ][0] | {extra: {profile: .extra.profile}}'`*
+
 If the `extra`.`profile` key in the manifest is then set to a string value of "`bin/profile.sh`", the platform installer will ensure that this script is executed, together with scripts from any other packages, during the startup of a dyno.
 
 For most packages, the `export` key is never needed; the `profile` key is sometimes used to perform operations during dyno boot. For example, the `newrelic` extension uses it to start the `newrelic-daemon` background process.
+
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.name == "heroku-sys/ext-newrelic") ][0] | {extra: {profile: .extra.profile}}'`*
 
 #### Extra: Shared
 
 As package of type `heroku-sys-php` may come bundled with a bunch of extensions, it must list these extensions in the `replace` section of its manifest. However, not all of these bundled extensions may be built into the engine, but instead may have been built as `shared`, meaning their `.so` needs to be loaded into the engine using an [`extension=…`](http://php.net/manual/en/ini.core.php#ini.extension) INI directive.
 
 In order for the custom platform installer to know that an extension is built as shared, the names of all shared extensions (in full "`heroku-sys/ext-…`" format) must be listed inside the `extra`.`shared` struct as keys, each with a value of boolean `true`.
+
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {extra: {shared: .extra.shared}}'`*
 
 ## About Repositories
 
