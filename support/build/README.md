@@ -424,6 +424,95 @@ The structure of a `packagist` type repository is a struct with a single key "`p
 
 **Important: due to a peculiarity of Composer's dependency solver, extensions of identical version but for different PHP versions must be ordered within the repository in descending PHP version order, i.e. `ext-foobar:1.2.3` for `php:7.3.*` must appear before `ext-foobar:1.2.3` for `php:7.2.*`. Otherwise, deploys may select a lower PHP version than possible. The `mkrepo.sh` script takes care of this ordering.**
 
+### Repositories and Stacks
+
+In principle, a single repository can contain multiple, stack-specific versions of the same package. Consider the following condensed example for two identical versions of `ext-pq`, but for two PHP runtimes, on the `heroku-18` stack:
+
+    {
+        "name": "heroku-sys/ext-pq",
+        "version": "2.1.5",
+        "require": {
+            "heroku-sys/heroku": "^18.0.0",
+            "heroku-sys/php": "7.3.*"
+        }
+    },
+    {
+        "name": "heroku-sys/ext-pq",
+        "version": "2.1.5",
+        "require": {
+            "heroku-sys/heroku": "^18.0.0",
+            "heroku-sys/php": "7.2.*"
+        }
+    }
+
+There is no reason why there couldn't be two additional packages, but with a `heroku-sys/heroku` dependency of "`^16.0.0`", in the same repository, like so:
+
+    {
+        "name": "heroku-sys/ext-pq",
+        "version": "2.1.5",
+        "require": {
+            "heroku-sys/heroku": "^16.0.0",
+            "heroku-sys/php": "7.3.*"
+        }
+    },
+    {
+        "name": "heroku-sys/ext-pq",
+        "version": "2.1.5",
+        "require": {
+            "heroku-sys/heroku": "^16.0.0",
+            "heroku-sys/php": "7.2.*"
+        }
+    },
+    {
+        "name": "heroku-sys/ext-pq",
+        "version": "2.1.5",
+        "require": {
+            "heroku-sys/heroku": "^18.0.0",
+            "heroku-sys/php": "7.3.*"
+        }
+    },
+    {
+        "name": "heroku-sys/ext-pq",
+        "version": "2.1.5",
+        "require": {
+            "heroku-sys/heroku": "^18.0.0",
+            "heroku-sys/php": "7.2.*"
+        }
+    }
+
+Composer would be able to resolve the right variant of the `ext-pq/2.1.5` package when it's requested as a dependency, just like how it does for the `heroku-sys/php` dependency.
+
+Heroku's own platform repositories are kept separately per stack. This is mostly in the interest of keeping the list of available packages small, both for resolution at installation time, and for the purpose of faster synchronization (see further below).
+
+Maintainers of custom repositories with a smaller number of packages may find it advantageous to keep all stacks together. The advantage of this is that developers using such a repository do not have to update the repository URL after changing the stack on an application.
+
+In some cases, a package may be able to run on several stacks. This is usually the case when the underlying library ABIs are very stable and do not change across Heroku stack versions, or when a package is built statically with libraries included, or when other measures have been taken to ensure a library can use multiple versions of a library.
+
+For example, the `newrelic` extension formula only downloads a pre-built binary extension `.so` and packages it for use on Heroku. It works on all modern Linux versions, so it could theoretically be supplied in a single version for all stacks.
+
+This could either be done by omitting the stack requirement entirely:
+
+    {
+        "name": "heroku-sys/ext-newrelic",
+        "version": "8.6.0.238",
+        "require": {
+            "heroku-sys/php": "7.3.*"
+        }
+    }
+
+Or by targeting several possible values for `heroku-sys/heroku`:
+
+    {
+        "name": "heroku-sys/ext-newrelic",
+        "version": "8.6.0.238",
+        "require": {
+            "heroku-sys/heroku": "^16.0.0 | ^18.0.0",
+            "heroku-sys/php": "7.3.*"
+        }
+    }
+
+However, as many of Heroku's other packages are stack-specific in their library usage, separate repositories have to be kept anyway, so the `newrelic` extension is treated the same way as all other packages.
+
 ### (Re-)generating Repositories
 
 The normal flow is to run `deploy.sh` first to deploy one or more packages, and then to use `mkrepo.sh` to re-generate the repo:
