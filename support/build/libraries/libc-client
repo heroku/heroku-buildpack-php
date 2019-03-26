@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build Path: /app/.heroku/php/
+# Build Path: /app/.heroku/php
 
 # fail hard
 set -o pipefail
