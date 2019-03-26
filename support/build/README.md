@@ -186,9 +186,9 @@ That's where the `UPSTREAM_S3_BUCKET` and `UPSTREAM_S3_PREFIX` env vars document
 That way, if your Bob formula for an extension contains e.g. this dependency declaration at the top:
 
     # Build Path: /app/.heroku/php
-    # Build Deps: php-7.3.3
+    # Build Deps: php-7.3.*
 
-then on build, Bob will first look for "`php-7.3.3`" in your S3 bucket, and then fall back to pulling it from the upstream bucket. This frees you of the burden of hosting and maintaining unnecessary packages yourself.
+then on build, Bob will first look for "`php-7.3.*`" in your S3 bucket, and then fall back to pulling it from the upstream bucket. This frees you of the burden of hosting and maintaining unnecessary packages yourself.
 
 ### Building a Package
 
@@ -198,7 +198,7 @@ To verify a formula, `bob build` can be used to build it:
     ~ $ bob build extensions/no-debug-non-zts-20180731/yourextension-1.2.3
     
     Fetching dependencies... found 1:
-      - php-7.3.3
+      - php-7.3.*
     Building formula extensions/no-debug-non-zts-20180731/yourextension-1.2.3
     ...
 
@@ -707,13 +707,11 @@ For instance, for PHP 7.3 and Xdebug version 2.7.0, have a `php-7.3/xdebug-2.7.0
 
     #!/usr/bin/env bash
     # Build Path: /app/.heroku/php
-    # Build Deps: php-7.3.3
+    # Build Deps: php-7.3.*
     
     source $(dirname $0)/../xdebug
 
-The `php-7.3.3` dependency will not be found in the current S3 bucket and prefix, so Bob will fall back to `UPSTREAM_S3_BUCKET` and `UPSTREAM_S3_PREFIX`.
-
-It's possible that the `php-…` version in the example above no longer exists, so it may have to be adjusted to a newer version.
+The `php-7.3.*` dependency will not be found in the current S3 bucket and prefix, so Bob will fall back to `UPSTREAM_S3_BUCKET` and `UPSTREAM_S3_PREFIX`.
 
 #### Build Dockerfiles
 
