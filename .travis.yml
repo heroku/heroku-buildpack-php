@@ -8,6 +8,8 @@ install:
 before_script:
 - bundle exec hatchet ci:setup
 script: bundle exec parallel_rspec -n6 test/spec/
+after_script:
+- bundle exec hatchet destroy --all
 env:
   global:
   - HATCHET_RETRIES=3
@@ -16,6 +18,7 @@ env:
   - HEROKU_APP_LIMIT=9999
   - HATCHET_DEPLOY_STRATEGY=git
   - HATCHET_BUILDPACK_BASE="https://github.com/heroku/heroku-buildpack-php"
+  - HATCHET_APP_PREFIX="htcht-${TRAVIS_JOB_ID}-"
 matrix:
     include:
       - env: STACK=cedar-14
