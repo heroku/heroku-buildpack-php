@@ -1,5 +1,19 @@
 # heroku-buildpack-php CHANGELOG
 
+## v154 (2019-04-04)
+
+### ADD
+
+- PHP/7.2.17 [David Zuelke]
+- PHP/7.3.4 [David Zuelke]
+- Apache/2.4.39 [David Zuelke]
+- PHP/7.1.28 [David Zuelke]
+
+### CHG
+
+- librdkafka/1.0.0 [David Zuelke]
+- libcassandra/2.11.0 [David Zuelke]
+
 ## v153 (2019-03-18)
 
 ### ADD
