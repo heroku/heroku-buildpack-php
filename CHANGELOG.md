@@ -2,6 +2,10 @@
 
 ## v155 (2019-05-??)
 
+### ADD
+
+- ext-rdkafka/3.1.0 [David Zuelke]
+
 ### CHG
 
 - Composer/1.8.5 [David Zuelke]
