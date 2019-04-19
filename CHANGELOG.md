@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-rdkafka/3.1.0 [David Zuelke]
+- ext-event/2.4.4 [David Zuelke]
 
 ### CHG
 
