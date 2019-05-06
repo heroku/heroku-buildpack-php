@@ -1,0 +1,17 @@
+#!/bin/bash
+
+
+# fail hard
+set -eo pipefail
+# fail harder
+set -eu
+
+
+# name the command line argument for this script
+declare build_dir="${1:-}"
+
+# push the builddir to the directory stack and check if composer tests are available
+if pushd "$build_dir" && composer run-script -l 2>/dev/null | grep -q '^\s*test\b'; then
+    # run tests via composer in the build_dir
+    composer run-script --timeout=0 test
+fi
