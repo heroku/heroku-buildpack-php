@@ -8,6 +8,7 @@
 - ext-event/2.5.0 [David Zuelke]
 - ext-imagick/3.4.4 [David Zuelke]
 - PHP/7.1.29 [David Zuelke]
+- PHP/7.2.18 [David Zuelke]
 
 ### CHG
 
