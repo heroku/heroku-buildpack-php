@@ -1,5 +1,21 @@
 # heroku-buildpack-php CHANGELOG
 
+## v155 (2019-05-09)
+
+### ADD
+
+- ext-rdkafka/3.1.0 [David Zuelke]
+- ext-event/2.5.0 [David Zuelke]
+- ext-imagick/3.4.4 [David Zuelke]
+- PHP/7.1.29 [David Zuelke]
+- PHP/7.2.18 [David Zuelke]
+- PHP/7.3.5 [David Zuelke]
+
+### CHG
+
+- Composer/1.8.5 [David Zuelke]
+- libcassandra/2.12.0 [David Zuelke]
+
 ## v154 (2019-04-04)
 
 ### ADD
