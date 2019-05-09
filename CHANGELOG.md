@@ -6,6 +6,7 @@
 
 - ext-rdkafka/3.1.0 [David Zuelke]
 - ext-event/2.5.0 [David Zuelke]
+- ext-imagick/3.4.4 [David Zuelke]
 
 ### CHG
 
