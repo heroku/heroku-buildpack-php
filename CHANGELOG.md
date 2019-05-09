@@ -9,6 +9,7 @@
 - ext-imagick/3.4.4 [David Zuelke]
 - PHP/7.1.29 [David Zuelke]
 - PHP/7.2.18 [David Zuelke]
+- PHP/7.3.5 [David Zuelke]
 
 ### CHG
 
