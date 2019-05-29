@@ -202,6 +202,9 @@ MANIFEST_EXTRA="${MANIFEST_EXTRA:-"$extra"}"
 # remove temporary ini file that enables all extensions, and the composer download
 rm ${OUT_PREFIX}/etc/php/php.ini composer.phar
 
+# we begin with PHP's recommended production config as the default
+cp ${dep_dirname}/php.ini-production ${OUT_PREFIX}/etc/php/php.ini
+# next, include any more specific config files that we have created
 IFS='.' read -r -a version <<< "$dep_version" # read the parts of $dep_version into an array, e.g. (7 2 33)
 # iterate over version parts so we try "" (from index 0) first, then "7", then "7/2/", then "7/2/11" for a version "7.2.11"
 # in each case, we copy anything that's in that directory; more specific version configs will this overwrite less specific ones
