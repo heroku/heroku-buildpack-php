@@ -13,6 +13,17 @@
 ### CHG
 
 - librdkafka/1.0.1 [David Zuelke]
+- Use bundled `php.ini-production` as the standard PHP config and apply Heroku settings via `conf.d/` include [David Zuelke]
+- Update `error_reporting` to `E_ALL & ~E_STRICT` for all runtime versions [David Zuelke]
+
+### FIX
+
+- `mail.add_x_header` INI directive is set to an outdated default value for some PHP versions [David Zuelke]
+- `serialize_precision` INI directive is set to an outdated default value for some PHP versions [David Zuelke]
+- `session.entropy_length` INI directive is set to an outdated default value for some PHP versions [David Zuelke]
+- `session.sid_bits_per_character` INI directive is set to a non-recommended default value for some PHP versions [David Zuelke]
+- `url_rewriter.tags` INI directive is set to an outdated default value for some PHP versions [David Zuelke]
+- PHP assertions should be disabled in prod mode (#242) [David Zuelke]
 
 ## v155 (2019-05-09)
 

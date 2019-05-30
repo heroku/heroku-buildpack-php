@@ -2,16 +2,34 @@ require_relative "spec_helper"
 
 shared_examples "A PHP application with a composer.json" do |series|
 	context "requiring PHP #{series}" do
-		let(:app) {
-			new_app_with_stack_and_platrepo('test/fixtures/default',
+		before(:all) do
+			@app = new_app_with_stack_and_platrepo('test/fixtures/default',
 				before_deploy: -> { system("composer require --quiet --no-update php '#{series}.*' && composer update --quiet --ignore-platform-reqs") or raise "Failed to require PHP version" }
 			)
-		}
+			@app.deploy
+			# so we don't have to worry about overlapping dynos causing test failures because only one free is allowed at a time
+			@app.api_rate_limit.call.formation.update(@app.name, "web", {"size" => "Standard-1X"})
+		end
+		
+		after(:all) do
+			# scale back down when we're done
+			# we should do this, because teardown! doesn't remove the app unless we're over the app limit
+			@app.api_rate_limit.call.formation.update(@app.name, "web", {"size" => "free"})
+			@app.teardown!
+		end
+		
 		it "picks a version from the desired series" do
-			app.deploy do |app|
-				expect(app.output).to match(/- php \(#{Regexp.escape(series)}\./)
-				expect(app.run('php -v')).to match(/#{Regexp.escape(series)}\./)
-			end
+			expect(@app.output).to match(/- php \(#{Regexp.escape(series)}\./)
+			expect(@app.run('php -v')).to match(/#{Regexp.escape(series)}\./)
+		end
+		
+		it "has Heroku php.ini defaults" do
+			ini_output = @app.run('php -i')
+			expect(ini_output).to match(/date.timezone => UTC/)
+			                 .and match(/error_reporting => 30719/)
+			                 .and match(/expose_php => Off/)
+			                 .and match(/user_ini.cache_ttl => 86400/)
+			                 .and match(/variables_order => EGPCS/)
 		end
 	end
 	
