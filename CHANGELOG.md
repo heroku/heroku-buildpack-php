@@ -4,8 +4,8 @@
 
 ### ADD
 
-- ext-mongodb/1.5.4 [David Zuelke]
 - ext-event/2.5.2 [David Zuelke]
+- ext-mongodb/1.5.5 [David Zuelke]
 
 ## v156 (2019-05-30)
 
