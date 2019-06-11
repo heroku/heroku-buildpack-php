@@ -7,6 +7,10 @@
 - ext-event/2.5.2 [David Zuelke]
 - ext-mongodb/1.5.5 [David Zuelke]
 
+### CHG
+
+- Composer/1.8.6 [David Zuelke]
+
 ## v156 (2019-05-30)
 
 ### ADD
