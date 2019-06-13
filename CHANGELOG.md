@@ -6,6 +6,7 @@
 
 - ext-event/2.5.2 [David Zuelke]
 - ext-mongodb/1.5.5 [David Zuelke]
+- ext-newrelic/8.7.0.242 [David Zuelke]
 
 ### CHG
 
