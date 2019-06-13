@@ -16,6 +16,7 @@
 ### FIX
 
 - Bug in Apache 2.4.39 (https://bz.apache.org/bugzilla/show_bug.cgi?id=63325) causes 408 timeout after 20 seconds on long file uploads (#342) [David Zuelke]
+- Phalcon 3.4.3 segfaults on latest PHP 7.3.6 [David Zuelke]
 
 ## v156 (2019-05-30)
 
