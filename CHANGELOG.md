@@ -6,6 +6,7 @@
 
 - PHP/7.2.20 [David Zuelke]
 - PHP/7.3.7 [David Zuelke]
+- ext-blackfire/1.26.2 [David Zuelke]
 
 ## v157 (2019-06-13)
 
