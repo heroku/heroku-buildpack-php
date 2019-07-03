@@ -9,6 +9,7 @@
 - ext-blackfire/1.26.2 [David Zuelke]
 - ext-event/2.5.3 [David Zuelke]
 - ext-phalcon/3.4.4 [David Zuelke]
+- ext-rdkafka/3.1.1 [David Zuelke]
 
 ## v157 (2019-06-13)
 
