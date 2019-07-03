@@ -12,6 +12,10 @@
 - ext-rdkafka/3.1.1 [David Zuelke]
 - ext-redis/5.0.0 [David Zuelke]
 
+### CHG
+
+- libcassandra/2.13.0 [David Zuelke]
+
 ## v157 (2019-06-13)
 
 ### ADD
