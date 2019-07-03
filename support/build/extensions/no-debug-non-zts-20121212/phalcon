@@ -37,33 +37,6 @@ else
 fi
 pushd ${dep_dirname}
 
-# 3.4.3 requires an updated Zephir with fixes, otherwise PHP 7.3.6+ will segfault: https://github.com/phalcon/cphalcon/issues/14160
-if dpkg --compare-versions "$dep_version" "le" 3.4.3; then
-	# first, install zephir parser...
-	git clone https://github.com/phalcon/php-zephir-parser
-	pushd php-zephir-parser
-	phpize
-	./configure --prefix=${OUT_PREFIX}
-	make -s -j9
-	make install -s
-	# ... and load as extension
-	echo "extension=zephir_parser.so" >> ${OUT_PREFIX}/etc/php/conf.d/zehpir.ini
-	popd
-	# zephir itself...
-	git clone https://github.com/phalcon/zephir
-	pushd zephir
-	git checkout 0.10.x
-	# can just be installed into $(cwd)/bin
-	./install-nosudo
-	popd
-	# this regenerates what we really need: ext/kernel/ with the changes
-	zephir/bin/zephir generate --backend=ZendEngine3
-	# regenerate the build/ dir
-	php build/gen-build.php
-	# generating phalcon without phalcon installed only produces a safe/ build dir, so override it from earlier
-	workdir=php${series:0:1}/safe
-fi
-
 pushd build
 pushd ${workdir}
 export CC="gcc"
