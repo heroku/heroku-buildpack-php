@@ -15,6 +15,7 @@
 ### CHG
 
 - libcassandra/2.13.0 [David Zuelke]
+- librdkafka/1.1.0 [David Zuelke]
 
 ## v157 (2019-06-13)
 
