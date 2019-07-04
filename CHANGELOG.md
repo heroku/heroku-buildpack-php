@@ -1,5 +1,22 @@
 # heroku-buildpack-php CHANGELOG
 
+## v158 (2019-07-04)
+
+### ADD
+
+- PHP/7.2.20 [David Zuelke]
+- PHP/7.3.7 [David Zuelke]
+- ext-blackfire/1.26.2 [David Zuelke]
+- ext-event/2.5.3 [David Zuelke]
+- ext-phalcon/3.4.4 [David Zuelke]
+- ext-rdkafka/3.1.1 [David Zuelke]
+- ext-redis/5.0.0 [David Zuelke]
+
+### CHG
+
+- libcassandra/2.13.0 [David Zuelke]
+- librdkafka/1.1.0 [David Zuelke]
+
 ## v157 (2019-06-13)
 
 ### ADD
