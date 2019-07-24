@@ -235,7 +235,7 @@ httpd_version="$(httpd -v | hhvm --php -r 'echo preg_replace("#^Server version: 
 composer() {
 	local composer_bin=$(which ./composer.phar composer | head -n1)
 	# check if we the composer binary is executable by PHP
-	if file --brief --dereference $composer_bin | grep -e "shell" -e "bash" > /dev/null ; then # newer versions of file return "data" for .phar
+	if file --brief --dereference $composer_bin | grep -e "shell" -e "bash" -e "executable" > /dev/null ; then # newer versions of file return "data" for .phar
 		# run it directly; it's probably a bash script or similar (homebrew-php does this)
 		$composer_bin "$@"
 	else
