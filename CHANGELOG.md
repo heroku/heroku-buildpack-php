@@ -2,6 +2,10 @@
 
 ## v159 (2019-08-??)
 
+### ADD
+
+- Automatically run 'composer test' if present, or one of 'codecept'/'behat'/'phpspec'/'atoum'/'kahlan'/'peridot'/'phpunit', on Heroku CI [David Zuelke]
+
 ### CHG
 
 - Enable zend.assertions on Heroku CI [David Zuelke]
