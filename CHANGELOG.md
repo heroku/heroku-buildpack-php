@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v159 (2019-08-??)
+
+### CHG
+
+- Enable zend.assertions on Heroku CI [David Zuelke]
+
 ## v158 (2019-07-04)
 
 ### ADD

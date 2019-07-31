@@ -12,3 +12,6 @@ export HEROKU_PHP_INSTALL_DEV="" # empty string is correct; it will be inserted 
 
 bp_dir=$(cd $(dirname $0); cd ..; pwd)
 source $bp_dir/bin/compile
+
+# enable assertions for CI
+echo "zend.assertions = 1" > "$(php -r 'echo PHP_CONFIG_FILE_SCAN_DIR;')/heroku-ci.ini"
