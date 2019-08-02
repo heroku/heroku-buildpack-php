@@ -231,15 +231,16 @@ hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { ech
 hhvm_version="$(hhvm --php -r 'echo HHVM_VERSION;')"
 httpd_version="$(httpd -v | hhvm --php -r 'echo preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin"));')"
 
-# make sure we run a local composer.phar if present, or global composer if not
+# make sure we try a local composer.phar if no global installation is available
+composer_bin=$(command -v composer ./composer.phar) || { echo "This program requires 'composer' on \$PATH or a 'composer.phar' in the CWD." >&2; exit 1; }
+composer_bin=$(head -n1 <<< "$composer_bin") # if both were there, we'd have two lines of output, no good for invoking something :)
 composer() {
-	local composer_bin=$(which ./composer.phar composer | head -n1)
-	# check if we the composer binary is executable by PHP
-	if file --brief --dereference $composer_bin | grep -e "shell" -e "bash" > /dev/null ; then # newer versions of file return "data" for .phar
+	# check if the composer binary is executable by HHVM
+	if file --brief --dereference "$composer_bin" | grep -e "shell" -e "bash" > /dev/null ; then # newer versions of file return "data" for .phar
 		# run it directly; it's probably a bash script or similar (homebrew-php does this)
-		$composer_bin "$@"
+		"$composer_bin" "$@"
 	else
-		hhvm $composer_bin "$@"
+		hhvm "$composer_bin" "$@"
 	fi
 }
 # these exports are used in default web server configs to lock down access to composer directories

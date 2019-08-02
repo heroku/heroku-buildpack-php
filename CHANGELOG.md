@@ -9,6 +9,7 @@
 ### CHG
 
 - Enable zend.assertions on Heroku CI [David Zuelke]
+- Boot scripts now prefer a `composer` binary on `$PATH` over a `composer.phar` in the CWD [David Zuelke]
 
 ### FIX
 
