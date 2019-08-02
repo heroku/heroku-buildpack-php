@@ -443,7 +443,6 @@ echo "Starting php-fpm..." >&2
 	# doing this in this subshell means any later code can still invoke PHP CLI with the special INIs applied
 	unset PHP_INI_SCAN_DIR
 	if [[ -n ${_PHP_INI_SCAN_DIR+x} ]]; then
-		echo "XXXXXXDEBUG: restoring original PHP_INI_SCAN_DIR=${_PHP_INI_SCAN_DIR}" >&2
 		export PHP_INI_SCAN_DIR=$_PHP_INI_SCAN_DIR
 	fi
 
