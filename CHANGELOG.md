@@ -10,6 +10,10 @@
 
 - Enable zend.assertions on Heroku CI [David Zuelke]
 
+### FIX
+
+- Boot scripts no longer use `php -n` to prevent APM extensions from booting, but instead add an INI file that contains disabling directives for common extensions (#345, #348, #349) [David Zuelke]
+
 ## v158 (2019-07-04)
 
 ### ADD
