@@ -30,7 +30,7 @@ php_passthrough() {
 	if [[ "$out" != "$file" ]]; then
 		[[ $verbose ]] && echo "Interpreting ${1#$HEROKU_APP_DIR/} to $out" >&2
 		out="$dir/$out"
-		php -n "$1" > "$out"
+		php "$1" > "$out"
 		echo "$out"
 	else
 		echo "$1"
@@ -137,6 +137,30 @@ export DOCUMENT_ROOT="$HEROKU_APP_DIR"
 # set a default port if none is given
 export PORT=${PORT:-$(( $RANDOM+1024 ))}
 
+# add conf/php/apm-nostart-overrides/ to end of list of PHP INI scan dirs
+# that way our special extra INI which prevents startup of a possible newrelic etc is loaded for all the PHP and Composer calls that follow
+# an empty value for PHP_INI_SCAN_DIR means nothing is scanned at all, not even compile time default scan dirs
+# the variable can hold a list of paths delimited by colon, and if one segment is empty (e.g. "/foo::/bar" or just "/foo:" or ":/foo"), then the compile time default scan dir is used there
+if [[ -z ${PHP_INI_SCAN_DIR-} && ${PHP_INI_SCAN_DIR+x} ]]; then
+	# PHP_INI_SCAN_DIR was defined, but empty
+	# this means the user wants no scan dir, so we have to just place our own value into the variable, without a path separator
+	_PHP_INI_SCAN_DIR=
+	PHP_INI_SCAN_DIR=
+elif [[ -z ${PHP_INI_SCAN_DIR-} ]]; then
+	# PHP_INI_SCAN_DIR was not defined at all
+	# this means we want to load the compile time default scan dir first, then our special INIs
+	# we don't back up to _PHP_INI_SCAN_DIR; that way, we will know to unset it later and won't export an empty string
+	unset _PHP_INI_SCAN_DIR # just in case it's around
+	PHP_INI_SCAN_DIR=":" # leading empty segment will cause compile time default scan dir to be used
+else
+	# PHP_INI_SCAN_DIR was defined and not empty
+	# we want to append our path to the end of the list, or, if not defined at all, have the first list item be blank, which causes the default scan dir to be used
+	_PHP_INI_SCAN_DIR=$PHP_INI_SCAN_DIR
+	PHP_INI_SCAN_DIR+=":" # leading empty segment will cause compile time default scan dir to be used
+fi
+# now append
+export PHP_INI_SCAN_DIR="${PHP_INI_SCAN_DIR}${bp_dir}/conf/php/apm-nostart-overrides/"
+
 # init logs array here as empty before parsing options; -l could append to it, but the default list gets added later since we use $PORT in there and that can be set using -p
 declare -a logs
 
@@ -233,22 +257,23 @@ fi
 logs+=( "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.php-fpm.www.$PORT.log" "/tmp/heroku.php-fpm.$PORT.www.slowlog" "/tmp/heroku.apache2_error.$PORT.log" "/tmp/heroku.apache2_access.$PORT.log" )
 
 # a bunch of checks; don't load any INIs to prevent newrelic etc from loading, we don't need all that stuff
-php -n -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This program requires PHP 5.5.11 or newer; check your 'php' command." >&2; exit 1; }
-{ php-fpm -n -v | php -n -r 'exit((int)version_compare(preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin")), "5.5.11", "<"));'; } || { echo "This program requires PHP 5.5.11 or newer; check your 'php-fpm' command." >&2; exit 1; }
-{ { httpd -v | php -n -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.10", "<"));'; } && { httpd -t -D DUMP_MODULES | grep 'proxy_fcgi_module' > /dev/null; }; } || { echo "This program requires Apache 2.4.10 or newer with mod_proxy and mod_proxy_fcgi enabled; check your 'httpd' command." >&2; exit 1; }
+php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This program requires PHP 5.5.11 or newer; check your 'php' command." >&2; exit 1; }
+{ php-fpm -n -v | php -r 'exit((int)version_compare(preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin")), "5.5.11", "<"));'; } || { echo "This program requires PHP 5.5.11 or newer; check your 'php-fpm' command." >&2; exit 1; }
+{ { httpd -v | php -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.10", "<"));'; } && { httpd -t -D DUMP_MODULES | grep 'proxy_fcgi_module' > /dev/null; }; } || { echo "This program requires Apache 2.4.10 or newer with mod_proxy and mod_proxy_fcgi enabled; check your 'httpd' command." >&2; exit 1; }
 
-php_version="$(php-fpm -n -v | php -n -r 'echo preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin"));')"
-httpd_version="$(httpd -v | php -n -r 'echo preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin"));')"
+php_version="$(php-fpm -n -v | php -r 'echo preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin"));')"
+httpd_version="$(httpd -v | php -r 'echo preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin"));')"
 
-# make sure we run a local composer.phar if present, or global composer if not
+# make sure we try a local composer.phar if no global installation is available
+composer_bin=$(command -v composer ./composer.phar) || { echo "This program requires 'composer' on \$PATH or a 'composer.phar' in the CWD." >&2; exit 1; }
+composer_bin=$(head -n1 <<< "$composer_bin") # if both were there, we'd have two lines of output, no good for invoking something :)
 composer() {
-	local composer_bin=$(which ./composer.phar composer | head -n1)
-	# check if we the composer binary is executable by PHP
-	if file --brief --dereference $composer_bin | grep -e "shell" -e "bash" > /dev/null ; then # newer versions of file return "data" for .phar
+	# check if the composer binary is executable by PHP
+	if file --brief --dereference "$composer_bin" | grep -e "shell" -e "bash" > /dev/null ; then # newer versions of file return "data" for .phar
 		# run it directly; it's probably a bash script or similar (homebrew-php does this)
-		$composer_bin "$@"
+		"$composer_bin" "$@"
 	else
-		php -n $composer_bin "$@"
+		php "$composer_bin" "$@"
 	fi
 }
 # these exports are used in default web server configs to lock down access to composer directories
@@ -317,8 +342,7 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 	fi
 
 	# determine number of FPM processes to run
-	# prevent loading of extension INIs (and thus e.g. newrelic) using empty PHP_INI_SCAN_DIR
-	read WEB_CONCURRENCY php_memory_limit <<<$(PHP_INI_SCAN_DIR= php ${php_config:+-c "$php_config"} "$bp_dir/bin/util/autotune.php" -y "$fpm_config" -t "$DOCUMENT_ROOT" "$ram")
+	read WEB_CONCURRENCY php_memory_limit <<<$(php ${php_config:+-c "$php_config"} "$bp_dir/bin/util/autotune.php" -y "$fpm_config" -t "$DOCUMENT_ROOT" "$ram")
 	[[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
 	export WEB_CONCURRENCY
 
@@ -412,6 +436,15 @@ echo "Starting php-fpm..." >&2
 	trap 'echo "php-fpm" >&3;' EXIT
 	trap 'trap - TERM; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -TERM $BASHPID' TERM
 	trap 'trap - USR1 EXIT; kill -TERM $pid 2> /dev/null || true & wait $pid 2> /dev/null || true; [[ ${BASHPID:-} ]] && kill -USR1 $BASHPID' USR1
+
+	# earlier, we added special INIs that prevent newrelic etc from starting to the scan dir
+	# we do not want that to apply to php-fpm, which uses the same scan dir for its configs as the regular PHP CLI SAPI
+	# we now restore the original env var from the backup variable, if it existed (important, because empty string and unset are different)
+	# doing this in this subshell means any later code can still invoke PHP CLI with the special INIs applied
+	unset PHP_INI_SCAN_DIR
+	if [[ -n ${_PHP_INI_SCAN_DIR+x} ]]; then
+		export PHP_INI_SCAN_DIR=$_PHP_INI_SCAN_DIR
+	fi
 
 	php-fpm --nodaemonize -y "$fpm_config" ${php_config:+-c "$php_config"} & pid=$!
 

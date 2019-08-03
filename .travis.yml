@@ -3,6 +3,7 @@ dist: xenial
 sudo: false
 before_install:
 - gem install bundler
+- composer self-update
 install:
 - bundle install
 before_script:

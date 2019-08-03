@@ -9,6 +9,12 @@
 ### CHG
 
 - Enable zend.assertions on Heroku CI [David Zuelke]
+- Boot scripts now prefer a `composer` binary on `$PATH` over a `composer.phar` in the CWD [David Zuelke]
+- Refactor logic used to prevent APM extensions such as `ext-newrelic` or `ext-blackfire` from starting up during during boot preparations or builds [David Zuelke]
+
+### FIX
+
+- Boot scripts no longer use `php -n` to prevent APM extensions from booting, but instead add an INI file that contains disabling directives for common extensions (#345, #348, #349) [David Zuelke]
 
 ## v158 (2019-07-04)
 
