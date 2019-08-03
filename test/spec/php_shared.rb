@@ -4,7 +4,7 @@ shared_examples "A PHP application with a composer.json" do |series|
 	context "requiring PHP #{series}" do
 		before(:all) do
 			@app = new_app_with_stack_and_platrepo('test/fixtures/default',
-				before_deploy: -> { system("composer require --quiet --no-update php '#{series}.*' && composer update --quiet --ignore-platform-reqs") or raise "Failed to require PHP version" }
+				before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" }
 			)
 			@app.deploy
 			# so we don't have to worry about overlapping dynos causing test failures because only one free is allowed at a time
@@ -109,7 +109,7 @@ shared_examples "A PHP application with a composer.json" do |series|
 		context "running PHP #{series} and the #{server} web server" do
 			before(:all) do
 				@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
-					before_deploy: -> { system("composer require --quiet --no-update php '#{series}.*' && composer update --quiet --ignore-platform-reqs") or raise "Failed to require PHP version" }
+					before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" }
 				)
 				@app.deploy
 				# so we don't have to worry about overlapping dynos causing test failures because only one free is allowed at a time
