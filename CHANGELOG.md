@@ -5,6 +5,7 @@
 ### ADD
 
 - Automatically run 'composer test' if present, or one of 'codecept'/'behat'/'phpspec'/'atoum'/'kahlan'/'peridot'/'phpunit', on Heroku CI [David Zuelke]
+- PHP/7.1.31 [David Zuelke]
 
 ### CHG
 
