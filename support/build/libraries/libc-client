@@ -58,6 +58,30 @@ dpkg-source --require-valid-signature -x $(basename ${dep_urls[-1]})
 
 pushd ${dep_dirname}
 
+# SNI capabilities for libc-client; some servers (GMail) require it with TLSv1.3, which OpenSSL 1.1.1 supports
+patch -p1 <<EOF
+--- a/src/osdep/unix/ssl_unix.c
++++ b/src/osdep/unix/ssl_unix.c
+@@ -273,6 +273,17 @@ static char *ssl_start_work (SSLSTREAM *stream,char *host,unsigned long flags)
+ 				/* create connection */
+   if (!(stream->con = (SSL *) SSL_new (stream->context)))
+     return "SSL connection failed";
++#ifdef SSL_CTRL_SET_TLSEXT_HOSTNAME
++  ASN1_OCTET_STRING *ip;
++  /* support SNI if host is not an IP address */
++  /* per RFC 6066: */
++  /* Literal IPv4 and IPv6 addresses are not permitted in "HostName". */
++  ip = a2i_IPADDRESS(host);
++  if (ip == NULL) {
++    ERR_clear_error();
++    SSL_set_tlsext_host_name(stream->con,host);
++  }
++#endif
+   bio = BIO_new_socket (stream->tcpstream->tcpsi,BIO_NOCLOSE);
+   SSL_set_bio (stream->con,bio,bio);
+   SSL_set_connect_state (stream->con);
+EOF
+
 touch ip6 # so we do not get prompted
 make ldb EXTRACFLAGS=-fPIC # need PIC so relocations work in the shared imap.so ext later
 mkdir -p ${OUT_PREFIX}/opt/${dep_destname}/include ${OUT_PREFIX}/opt/${dep_destname}/lib
