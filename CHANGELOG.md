@@ -6,6 +6,10 @@
 
 - ext-newrelic/9.0.2.245 [David Zuelke]
 
+### CHG
+
+- Simplify ext-newrelic startup handling [David Zuelke]
+
 ### FIX
 
 - Fix HHVM boot scripts failing if a `composer` shell function is present [David Zuelke]

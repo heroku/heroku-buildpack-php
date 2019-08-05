@@ -58,53 +58,48 @@ popd
 mkdir -p ${OUT_PREFIX}/bin
 # gets sourced on dyno boot
 cat > ${OUT_PREFIX}/bin/profile.newrelic.sh <<'EOF'
-if [[ -n "$NEW_RELIC_LICENSE_KEY" ]]; then
-	if [[ -f "/app/.heroku/php/bin/newrelic-daemon" ]]; then
-		export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-${HEROKU_APP_NAME:-"PHP Application on Heroku"}}
-		export NEW_RELIC_LOG_LEVEL=${NEW_RELIC_LOG_LEVEL:-"warning"}
-		export NEW_RELIC_DAEMON_LOG_LEVEL="$NEW_RELIC_LOG_LEVEL"
-		if [[ "$NEW_RELIC_DAEMON_LOG_LEVEL" == verbose* || "$NEW_RELIC_DAEMON_LOG_LEVEL" == *debug ]]; then
-			NEW_RELIC_DAEMON_LOG_LEVEL="debug"
-		fi
-
-		# The daemon is a started in foreground mode so it will not daemonize
-		# (i.e. disassociate from the controlling TTY and disappear into the
-		# background).
-		#
-		# Perpetually tail and redirect the daemon log file to stderr so that it
-		# may be observed via 'heroku logs'.
-		touch /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log
-		tail -qF -n 0 /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log 1>&2 &
-
-		# daemon start
-		/app/.heroku/php/bin/newrelic-daemon --foreground --port "@newrelic-daemon" --logfile "/tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log" --loglevel "${NEW_RELIC_DAEMON_LOG_LEVEL}" --pidfile "/tmp/newrelic-daemon.pid" &
-
-		# give it a moment to connect
-		sleep 2
-	else
-		echo >&2 "WARNING: Add-on 'newrelic' detected, but PHP extension not yet installed. Push an update to the application to finish installation of the add-on; an empty change ('git commit --allow-empty') is sufficient."
-	fi
+export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-${HEROKU_APP_NAME:-"PHP Application on Heroku"}}
+export NEW_RELIC_LOG_LEVEL=${NEW_RELIC_LOG_LEVEL:-"warning"}
+export NEW_RELIC_DAEMON_LOG_LEVEL="$NEW_RELIC_LOG_LEVEL"
+if [[ "$NEW_RELIC_DAEMON_LOG_LEVEL" == verbose* || "$NEW_RELIC_DAEMON_LOG_LEVEL" == *debug ]]; then
+	NEW_RELIC_DAEMON_LOG_LEVEL="debug"
 fi
+
+# The daemon is a started in foreground mode so it will not daemonize
+# (i.e. disassociate from the controlling TTY and disappear into the
+# background).
+#
+# Perpetually tail and redirect the daemon log file to stderr so that it
+# may be observed via 'heroku logs'.
+touch /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log
+tail -qF -n 0 /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log 1>&2 &
+
+# daemon start
+/app/.heroku/php/bin/newrelic-daemon --foreground --port "@newrelic-daemon" --logfile "/tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log" --loglevel "${NEW_RELIC_DAEMON_LOG_LEVEL}" --pidfile "/tmp/newrelic-daemon.pid" &
+
+# give it a moment to connect
+sleep 2
 EOF
 mkdir -p ${OUT_PREFIX}/etc/php/conf.d
 cat > ${OUT_PREFIX}/etc/php/conf.d/newrelic.ini-dist <<'EOF'
 extension = newrelic.so
 
-newrelic.daemon.location = /app/.heroku/php/bin/newrelic-daemon
-newrelic.daemon.port = @newrelic-daemon
-
 newrelic.loglevel = ${NEW_RELIC_LOG_LEVEL}
-newrelic.daemon.loglevel = ${NEW_RELIC_DAEMON_LOG_LEVEL}
 
 newrelic.license = ${NEW_RELIC_LICENSE_KEY}
 newrelic.appname = ${NEW_RELIC_APP_NAME}
 newrelic.logfile = stderr ; the stdout default messes up boots as we capture output for crash detection
 
-; The daemon gets spawned by the PHP agent and is configured with the same values
-;
-; There is code in bin/compile to create .profile.d/newrelic.sh. That script
-; starts the daemon and runs a perpetual tail command which will redirect daemon
-; logs to stderr so that it may be observed via 'heroku logs'.
+; make sure the extension ("agent") does not start the daemon (we do that on dyno boot)
+newrelic.daemon.dont_start = 3
+; so we know where to connect to; @newrelic-daemon is an abstract socket
+newrelic.daemon.port = @newrelic-daemon
+
+; we start the daemon on dyno boot, but the values below are still in here for reference (they're passed via cmdline args to newrelic-daemon)
+
+newrelic.daemon.loglevel = ${NEW_RELIC_DAEMON_LOG_LEVEL}
+
+; the newrelic start script runs a perpetual tail command which will redirect daemon logs to stderr so that they may be observed via 'heroku logs'
 newrelic.daemon.logfile = /tmp/heroku.ext-newrelic.newrelic-daemon.${PORT}.log
 
 ; or else:
