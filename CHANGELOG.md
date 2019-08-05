@@ -8,6 +8,7 @@
 - PHP/7.1.31 [David Zuelke]
 - PHP/7.2.21 [David Zuelke]
 - PHP/7.3.8 [David Zuelke]
+- ext-rdkafka/3.1.2 [David Zuelke]
 
 ### CHG
 
