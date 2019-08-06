@@ -5,12 +5,20 @@
 ### ADD
 
 - Automatically run 'composer test' if present, or one of 'codecept'/'behat'/'phpspec'/'atoum'/'kahlan'/'peridot'/'phpunit', on Heroku CI [David Zuelke]
+- PHP/7.1.31 [David Zuelke]
+- PHP/7.2.21 [David Zuelke]
+- PHP/7.3.8 [David Zuelke]
+- ext-rdkafka/3.1.2 [David Zuelke]
+- ext-redis/5.0.2 [David Zuelke]
+- ext-blackfire/1.26.4 [David Zuelke]
 
 ### CHG
 
 - Enable zend.assertions on Heroku CI [David Zuelke]
 - Boot scripts now prefer a `composer` binary on `$PATH` over a `composer.phar` in the CWD [David Zuelke]
 - Refactor logic used to prevent APM extensions such as `ext-newrelic` or `ext-blackfire` from starting up during during boot preparations or builds [David Zuelke]
+- Patch `libc-client`, used by PHP's `ext-imap`, to use SNI if possible (required with TLSv1.3) [David Zuelke]
+- Composer/1.9.0 [David Zuelke]
 
 ### FIX
 

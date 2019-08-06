@@ -7,6 +7,7 @@ ENV S3_BUCKET=lang-php
 ENV S3_PREFIX=dist-heroku-16-develop/
 ENV S3_REGION=s3
 ENV STACK=heroku-16
+ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y python-pip
 
