@@ -8,6 +8,7 @@ install:
 - bundle install
 before_script:
 - bundle exec hatchet ci:setup
+- heroku update
 script: bundle exec parallel_rspec -n6 test/spec/
 after_script:
 - bundle exec hatchet destroy --all
