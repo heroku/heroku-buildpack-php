@@ -2,6 +2,7 @@ test/spec/nginx_spec.rb:17.813952603999994
 test/spec/ci_spec.rb:246.33560807
 test/spec/php_5.5_spec.rb:509.938187033
 test/spec/php_default_spec.rb:35.31259195999996
+test/spec/hhvm_spec.rb:46.4841052
 test/spec/php_7.0_spec.rb:507.67820821600003
 test/spec/php_5.6_spec.rb:511.56061258799997
 test/spec/php_7.1_spec.rb:516.917292978
