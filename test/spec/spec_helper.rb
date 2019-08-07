@@ -26,6 +26,7 @@ RSpec.configure do |config|
 	config.run_all_when_everything_filtered = true
 	config.alias_example_to :fit, focused: true
 	config.filter_run_excluding :requires_php_on_stack => lambda { |series| !php_on_stack?(series) }
+	config.filter_run_excluding :stack => lambda { |stack| ENV['STACK'] != stack }
 	
 	config.verbose_retry       = true # show retry status in spec process
 	config.default_retry_count = 2 if ENV['IS_RUNNING_ON_TRAVIS'] # retry all tests that fail again...
