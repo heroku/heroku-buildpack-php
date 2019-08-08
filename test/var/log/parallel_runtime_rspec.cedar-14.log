@@ -7,3 +7,4 @@ test/spec/php_5.6_spec.rb:511.56061258799997
 test/spec/php_7.1_spec.rb:516.917292978
 test/spec/php_7.2_spec.rb:519.6699256190002
 test/spec/php_7.3_spec.rb:514.0335099560002
+test/spec/bugs_spec.rb:1.616908664
