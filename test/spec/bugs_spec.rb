@@ -1,13 +1,11 @@
 require_relative "spec_helper"
 
 describe "A PHP application" do
-	context "using ext-imap on heroku-18" do
+	context "using ext-imap on heroku-18", :stack => "heroku-18" do
 		# OpenSSL 1.1.1 introduces support for TLSv1.3
 		# When negotiating a TLSv1.3 connection with a GMail IMAP server, the server will reject the attempt if no SNI ("ServerName" extension) info is sent
 		# Must be fixed at the libc-client level
 		it "successfully establishes a connection to a GMail IMAP server" do
-			skip unless ENV["STACK"] == "heroku-18" # the other stacks don't have OpenSSL 1.1.1 or later
-			
 			app = new_app_with_stack_and_platrepo('test/fixtures/bugs/imap-tls-sni')
 			
 			app.deploy do |app|

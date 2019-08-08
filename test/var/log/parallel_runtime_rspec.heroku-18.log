@@ -1,0 +1,10 @@
+test/spec/nginx_spec.rb:17.46743355800001
+test/spec/bugs_spec.rb:19.187589058
+test/spec/php_default_spec.rb:37.127293798999986
+test/spec/ci_spec.rb:231.17673678699998
+test/spec/php_7.1_spec.rb:526.370476888
+test/spec/php_7.2_spec.rb:515.4439263049999
+test/spec/php_7.3_spec.rb:513.5590811310001
+test/spec/php_5.5_spec.rb:1.616908664
+test/spec/php_5.6_spec.rb:1.616908664
+test/spec/php_7.0_spec.rb:1.616908664

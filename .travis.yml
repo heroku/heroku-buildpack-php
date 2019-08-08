@@ -8,9 +8,11 @@ install:
 - bundle install
 before_script:
 - bundle exec hatchet ci:setup
-script: bundle exec parallel_rspec -n6 test/spec/
+- heroku update
+script: bundle exec parallel_rspec -n 7 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-process-command --combine-stderr --prefix-output-with-test-env-number test/spec/
 after_script:
 - bundle exec hatchet destroy --all
+- cat parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$'
 env:
   global:
   - HATCHET_RETRIES=3
