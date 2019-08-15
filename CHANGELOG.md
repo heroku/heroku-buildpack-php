@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v160 (2019-08-??)
+
+### FIX
+
+- Fix HHVM boot scripts failing if a `composer` shell function is present [David Zuelke]
+
 ## v159 (2019-08-06)
 
 ### ADD

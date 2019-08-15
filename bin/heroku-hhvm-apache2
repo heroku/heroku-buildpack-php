@@ -231,6 +231,7 @@ hhvm --php -r 'exit((int)version_compare(HHVM_VERSION, "3.0.1", "<"));' || { ech
 hhvm_version="$(hhvm --php -r 'echo HHVM_VERSION;')"
 httpd_version="$(httpd -v | hhvm --php -r 'echo preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin"));')"
 
+unset -f composer # set on startup as a function that performs "hhvm $(which composer)"
 # make sure we try a local composer.phar if no global installation is available
 composer_bin=$(command -v composer ./composer.phar) || { echo "This program requires 'composer' on \$PATH or a 'composer.phar' in the CWD." >&2; exit 1; }
 composer_bin=$(head -n1 <<< "$composer_bin") # if both were there, we'd have two lines of output, no good for invoking something :)
