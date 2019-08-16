@@ -600,7 +600,34 @@ if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer"
 	EOF
 fi
 
-# handle custom oauth keys
+# handle gitlab token
+export_env_dir "$env_dir" '^COMPOSER_GITLAB_OAUTH_HOST$'
+COMPOSER_GITLAB_OAUTH_HOST=${COMPOSER_GITLAB_OAUTH_HOST:-}
+
+export_env_dir "$env_dir" '^COMPOSER_GITLAB_OAUTH_TOKEN$'
+COMPOSER_GITLAB_OAUTH_TOKEN=${COMPOSER_GITLAB_OAUTH_TOKEN:-}
+
+if [[ -n "$COMPOSER_GITLAB_OAUTH_TOKEN" ]]; then
+	if curl --fail --silent -H "Private-Token: $COMPOSER_GITLAB_OAUTH_TOKEN" "https://$COMPOSER_GITLAB_OAUTH_HOST/api/v4/license" > /dev/null; then
+		composer config --no-plugins -g "gitlab-token.$COMPOSER_GITLAB_OAUTH_HOST" "$COMPOSER_GITLAB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+		composer config --no-plugins -g "gitlab-domains" "$COMPOSER_GITLAB_OAUTH_HOST" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
+		notice_inline "Using \$COMPOSER_GITLAB_OAUTH_TOKEN for GitLab OAuth ($COMPOSER_GITLAB_OAUTH_HOST)."
+	else
+		error <<-EOF
+			Invalid token for GitLab OAuth!
+			
+			The OAuth token set in the '\$COMPOSER_GITLAB_OAUTH_TOKEN'
+			config var is invalid. Please ensure that you obtain a valid
+			token from https://gitlab.com/settings/tokens and set it on the
+			app using 'heroku config:set COMPOSER_GITLAB_OAUTH_TOKEN=...'.
+		EOF
+	fi
+fi
+# no need for the token to stay around in the env
+unset COMPOSER_GITLAB_OAUTH_HOST
+unset COMPOSER_GITLAB_OAUTH_TOKEN
+
+# handle github token
 export_env_dir "$env_dir" '^COMPOSER_GITHUB_OAUTH_TOKEN$'
 COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
 if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
