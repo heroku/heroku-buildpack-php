@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v161 (2019-08-??)
+
+### CHG
+
+- Build PHP with libwebp for ext-gd on heroku-18 (#358) [David Zuelke]
+
 ## v160 (2019-08-23)
 
 ### ADD
