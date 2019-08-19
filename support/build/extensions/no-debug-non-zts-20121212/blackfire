@@ -101,7 +101,7 @@ find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i
 # gets sourced on dyno boot
 cat > ${OUT_PREFIX}/bin/profile.blackfire.sh <<'EOF'
 touch /app/.heroku/php/var/blackfire/run/agent.sock
-/app/.heroku/php/bin/blackfire-agent -config=/app/.heroku/php/etc/blackfire/agent.ini -socket="unix:///app/.heroku/php/var/blackfire/run/agent.sock" &
+/app/.heroku/php/bin/blackfire-agent --config=/app/.heroku/php/etc/blackfire/agent.ini --socket="unix:///app/.heroku/php/var/blackfire/run/agent.sock" &
 EOF
 mkdir -p ${OUT_PREFIX}/etc/php/conf.d
 cat > ${OUT_PREFIX}/etc/php/conf.d/blackfire.ini-dist <<'EOF'
