@@ -100,12 +100,15 @@ find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i
 
 # gets sourced on dyno boot
 cat > ${OUT_PREFIX}/bin/profile.blackfire.sh <<'EOF'
+export BLACKFIRE_LOG_LEVEL=${BLACKFIRE_LOG_LEVEL:-"1"}
 touch /app/.heroku/php/var/blackfire/run/agent.sock
-/app/.heroku/php/bin/blackfire-agent --config=/app/.heroku/php/etc/blackfire/agent.ini --socket="unix:///app/.heroku/php/var/blackfire/run/agent.sock" &
+/app/.heroku/php/bin/blackfire-agent --config=/app/.heroku/php/etc/blackfire/agent.ini --socket="unix:///app/.heroku/php/var/blackfire/run/agent.sock" --log-level="${BLACKFIRE_LOG_LEVEL}" &
 EOF
 mkdir -p ${OUT_PREFIX}/etc/php/conf.d
 cat > ${OUT_PREFIX}/etc/php/conf.d/blackfire.ini-dist <<'EOF'
 extension = blackfire.so
+
+blackfire.log_level = ${BLACKFIRE_LOG_LEVEL}
 
 blackfire.server_token = ${BLACKFIRE_SERVER_TOKEN}
 blackfire.server_id = ${BLACKFIRE_SERVER_ID}

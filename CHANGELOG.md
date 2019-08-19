@@ -11,6 +11,7 @@
 
 - Simplify ext-newrelic startup handling [David Zuelke]
 - Simplify ext-blackfire startup handling [David Zuelke]
+- ext-blackfire now supports `BLACKFIRE_LOG_LEVEL` (4: debug, 3: info, 2: warning, 1: error) [David Zuelke]
 
 ### FIX
 
