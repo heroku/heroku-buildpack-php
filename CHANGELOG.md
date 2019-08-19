@@ -10,6 +10,7 @@
 ### CHG
 
 - Simplify ext-newrelic startup handling [David Zuelke]
+- Simplify ext-blackfire startup handling [David Zuelke]
 
 ### FIX
 
