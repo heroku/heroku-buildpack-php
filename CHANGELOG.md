@@ -6,6 +6,7 @@
 
 - ext-newrelic/9.0.2.245 [David Zuelke]
 - ext-blackfire/1.27.0 [David Zuelke]
+- Apache/2.4.41 [David Zuelke]
 
 ### CHG
 
