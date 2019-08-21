@@ -52,7 +52,7 @@ shared_examples "A PHP application with a composer.json" do |series|
 					else
 						# a NEW_RELIC_LICENSE_KEY triggers the automatic installation of ext-newrelic at the end of the build
 						@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
-							config: { "NEW_RELIC_LOG_LEVEL" => "info", "NEW_RELIC_LICENSE_KEY" => "this willtriggernewrelic" },
+							config: { "NEW_RELIC_LOG_LEVEL" => "info", "NEW_RELIC_LICENSE_KEY" => "thiswilltriggernewrelic" },
 							before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:#{series}.*'") or raise "Failed to require PHP version" }
 						)
 					end
@@ -86,11 +86,11 @@ shared_examples "A PHP application with a composer.json" do |series|
 					it "launches newrelic-daemon, but not the extension, during boot preparations, with #{script}" do
 						out = @app.run("#{script} -F conf/fpm.include.broken") # prevent FPM from starting up using an invalid config, that way we don't have to wrap the server start in a `timeout` call
 						
-						expect(out).not_to match(/spawned daemon child/) unless mode.include? "without NEW_RELIC_LICENSE_KEY" # extension does not spawn its own daemon
+						expect(out).not_to match(/spawned daemon child/) # extension does not spawn its own daemon
 						
 						out_before_fpm, out_after_fpm = out.split("Starting php-fpm", 2)
 						
-						expect(out_before_fpm).to match(/listen="@newrelic-daemon"[^\n]+?startup=init/) unless mode.include? "without NEW_RELIC_LICENSE_KEY" # NR daemon starts on boot
+						expect(out_before_fpm).to match(/listen="@newrelic-daemon"[^\n]+?startup=init/) # NR daemon starts on boot
 						expect(out_before_fpm).not_to match(/daemon='@newrelic-daemon'[^\n]+?startup=agent/) # extension does not connect to daemon before FPM starts
 						expect(out_before_fpm).to match(/New Relic PHP Agent globally disabled/) # NR extension reports itself disabled
 						

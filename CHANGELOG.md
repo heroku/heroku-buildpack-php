@@ -2,6 +2,17 @@
 
 ## v160 (2019-08-??)
 
+### ADD
+
+- ext-newrelic/9.0.2.245 [David Zuelke]
+- ext-blackfire/1.27.0 [David Zuelke]
+
+### CHG
+
+- Simplify ext-newrelic startup handling [David Zuelke]
+- Simplify ext-blackfire startup handling [David Zuelke]
+- ext-blackfire now supports `BLACKFIRE_LOG_LEVEL` (4: debug, 3: info, 2: warning, 1: error) [David Zuelke]
+
 ### FIX
 
 - Fix HHVM boot scripts failing if a `composer` shell function is present [David Zuelke]
