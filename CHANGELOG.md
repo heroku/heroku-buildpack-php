@@ -1,6 +1,6 @@
 # heroku-buildpack-php CHANGELOG
 
-## v161 (2019-08-??)
+## v161 (2019-08-30)
 
 ### ADD
 
