@@ -17,7 +17,7 @@ module Hatchet
 	end
 	
 	class TestRun
-		# override the default handling to also include 
+		# override the default handling to also include stack and env vars in app.json
 		def source_blob_url
 			@app.in_directory do
 				app_json = JSON.parse(File.read("app.json")) if File.exist?("app.json")
