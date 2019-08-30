@@ -2,6 +2,10 @@
 
 ## v161 (2019-08-??)
 
+### ADD
+
+- PHP/7.1.32 [David Zuelke]
+
 ### CHG
 
 - Build PHP with libwebp for ext-gd on heroku-18 (#358) [David Zuelke]
