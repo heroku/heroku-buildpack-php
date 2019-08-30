@@ -15,6 +15,44 @@ module Hatchet
 	class App
 		attr_reader :name, :stack, :directory, :repo_name, :app_config
 	end
+	
+	class TestRun
+		# override the default handling to also include 
+		def source_blob_url
+			@app.in_directory do
+				app_json = JSON.parse(File.read("app.json")) if File.exist?("app.json")
+				app_json ||= {}
+				app_json["environments"]                       ||= {}
+				app_json["environments"]["test"]               ||= {}
+				app_json["environments"]["test"]["buildpacks"] = @buildpacks.map {|b| { url: b } }
+				app_json["environments"]["test"]["env"]        ||= {}
+				
+				# begin override: set stack into app.json
+				app_json["stack"]                              ||= @app.stack if @app.stack && !@app.stack.empty?
+				# end override
+				
+				# begin override: copy in env too, so we get e.g. the correct HEROKU_PHP_PLATFORM_REPOSITORIES
+				puts 'app_json["environments"]["test"]["env"]', app_json["environments"]["test"]["env"]
+				puts "app.app_config", @app.app_config
+				app_json["environments"]["test"]["env"]        = @app.app_config.merge(app_json["environments"]["test"]["env"]) # so we get HEROKU_PHP_PLATFORM_REPOSITORIES in there
+				puts 'app_json["environments"]["test"]["env"]', app_json["environments"]["test"]["env"]
+				# end override
+				
+				File.open("app.json", "w") {|f| f.write(JSON.generate(app_json)) }
+				
+				`tar c . | gzip -9 > slug.tgz`
+				
+				source_put_url = @app.create_source
+				Hatchet::RETRIES.times.retry do
+					@api_rate_limit.call
+					Excon.put(source_put_url,
+						expects: [200],
+						body:    File.read('slug.tgz'))
+				end
+			end
+			return @app.source_get_url
+		end
+	end
 end
 
 def product_hash(hash)
@@ -81,19 +119,4 @@ def new_app_with_stack_and_platrepo(*args, **kwargs)
 	kwargs[:config]["HEROKU_PHP_PLATFORM_REPOSITORIES"] ||= ENV["HEROKU_PHP_PLATFORM_REPOSITORIES"]
 	kwargs[:config].compact!
 	Hatchet::Runner.new(*args, **kwargs)
-end
-
-def new_ci_app_with_stack_and_platrepo(*args, **kwargs)
-	app = new_app_with_stack_and_platrepo(*args, **kwargs)
-	# CI needs the buildpack in app.json...
-	app.in_directory do
-		app_json = JSON.parse(File.read("app.json")) if File.exist?("app.json")
-		app_json ||= {}
-		app_json["environments"]                  ||= {}
-		app_json["environments"]["test"]          ||= {}
-		app_json["environments"]["test"]["env"]   ||= {}
-		app_json["environments"]["test"]["env"] = app.app_config.merge(app_json["environments"]["test"]["env"]) # so we get HEROKU_PHP_PLATFORM_REPOSITORIES in there
-		File.open("app.json", "w") { |f| f.write(JSON.generate(app_json)) }
-	end
-	app
 end

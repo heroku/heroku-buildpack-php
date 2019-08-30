@@ -1,5 +1,17 @@
 # heroku-buildpack-php CHANGELOG
 
+## v161 (2019-08-30)
+
+### ADD
+
+- PHP/7.1.32 [David Zuelke]
+- PHP/7.2.22 [David Zuelke]
+- PHP/7.3.9 [David Zuelke]
+
+### CHG
+
+- Build PHP with libwebp for ext-gd on heroku-18 (#358) [David Zuelke]
+
 ## v160 (2019-08-23)
 
 ### ADD

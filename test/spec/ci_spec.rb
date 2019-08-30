@@ -2,14 +2,14 @@ require_relative "spec_helper"
 
 describe "A PHP application on Heroku CI" do
 	it "installs dev dependencies" do
-		app = new_ci_app_with_stack_and_platrepo('test/fixtures/ci/devdeps')
+		app = new_app_with_stack_and_platrepo('test/fixtures/ci/devdeps')
 		app.run_ci do |test_run|
 			expect(test_run.output).to match("mockery/mockery")
 		end
 	end
 	
 	it "has zend.assertions enabled" do
-		app = new_ci_app_with_stack_and_platrepo('test/fixtures/ci/zendassert', allow_failure: true)
+		app = new_app_with_stack_and_platrepo('test/fixtures/ci/zendassert', allow_failure: true)
 		app.run_ci do |test_run|
 			expect(test_run.status).to eq :failed
 			expect(test_run.output).to match("AssertionError")
@@ -17,7 +17,7 @@ describe "A PHP application on Heroku CI" do
 	end
 	
 	it "fails to auto-run tests if nothing suitable is found" do
-		app = new_ci_app_with_stack_and_platrepo('test/fixtures/default', allow_failure: true)
+		app = new_app_with_stack_and_platrepo('test/fixtures/default', allow_failure: true)
 		app.run_ci do |test_run|
 			expect(test_run.status).to eq :failed
 			expect(test_run.output).to match("No tests found.")
@@ -26,7 +26,7 @@ describe "A PHP application on Heroku CI" do
 	
 	context "specifying a composer.json 'test' script entry" do
 		let(:app) {
-			new_ci_app_with_stack_and_platrepo('test/fixtures/ci/composertest')
+			new_app_with_stack_and_platrepo('test/fixtures/ci/composertest')
 		}
 		it "executes 'composer test'" do
 			app.run_ci do |test_run|
@@ -37,7 +37,7 @@ describe "A PHP application on Heroku CI" do
 	
 	context "with Codeception" do
 		let(:app) {
-			new_ci_app_with_stack_and_platrepo('test/fixtures/ci/codeception')
+			new_app_with_stack_and_platrepo('test/fixtures/ci/codeception')
 		}
 		it "executes 'codecept run'" do
 			app.run_ci do |test_run|
@@ -48,7 +48,7 @@ describe "A PHP application on Heroku CI" do
 	
 	context "with Behat" do
 		let(:app) {
-			new_ci_app_with_stack_and_platrepo('test/fixtures/ci/behat')
+			new_app_with_stack_and_platrepo('test/fixtures/ci/behat')
 		}
 		it "executes 'behat'" do
 			app.run_ci do |test_run|
@@ -59,7 +59,7 @@ describe "A PHP application on Heroku CI" do
 	
 	context "with PHPSpec" do
 		let(:app) {
-			new_ci_app_with_stack_and_platrepo('test/fixtures/ci/phpspec')
+			new_app_with_stack_and_platrepo('test/fixtures/ci/phpspec')
 		}
 		it "executes 'phpspec run'" do
 			app.run_ci do |test_run|
@@ -70,7 +70,7 @@ describe "A PHP application on Heroku CI" do
 	
 	context "with atoum" do
 		let(:app) {
-			new_ci_app_with_stack_and_platrepo('test/fixtures/ci/atoum')
+			new_app_with_stack_and_platrepo('test/fixtures/ci/atoum')
 		}
 		it "executes 'atoum'" do
 			app.run_ci do |test_run|
@@ -81,7 +81,7 @@ describe "A PHP application on Heroku CI" do
 	
 	context "with Kahlan" do
 		let(:app) {
-			new_ci_app_with_stack_and_platrepo('test/fixtures/ci/kahlan')
+			new_app_with_stack_and_platrepo('test/fixtures/ci/kahlan')
 		}
 		it "executes 'kahlan'" do
 			app.run_ci do |test_run|
@@ -92,7 +92,7 @@ describe "A PHP application on Heroku CI" do
 
 	context "with Peridot" do
 		let(:app) {
-			new_ci_app_with_stack_and_platrepo('test/fixtures/ci/peridot', allow_failure: true)
+			new_app_with_stack_and_platrepo('test/fixtures/ci/peridot', allow_failure: true)
 		}
 		it "executes 'peridot'" do
 			app.run_ci do |test_run|
@@ -105,7 +105,7 @@ describe "A PHP application on Heroku CI" do
 	
 	context "with PHPUnit" do
 		let(:app) {
-			new_ci_app_with_stack_and_platrepo('test/fixtures/ci/phpunit')
+			new_app_with_stack_and_platrepo('test/fixtures/ci/phpunit')
 		}
 		it "executes 'phpunit'" do
 			app.run_ci do |test_run|
