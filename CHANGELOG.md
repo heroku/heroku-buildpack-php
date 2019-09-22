@@ -1,5 +1,14 @@
 # heroku-buildpack-php CHANGELOG
 
+## v1?? (2019-09-??)
+
+### CHG
+
+- `$COMPOSER_MEMORY_LIMIT` defaults to dyno memory if information is available [David Zuelke]
+- `$COMPOSER_MIRROR_PATH_REPOS` defaults to 1 [David Zuelke]
+- `$COMPOSER_NO_INTERACTION` defaults to 1 [David Zuelke]
+- `$COMPOSER_PROCESS_TIMEOUT` defaults to 0 at app runtime [David Zuelke]
+
 ## v169 (2020-01-26)
 
 ### CHG
