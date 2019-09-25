@@ -17,7 +17,7 @@ env_dir=${3:-} # Anvil has none
 bp_dir=$(cd $(dirname $0); cd ..; pwd)
 
 # test application type
-if [[ -f "$1/composer.json" && "$1/server.php" && "$1/public/index.php" && "$1/artisan" ]]; then
+if [[ -f "$1/composer.json" && -f "$1/server.php" && -f "$1/public/index.php" && -f "$1/artisan" ]]; then
 	app_type="laravel"
 else
 	app_type="php"
@@ -818,4 +818,9 @@ if [[ $app_type = "laravel" ]]; then
 		status "Running Laravel Commands..."
 		eval "$LARAVEL_COMMANDS"
 	fi
+fi
+
+if [ -n "${PHP_POST_BUILD_CMD:-}" ]; then		
+	status "Running Post Build Command..."
+	eval "$PHP_POST_BUILD_CMD"
 fi

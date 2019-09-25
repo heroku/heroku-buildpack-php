@@ -3,7 +3,7 @@
 # convenience functions
 source "$(cd $(dirname $0); cd ..; pwd)"/bin/util/common.sh
 
-if [[ -f "$1/composer.json" && "$1/server.php" && "$1/public/index.php" && "$1/artisan" ]]; then
+if [[ -f "$1/composer.json" && -f "$1/server.php" && -f "$1/public/index.php" && -f "$1/artisan" ]]; then
 	echo 'Laravel PHP Framework' && exit 0
 elif [[ -f "$1/composer.json" || -f "$1/index.php" ]]; then
 	echo "PHP" && exit 0
