@@ -740,6 +740,11 @@ cd $build_dir/$composer_bindir
 ln -fs $relbins .
 cd $build_dir
 
+if [ -n "${PHP_PRE_BUILD_CMD:-}" ]; then		
+	status "Running Pre-build Command..."
+	eval "$PHP_PRE_BUILD_CMD"
+fi
+
 if [[ ! -f "Procfile" ]]; then
 	if [[ $app_type = "laravel" ]]; then
 		procfile="web: heroku-$engine-apache2 public/"
@@ -821,6 +826,6 @@ if [[ $app_type = "laravel" ]]; then
 fi
 
 if [ -n "${PHP_POST_BUILD_CMD:-}" ]; then		
-	status "Running Post Build Command..."
+	status "Running Post-build Command..."
 	eval "$PHP_POST_BUILD_CMD"
 fi
