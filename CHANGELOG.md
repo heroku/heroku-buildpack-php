@@ -7,6 +7,7 @@
 - PHP/7.2.23 [David Zuelke]
 - PHP/7.3.10 [David Zuelke]
 - ext-newrelic/9.1.0.246 [David Zuelke]
+- ext-mongodb/1.6.0 (PHP 5.6+ only) [David Zuelke]
 
 ## v161 (2019-08-30)
 
