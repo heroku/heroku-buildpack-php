@@ -1,5 +1,20 @@
 # heroku-buildpack-php CHANGELOG
 
+## v162 (2019-09-27)
+
+### ADD
+
+- PHP/7.2.23 [David Zuelke]
+- PHP/7.3.10 [David Zuelke]
+- ext-newrelic/9.1.0.246 [David Zuelke]
+- ext-mongodb/1.6.0 (PHP 5.6+ only) [David Zuelke]
+- ext-blackfire/1.27.1 [David Zuelke]
+- Nginx/1.16.1 [David Zuelke]
+
+### CHG
+
+- librdkafka/1.2.0 [David Zuelke]
+
 ## v161 (2019-08-30)
 
 ### ADD

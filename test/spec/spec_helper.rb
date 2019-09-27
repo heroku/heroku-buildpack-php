@@ -17,7 +17,7 @@ module Hatchet
 	end
 	
 	class TestRun
-		# override the default handling to also include 
+		# override the default handling to also include stack and env vars in app.json
 		def source_blob_url
 			@app.in_directory do
 				app_json = JSON.parse(File.read("app.json")) if File.exist?("app.json")
@@ -32,10 +32,7 @@ module Hatchet
 				# end override
 				
 				# begin override: copy in env too, so we get e.g. the correct HEROKU_PHP_PLATFORM_REPOSITORIES
-				puts 'app_json["environments"]["test"]["env"]', app_json["environments"]["test"]["env"]
-				puts "app.app_config", @app.app_config
 				app_json["environments"]["test"]["env"]        = @app.app_config.merge(app_json["environments"]["test"]["env"]) # so we get HEROKU_PHP_PLATFORM_REPOSITORIES in there
-				puts 'app_json["environments"]["test"]["env"]', app_json["environments"]["test"]["env"]
 				# end override
 				
 				File.open("app.json", "w") {|f| f.write(JSON.generate(app_json)) }
