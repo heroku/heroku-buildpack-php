@@ -10,6 +10,10 @@
 - ext-mongodb/1.6.0 (PHP 5.6+ only) [David Zuelke]
 - ext-blackfire/1.27.1 [David Zuelke]
 
+### CHG
+
+- librdkafka/1.2.0 [David Zuelke]
+
 ## v161 (2019-08-30)
 
 ### ADD
