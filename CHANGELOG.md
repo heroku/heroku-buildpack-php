@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v163 (2019-10-01)
+
+### CHG
+
+- Pin `heroku-18.Dockerfile` to use `heroku/heroku:18-build.v16` to ensure builds against libssl 1.1.0 until Private Spaces are fully upgraded [David Zuelke]
+
 ## v162 (2019-09-27)
 
 ### ADD
