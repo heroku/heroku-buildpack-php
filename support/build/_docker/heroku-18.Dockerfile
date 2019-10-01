@@ -9,7 +9,9 @@ ENV S3_REGION=s3
 ENV STACK=heroku-18
 ENV DEBIAN_FRONTEND=noninteractive
 
-RUN apt-get update && apt-get install -y python-pip
+# pin to package versions from bionic-security for now so that the install doesn't bump libssl to 1.1.1
+# RUN apt-get update && apt-get install -y python-pip
+RUN apt-get update && apt-get install --no-install-recommends -y python-pip-whl=9.0.1-2 python-pip=9.0.1-2 python-setuptools python-wheel
 
 COPY requirements.txt /app/requirements.txt
 
