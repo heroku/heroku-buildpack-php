@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v164 (2019-10-24)
+
+### CHG
+
+- Bump `heroku-16.Dockerfile` and `heroku-18.Dockerfile` to tag v18 [David Zuelke]
+
 ## v163 (2019-10-01)
 
 ### CHG
