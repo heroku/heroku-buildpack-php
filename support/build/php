@@ -28,9 +28,11 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
 		dep_url=https://downloads.php.net/~pollita/${dep_archive_name}
 	elif [[ $dep_version == 7.3.* ]]; then
 		dep_url=https://downloads.php.net/~cmb/${dep_archive_name}
+	elif [[ $dep_version == 7.4.* ]]; then
+		dep_url=https://downloads.php.net/~derick/${dep_archive_name}
 	fi
 else
-	dep_url=https://php.net/get/${dep_archive_name}/from/this/mirror
+	dep_url=https://www.php.net/distributions/${dep_archive_name}
 fi
 dep_manifest=${dep_package}.composer.json
 

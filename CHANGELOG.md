@@ -1,5 +1,21 @@
 # heroku-buildpack-php CHANGELOG
 
+## v164 (2019-10-24)
+
+### ADD
+
+- PHP/7.3.11 [David Zuelke]
+- PHP/7.2.24 [David Zuelke]
+- PHP/7.1.33 [David Zuelke]
+- ext-newrelic/9.2.0.247 [David Zuelke]
+- ext-memcached/3.1.4 [David Zuelke]
+- ext-rdkafka/4.0.0 [David Zuelke]
+
+### CHG
+
+- Bump `heroku-16.Dockerfile` and `heroku-18.Dockerfile` to tag v18 [David Zuelke]
+- librdkafka/1.2.1 [David Zuelke]
+
 ## v163 (2019-10-01)
 
 ### CHG
