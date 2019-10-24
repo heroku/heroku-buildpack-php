@@ -8,6 +8,7 @@
 - PHP/7.2.24 [David Zuelke]
 - PHP/7.1.33 [David Zuelke]
 - ext-newrelic/9.2.0.247 [David Zuelke]
+- ext-memcached/3.1.4 [David Zuelke]
 
 ### CHG
 
