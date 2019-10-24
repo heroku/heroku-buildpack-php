@@ -13,6 +13,7 @@
 ### CHG
 
 - Bump `heroku-16.Dockerfile` and `heroku-18.Dockerfile` to tag v18 [David Zuelke]
+- librdkafka/1.2.1 [David Zuelke]
 
 ## v163 (2019-10-01)
 
