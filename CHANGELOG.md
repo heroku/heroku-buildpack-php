@@ -2,6 +2,10 @@
 
 ## v164 (2019-10-24)
 
+### ADD
+
+- PHP/7.3.11 [David Zuelke]
+
 ### CHG
 
 - Bump `heroku-16.Dockerfile` and `heroku-18.Dockerfile` to tag v18 [David Zuelke]
