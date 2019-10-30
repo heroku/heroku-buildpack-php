@@ -9,6 +9,8 @@
 - `$COMPOSER_NO_INTERACTION` defaults to 1 [David Zuelke]
 - `$COMPOSER_PROCESS_TIMEOUT` defaults to 0 at app runtime [David Zuelke]
 - Build PHP-FPM with /proc/…/mem based process tracing [David Zuelke]
+- Log slow PHP-FPM requests after 3 seconds by default for PHP 7.4 [David Zuelke]
+- Terminate slow PHP-FPM requests after 30 seconds by default for PHP 7.4 [David Zuelke]
 
 ## v169 (2020-01-26)
 
