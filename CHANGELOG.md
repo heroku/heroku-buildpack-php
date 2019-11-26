@@ -7,6 +7,10 @@
 - ext-apcu/5.1.18 [David Zuelke]
 - ext-raphf/2.0.1 [David Zuelke]
 
+### CHG
+
+- libcassandra/2.14.0 [David Zuelke]
+
 ### FIX
 
 - Revert ext-newrelic/9.2.0.247 due to startup failure [David Zuelke]
