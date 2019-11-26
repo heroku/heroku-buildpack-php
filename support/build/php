@@ -61,7 +61,7 @@ fi
 # we need libgmp-dev for GMP, libpam0g-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP
 needed=( libgmp-dev libpam0g-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev )
 if [[ $STACK != "cedar-14" ]]; then
-	needed+=( libsodium-dev )
+	needed+=( libsodium-dev libsqlite3-dev )
 fi
 if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
 	needed+=( libwebp-dev )
@@ -107,14 +107,21 @@ fi
 
 configureopts=()
 if [[ $dep_version == 7.* ]]; then
-	configureopts+=("--enable-opcache-file")
-	configureopts+=("--without-libzip") # FIXME: change to --with-libzip once cedar-14 is EOL, as the other stacks have an up to date enough version
-	
-	if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
-		configureopts+=("--with-webp-dir=/usr") # for ext-gd
+	if [[ $dep_version == 7.[0-3].* ]]; then
+		configureopts+=("--enable-opcache-file" "--enable-zip" "--without-libzip") # FIXME: change to --with-libzip once cedar-14 is EOL, as the other stacks have an up to date enough version
+		configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr") # for ext-gd
+		if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
+			configureopts+=("--with-webp-dir=/usr") # for ext-gd
+		fi
+	else
+		configureopts+=("--with-zip" "--disable-mbregex") # we do not have libonig
+		configureopts+=("--enable-gd=shared" "--with-freetype" "--with-jpeg") # for ext-gd
+		if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
+			configureopts+=("--with-webp") # for ext-gd
+		fi
 	fi
 	
-	if [[ $dep_version == 7.0.* || $dep_version == 7.1.* ]]; then
+	if [[ $dep_version == 7.{0,1}.* ]]; then
 		configureopts+=("--with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix}")
 	else
 		if [[ $STACK != "cedar-14" ]]; then
@@ -125,7 +132,7 @@ if [[ $dep_version == 7.* ]]; then
 		fi
 	fi
 else
-	configureopts+=("--with-mcrypt${mcrypt_prefix:+"="}${mcrypt_prefix}" "--with-mysql=shared")
+	configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr" "--with-mcrypt${mcrypt_prefix:+"="}${mcrypt_prefix}" "--with-mysql=shared" "--enable-zip")
 fi
 
 export PATH=${OUT_PREFIX}/bin:$PATH
@@ -147,16 +154,11 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--with-pdo-pgsql \
 	--with-readline \
 	--enable-sockets \
-	--enable-zip \
 	--with-zlib \
 	--enable-bcmath=shared \
 	--enable-calendar=shared \
 	--enable-exif=shared \
 	--enable-ftp=shared \
-	--with-gd=shared \
-		--with-freetype-dir=/usr \
-		--with-jpeg-dir=/usr \
-		--with-png-dir=/usr \
 	--with-gettext=shared \
 	--with-gmp=shared \
 	--with-imap=shared,${OUT_PREFIX}/opt/imap-2007f \
@@ -181,8 +183,10 @@ popd
 
 rm -rf ${OUT_PREFIX}/php/man ${OUT_PREFIX}/lib/php/extensions/*/*.a
 
-echo "-----> Preparing PECL..."
-${OUT_PREFIX}/bin/pecl channel-update pecl.php.net
+if [[ $dep_version == 5.* || $dep_version == 7.[0-3].* ]]; then
+	echo "-----> Preparing PECL..."
+	${OUT_PREFIX}/bin/pecl channel-update pecl.php.net
+fi
 
 echo "-----> Generating manifest..."
 curl -sS https://getcomposer.org/installer | php
