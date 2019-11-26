@@ -12,6 +12,7 @@
 ### CHG
 
 - libcassandra/2.14.0 [David Zuelke]
+- Composer/1.9.1 [David Zuelke]
 
 ### FIX
 
