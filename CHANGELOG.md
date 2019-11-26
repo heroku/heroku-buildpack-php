@@ -9,6 +9,7 @@
 - ext-phalcon/3.4.5 [David Zuelke]
 - ext-redis/5.1.1 [David Zuelke]
 - ext-blackfire/1.29.1 [David Zuelke]
+- PHP/7.2.25 [David Zuelke]
 
 ### CHG
 
