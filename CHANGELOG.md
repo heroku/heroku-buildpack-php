@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v165 (2019-12-??)
+
+### FIX
+
+- Revert ext-newrelic/9.2.0.247 due to startup failure [David Zuelke]
+
 ## v164 (2019-10-24)
 
 ### ADD
