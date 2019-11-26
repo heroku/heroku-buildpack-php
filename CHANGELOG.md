@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-apcu/5.1.18 [David Zuelke]
+- ext-raphf/2.0.1 [David Zuelke]
 
 ### FIX
 
