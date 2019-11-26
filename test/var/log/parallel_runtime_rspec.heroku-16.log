@@ -5,5 +5,6 @@ test/spec/php_7.0_spec.rb:541.767446994
 test/spec/php_7.1_spec.rb:528.820237258
 test/spec/php_7.2_spec.rb:533.483751735
 test/spec/php_7.3_spec.rb:531.949388258
+test/spec/php_7.4_spec.rb:531.949388258
 test/spec/php_default_spec.rb:37.577302651000025
 test/spec/sigterm_spec.rb:54.842822989
