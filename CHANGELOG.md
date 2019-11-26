@@ -7,6 +7,7 @@
 - ext-apcu/5.1.18 [David Zuelke]
 - ext-raphf/2.0.1 [David Zuelke]
 - ext-phalcon/3.4.5 [David Zuelke]
+- ext-redis/5.1.1 [David Zuelke]
 
 ### CHG
 
