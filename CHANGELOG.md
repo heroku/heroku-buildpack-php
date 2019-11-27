@@ -11,6 +11,7 @@
 - Build PHP-FPM with /proc/…/mem based process tracing [David Zuelke]
 - Log slow PHP-FPM requests after 3 seconds by default for PHP 7.4 [David Zuelke]
 - Terminate slow PHP-FPM requests after 30 seconds by default for PHP 7.4 [David Zuelke]
+- Refactor `$WEB_CONCURRENCY` calculation to use `/sys/fs/cgroup/memory/memory.limit_in_bytes` if available [David Zuelke]
 
 ## v169 (2020-01-26)
 

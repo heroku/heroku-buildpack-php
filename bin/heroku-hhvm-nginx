@@ -336,7 +336,7 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 	fi
 
 	# determine number of HHVM threads to run
-	read WEB_CONCURRENCY php_memory_limit <<<$(hhvm "${php_configs[@]}" $bp_dir/bin/util/autotune.php "$ram")
+	read WEB_CONCURRENCY php_memory_limit <<<$(hhvm "${php_configs[@]}" $bp_dir/bin/util/autotune.php "$ram" "$ram")
 	[[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
 	export WEB_CONCURRENCY
 
