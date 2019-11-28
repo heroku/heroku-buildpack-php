@@ -283,11 +283,17 @@ shared_examples "A PHP application with a composer.json" do |series|
 			end
 			
 			context "running on a Performance-L dyno" do
-				it "restricts the app to 6 GB of RAM" do
+				it "restricts the app to 6 GB of RAM", :if => series < "7.4" do
 					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", nil, {:heroku => {:size => "Performance-L"}}) })
 						 .to match("Detected 15032385536 Bytes of RAM")
 						.and match("Limiting to 6G Bytes of RAM usage")
 						.and match("Starting php-fpm with 48 workers...")
+				end
+				
+				it "uses all available RAM for PHP-FPM workers", :unless => series < "7.4" do
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", nil, {:heroku => {:size => "Performance-L"}}) })
+						 .to match("Detected 15032385536 Bytes of RAM")
+						.and match("Starting php-fpm with 112 workers...")
 				end
 			end
 		end
