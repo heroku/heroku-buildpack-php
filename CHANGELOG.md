@@ -21,6 +21,7 @@
 ### FIX
 
 - Revert ext-newrelic/9.2.0.247 due to startup failure [David Zuelke]
+- PHP 7.0 builds picking up generic rather than version-specific `heroku.ini` settings [David Zuelke]
 
 ## v164 (2019-10-24)
 
