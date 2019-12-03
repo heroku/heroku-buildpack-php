@@ -16,7 +16,7 @@
 
 - libcassandra/2.14.0 [David Zuelke]
 - Composer/1.9.1 [David Zuelke]
-- librdkafka/1.2.2 [David Zuelke]
+- librdkafka/1.3.0 [David Zuelke]
 
 ### FIX
 
