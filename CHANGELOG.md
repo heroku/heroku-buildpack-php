@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v1?? (2020-??-??)
+
+### CHG
+
+- Use system libc-client for IMAP extension [David Zuelke]
+
 ## v171 (2020-02-11)
 
 ### ADD

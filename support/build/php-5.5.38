@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
 # Build Path: /app/.heroku/php
-# Build Deps: libraries/libmcrypt-2.5.8, libraries/libc-client-2007f
+# Build Deps: libraries/libmcrypt-2.5.8
 
 source $(dirname $0)/php

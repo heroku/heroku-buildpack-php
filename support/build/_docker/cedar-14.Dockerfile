@@ -11,6 +11,8 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y python-pip
 
+RUN apt-get install -y libc-client2007e
+
 COPY requirements.txt /app/requirements.txt
 
 RUN pip install -r /app/requirements.txt

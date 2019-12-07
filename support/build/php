@@ -42,8 +42,8 @@ curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
 
-# we need libgmp for GMP, libpam0g for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP
-needed=( libgmp10 libpam0g libsasl2-2 libkrb5-3 libldap-2.4-2 )
+# we need libgmp for GMP, libpam0g/libc-client for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP
+needed=( libgmp10 libpam0g libc-client2007e libsasl2-2 libkrb5-3 libldap-2.4-2 )
 if [[ $STACK == "cedar-14" ]]; then
 	needed+=( libicu52 )
 elif [[ $STACK == "heroku-16" ]]; then
@@ -58,8 +58,8 @@ if [[ "$missing" ]]; then
 	echo "Error! Missing libraries: $missing"
 	exit 1
 fi
-# we need libgmp-dev for GMP, libpam0g-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP
-needed=( libgmp-dev libpam0g-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev )
+# we need libgmp-dev for GMP, libpam0g-dev/libc-client-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP
+needed=( libgmp-dev libpam0g-dev libc-client2007e-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev )
 if [[ $STACK != "cedar-14" ]]; then
 	needed+=( libsodium-dev libsqlite3-dev )
 fi
@@ -167,7 +167,7 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--enable-ftp=shared \
 	--with-gettext=shared \
 	--with-gmp=shared \
-	--with-imap=shared,${OUT_PREFIX}/opt/imap-2007f \
+	--with-imap=shared \
 		--with-imap-ssl \
 	--enable-intl=shared \
 	--with-ldap=shared \
@@ -183,7 +183,6 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	"${configureopts[@]}"
 make -s -j 9
 make install -s
-rm -rf ${OUT_PREFIX}/opt/imap-2007f # c-client.a got linked statically
 find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 popd
 
