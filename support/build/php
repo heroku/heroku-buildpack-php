@@ -68,6 +68,9 @@ fi
 needed=( libgmp-dev libpam0g-dev libc-client2007e-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev )
 if [[ $STACK != "cedar-14" ]]; then
 	needed+=( libsodium-dev libsqlite3-dev libzip-dev )
+	sqlite_prefix="/usr"
+else
+	sqlite_prefix=
 fi
 if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
 	needed+=( libwebp-dev )
@@ -104,12 +107,14 @@ configureopts=()
 if [[ $dep_version == 7.* ]]; then
 	if [[ $dep_version == 7.[0-3].* ]]; then
 		configureopts+=("--enable-opcache-file" "--enable-zip")
+		configureopts+=("--with-sqlite3=shared${sqlite_prefix:+","}${sqlite_prefix}" "--with-pdo-sqlite=shared${sqlite_prefix:+","}${sqlite_prefix}")
 		configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr") # for ext-gd
 		if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
 			configureopts+=("--with-webp-dir=/usr") # for ext-gd
 		fi
 	else
 		configureopts+=("--with-zip" "--disable-mbregex") # we do not have libonig
+		configureopts+=("--with-sqlite3=shared" "--with-pdo-sqlite=shared")
 		configureopts+=("--enable-gd=shared" "--with-freetype" "--with-jpeg") # for ext-gd
 		if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
 			configureopts+=("--with-webp") # for ext-gd
@@ -127,7 +132,7 @@ if [[ $dep_version == 7.* ]]; then
 		fi
 	fi
 else
-	configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr" "--with-mcrypt" "--with-mysql=shared" "--enable-zip")
+	configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr" "--with-mcrypt" "--with-mysql=shared" "--enable-zip" "--with-sqlite3=shared${sqlite_prefix:+","}${sqlite_prefix}" "--with-pdo-sqlite=shared${sqlite_prefix:+","}${sqlite_prefix}")
 fi
 if [[ $STACK == "cedar-14" ]]; then
 	configureopts+=("--without-libzip") # there is no libzip on cedar-14
@@ -170,8 +175,6 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--enable-pcntl=shared \
 	--enable-shmop=shared \
 	--enable-soap=shared \
-	--with-sqlite3=shared \
-	--with-pdo-sqlite=shared \
 	--with-xmlrpc=shared \
 	--with-xsl=shared \
 	"${configureopts[@]}"
