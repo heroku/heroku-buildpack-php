@@ -11,7 +11,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y python-pip
 
-RUN apt-get install -y libc-client2007e
+RUN apt-get install -y libc-client2007e libmcrypt4
 
 COPY requirements.txt /app/requirements.txt
 

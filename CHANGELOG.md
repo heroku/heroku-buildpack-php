@@ -5,6 +5,7 @@
 ### CHG
 
 - Use system libc-client for IMAP extension [David Zuelke]
+- Use system libmcrypt on all stacks [David Zuelke]
 
 ## v171 (2020-02-11)
 
