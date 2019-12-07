@@ -12,6 +12,7 @@
 - PHP/7.3.12 [David Zuelke]
 - ext-memcached/3.1.5 [David Zuelke]
 - ext-blackfire/1.29.2 [David Zuelke]
+- ext-mongodb/1.6.1 [David Zuelke]
 
 ### CHG
 
