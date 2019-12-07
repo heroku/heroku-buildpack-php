@@ -49,9 +49,11 @@ if [[ $STACK == "cedar-14" ]]; then
 elif [[ $STACK == "heroku-16" ]]; then
 	needed+=( libicu55 )
 	needed+=( libsodium18 )
+	needed+=( libzip4 )
 else
 	needed+=( libicu60 )
 	needed+=( libsodium23 )
+	needed+=( libzip4 )
 fi
 if [[ $dep_version == 5.* || $dep_version == 7.[0-1].* ]]; then
 	needed+=( libmcrypt4 )
@@ -65,7 +67,7 @@ fi
 # we need libgmp-dev for GMP, libpam0g-dev/libc-client-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP
 needed=( libgmp-dev libpam0g-dev libc-client2007e-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev )
 if [[ $STACK != "cedar-14" ]]; then
-	needed+=( libsodium-dev libsqlite3-dev )
+	needed+=( libsodium-dev libsqlite3-dev libzip-dev )
 fi
 if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
 	needed+=( libwebp-dev )
@@ -101,7 +103,7 @@ sed -i 's/have_ptrace=yes/have_ptrace=no/' configure
 configureopts=()
 if [[ $dep_version == 7.* ]]; then
 	if [[ $dep_version == 7.[0-3].* ]]; then
-		configureopts+=("--enable-opcache-file" "--enable-zip" "--without-libzip") # FIXME: change to --with-libzip once cedar-14 is EOL, as the other stacks have an up to date enough version
+		configureopts+=("--enable-opcache-file" "--enable-zip")
 		configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr") # for ext-gd
 		if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
 			configureopts+=("--with-webp-dir=/usr") # for ext-gd
@@ -126,6 +128,11 @@ if [[ $dep_version == 7.* ]]; then
 	fi
 else
 	configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr" "--with-mcrypt" "--with-mysql=shared" "--enable-zip")
+fi
+if [[ $STACK == "cedar-14" ]]; then
+	configureopts+=("--without-libzip") # there is no libzip on cedar-14
+elif [[ $dep_version == 5.* || $dep_version == 7.[0-3].* ]]; then
+	configureopts+=("--with-libzip=/usr") # PHP before 7.4 bundles this, so give explicit location
 fi
 
 export PATH=${OUT_PREFIX}/bin:$PATH
