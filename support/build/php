@@ -49,7 +49,7 @@ if [[ $STACK == "cedar-14" ]]; then
 elif [[ $STACK == "heroku-16" ]]; then
 	needed+=( libicu55 )
 	needed+=( libsodium18 )
-elif [[ $STACK != "heroku-18" ]]; then
+else
 	needed+=( libicu60 )
 	needed+=( libsodium23 )
 fi
