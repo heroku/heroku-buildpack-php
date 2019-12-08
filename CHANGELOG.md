@@ -15,6 +15,7 @@
 - ext-mongodb/1.6.1 [David Zuelke]
 - ext-newrelic/9.4.0.249 [David Zuelke]
 - ext-ev/1.0.7 [David Zuelke]
+- ext-rdkafka/3.1.3 [David Zuelke]
 
 ### CHG
 
