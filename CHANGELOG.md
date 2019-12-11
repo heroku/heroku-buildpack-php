@@ -17,6 +17,7 @@
 - ext-rdkafka/3.1.3 [David Zuelke]
 - ext-rdkafka/4.0.0 [David Zuelke]
 - ext-blackfire/1.29.4 [David Zuelke]
+- ext-uuid/1.1.0 (#371) [David Zuelke]
 
 ### CHG
 
