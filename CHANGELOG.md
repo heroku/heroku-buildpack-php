@@ -11,12 +11,12 @@
 - PHP/7.2.25 [David Zuelke]
 - PHP/7.3.12 [David Zuelke]
 - ext-memcached/3.1.5 [David Zuelke]
-- ext-blackfire/1.29.2 [David Zuelke]
 - ext-mongodb/1.6.1 [David Zuelke]
 - ext-newrelic/9.4.0.249 [David Zuelke]
 - ext-ev/1.0.7 [David Zuelke]
 - ext-rdkafka/3.1.3 [David Zuelke]
 - ext-rdkafka/4.0.0 [David Zuelke]
+- ext-blackfire/1.29.4 [David Zuelke]
 
 ### CHG
 
