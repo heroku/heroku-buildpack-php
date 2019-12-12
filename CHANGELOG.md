@@ -1,5 +1,35 @@
 # heroku-buildpack-php CHANGELOG
 
+## v165 (2019-12-11)
+
+### ADD
+
+- ext-apcu/5.1.18 [David Zuelke]
+- ext-raphf/2.0.1 [David Zuelke]
+- ext-phalcon/3.4.5 [David Zuelke]
+- ext-redis/5.1.1 [David Zuelke]
+- PHP/7.2.25 [David Zuelke]
+- PHP/7.3.12 [David Zuelke]
+- ext-memcached/3.1.5 [David Zuelke]
+- ext-mongodb/1.6.1 [David Zuelke]
+- ext-newrelic/9.4.0.249 [David Zuelke]
+- ext-ev/1.0.7 [David Zuelke]
+- ext-rdkafka/3.1.3 [David Zuelke]
+- ext-rdkafka/4.0.0 [David Zuelke]
+- ext-blackfire/1.29.4 [David Zuelke]
+- ext-uuid/1.1.0 (#371) [David Zuelke]
+
+### CHG
+
+- Composer/1.9.1 [David Zuelke]
+- librdkafka/1.3.0 [David Zuelke]
+- libcassandra/2.14.1 [David Zuelke]
+
+### FIX
+
+- Revert ext-newrelic/9.2.0.247 due to startup failure [David Zuelke]
+- PHP 7.0 builds picking up generic rather than version-specific `heroku.ini` settings [David Zuelke]
+
 ## v164 (2019-10-24)
 
 ### ADD
