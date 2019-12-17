@@ -334,10 +334,13 @@ if [[ -n ${fpm_config:-} || ( ${fpm_config:=$(findconfig "$php_version" "$bp_dir
 fi
 fpm_config=$(php_passthrough "$fpm_config")
 
-if [[ -n ${php_config:-} ]]; then
+# we explicitly use the INI file php-fpm would load if no INI is given
+# this is to ensure that e.g. our WEB_CONCURRENCY calculation doesn't pick up a php-cli.ini
+fpm_ini=$(php-fpm -i | awk -F' => ' '/^Loaded Configuration File/{print $2}')
+if [[ -n ${php_config:-} || ( "$fpm_ini" != "(none)" && ${php_config:=$fpm_ini} && $verbose ) ]]; then
 	echo "Using PHP configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
-	php_config=$(php_passthrough "$php_config")
 fi
+[[ -n ${php_config:-} ]] && php_config=$(php_passthrough "$php_config")
 
 if [[ -n ${nginx_config_include:-} || ( ${nginx_config_include:=$(findconfig "$nginx_version" "$bp_dir/conf/nginx/default_include.conf.php")} && $verbose ) ]]; then
 	echo "Using Nginx server-level configuration include '${nginx_config_include#$HEROKU_APP_DIR/}'" >&2

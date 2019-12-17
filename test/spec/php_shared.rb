@@ -31,6 +31,11 @@ shared_examples "A PHP application with a composer.json" do |series|
 			                 .and match(/user_ini.cache_ttl => 86400/)
 			                 .and match(/variables_order => EGPCS/)
 		end
+		
+		# FIXME: extend to additional series once all PHPs are rebuilt with this behavior
+		it "uses all available RAM as PHP CLI memory_limit", :unless => series < "7.4" do
+			expect(@app.run("php -i | grep memory_limit")).to match "memory_limit => 536870912 => 536870912"
+		end
 	end
 	
 	context "requiring PHP #{series} and using New Relic" do

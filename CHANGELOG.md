@@ -13,6 +13,7 @@
 - Terminate slow PHP-FPM requests after 30 seconds by default for PHP 7.4 [David Zuelke]
 - Refactor `$WEB_CONCURRENCY` calculation to use `/sys/fs/cgroup/memory/memory.limit_in_bytes` if available [David Zuelke]
 - Use all available instance RAM when calculating `$WEB_CONCURRENCY` for PHP 7.4+ running on Performance-L dynos [David Zuelke]
+- Use all available instance RAM as default PHP CLI memory_limit [David Zuelke]
 
 ## v169 (2020-01-26)
 
