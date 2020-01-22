@@ -53,7 +53,7 @@ def expected_default_php(stack)
 		when "cedar-14", "heroku-16"
 			"5.6"
 		else
-			"7.3"
+			"7.4"
 	end
 end
 
@@ -62,9 +62,9 @@ def php_on_stack?(series)
 		when "cedar-14"
 			available = ["5.5", "5.6", "7.0", "7.1", "7.2", "7.3"]
 		when "heroku-16"
-			available = ["5.6", "7.0", "7.1", "7.2", "7.3"]
+			available = ["5.6", "7.0", "7.1", "7.2", "7.3", "7.4"]
 		else
-			available = ["7.1", "7.2", "7.3"]
+			available = ["7.1", "7.2", "7.3", "7.4"]
 	end
 	available.include?(series)
 end

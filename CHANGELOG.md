@@ -2,6 +2,10 @@
 
 ## v1?? (2020-02-??)
 
+### ADD
+
+- PHP/7.4.2 [David Zuelke]
+
 ### CHG
 
 - `$COMPOSER_MEMORY_LIMIT` defaults to dyno memory if information is available [David Zuelke]
