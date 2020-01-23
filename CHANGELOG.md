@@ -1,5 +1,13 @@
 # heroku-buildpack-php CHANGELOG
 
+## v167 (2020-01-23)
+
+### CHG
+
+- Graceful shutdown for boot scripts on SIGTERM and SIGINT [David Zuelke]
+- Dynamically poll for `newrelic-daemon` readiness on dyno boot instead of using blanket two-second wait [David Zuelke]
+- Dynamically poll for PHP-FPM readiness on dyno boot instead of using blanket two-second wait [David Zuelke]
+
 ## v166 (2019-12-20)
 
 ### ADD
