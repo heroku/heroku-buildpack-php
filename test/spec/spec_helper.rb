@@ -57,16 +57,16 @@ def product_hash(hash)
 end
 
 RSpec.configure do |config|
-	config.filter_run focused: true unless ENV['IS_RUNNING_ON_TRAVIS']
+	config.filter_run focused: true unless ENV['IS_RUNNING_ON_CI']
 	config.run_all_when_everything_filtered = true
 	config.alias_example_to :fit, focused: true
 	config.filter_run_excluding :requires_php_on_stack => lambda { |series| !php_on_stack?(series) }
 	config.filter_run_excluding :stack => lambda { |stack| ENV['STACK'] != stack }
 	
 	config.verbose_retry       = true # show retry status in spec process
-	config.default_retry_count = 2 if ENV['IS_RUNNING_ON_TRAVIS'] # retry all tests that fail again...
+	config.default_retry_count = 2 if ENV['IS_RUNNING_ON_CI'] # retry all tests that fail again...
 	config.exceptions_to_retry = [Excon::Errors::Timeout] #... if they're caused by these exception types
-	config.fail_fast = 1 if ENV['IS_RUNNING_ON_TRAVIS']
+	config.fail_fast = 1 if ENV['IS_RUNNING_ON_CI']
 	
 	config.expect_with :rspec do |c|
 		c.syntax = :expect
