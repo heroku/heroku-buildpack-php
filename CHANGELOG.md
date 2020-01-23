@@ -1,6 +1,6 @@
 # heroku-buildpack-php CHANGELOG
 
-## v1?? (2019-09-??)
+## v1?? (2020-02-??)
 
 ### CHG
 
@@ -8,6 +8,7 @@
 - `$COMPOSER_MIRROR_PATH_REPOS` defaults to 1 [David Zuelke]
 - `$COMPOSER_NO_INTERACTION` defaults to 1 [David Zuelke]
 - `$COMPOSER_PROCESS_TIMEOUT` defaults to 0 at app runtime [David Zuelke]
+- Build PHP-FPM with /proc/…/mem based process tracing [David Zuelke]
 
 ## v169 (2020-01-26)
 

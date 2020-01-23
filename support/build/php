@@ -85,6 +85,12 @@ if dpkg --compare-versions "$dep_version" "lt" 7.1.15 || dpkg --compare-versions
 	sed -i 's/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
 fi
 
+# we want to build FPM with tracing using pread, which uses /proc/$pid/mem
+# depending on host/container capabilities, it will likely detect ptrace as present, but that's blocked on the platform
+# the only easy way to force it to use pread is by patching configure so it assumes the ptrace check has failed
+# see the AC_DEFUN([AC_FPM_TRACE] bits in sapi/fpm/config.m4
+sed -i 's/have_ptrace=yes/have_ptrace=no/' configure
+
 # let's see if mcrypt is there, if not then we have to use the vendored one
 needed=( libmcrypt4 )
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
