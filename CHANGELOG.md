@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v169 (2020-01-26)
+
+### CHG
+
+- Try and tell SIGTERM cases apart in boot scripts for more precise messaging on shutdown [David Zuelke]
+
 ## v168 (2020-01-24)
 
 ### ADD
