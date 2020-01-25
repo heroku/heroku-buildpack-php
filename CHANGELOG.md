@@ -6,6 +6,10 @@
 
 - Try and tell SIGTERM cases apart in boot scripts for more precise messaging on shutdown [David Zuelke]
 
+### FIX
+
+- Shell may emit confusing "... Terminated ..." messages on shutdown [David Zuelke]
+
 ## v168 (2020-01-24)
 
 ### ADD
