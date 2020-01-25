@@ -420,6 +420,7 @@ fi
 # 2a) if a SIGTERM or SIGUSR1 is received, this will unblock the first 'wait' and execute the corresponding trap
 # 2b) a second 'wait' then ensures that the subshell remains alive until the process inside has shut down
 # 2c) both 'wait' calls use || true to prevent 'set -e' failures: 'wait' returns the exit status of the given program, and that won't be zero, because it's getting killed
+# 2d) we restore traps before the second wait, because restoring them inside the trap handler occasionally caused bizarre signal handling failures
 # 3) each subshell has another trap on INT which does nothing (to prevent Ctrl+C interference)
 # 4) we execute the command in the background, recording its PID(s) for the subshell's TERM trap
 # 5) we also execute the subshell in the background, recording its PID for the main TERM/INT traps
@@ -454,11 +455,12 @@ fi
 
 	tail -qF -n 0 "${logs[@]}" > "$logs_pipe" & logs_procs+=($!)
 	sed $sedbufarg -E -e 's/^\[[^]]+\] WARNING: \[pool [^]]+\] child [0-9]+ said into std(err|out): "(.*)("|...)$/\2\3/' -e 's/"$//' < "$logs_pipe" 1>&2 & logs_procs+=($!) # messages that are too long are cut off using "..." by FPM instead of closing double quotation marks; we want to preserve those three dots but not the closing double quotes
-	trap '[[ $verbose ]] && echo "Stopping log redirection..." >&2; kill -TERM "${logs_procs[@]}" 2> /dev/null || true' TERM USR1
+	# after the kill, we are redirecting stderr to /dev/null using exec to suppress "… Terminated …" messages from the shell, which it would print right before the next command is invoked
+	trap '[[ $verbose ]] && echo "Stopping log redirection..." >&2; kill -TERM "${logs_procs[@]}" 2> /dev/null || true; exec 2> /dev/null' TERM USR1
 
-	wait 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+	wait 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
 	trap - TERM USR1
-	wait 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+	wait 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
 ) & pids+=($!)
 
 fpm_pidfile=$(mktemp -t "heroku.php-fpm.pid-$PORT.XXXXXX" -u)
@@ -482,9 +484,9 @@ fpm_pidfile=$(mktemp -t "heroku.php-fpm.pid-$PORT.XXXXXX" -u)
 	trap 'echo "Stopping php-fpm..." >&2; wait_pid_and_pidfile $pid "$fpm_pidfile"; kill -TERM $pid 2> /dev/null || true' TERM
 	trap 'echo "Stopping php-fpm gracefully..." >&2; wait_pid_and_pidfile $pid "$fpm_pidfile"; kill -QUIT $pid 2> /dev/null || true' USR1
 
-	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
 	trap - TERM USR1
-	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
 ) & pids+=($!)
 
 httpd_pidfile=$(httpd -t -D DUMP_RUN_CFG 2> /dev/null | sed -n -E 's/PidFile: "(.+)"/\1/p') # get PidFile location
@@ -509,9 +511,9 @@ httpd_pidfile=$(httpd -t -D DUMP_RUN_CFG 2> /dev/null | sed -n -E 's/PidFile: "(
 	# on Heroku, there is a "state changed from starting to up", but for local execution, we want a "ready" message
 	[[ -z ${DYNO:-} || $verbose ]] && kill -0 $pid 2> /dev/null && echo "Application ready for connections on port $PORT." >&2
 
-	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
 	trap - TERM USR1
-	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
 ) & pids+=($!)
 
 # wait for something to come from the FIFO attached to FD 3, which means that the given process was killed or has failed
