@@ -9,6 +9,7 @@
 ### FIX
 
 - Shell may emit confusing "... Terminated ..." messages on shutdown [David Zuelke]
+- PHP-FPM startup failures may trigger race condition where dyno boot hangs [David Zuelke]
 
 ## v168 (2020-01-24)
 
