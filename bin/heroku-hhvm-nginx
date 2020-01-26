@@ -70,20 +70,32 @@ findconfig() {
 }
 
 wait_pidfile() {
-	while ! test -f "$1"; do
+	i=0
+	while ! test -f "$1" && (( i < 25 )); do
 		[[ $verbose && ${2:-} ]] && echo "$2" >&2
 		sleep 0.1
+		((++i)) # don't do i++, that is a post increment operation, and will return status 1, since the expression evaluates to 0...
 	done
+	if (( i == 25 )); then
+		# we timed out
+		return 1;
+	fi
 }
 
 wait_pid_and_pidfile() {
-	while ! test -f "$2"; do
+	i=0
+	while ! test -f "$2" && (( i < 25 )); do
 		if ! kill -0 "$1" 2> /dev/null; then # kill -0 checks if process exists
 			break;
 		fi
 		[[ $verbose && ${3:-} ]] && echo "$3" >&2
 		sleep 0.1
+		((++i)) # don't do i++, that is a post increment operation, and will return status 1, since the expression evaluates to 0...
 	done
+	if (( i == 25 )); then
+		# we timed out
+		return 1;
+	fi
 }
 
 print_help() {
@@ -353,24 +365,29 @@ pids=()
 # 2c) || true so that set -e doesn't cause a mess if the kill returns 1 on "no such process" cases
 # 2d) 'wait' on that killed subprocess, sending wait's output to /dev/null - this prevents the logs getting cluttered with "vendor/bin/heroku-...: line 309:    96 Terminated" messages (we can't use 'disown' after launching programs for that purpose because that removes the jobs from the shell's jobs table and then we can no longer 'wait' on the program)
 # 2e) remove our FIFO from above
-# 3) kill ourselves with the correct signal in case we're handling SIGTERM or, further down, SIGINT (http://www.cons.org/cracauer/sigint.html and http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT1)
+# 3) as the signal to subshells, we use SIGUSR1 if we're getting a SIGTERM or SIGINT (for graceful shutdown), and a SIGTERM otherwise
+# 3a) this is so subshells can tell whether we sent them the signal and they should in turn stop gracefully (SIGUSR1)...
+# 3b) ... or if something crashed, or e.g. Heroku's process manager sent SIGTERM to all processes in the group, in which case a graceful shutdown attempt is futile anyway
+# 3c) SIGINT oder SIGQUIT are not an option since backgrounded subshells cannot trap them (http://vaab.blog.kal.fr/2016/07/30/trapping-sigint-sigquit-in-asynchronous-tasks/)
+# 4) kill ourselves with the correct signal in case we're handling SIGTERM or, further down, SIGINT (http://www.cons.org/cracauer/sigint.html and http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT1)
 cleanup() {
+	signal=${1:-TERM}
 	# reverse through list of child processes and kill them
 	# we want that order so the web server stops accepting connections and drains properly, then the app is terminated, and then finally the logs redirect, which we want alive up until the very last moment
 	for (( i=${#pids[@]}-1 ; i>=0 ; i-- )) ; do
-		kill -TERM "${pids[$i]}" 2> /dev/null || true # redirect stderr and || true the call because the process might be gone
+		kill -"$signal" "${pids[$i]}" 2> /dev/null || true # redirect stderr and || true the call because the process might be gone
 		wait "${pids[$i]}" 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed and || true the call because wait returns the exit status of the program, and not 0
 	done
 	rm -f ${wait_pipe} || true;
 	echo "Shutdown complete." >&2
 }
-trap 'trap - TERM EXIT; echo "SIGTERM received, attempting graceful shutdown..." >&2; cleanup; kill -TERM $$' TERM
+trap 'trap - TERM EXIT; echo "SIGTERM received, attempting graceful shutdown..." >&2; cleanup USR1; kill -TERM $$' TERM
 # on "regular" EXIT (i.e. when we reached the end of the script because a process exited unexpectedly) just clean up and let the exit status bubble through (see last line)
-trap 'trap - EXIT; echo "Process exited unexpectedly: $exitproc, shutting down..." >&2; cleanup' EXIT
+trap 'trap - EXIT; echo "Process exited unexpectedly: $exitproc, shutting down..." >&2; cleanup TERM' EXIT
 
 # if FD 1 is a TTY (that's the -t 1 check), trap SIGINT/Ctrl+C, then same procedure as for TERM above
 if [[ -t 1 ]]; then
-	trap 'trap - INT EXIT; echo "SIGINT received, initiating graceful shutdown..." >&2; cleanup; kill -INT $$' INT;
+	trap 'trap - INT EXIT; echo "SIGINT received, initiating graceful shutdown..." >&2; cleanup USR1; kill -INT $$' INT;
 # if FD 1 is not a TTY (e.g. when we're run through 'foreman start'), do nothing on SIGINT; the assumption is that the parent will send us a SIGTERM or something when this happens. With the trap above, Ctrl+C-ing out of a 'foreman start' run would trigger the INT trap both in Foreman and here (because Ctrl+C sends SIGINT to the entire process group, but there is no way to tell the two cases apart), and while the trap is still doing its shutdown work triggered by the SIGTERM from the Ctrl+C, Foreman would then send a SIGTERM because that's what it does when it receives a SIGINT itself.
 else
 	trap '' INT;
@@ -379,10 +396,11 @@ fi
 # we are now launching a subshell for each of the tasks (log tail, app server, web server)
 # 1) each subshell has an echo as an EXIT trap that echos the command name to FD 3 (see the FIFO set up above)
 # 1a) a 'read' at the end of the script will block on reading from that FD and, when something is written to the pipe, will unblock, which finishes the script, which triggers the exit trap further above, which does some cleanup
-# 2) each subshell also has a trap on TERM that kills the processes inside the subshell
-# 2a) if a SIGTERM is received, this will unblock the first 'wait'
+# 2) each subshell also has traps that on TERM or USR1 kill the processes inside the subshell
+# 2a) if a SIGTERM or SIGUSR1 is received, this will unblock the first 'wait' and execute the corresponding trap
 # 2b) a second 'wait' then ensures that the subshell remains alive until the process inside has shut down
 # 2c) both 'wait' calls use || true to prevent 'set -e' failures: 'wait' returns the exit status of the given program, and that won't be zero, because it's getting killed
+# 2d) 'wait' on that killed subprocess, sending wait's output to /dev/null - this prevents the logs getting cluttered with "vendor/bin/heroku-...: line 309:    96 Terminated" messages (we can't use 'disown' after launching programs for that purpose because that removes the jobs from the shell's jobs table and then we can no longer 'wait' on the program)
 # 3) each subshell has another trap on INT which does nothing (to prevent Ctrl+C interference)
 # 4) we execute the command in the background, recording its PID(s) for the subshell's TERM trap
 # 5) we also execute the subshell in the background, recording its PID for the main TERM/INT traps
@@ -397,11 +415,12 @@ fi
 
 	tail -qF -n 0 "${logs[@]}" 1>&2 & pid=$!
 
-	trap '[[ $verbose ]] && echo "Stopping log redirection..." >&2; kill -TERM $pid 2> /dev/null || true' TERM
+	# after the kill, we are redirecting stderr to /dev/null using exec to suppress "… Terminated …" messages from the shell, which it would print right before the next command is invoked
+	trap '[[ $verbose ]] && echo "Stopping log redirection..." >&2; kill -TERM $pid 2> /dev/null || true; exec 2> /dev/null' TERM USR1
 
-	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
-	trap - TERM
-	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
+	trap - TERM USR1
+	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
 ) & pids+=($!)
 
 hhvm_pidfile=$(mktemp -t "heroku.hhvm.pid-$PORT.XXXXXX" -u)
@@ -413,11 +432,12 @@ hhvm_pidfile=$(mktemp -t "heroku.hhvm.pid-$PORT.XXXXXX" -u)
 
 	hhvm --mode server -d hhvm.pid_file="$hhvm_pidfile" "${php_configs[@]}" & pid=$!
 	# wait for the pidfile in the trap; otherwise, a previous subshell failing may result in us getting a SIGTERM and forwarding it to the child process before that child process is ready to process signals
-	trap 'echo "Stopping hhvm..." >&2; wait_pid_and_pidfile $pid "$hhvm_pidfile"; kill -HUP $pid 2> /dev/null || true' TERM
+	trap 'echo "Stopping hhvm..." >&2; wait_pid_and_pidfile $pid "$hhvm_pidfile"; kill -KILL $pid 2> /dev/null || true' TERM
+	trap 'echo "Stopping hhvm gracefully..." >&2; wait_pid_and_pidfile $pid "$hhvm_pidfile"; kill -HUP $pid 2> /dev/null || true' USR1
 
-	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
-	trap - TERM
-	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
+	trap - TERM USR1
+	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
 ) & pids+=($!)
 
 nginx_pidfile=$(mktemp -t "heroku.nginx.pid-$PORT.XXXXXX" -u)
@@ -427,23 +447,25 @@ nginx_pidfile=$(mktemp -t "heroku.nginx.pid-$PORT.XXXXXX" -u)
 
 	# wait for HHVM to write its PID file, which it does after initialization
 	# if we didn't wait, the web server would start sending traffic to the FCGI backend before it's ready (or before the socket is even created)
-	# if HHVM fails to start, the while loop below will not loop forever, because the HHVM subshell will exit, causing the main cleanup procedure to run, which sends this subshell a SIGTERM, which terminates the while loop below after the next sleep execution
-	wait_pidfile "$hhvm_pidfile" "Waiting for hhvm to finish initializing..."
+	# if HHVM fails to start, the HHVM subshell will exit, causing the main cleanup procedure to run, which sends this subshell a SIGTERM
+	# there is however a possible race condition where this happens exactly the moment we hit the function below, which is why it internally has a timeout of 2500 ms, and we use that to exit 1
+	wait_pidfile "$hhvm_pidfile" "Waiting for hhvm to finish initializing..." || { echo "Timed out waiting for hhvm." >&2; exit 1; }
 
 	echo "Starting nginx..." >&2
 
 	nginx -c "$nginx_main" -g "pid $nginx_pidfile; include $nginx_config;" & pid=$!
 	# wait for the pidfile in the trap; otherwise, a previous subshell failing may result in us getting a SIGTERM and forwarding it to the child process before that child process is ready to process signals
-	trap 'echo "Stopping nginx..." >&2; wait_pid_and_pidfile $pid "$nginx_pidfile"; kill -QUIT $pid 2> /dev/null || true' TERM
+	trap 'echo "Stopping nginx..." >&2; wait_pid_and_pidfile $pid "$nginx_pidfile"; kill -TERM $pid 2> /dev/null || true' TERM
+	trap 'echo "Stopping nginx gracefully..." >&2; wait_pid_and_pidfile $pid "$nginx_pidfile"; kill -QUIT $pid 2> /dev/null || true' USR1
 
 	# first, we wait for the pid file to be written, so that we can emit a ready message
 	wait_pid_and_pidfile $pid "$nginx_pidfile"
 	# on Heroku, there is a "state changed from starting to up", but for local execution, we want a "ready" message
 	[[ -z ${DYNO:-} || $verbose ]] && kill -0 $pid 2> /dev/null && echo "Application ready for connections on port $PORT." >&2
 
-	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
-	trap - TERM
-	wait $pid 2> /dev/null || true # redirect stderr so that the Bash's confusing "Terminated: …" lines are suppressed
+	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
+	trap - TERM USR1
+	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
 ) & pids+=($!)
 
 # wait for something to come from the FIFO attached to FD 3, which means that the given process was killed or has failed
