@@ -364,9 +364,9 @@ cleanup() {
 	rm -f ${wait_pipe} || true;
 	echo "Shutdown complete." >&2
 }
-trap 'trap - TERM EXIT; echo "SIGTERM received, initiating graceful shutdown..." >&2; cleanup; kill -TERM $$' TERM
+trap 'trap - TERM EXIT; echo "SIGTERM received, attempting graceful shutdown..." >&2; cleanup; kill -TERM $$' TERM
 # on "regular" EXIT (i.e. when we reached the end of the script because a process exited unexpectedly) just clean up and let the exit status bubble through (see last line)
-trap 'trap - EXIT; echo "Process exited unexpectedly: $exitproc, shutting down..."; cleanup' EXIT
+trap 'trap - EXIT; echo "Process exited unexpectedly: $exitproc, shutting down..." >&2; cleanup' EXIT
 
 # if FD 1 is a TTY (that's the -t 1 check), trap SIGINT/Ctrl+C, then same procedure as for TERM above
 if [[ -t 1 ]]; then
