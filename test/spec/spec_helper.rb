@@ -11,47 +11,6 @@ require 'excon'
 
 ENV['RACK_ENV'] = 'test'
 
-module Hatchet
-	class App
-		attr_reader :name, :stack, :directory, :repo_name, :app_config
-	end
-	
-	class TestRun
-		# override the default handling to also include stack and env vars in app.json
-		def source_blob_url
-			@app.in_directory do
-				app_json = JSON.parse(File.read("app.json")) if File.exist?("app.json")
-				app_json ||= {}
-				app_json["environments"]                       ||= {}
-				app_json["environments"]["test"]               ||= {}
-				app_json["environments"]["test"]["buildpacks"] = @buildpacks.map {|b| { url: b } }
-				app_json["environments"]["test"]["env"]        ||= {}
-				
-				# begin override: set stack into app.json
-				app_json["stack"]                              ||= @app.stack if @app.stack && !@app.stack.empty?
-				# end override
-				
-				# begin override: copy in env too, so we get e.g. the correct HEROKU_PHP_PLATFORM_REPOSITORIES
-				app_json["environments"]["test"]["env"]        = @app.app_config.merge(app_json["environments"]["test"]["env"]) # so we get HEROKU_PHP_PLATFORM_REPOSITORIES in there
-				# end override
-				
-				File.open("app.json", "w") {|f| f.write(JSON.generate(app_json)) }
-				
-				`tar c . | gzip -9 > slug.tgz`
-				
-				source_put_url = @app.create_source
-				Hatchet::RETRIES.times.retry do
-					@api_rate_limit.call
-					Excon.put(source_put_url,
-						expects: [200],
-						body:    File.read('slug.tgz'))
-				end
-			end
-			return @app.source_get_url
-		end
-	end
-end
-
 def product_hash(hash)
 	hash.values[0].product(*hash.values[1..-1]).map{ |e| Hash[hash.keys.zip e] }
 end
