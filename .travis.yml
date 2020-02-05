@@ -20,7 +20,7 @@ env:
   - HATCHET_APP_LIMIT=80
   - HEROKU_APP_LIMIT=9999
   - HATCHET_DEPLOY_STRATEGY=git
-  - HATCHET_BUILDPACK_BASE="https://github.com/heroku/heroku-buildpack-php"
+  - HATCHET_BUILDPACK_BASE="https://github.com/gerardbalaoro/heroku-buildpack-laravel"
   - HATCHET_APP_PREFIX="htcht-${TRAVIS_JOB_ID}-"
 matrix:
     include:
