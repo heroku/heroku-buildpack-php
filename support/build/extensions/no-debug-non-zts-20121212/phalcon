@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Build Path: /app/.heroku/php/
 
 # fail hard
 set -o pipefail
@@ -37,6 +36,7 @@ else
 	workdir=php${series:0:1}/64bits
 fi
 pushd ${dep_dirname}
+
 pushd build
 pushd ${workdir}
 export CC="gcc"
