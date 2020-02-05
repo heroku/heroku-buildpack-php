@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-# Build Path: /app/.heroku/php/
 
 # fail hard
 set -o pipefail
@@ -25,8 +24,10 @@ curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
 
-# patch a bunch of fallthrough cases with missing comments, which would error on GCC7
-curl -L https://github.com/nginx/nginx/commit/8449f750e62cd229026e9df3bd023ec7e073a7d4.patch | patch -p1
+if dpkg --compare-versions "$dep_version" "lt" 1.13.1; then
+	# patch a bunch of fallthrough cases with missing comments, which would error on GCC7
+	curl -L https://github.com/nginx/nginx/commit/8449f750e62cd229026e9df3bd023ec7e073a7d4.patch | patch -p1
+fi
 
 ETC=${OUT_PREFIX}/etc
 VAR=${OUT_PREFIX}/var
@@ -42,7 +43,8 @@ VAR=${OUT_PREFIX}/var
 	--http-scgi-temp-path=${VAR}/run/nginx/scgi_temp \
 	--http-log-path=${VAR}/log/nginx/access.log \
 	--error-log-path=${VAR}/log/nginx/error.log \
-	--with-http_realip_module
+	--with-http_realip_module \
+	--with-http_ssl_module
 make -s -j 9
 make install -s
 find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
@@ -56,9 +58,6 @@ MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.nginx.sh\",\"profile\":\"bin/profile.nginx.sh\"}"}"
-
-mkdir -p ${OUT_PREFIX}/etc/nginx
-cp $(dirname $BASH_SOURCE)/_conf/nginx/nginx.conf ${OUT_PREFIX}/etc/nginx/nginx.conf
 
 mkdir -p ${OUT_PREFIX}/bin
 # this gets sourced after package install, so that the buildpack and following buildpacks can invoke

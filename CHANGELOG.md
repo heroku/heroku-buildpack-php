@@ -1,5 +1,308 @@
 # heroku-buildpack-php CHANGELOG
 
+## v169 (2020-01-26)
+
+### CHG
+
+- Try and tell SIGTERM cases apart in boot scripts for more precise messaging on shutdown [David Zuelke]
+
+### FIX
+
+- Shell may emit confusing "... Terminated ..." messages on shutdown [David Zuelke]
+- PHP-FPM startup failures may trigger race condition where dyno boot hangs [David Zuelke]
+
+## v168 (2020-01-24)
+
+### ADD
+
+- PHP/7.2.27 [David Zuelke]
+- PHP/7.3.14 [David Zuelke]
+- ext-blackfire/1.30.0 [David Zuelke]
+- ext-newrelic/9.6.1.256 [David Zuelke]
+- ext-pq/2.1.6 [David Zuelke]
+
+### CHG
+
+- Composer/1.9.2 [David Zuelke]
+- libcassandra/2.15.0 [David Zuelke]
+
+## v167 (2020-01-23)
+
+### CHG
+
+- Graceful shutdown for boot scripts on SIGTERM and SIGINT [David Zuelke]
+- Dynamically poll for `newrelic-daemon` readiness on dyno boot instead of using blanket two-second wait [David Zuelke]
+- Dynamically poll for PHP-FPM readiness on dyno boot instead of using blanket two-second wait [David Zuelke]
+
+## v166 (2019-12-20)
+
+### ADD
+
+- PHP/7.2.26 [David Zuelke]
+- PHP/7.3.13 [David Zuelke]
+- ext-rdkafka/4.0.2 [David Zuelke]
+
+## v165 (2019-12-11)
+
+### ADD
+
+- ext-apcu/5.1.18 [David Zuelke]
+- ext-raphf/2.0.1 [David Zuelke]
+- ext-phalcon/3.4.5 [David Zuelke]
+- ext-redis/5.1.1 [David Zuelke]
+- PHP/7.2.25 [David Zuelke]
+- PHP/7.3.12 [David Zuelke]
+- ext-memcached/3.1.5 [David Zuelke]
+- ext-mongodb/1.6.1 [David Zuelke]
+- ext-newrelic/9.4.0.249 [David Zuelke]
+- ext-ev/1.0.7 [David Zuelke]
+- ext-rdkafka/3.1.3 [David Zuelke]
+- ext-rdkafka/4.0.0 [David Zuelke]
+- ext-blackfire/1.29.4 [David Zuelke]
+- ext-uuid/1.1.0 (#371) [David Zuelke]
+
+### CHG
+
+- Composer/1.9.1 [David Zuelke]
+- librdkafka/1.3.0 [David Zuelke]
+- libcassandra/2.14.1 [David Zuelke]
+
+### FIX
+
+- Revert ext-newrelic/9.2.0.247 due to startup failure [David Zuelke]
+- PHP 7.0 builds picking up generic rather than version-specific `heroku.ini` settings [David Zuelke]
+
+## v164 (2019-10-24)
+
+### ADD
+
+- PHP/7.3.11 [David Zuelke]
+- PHP/7.2.24 [David Zuelke]
+- PHP/7.1.33 [David Zuelke]
+- ext-newrelic/9.2.0.247 [David Zuelke]
+- ext-memcached/3.1.4 [David Zuelke]
+- ext-rdkafka/4.0.0 [David Zuelke]
+
+### CHG
+
+- Bump `heroku-16.Dockerfile` and `heroku-18.Dockerfile` to tag v18 [David Zuelke]
+- librdkafka/1.2.1 [David Zuelke]
+
+## v163 (2019-10-01)
+
+### CHG
+
+- Pin `heroku-18.Dockerfile` to use `heroku/heroku:18-build.v16` to ensure builds against libssl 1.1.0 until Private Spaces are fully upgraded [David Zuelke]
+
+## v162 (2019-09-27)
+
+### ADD
+
+- PHP/7.2.23 [David Zuelke]
+- PHP/7.3.10 [David Zuelke]
+- ext-newrelic/9.1.0.246 [David Zuelke]
+- ext-mongodb/1.6.0 (PHP 5.6+ only) [David Zuelke]
+- ext-blackfire/1.27.1 [David Zuelke]
+- Nginx/1.16.1 [David Zuelke]
+
+### CHG
+
+- librdkafka/1.2.0 [David Zuelke]
+
+## v161 (2019-08-30)
+
+### ADD
+
+- PHP/7.1.32 [David Zuelke]
+- PHP/7.2.22 [David Zuelke]
+- PHP/7.3.9 [David Zuelke]
+
+### CHG
+
+- Build PHP with libwebp for ext-gd on heroku-18 (#358) [David Zuelke]
+
+## v160 (2019-08-23)
+
+### ADD
+
+- ext-newrelic/9.0.2.245 [David Zuelke]
+- ext-blackfire/1.27.0 [David Zuelke]
+- Apache/2.4.41 [David Zuelke]
+
+### CHG
+
+- Simplify ext-newrelic startup handling [David Zuelke]
+- Simplify ext-blackfire startup handling [David Zuelke]
+- ext-blackfire now supports `BLACKFIRE_LOG_LEVEL` (4: debug, 3: info, 2: warning, 1: error) [David Zuelke]
+
+### FIX
+
+- Fix HHVM boot scripts failing if a `composer` shell function is present [David Zuelke]
+
+## v159 (2019-08-06)
+
+### ADD
+
+- Automatically run 'composer test' if present, or one of 'codecept'/'behat'/'phpspec'/'atoum'/'kahlan'/'peridot'/'phpunit', on Heroku CI [David Zuelke]
+- PHP/7.1.31 [David Zuelke]
+- PHP/7.2.21 [David Zuelke]
+- PHP/7.3.8 [David Zuelke]
+- ext-rdkafka/3.1.2 [David Zuelke]
+- ext-redis/5.0.2 [David Zuelke]
+- ext-blackfire/1.26.4 [David Zuelke]
+
+### CHG
+
+- Enable zend.assertions on Heroku CI [David Zuelke]
+- Boot scripts now prefer a `composer` binary on `$PATH` over a `composer.phar` in the CWD [David Zuelke]
+- Refactor logic used to prevent APM extensions such as `ext-newrelic` or `ext-blackfire` from starting up during during boot preparations or builds [David Zuelke]
+- Patch `libc-client`, used by PHP's `ext-imap`, to use SNI if possible (required with TLSv1.3) [David Zuelke]
+- Composer/1.9.0 [David Zuelke]
+
+### FIX
+
+- Boot scripts no longer use `php -n` to prevent APM extensions from booting, but instead add an INI file that contains disabling directives for common extensions (#345, #348, #349) [David Zuelke]
+
+## v158 (2019-07-04)
+
+### ADD
+
+- PHP/7.2.20 [David Zuelke]
+- PHP/7.3.7 [David Zuelke]
+- ext-blackfire/1.26.2 [David Zuelke]
+- ext-event/2.5.3 [David Zuelke]
+- ext-phalcon/3.4.4 [David Zuelke]
+- ext-rdkafka/3.1.1 [David Zuelke]
+- ext-redis/5.0.0 [David Zuelke]
+
+### CHG
+
+- libcassandra/2.13.0 [David Zuelke]
+- librdkafka/1.1.0 [David Zuelke]
+
+## v157 (2019-06-13)
+
+### ADD
+
+- ext-event/2.5.2 [David Zuelke]
+- ext-mongodb/1.5.5 [David Zuelke]
+- ext-newrelic/8.7.0.242 [David Zuelke]
+- ext-blackfire/1.25.0 [David Zuelke]
+
+### CHG
+
+- Composer/1.8.6 [David Zuelke]
+
+### FIX
+
+- Bug in Apache 2.4.39 (https://bz.apache.org/bugzilla/show_bug.cgi?id=63325) causes 408 timeout after 20 seconds on long file uploads (#342) [David Zuelke]
+- Phalcon 3.4.3 segfaults on latest PHP 7.3.6 [David Zuelke]
+
+## v156 (2019-05-30)
+
+### ADD
+
+- PHP/7.1.30 [David Zuelke]
+- PHP/7.2.19 [David Zuelke]
+- PHP/7.3.6 [David Zuelke]
+- ext-ev/1.0.6 [David Zuelke]
+- ext-event/2.5.1 [David Zuelke]
+
+### CHG
+
+- librdkafka/1.0.1 [David Zuelke]
+- Use bundled `php.ini-production` as the standard PHP config and apply Heroku settings via `conf.d/` include [David Zuelke]
+- Update `error_reporting` to `E_ALL & ~E_STRICT` for all runtime versions [David Zuelke]
+
+### FIX
+
+- `mail.add_x_header` INI directive is set to an outdated default value for some PHP versions [David Zuelke]
+- `serialize_precision` INI directive is set to an outdated default value for some PHP versions [David Zuelke]
+- `session.entropy_length` INI directive is set to an outdated default value for some PHP versions [David Zuelke]
+- `session.sid_bits_per_character` INI directive is set to a non-recommended default value for some PHP versions [David Zuelke]
+- `url_rewriter.tags` INI directive is set to an outdated default value for some PHP versions [David Zuelke]
+- PHP assertions should be disabled in prod mode (#242) [David Zuelke]
+
+## v155 (2019-05-09)
+
+### ADD
+
+- ext-rdkafka/3.1.0 [David Zuelke]
+- ext-event/2.5.0 [David Zuelke]
+- ext-imagick/3.4.4 [David Zuelke]
+- PHP/7.1.29 [David Zuelke]
+- PHP/7.2.18 [David Zuelke]
+- PHP/7.3.5 [David Zuelke]
+
+### CHG
+
+- Composer/1.8.5 [David Zuelke]
+- libcassandra/2.12.0 [David Zuelke]
+
+## v154 (2019-04-04)
+
+### ADD
+
+- PHP/7.2.17 [David Zuelke]
+- PHP/7.3.4 [David Zuelke]
+- Apache/2.4.39 [David Zuelke]
+- PHP/7.1.28 [David Zuelke]
+
+### CHG
+
+- librdkafka/1.0.0 [David Zuelke]
+- libcassandra/2.11.0 [David Zuelke]
+
+## v153 (2019-03-18)
+
+### ADD
+
+- ext-newrelic/8.6.0.238 [David Zuelke]
+- ext-redis/4.3.0 [David Zuelke]
+
+## v152 (2019-03-13)
+
+### ADD
+
+- Nginx/1.14.2 (#241, #285) [David Zuelke]
+- Update Nginx MIME types for woff and woff2 formats (#286) [David Zuelke]
+
+### CHG
+
+- Restructure Nginx configs and add compatibility with Nginx/1.9.3+ (#198) [David Zuelke]
+- Build Nginx with `ngx_http_ssl_module` (#182) [David Zuelke]
+
+## v151 (2019-03-08)
+
+### ADD
+
+- PHP/7.1.27 [David Zuelke]
+- PHP/7.2.16 [David Zuelke]
+- PHP/7.3.3 [David Zuelke]
+- ext-phalcon/3.4.3 [David Zuelke]
+- ext-apcu/5.1.17 [David Zuelke]
+
+### CHG
+
+- Composer/1.8.4 [David Zuelke]
+
+## v150 (2019-02-07)
+
+### ADD
+
+- ext-blackfire/1.24.4 [David Zuelke]
+- Apache/2.4.38 [David Zuelke]
+- PHP/7.2.15 [David Zuelke]
+- PHP/7.3.2 [David Zuelke]
+
+### CHG
+
+- Composer/1.8.3 [David Zuelke]
+
+### FIX
+
+- ext-oauth doesn't find libcurl headers on heroku-18 (#322) [David Zuelke]
+
 ## v149 (2019-01-14)
 
 ### ADD
