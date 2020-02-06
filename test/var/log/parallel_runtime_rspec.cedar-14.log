@@ -9,4 +9,3 @@ test/spec/php_7.2_spec.rb:527.555128419
 test/spec/php_7.3_spec.rb:531.493362414
 test/spec/php_default_spec.rb:40.35018732699996
 test/spec/sigterm_spec.rb:54.528619442
-test/spec/bugs_spec.rb:1.616908664
