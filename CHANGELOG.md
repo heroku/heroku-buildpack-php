@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-mongodb/1.7.1 [David Zuelke]
+- ext-oauth/2.0.5 [David Zuelke]
 
 ## v170 (2020-02-10)
 
