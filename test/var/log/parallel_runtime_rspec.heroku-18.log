@@ -4,6 +4,6 @@ test/spec/nginx_spec.rb:18.944300572999992
 test/spec/php_7.1_spec.rb:538.2099019990001
 test/spec/php_7.2_spec.rb:536.272335398
 test/spec/php_7.3_spec.rb:554.4528700789999
-test/spec/php_7.4_spec.rb:554.4528700789999
+test/spec/php_7.4_spec.rb:718.0634715900001
 test/spec/php_default_spec.rb:38.073168747000004
 test/spec/sigterm_spec.rb:53.837582215000005
