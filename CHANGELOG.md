@@ -11,6 +11,10 @@
 - ext-psr/0.7.0 [David Zuelke]
 - ext-phalcon/4.0.3 [David Zuelke]
 
+### CHG
+
+- Composer/1.9.3 [David Zuelke]
+
 ## v170 (2020-02-10)
 
 ### ADD
