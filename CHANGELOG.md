@@ -8,6 +8,7 @@
 - ext-oauth/2.0.5 [David Zuelke]
 - ext-pq/2.1.7 [David Zuelke]
 - ext-rdkafka/4.0.3 [David Zuelke]
+- ext-psr/0.7.0 [David Zuelke]
 
 ## v170 (2020-02-10)
 
