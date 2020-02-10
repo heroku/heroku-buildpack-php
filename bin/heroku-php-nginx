@@ -334,10 +334,13 @@ if [[ -n ${fpm_config:-} || ( ${fpm_config:=$(findconfig "$php_version" "$bp_dir
 fi
 fpm_config=$(php_passthrough "$fpm_config")
 
-if [[ -n ${php_config:-} ]]; then
+# we explicitly use the INI file php-fpm would load if no INI is given
+# this is to ensure that e.g. our WEB_CONCURRENCY calculation doesn't pick up a php-cli.ini
+fpm_ini=$(php-fpm -i | awk -F' => ' '/^Loaded Configuration File/{print $2}')
+if [[ -n ${php_config:-} || ( "$fpm_ini" != "(none)" && ${php_config:=$fpm_ini} && $verbose ) ]]; then
 	echo "Using PHP configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
-	php_config=$(php_passthrough "$php_config")
 fi
+[[ -n ${php_config:-} ]] && php_config=$(php_passthrough "$php_config")
 
 if [[ -n ${nginx_config_include:-} || ( ${nginx_config_include:=$(findconfig "$nginx_version" "$bp_dir/conf/nginx/default_include.conf.php")} && $verbose ) ]]; then
 	echo "Using Nginx server-level configuration include '${nginx_config_include#$HEROKU_APP_DIR/}'" >&2
@@ -352,32 +355,30 @@ nginx_config=$(php_passthrough "$nginx_config")
 
 nginx_main=$(findconfig "$nginx_version" "$bp_dir/conf/nginx/main.conf")
 
-if [[ -z ${WEB_CONCURRENCY:-} ]]; then
-	maxprocs=$(ulimit -u)
+mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
+if [[ -f "$mlib" ]]; then
+	ram="$(cat "$mlib")"
+	echo "Detected ${ram} Bytes of RAM" >&2
+else
 	ram="512M"
-	if [[ -n ${DYNO:-} && "$maxprocs" == "32768" ]]; then
-		echo "Optimizing defaults for PX dyno...." >&2
-		ram="6G"
-	elif [[ -n ${DYNO:-} && "$maxprocs" == "16384" ]]; then
-		echo "Optimizing defaults for IX dyno...." >&2
-		ram="2560M"
-	elif [[ -n ${DYNO:-} && "$maxprocs" == "512" ]]; then
-		echo "Optimizing defaults for 2X dyno..." >&2
-		ram="1G"
-	elif [[ -n ${DYNO:-} && "$maxprocs" == "256" ]]; then
-		echo "Optimizing defaults for 1X dyno..." >&2
-	elif [[ -n ${DYNO:-} || $verbose ]]; then
-		echo "No dyno detected; using defaults for 1X..." >&2
+	echo "Assuming ${ram}B of RAM" >&2
+fi
+if [[ -z ${WEB_CONCURRENCY:-} ]]; then
+	max_ram="16G" # blanket upper limit for how much RAM we will use for PHP, unless the machine has less anyway
+	if [[ -n ${DYNO:-} && $(ulimit -u) == "32768" && ( "$php_version" == 5.* || "$php_version" == 7.[0-3].* ) ]]; then
+		# on a Performance-L dyno, limit to 6 GB of RAM for backwards compatibility for PHP versions before 7.4
+		# this is to ensure that apps previously running on PX dynos (6 GB RAM) do not get a sudden jump in the number of worker processes
+		max_ram="6G"
 	fi
 
 	# determine number of FPM processes to run
-	read WEB_CONCURRENCY php_memory_limit <<<$(php ${php_config:+-c "$php_config"} "$bp_dir/bin/util/autotune.php" -y "$fpm_config" -t "$DOCUMENT_ROOT" "$ram")
+	read WEB_CONCURRENCY php_memory_limit <<<$(php ${php_config:+-c "$php_config"} "$bp_dir/bin/util/autotune.php" -y "$fpm_config" -t "$DOCUMENT_ROOT" "$ram" "$max_ram")
 	[[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
 	export WEB_CONCURRENCY
 
-	echo "${WEB_CONCURRENCY} processes at ${php_memory_limit}B memory limit." >&2
+	echo "PHP memory_limit is ${php_memory_limit} Bytes" >&2
 else
-	echo "Using WEB_CONCURRENCY=${WEB_CONCURRENCY} processes." >&2
+	echo '$WEB_CONCURRENCY env var is set, skipping automatic calculation' >&2
 fi
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
@@ -480,7 +481,7 @@ fpm_pidfile=$(mktemp -t "heroku.php-fpm.pid-$PORT.XXXXXX" -u)
 	trap 'echo "php-fpm" >&3;' EXIT
 	trap '' INT;
 
-	echo "Starting php-fpm..." >&2
+	echo "Starting php-fpm with ${WEB_CONCURRENCY} workers..." >&2
 
 	# earlier, we added special INIs that prevent newrelic etc from starting to the scan dir
 	# we do not want that to apply to php-fpm, which uses the same scan dir for its configs as the regular PHP CLI SAPI

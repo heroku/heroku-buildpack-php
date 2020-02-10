@@ -61,7 +61,7 @@ fi
 # we need libgmp-dev for GMP, libpam0g-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP
 needed=( libgmp-dev libpam0g-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev )
 if [[ $STACK != "cedar-14" ]]; then
-	needed+=( libsodium-dev )
+	needed+=( libsodium-dev libsqlite3-dev )
 fi
 if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
 	needed+=( libwebp-dev )
@@ -85,6 +85,12 @@ if dpkg --compare-versions "$dep_version" "lt" 7.1.15 || dpkg --compare-versions
 	sed -i 's/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
 fi
 
+# we want to build FPM with tracing using pread, which uses /proc/$pid/mem
+# depending on host/container capabilities, it will likely detect ptrace as present, but that's blocked on the platform
+# the only easy way to force it to use pread is by patching configure so it assumes the ptrace check has failed
+# see the AC_DEFUN([AC_FPM_TRACE] bits in sapi/fpm/config.m4
+sed -i 's/have_ptrace=yes/have_ptrace=no/' configure
+
 # let's see if mcrypt is there, if not then we have to use the vendored one
 needed=( libmcrypt4 )
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
@@ -107,14 +113,21 @@ fi
 
 configureopts=()
 if [[ $dep_version == 7.* ]]; then
-	configureopts+=("--enable-opcache-file")
-	configureopts+=("--without-libzip") # FIXME: change to --with-libzip once cedar-14 is EOL, as the other stacks have an up to date enough version
-	
-	if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
-		configureopts+=("--with-webp-dir=/usr") # for ext-gd
+	if [[ $dep_version == 7.[0-3].* ]]; then
+		configureopts+=("--enable-opcache-file" "--enable-zip" "--without-libzip") # FIXME: change to --with-libzip once cedar-14 is EOL, as the other stacks have an up to date enough version
+		configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr") # for ext-gd
+		if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
+			configureopts+=("--with-webp-dir=/usr") # for ext-gd
+		fi
+	else
+		configureopts+=("--with-zip" "--disable-mbregex") # we do not have libonig
+		configureopts+=("--enable-gd=shared" "--with-freetype" "--with-jpeg") # for ext-gd
+		if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
+			configureopts+=("--with-webp") # for ext-gd
+		fi
 	fi
 	
-	if [[ $dep_version == 7.0.* || $dep_version == 7.1.* ]]; then
+	if [[ $dep_version == 7.{0,1}.* ]]; then
 		configureopts+=("--with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix}")
 	else
 		if [[ $STACK != "cedar-14" ]]; then
@@ -125,7 +138,7 @@ if [[ $dep_version == 7.* ]]; then
 		fi
 	fi
 else
-	configureopts+=("--with-mcrypt${mcrypt_prefix:+"="}${mcrypt_prefix}" "--with-mysql=shared")
+	configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr" "--with-mcrypt${mcrypt_prefix:+"="}${mcrypt_prefix}" "--with-mysql=shared" "--enable-zip")
 fi
 
 export PATH=${OUT_PREFIX}/bin:$PATH
@@ -147,16 +160,11 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--with-pdo-pgsql \
 	--with-readline \
 	--enable-sockets \
-	--enable-zip \
 	--with-zlib \
 	--enable-bcmath=shared \
 	--enable-calendar=shared \
 	--enable-exif=shared \
 	--enable-ftp=shared \
-	--with-gd=shared \
-		--with-freetype-dir=/usr \
-		--with-jpeg-dir=/usr \
-		--with-png-dir=/usr \
 	--with-gettext=shared \
 	--with-gmp=shared \
 	--with-imap=shared,${OUT_PREFIX}/opt/imap-2007f \
@@ -181,8 +189,10 @@ popd
 
 rm -rf ${OUT_PREFIX}/php/man ${OUT_PREFIX}/lib/php/extensions/*/*.a
 
-echo "-----> Preparing PECL..."
-${OUT_PREFIX}/bin/pecl channel-update pecl.php.net
+if [[ $dep_version == 5.* || $dep_version == 7.[0-3].* ]]; then
+	echo "-----> Preparing PECL..."
+	${OUT_PREFIX}/bin/pecl channel-update pecl.php.net
+fi
 
 echo "-----> Generating manifest..."
 curl -sS https://getcomposer.org/installer | php
@@ -230,6 +240,27 @@ EOF
 # this gets sourced on dyno boot
 cat > ${OUT_PREFIX}/bin/profile.php.sh <<'EOF'
 export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
+
+# read memory limit of dyno
+mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
+# get php.ini location; don't forget to suppress INI scan dir to prevent e.g. New Relic from starting
+php_ini_path=$(PHP_INI_SCAN_DIR= php -r 'echo get_cfg_var("cfg_file_path");')
+if [[ -f "$mlib" && -n "$php_ini_path" ]]; then
+	php_cli_ini_path=$(dirname "$php_ini_path")/php-cli.ini
+	# create php-cli.ini from php.ini unless it exists
+	# we can't cp -n instead because php_ini_path would already be php-cli.ini and that would error
+	if [[ "$php_ini_path" != "$php_cli_ini_path" ]]; then
+		cp "$php_ini_path" "$php_cli_ini_path"
+	fi
+	# compute memory limit, up to 16 GB
+	max_memory_limit=$(( 16 * 1024 * 1024 * 1024 ))
+	sys_memory_limit=$(cat "$mlib")
+	memory_limit=$(( sys_memory_limit > max_memory_limit ? max_memory_limit : sys_memory_limit ))
+	# append to php-cli.ini
+	echo $'\n;inserted by ~/.profile.d/ script' >> "$php_cli_ini_path"
+	echo "memory_limit=$memory_limit" >> "$php_cli_ini_path"
+fi
+
 EOF
 
 python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest

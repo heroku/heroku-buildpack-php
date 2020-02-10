@@ -262,6 +262,18 @@ echo "export PATH=/app/.heroku/php/bin:\$PATH:/app/$composer_bindir" > $bp_dir/e
 mkdir -p $build_dir/.profile.d
 echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $build_dir/.profile.d/100-composer.sh
 
+# a few more practical defaults for Composer (use available memory, always mirror path repos because of FS boundaries during build, always run non-interactively)
+cat | tee -a $bp_dir/export >> $build_dir/.profile.d/100-composer.sh <<-'EOF'
+	mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
+	if [[ -f "$mlib" ]]; then
+		export COMPOSER_MEMORY_LIMIT=${COMPOSER_MEMORY_LIMIT:-$(cat "$mlib")}
+	fi
+	export COMPOSER_MIRROR_PATH_REPOS=${COMPOSER_MIRROR_PATH_REPOS:-1}
+	export COMPOSER_NO_INTERACTION=${COMPOSER_NO_INTERACTION:-1}
+EOF
+# unlimited Composer process timeout only for runtime, not build time
+echo 'export COMPOSER_PROCESS_TIMEOUT=${COMPOSER_PROCESS_TIMEOUT:-0}' >> $build_dir/.profile.d/100-composer.sh
+
 # we perform this check early so people with stale lock files are reminded why if their lock file errors in the next step
 composer_lock_outdated=false
 composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPOSER" 2>/dev/null || {

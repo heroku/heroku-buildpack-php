@@ -18,5 +18,16 @@ describe "A PHP application" do
 				expect(successful_body(app))
 			end
 		end
+		
+		it "has Composer defaults set" do
+			app.deploy do |app|
+				composer_envs = app.run('env | grep COMPOSER_')
+				expect(composer_envs)
+					.to  match(/^COMPOSER_MEMORY_LIMIT=536870912$/)
+					.and match(/^COMPOSER_MIRROR_PATH_REPOS=1$/)
+					.and match(/^COMPOSER_NO_INTERACTION=1$/)
+					.and match(/^COMPOSER_PROCESS_TIMEOUT=0$/)
+			end
+		end
 	end
 end

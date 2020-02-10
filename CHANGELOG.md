@@ -1,5 +1,24 @@
 # heroku-buildpack-php CHANGELOG
 
+## v170 (2020-02-10)
+
+### ADD
+
+- PHP/7.4.2 [David Zuelke]
+
+### CHG
+
+- `$COMPOSER_MEMORY_LIMIT` defaults to dyno memory if information is available [David Zuelke]
+- `$COMPOSER_MIRROR_PATH_REPOS` defaults to 1 [David Zuelke]
+- `$COMPOSER_NO_INTERACTION` defaults to 1 [David Zuelke]
+- `$COMPOSER_PROCESS_TIMEOUT` defaults to 0 at app runtime [David Zuelke]
+- Build PHP-FPM with /proc/…/mem based process tracing [David Zuelke]
+- Log slow PHP-FPM requests after 3 seconds by default for PHP 7.4 [David Zuelke]
+- Terminate slow PHP-FPM requests after 30 seconds by default for PHP 7.4 [David Zuelke]
+- Refactor `$WEB_CONCURRENCY` calculation to use `/sys/fs/cgroup/memory/memory.limit_in_bytes` if available [David Zuelke]
+- Use all available instance RAM when calculating `$WEB_CONCURRENCY` for PHP 7.4+ running on Performance-L dynos [David Zuelke]
+- Use all available instance RAM as default PHP CLI memory_limit [David Zuelke]
+
 ## v169 (2020-01-26)
 
 ### CHG
