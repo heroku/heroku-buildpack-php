@@ -1,5 +1,20 @@
 # heroku-buildpack-php CHANGELOG
 
+## v171 (2020-02-11)
+
+### ADD
+
+- ext-mongodb/1.7.1 [David Zuelke]
+- ext-oauth/2.0.5 [David Zuelke]
+- ext-pq/2.1.7 [David Zuelke]
+- ext-rdkafka/4.0.3 [David Zuelke]
+- ext-psr/0.7.0 [David Zuelke]
+- ext-phalcon/4.0.3 [David Zuelke]
+
+### CHG
+
+- Composer/1.9.3 [David Zuelke]
+
 ## v170 (2020-02-10)
 
 ### ADD
