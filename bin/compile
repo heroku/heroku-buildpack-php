@@ -37,8 +37,8 @@ curl_retry_on_18 --fail --silent --location -o ${TMPDIR:-/tmp}/stdlib.sh https:/
 		version of the Heroku PHP buildpack which may need updating.
 	EOF
 }
-source ${TMPDIR:-/tmp}/bin/util/stdlib.sh
-rm ${TMPDIR:-/tmp}/bin/util/stdlib.sh
+source ${TMPDIR:-/tmp}/stdlib.sh
+rm ${TMPDIR:-/tmp}/stdlib.sh
 
 # failure counting
 source $bp_dir/bin/util/failures.sh
