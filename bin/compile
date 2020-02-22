@@ -15,6 +15,7 @@ cache_dir=$2/php
 mkdir -p "$cache_dir"
 env_dir=${3:-} # Anvil has none
 bp_dir=$(cd $(dirname $0); cd ..; pwd)
+tmp_dir=${TMPDIR:-/tmp}
 
 export BPLOG_PREFIX="buildpack.php"
 export BUILDPACK_LOG_FILE=${BUILDPACK_LOG_FILE:-/dev/null}
@@ -28,17 +29,17 @@ trap 'err_trap' ERR
 
 # stdlib
 # download to a file first, as the function restarts the entire download on code 18 connection reset (not all servers support -C)
-curl_retry_on_18 --fail --silent --location -o $bp_dir/bin/util/stdlib.sh https://lang-common.s3.amazonaws.com/buildpack-stdlib/v8/stdlib.sh || {
+curl_retry_on_18 --fail --silent --location -o $tmp_dir/stdlib.sh https://lang-common.s3.amazonaws.com/buildpack-stdlib/v8/stdlib.sh || {
 	error <<-EOF
 		Failed to download standard library for bootstrapping!
-		
+
 		This is most likely a temporary internal error. If the problem
 		persists, make sure that you are not running a custom or forked
 		version of the Heroku PHP buildpack which may need updating.
 	EOF
 }
-source $bp_dir/bin/util/stdlib.sh
-rm $bp_dir/bin/util/stdlib.sh
+source $tmp_dir/stdlib.sh
+rm $tmp_dir/stdlib.sh
 
 # failure counting
 source $bp_dir/bin/util/failures.sh
@@ -256,14 +257,14 @@ composer_bindir=$(composer config --no-plugins bin-dir)
 
 # packages that get installed will add to this file, it's both for us and for buildpacks that follow
 # composer bin-dir goes last to avoid any conflicts
-echo "export PATH=/app/.heroku/php/bin:\$PATH:/app/$composer_bindir" > $bp_dir/export
+echo "export PATH=/app/.heroku/php/bin:\$PATH:/app/$composer_bindir" > $tmp_dir/export
 # make sure Composer and binaries for it are on the path at runtime
 # composer bin-dir goes last to avoid any conflicts
 mkdir -p $build_dir/.profile.d
 echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $build_dir/.profile.d/100-composer.sh
 
 # a few more practical defaults for Composer (use available memory, always mirror path repos because of FS boundaries during build, always run non-interactively)
-cat | tee -a $bp_dir/export >> $build_dir/.profile.d/100-composer.sh <<-'EOF'
+cat | tee -a $tmp_dir/export >> $build_dir/.profile.d/100-composer.sh <<-'EOF'
 	mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
 	if [[ -f "$mlib" ]]; then
 		export COMPOSER_MEMORY_LIMIT=${COMPOSER_MEMORY_LIMIT:-$(cat "$mlib")}
@@ -397,7 +398,7 @@ export COMPOSER=composer.json
 
 # pass export_file_path and profile_dir_path to composer install; they will be used by the installer plugin
 # they are also used in later install attempts for add-on extensions (blackfire, newrelic, ...)
-export export_file_path=$bp_dir/export
+export export_file_path=$tmp_dir/export
 export profile_dir_path=$build_dir/.profile.d
 # grep and sed in a subshell with || true, or a failing grep match will cause the exit code to be 1 if "composer install" fails with code 2
 if composer install -d "$build_dir/.heroku/php" ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} 2>&1 | tee $build_dir/.heroku/php/install.log | ( grep --line-buffered -E '^  - (Instal|Enab)ling heroku-sys/' | sed -u -E -e 's/^  - (Instal|Enab)ling /- /' -e 's/heroku-sys\///g' || true ) | indent; then
@@ -504,10 +505,10 @@ unset -f composer
 
 # export our "do not auto.start APM extensions" magic INI directory to PHP_INI_SCAN_DIR for ourself and for later buildpacks (but not for runtime)
 export_env_dir "$env_dir" '^PHP_INI_SCAN_DIR$'
-echo "export PHP_INI_SCAN_DIR=\${PHP_INI_SCAN_DIR-}:$bp_dir/conf/php/apm-nostart-overrides/" >> $bp_dir/export
+echo "export PHP_INI_SCAN_DIR=\${PHP_INI_SCAN_DIR-}:$bp_dir/conf/php/apm-nostart-overrides/" >> $tmp_dir/export
 
 # earlier we wrote at least one $PATH entry that we'll need now (and just above we added a PHP_INI_SCAN_DIR export), and installed packages will likely have added to it too
-source $bp_dir/export
+source $tmp_dir/export
 
 composer() {
 	$engine $(which composer) "$@"
