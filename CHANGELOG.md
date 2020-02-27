@@ -12,6 +12,7 @@
 - ext-newrelic/9.7.0.258 [David Zuelke]
 - ext-mongodb/1.7.3 [David Zuelke]
 - ext-event/2.5.4 [David Zuelke]
+- ext-blackfire/1.31.0 [David Zuelke]
 
 ### CHG
 
