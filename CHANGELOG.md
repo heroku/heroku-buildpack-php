@@ -11,6 +11,7 @@
 - ext-phalcon/4.0.4 [David Zuelke]
 - ext-newrelic/9.7.0.258 [David Zuelke]
 - ext-mongodb/1.7.3 [David Zuelke]
+- ext-event/2.5.4 [David Zuelke]
 
 ### CHG
 
