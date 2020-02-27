@@ -2,6 +2,10 @@
 
 ## v1?? (2020-??-??)
 
+### ADD
+
+- PHP/7.2.28 [David Zuelke]
+
 ### CHG
 
 - Use system libc-client for IMAP extension [David Zuelke]
