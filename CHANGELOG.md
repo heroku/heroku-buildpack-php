@@ -8,6 +8,7 @@
 - PHP/7.3.15 [David Zuelke]
 - PHP/7.4.3 [David Zuelke]
 - ext-psr/1.0.0 [David Zuelke]
+- ext-phalcon/4.0.4 [David Zuelke]
 
 ### CHG
 
