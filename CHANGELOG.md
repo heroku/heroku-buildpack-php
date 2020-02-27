@@ -8,6 +8,7 @@
 - Use system libmcrypt on all stacks [David Zuelke]
 - Use system libzip on heroku-16 and heroku-18 stacks [David Zuelke]
 - Use system libsqlite on heroku-16 and heroku-18 stacks [David Zuelke]
+- Use system libonig on heroku-16 and heroku-18 stacks [David Zuelke]
 
 ## v171 (2020-02-11)
 

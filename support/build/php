@@ -48,10 +48,12 @@ if [[ $STACK == "cedar-14" ]]; then
 	needed+=( libicu52 )
 elif [[ $STACK == "heroku-16" ]]; then
 	needed+=( libicu55 )
+	needed+=( libonig2 )
 	needed+=( libsodium18 )
 	needed+=( libzip4 )
 else
 	needed+=( libicu60 )
+	needed+=( libonig4 )
 	needed+=( libsodium23 )
 	needed+=( libzip4 )
 fi
@@ -67,7 +69,7 @@ fi
 # we need libgmp-dev for GMP, libpam0g-dev/libc-client-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP
 needed=( libgmp-dev libpam0g-dev libc-client2007e-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev )
 if [[ $STACK != "cedar-14" ]]; then
-	needed+=( libsodium-dev libsqlite3-dev libzip-dev )
+	needed+=( libonig-dev libsodium-dev libsqlite3-dev libzip-dev )
 	sqlite_prefix="/usr"
 else
 	sqlite_prefix=
@@ -113,7 +115,7 @@ if [[ $dep_version == 7.* ]]; then
 			configureopts+=("--with-webp-dir=/usr") # for ext-gd
 		fi
 	else
-		configureopts+=("--with-zip" "--disable-mbregex") # we do not have libonig
+		configureopts+=("--with-zip")
 		configureopts+=("--with-sqlite3=shared" "--with-pdo-sqlite=shared")
 		configureopts+=("--enable-gd=shared" "--with-freetype" "--with-jpeg") # for ext-gd
 		if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
@@ -135,9 +137,9 @@ else
 	configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr" "--with-mcrypt" "--with-mysql=shared" "--enable-zip" "--with-sqlite3=shared${sqlite_prefix:+","}${sqlite_prefix}" "--with-pdo-sqlite=shared${sqlite_prefix:+","}${sqlite_prefix}")
 fi
 if [[ $STACK == "cedar-14" ]]; then
-	configureopts+=("--without-libzip") # there is no libzip on cedar-14
+	configureopts+=("--without-libzip" "--without-onig") # there is no libzip and no libonig on cedar-14
 elif [[ $dep_version == 5.* || $dep_version == 7.[0-3].* ]]; then
-	configureopts+=("--with-libzip=/usr") # PHP before 7.4 bundles this, so give explicit location
+	configureopts+=("--with-libzip=/usr" "--with-onig=/usr") # PHP before 7.4 bundles these, so give explicit locations
 fi
 
 export PATH=${OUT_PREFIX}/bin:$PATH
