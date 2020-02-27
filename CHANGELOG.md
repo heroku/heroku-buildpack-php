@@ -9,6 +9,7 @@
 - PHP/7.4.3 [David Zuelke]
 - ext-psr/1.0.0 [David Zuelke]
 - ext-phalcon/4.0.4 [David Zuelke]
+- ext-newrelic/9.7.0.258 [David Zuelke]
 
 ### CHG
 
