@@ -1,5 +1,27 @@
 # heroku-buildpack-php CHANGELOG
 
+## v172 (2020-02-28)
+
+### ADD
+
+- PHP/7.2.28 [David Zuelke]
+- PHP/7.3.15 [David Zuelke]
+- PHP/7.4.3 [David Zuelke]
+- ext-psr/1.0.0 [David Zuelke]
+- ext-phalcon/4.0.4 [David Zuelke]
+- ext-newrelic/9.7.0.258 [David Zuelke]
+- ext-mongodb/1.7.3 [David Zuelke]
+- ext-event/2.5.4 [David Zuelke]
+- ext-blackfire/1.31.0 [David Zuelke]
+
+### CHG
+
+- Use system libc-client for IMAP extension [David Zuelke]
+- Use system libmcrypt on all stacks [David Zuelke]
+- Use system libzip on heroku-16 and heroku-18 stacks [David Zuelke]
+- Use system libsqlite on heroku-16 and heroku-18 stacks [David Zuelke]
+- Use system libonig on heroku-16 and heroku-18 stacks [David Zuelke]
+
 ## v171 (2020-02-11)
 
 ### ADD
