@@ -11,6 +11,7 @@
 ### CHG
 
 - Composer/1.10.1 [David Zuelke]
+- libcassandra/2.15.1 [David Zuelke]
 
 ## v172 (2020-02-28)
 
