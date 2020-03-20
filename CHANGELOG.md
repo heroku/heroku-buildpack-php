@@ -8,6 +8,7 @@
 - ext-mongodb/1.7.4 [David Zuelke]
 - ext-redis/5.2.1 [David Zuelke]
 - PHP/7.4.4 [David Zuelke]
+- PHP/7.3.16 [David Zuelke]
 
 ### CHG
 
