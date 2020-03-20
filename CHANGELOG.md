@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-phalcon/4.0.5 [David Zuelke]
+- ext-mongodb/1.7.4 [David Zuelke]
 
 ### CHG
 
