@@ -2,6 +2,10 @@
 
 ## v173 (2020-03-20)
 
+### ADD
+
+- ext-phalcon/4.0.5 [David Zuelke]
+
 ### CHG
 
 - Composer/1.10.1 [David Zuelke]
