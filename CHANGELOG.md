@@ -1,5 +1,21 @@
 # heroku-buildpack-php CHANGELOG
 
+## v173 (2020-03-20)
+
+### ADD
+
+- ext-phalcon/4.0.5 [David Zuelke]
+- ext-mongodb/1.7.4 [David Zuelke]
+- ext-redis/5.2.1 [David Zuelke]
+- PHP/7.4.4 [David Zuelke]
+- PHP/7.3.16 [David Zuelke]
+- PHP/7.2.29 [David Zuelke]
+
+### CHG
+
+- Composer/1.10.1 [David Zuelke]
+- libcassandra/2.15.1 [David Zuelke]
+
 ## v172 (2020-02-28)
 
 ### ADD
