@@ -43,7 +43,7 @@ elif composer exec -l | grep -q -- "^-\s*peridot\b"; then
 	composer exec -v peridot # without -v, no stderr output is printed
 elif composer exec -l | grep -q -- "^-\s*phpunit\b"; then
 	echo "PHPUnit found, executing 'phpunit'..." >&2
-	composer exec -v phpunit # -dmemory_limit="${ram:-"-1"}" # composer exec -- is currently broken, so we can't pass -d to phpunit # without -v, no stderr output is printed
+	composer exec -v phpunit tests/ # -dmemory_limit="${ram:-"-1"}" # composer exec -- is currently broken, so we can't pass -d to phpunit # without -v, no stderr output is printed
 else
 	echo "No tests found. Please use composer script 'test', or app.json, to specify what to run." >&2
 	exit 1
