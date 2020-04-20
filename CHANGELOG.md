@@ -8,6 +8,10 @@
 - PHP/7.3.17 [David Zuelke]
 - PHP/7.4.5 [David Zuelke]
 
+### CHG
+
+- Composer/1.10.5 [David Zuelke]
+
 ## v173 (2020-03-20)
 
 ### ADD
