@@ -9,6 +9,7 @@
 - PHP/7.4.5 [David Zuelke]
 - Apache/2.4.43 [David Zuelke]
 - ext-blackfire/1.33.0 [David Zuelke]
+- ext-amqp/1.10.2 [David Zuelke]
 
 ### CHG
 
