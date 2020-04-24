@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## Unreleased
+
+### CHG
+
+- Support `python` not being symlinked to `python2` [Ed Morley]
+
 ## v174 (2020-04-30)
 
 ### ADD
