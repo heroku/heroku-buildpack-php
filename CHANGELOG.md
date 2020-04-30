@@ -1,6 +1,6 @@
 # heroku-buildpack-php CHANGELOG
 
-## v174 (2020-04-??)
+## v174 (2020-04-30)
 
 ### ADD
 
