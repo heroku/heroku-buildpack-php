@@ -11,6 +11,7 @@
 - ext-blackfire/1.33.0 [David Zuelke]
 - ext-amqp/1.10.2 [David Zuelke]
 - Nginx/1.18.0 [David Zuelke]
+- ext-newrelic/9.10.0.262 [David Zuelke]
 
 ### CHG
 
