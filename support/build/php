@@ -28,9 +28,11 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
 		dep_url=https://downloads.php.net/~pollita/${dep_archive_name}
 	elif [[ $dep_version == 7.3.* ]]; then
 		dep_url=https://downloads.php.net/~cmb/${dep_archive_name}
+	elif [[ $dep_version == 7.4.* ]]; then
+		dep_url=https://downloads.php.net/~derick/${dep_archive_name}
 	fi
 else
-	dep_url=https://php.net/get/${dep_archive_name}/from/this/mirror
+	dep_url=https://www.php.net/distributions/${dep_archive_name}
 fi
 dep_manifest=${dep_package}.composer.json
 
@@ -40,29 +42,43 @@ curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
 
-# we need libgmp for GMP, libpam0g for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP
-needed=( libgmp10 libpam0g libsasl2-2 libkrb5-3 libldap-2.4-2 )
+# we need libgmp for GMP, libpam0g/libc-client for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP
+needed=( libgmp10 libpam0g libc-client2007e libsasl2-2 libkrb5-3 libldap-2.4-2 )
 if [[ $STACK == "cedar-14" ]]; then
 	needed+=( libicu52 )
 elif [[ $STACK == "heroku-16" ]]; then
 	needed+=( libicu55 )
+	needed+=( libonig2 )
 	needed+=( libsodium18 )
-elif [[ $STACK != "heroku-18" ]]; then
+	needed+=( libzip4 )
+else
 	needed+=( libicu60 )
+	needed+=( libonig4 )
 	needed+=( libsodium23 )
+	needed+=( libzip4 )
 fi
+if [[ $dep_version == 5.* || $dep_version == 7.[0-1].* ]]; then
+	needed+=( libmcrypt4 )
+fi
+
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
 	echo "Error! Missing libraries: $missing"
 	exit 1
 fi
-# we need libgmp-dev for GMP, libpam0g-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP
-needed=( libgmp-dev libpam0g-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev )
+# we need libgmp-dev for GMP, libpam0g-dev/libc-client-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP
+needed=( libgmp-dev libpam0g-dev libc-client2007e-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev )
 if [[ $STACK != "cedar-14" ]]; then
-	needed+=( libsodium-dev )
+	needed+=( libonig-dev libsodium-dev libsqlite3-dev libzip-dev )
+	sqlite_prefix="/usr"
+else
+	sqlite_prefix=
 fi
 if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
 	needed+=( libwebp-dev )
+fi
+if [[ $dep_version == 5.* || $dep_version == 7.[0-1].* ]]; then
+	needed+=( libmcrypt-dev )
 fi
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
@@ -83,37 +99,32 @@ if dpkg --compare-versions "$dep_version" "lt" 7.1.15 || dpkg --compare-versions
 	sed -i 's/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR/LDAP_SASL_LIBDIR=$LDAP_SASL_DIR\/$PHP_LIBDIR\/x86_64-linux-gnu/' configure
 fi
 
-# let's see if mcrypt is there, if not then we have to use the vendored one
-needed=( libmcrypt4 )
-missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
-if [[ "$missing" ]]; then
-	echo "Using vendored libmcrypt..."
-	# use vendored libmcrypt
-	mcrypt_prefix="${OUT_PREFIX}"
-else
-	echo "Using system libmcrypt..."
-	# use system libmcrypt
-	mcrypt_prefix=
-	# but do we need headers?
-	needed=( libmcrypt-dev )
-	missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
-	if [[ "$missing" ]]; then
-		apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
-		apt-get install -q -y $missing
-	fi
-fi
+# we want to build FPM with tracing using pread, which uses /proc/$pid/mem
+# depending on host/container capabilities, it will likely detect ptrace as present, but that's blocked on the platform
+# the only easy way to force it to use pread is by patching configure so it assumes the ptrace check has failed
+# see the AC_DEFUN([AC_FPM_TRACE] bits in sapi/fpm/config.m4
+sed -i 's/have_ptrace=yes/have_ptrace=no/' configure
 
 configureopts=()
 if [[ $dep_version == 7.* ]]; then
-	configureopts+=("--enable-opcache-file")
-	configureopts+=("--without-libzip") # FIXME: change to --with-libzip once cedar-14 is EOL, as the other stacks have an up to date enough version
-	
-	if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
-		configureopts+=("--with-webp-dir=/usr") # for ext-gd
+	if [[ $dep_version == 7.[0-3].* ]]; then
+		configureopts+=("--enable-opcache-file" "--enable-zip")
+		configureopts+=("--with-sqlite3=shared${sqlite_prefix:+","}${sqlite_prefix}" "--with-pdo-sqlite=shared${sqlite_prefix:+","}${sqlite_prefix}")
+		configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr") # for ext-gd
+		if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
+			configureopts+=("--with-webp-dir=/usr") # for ext-gd
+		fi
+	else
+		configureopts+=("--with-zip")
+		configureopts+=("--with-sqlite3=shared" "--with-pdo-sqlite=shared")
+		configureopts+=("--enable-gd=shared" "--with-freetype" "--with-jpeg") # for ext-gd
+		if [[ $STACK != "cedar-14" && $STACK != "heroku-16" ]]; then
+			configureopts+=("--with-webp") # for ext-gd
+		fi
 	fi
 	
-	if [[ $dep_version == 7.0.* || $dep_version == 7.1.* ]]; then
-		configureopts+=("--with-mcrypt=shared${mcrypt_prefix:+","}${mcrypt_prefix}")
+	if [[ $dep_version == 7.[0-1].* ]]; then
+		configureopts+=("--with-mcrypt=shared")
 	else
 		if [[ $STACK != "cedar-14" ]]; then
 			configureopts+=("--with-sodium=shared")
@@ -123,7 +134,12 @@ if [[ $dep_version == 7.* ]]; then
 		fi
 	fi
 else
-	configureopts+=("--with-mcrypt${mcrypt_prefix:+"="}${mcrypt_prefix}" "--with-mysql=shared")
+	configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr" "--with-mcrypt" "--with-mysql=shared" "--enable-zip" "--with-sqlite3=shared${sqlite_prefix:+","}${sqlite_prefix}" "--with-pdo-sqlite=shared${sqlite_prefix:+","}${sqlite_prefix}")
+fi
+if [[ $STACK == "cedar-14" ]]; then
+	configureopts+=("--without-libzip" "--without-onig") # there is no libzip and no libonig on cedar-14
+elif [[ $dep_version == 5.* || $dep_version == 7.[0-3].* ]]; then
+	configureopts+=("--with-libzip=/usr" "--with-onig=/usr") # PHP before 7.4 bundles these, so give explicit locations
 fi
 
 export PATH=${OUT_PREFIX}/bin:$PATH
@@ -145,19 +161,14 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--with-pdo-pgsql \
 	--with-readline \
 	--enable-sockets \
-	--enable-zip \
 	--with-zlib \
 	--enable-bcmath=shared \
 	--enable-calendar=shared \
 	--enable-exif=shared \
 	--enable-ftp=shared \
-	--with-gd=shared \
-		--with-freetype-dir=/usr \
-		--with-jpeg-dir=/usr \
-		--with-png-dir=/usr \
 	--with-gettext=shared \
 	--with-gmp=shared \
-	--with-imap=shared,${OUT_PREFIX}/opt/imap-2007f \
+	--with-imap=shared \
 		--with-imap-ssl \
 	--enable-intl=shared \
 	--with-ldap=shared \
@@ -166,21 +177,20 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--enable-pcntl=shared \
 	--enable-shmop=shared \
 	--enable-soap=shared \
-	--with-sqlite3=shared \
-	--with-pdo-sqlite=shared \
 	--with-xmlrpc=shared \
 	--with-xsl=shared \
 	"${configureopts[@]}"
 make -s -j 9
 make install -s
-rm -rf ${OUT_PREFIX}/opt/imap-2007f # c-client.a got linked statically
 find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 popd
 
 rm -rf ${OUT_PREFIX}/php/man ${OUT_PREFIX}/lib/php/extensions/*/*.a
 
-echo "-----> Preparing PECL..."
-${OUT_PREFIX}/bin/pecl channel-update pecl.php.net
+if [[ $dep_version == 5.* || $dep_version == 7.[0-3].* ]]; then
+	echo "-----> Preparing PECL..."
+	${OUT_PREFIX}/bin/pecl channel-update pecl.php.net
+fi
 
 echo "-----> Generating manifest..."
 curl -sS https://getcomposer.org/installer | php
@@ -228,6 +238,27 @@ EOF
 # this gets sourced on dyno boot
 cat > ${OUT_PREFIX}/bin/profile.php.sh <<'EOF'
 export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
+
+# read memory limit of dyno
+mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
+# get php.ini location; don't forget to suppress INI scan dir to prevent e.g. New Relic from starting
+php_ini_path=$(PHP_INI_SCAN_DIR= php -r 'echo get_cfg_var("cfg_file_path");')
+if [[ -f "$mlib" && -n "$php_ini_path" ]]; then
+	php_cli_ini_path=$(dirname "$php_ini_path")/php-cli.ini
+	# create php-cli.ini from php.ini unless it exists
+	# we can't cp -n instead because php_ini_path would already be php-cli.ini and that would error
+	if [[ "$php_ini_path" != "$php_cli_ini_path" ]]; then
+		cp "$php_ini_path" "$php_cli_ini_path"
+	fi
+	# compute memory limit, up to 16 GB
+	max_memory_limit=$(( 16 * 1024 * 1024 * 1024 ))
+	sys_memory_limit=$(cat "$mlib")
+	memory_limit=$(( sys_memory_limit > max_memory_limit ? max_memory_limit : sys_memory_limit ))
+	# append to php-cli.ini
+	echo $'\n;inserted by ~/.profile.d/ script' >> "$php_cli_ini_path"
+	echo "memory_limit=$memory_limit" >> "$php_cli_ini_path"
+fi
+
 EOF
 
 python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest

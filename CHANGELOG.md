@@ -1,5 +1,204 @@
 # heroku-buildpack-php CHANGELOG
 
+## v174 (2020-04-30)
+
+### ADD
+
+- PHP/7.2.30 [David Zuelke]
+- PHP/7.3.17 [David Zuelke]
+- PHP/7.4.5 [David Zuelke]
+- Apache/2.4.43 [David Zuelke]
+- ext-blackfire/1.33.0 [David Zuelke]
+- ext-amqp/1.10.2 [David Zuelke]
+- Nginx/1.18.0 [David Zuelke]
+- ext-newrelic/9.10.0.262 [David Zuelke]
+
+### CHG
+
+- Composer/1.10.5 [David Zuelke]
+- librdkafka/1.4.0 [David Zuelke]
+
+## v173 (2020-03-20)
+
+### ADD
+
+- ext-phalcon/4.0.5 [David Zuelke]
+- ext-mongodb/1.7.4 [David Zuelke]
+- ext-redis/5.2.1 [David Zuelke]
+- PHP/7.4.4 [David Zuelke]
+- PHP/7.3.16 [David Zuelke]
+- PHP/7.2.29 [David Zuelke]
+
+### CHG
+
+- Composer/1.10.1 [David Zuelke]
+- libcassandra/2.15.1 [David Zuelke]
+
+## v172 (2020-02-28)
+
+### ADD
+
+- PHP/7.2.28 [David Zuelke]
+- PHP/7.3.15 [David Zuelke]
+- PHP/7.4.3 [David Zuelke]
+- ext-psr/1.0.0 [David Zuelke]
+- ext-phalcon/4.0.4 [David Zuelke]
+- ext-newrelic/9.7.0.258 [David Zuelke]
+- ext-mongodb/1.7.3 [David Zuelke]
+- ext-event/2.5.4 [David Zuelke]
+- ext-blackfire/1.31.0 [David Zuelke]
+
+### CHG
+
+- Use system libc-client for IMAP extension [David Zuelke]
+- Use system libmcrypt on all stacks [David Zuelke]
+- Use system libzip on heroku-16 and heroku-18 stacks [David Zuelke]
+- Use system libsqlite on heroku-16 and heroku-18 stacks [David Zuelke]
+- Use system libonig on heroku-16 and heroku-18 stacks [David Zuelke]
+
+## v171 (2020-02-11)
+
+### ADD
+
+- ext-mongodb/1.7.1 [David Zuelke]
+- ext-oauth/2.0.5 [David Zuelke]
+- ext-pq/2.1.7 [David Zuelke]
+- ext-rdkafka/4.0.3 [David Zuelke]
+- ext-psr/0.7.0 [David Zuelke]
+- ext-phalcon/4.0.3 [David Zuelke]
+
+### CHG
+
+- Composer/1.9.3 [David Zuelke]
+
+## v170 (2020-02-10)
+
+### ADD
+
+- PHP/7.4.2 [David Zuelke]
+
+### CHG
+
+- `$COMPOSER_MEMORY_LIMIT` defaults to dyno memory if information is available [David Zuelke]
+- `$COMPOSER_MIRROR_PATH_REPOS` defaults to 1 [David Zuelke]
+- `$COMPOSER_NO_INTERACTION` defaults to 1 [David Zuelke]
+- `$COMPOSER_PROCESS_TIMEOUT` defaults to 0 at app runtime [David Zuelke]
+- Build PHP-FPM with /proc/…/mem based process tracing [David Zuelke]
+- Log slow PHP-FPM requests after 3 seconds by default for PHP 7.4 [David Zuelke]
+- Terminate slow PHP-FPM requests after 30 seconds by default for PHP 7.4 [David Zuelke]
+- Refactor `$WEB_CONCURRENCY` calculation to use `/sys/fs/cgroup/memory/memory.limit_in_bytes` if available [David Zuelke]
+- Use all available instance RAM when calculating `$WEB_CONCURRENCY` for PHP 7.4+ running on Performance-L dynos [David Zuelke]
+- Use all available instance RAM as default PHP CLI memory_limit [David Zuelke]
+
+## v169 (2020-01-26)
+
+### CHG
+
+- Try and tell SIGTERM cases apart in boot scripts for more precise messaging on shutdown [David Zuelke]
+
+### FIX
+
+- Shell may emit confusing "... Terminated ..." messages on shutdown [David Zuelke]
+- PHP-FPM startup failures may trigger race condition where dyno boot hangs [David Zuelke]
+
+## v168 (2020-01-24)
+
+### ADD
+
+- PHP/7.2.27 [David Zuelke]
+- PHP/7.3.14 [David Zuelke]
+- ext-blackfire/1.30.0 [David Zuelke]
+- ext-newrelic/9.6.1.256 [David Zuelke]
+- ext-pq/2.1.6 [David Zuelke]
+
+### CHG
+
+- Composer/1.9.2 [David Zuelke]
+- libcassandra/2.15.0 [David Zuelke]
+
+## v167 (2020-01-23)
+
+### CHG
+
+- Graceful shutdown for boot scripts on SIGTERM and SIGINT [David Zuelke]
+- Dynamically poll for `newrelic-daemon` readiness on dyno boot instead of using blanket two-second wait [David Zuelke]
+- Dynamically poll for PHP-FPM readiness on dyno boot instead of using blanket two-second wait [David Zuelke]
+
+## v166 (2019-12-20)
+
+### ADD
+
+- PHP/7.2.26 [David Zuelke]
+- PHP/7.3.13 [David Zuelke]
+- ext-rdkafka/4.0.2 [David Zuelke]
+
+## v165 (2019-12-11)
+
+### ADD
+
+- ext-apcu/5.1.18 [David Zuelke]
+- ext-raphf/2.0.1 [David Zuelke]
+- ext-phalcon/3.4.5 [David Zuelke]
+- ext-redis/5.1.1 [David Zuelke]
+- PHP/7.2.25 [David Zuelke]
+- PHP/7.3.12 [David Zuelke]
+- ext-memcached/3.1.5 [David Zuelke]
+- ext-mongodb/1.6.1 [David Zuelke]
+- ext-newrelic/9.4.0.249 [David Zuelke]
+- ext-ev/1.0.7 [David Zuelke]
+- ext-rdkafka/3.1.3 [David Zuelke]
+- ext-rdkafka/4.0.0 [David Zuelke]
+- ext-blackfire/1.29.4 [David Zuelke]
+- ext-uuid/1.1.0 (#371) [David Zuelke]
+
+### CHG
+
+- Composer/1.9.1 [David Zuelke]
+- librdkafka/1.3.0 [David Zuelke]
+- libcassandra/2.14.1 [David Zuelke]
+
+### FIX
+
+- Revert ext-newrelic/9.2.0.247 due to startup failure [David Zuelke]
+- PHP 7.0 builds picking up generic rather than version-specific `heroku.ini` settings [David Zuelke]
+
+## v164 (2019-10-24)
+
+### ADD
+
+- PHP/7.3.11 [David Zuelke]
+- PHP/7.2.24 [David Zuelke]
+- PHP/7.1.33 [David Zuelke]
+- ext-newrelic/9.2.0.247 [David Zuelke]
+- ext-memcached/3.1.4 [David Zuelke]
+- ext-rdkafka/4.0.0 [David Zuelke]
+
+### CHG
+
+- Bump `heroku-16.Dockerfile` and `heroku-18.Dockerfile` to tag v18 [David Zuelke]
+- librdkafka/1.2.1 [David Zuelke]
+
+## v163 (2019-10-01)
+
+### CHG
+
+- Pin `heroku-18.Dockerfile` to use `heroku/heroku:18-build.v16` to ensure builds against libssl 1.1.0 until Private Spaces are fully upgraded [David Zuelke]
+
+## v162 (2019-09-27)
+
+### ADD
+
+- PHP/7.2.23 [David Zuelke]
+- PHP/7.3.10 [David Zuelke]
+- ext-newrelic/9.1.0.246 [David Zuelke]
+- ext-mongodb/1.6.0 (PHP 5.6+ only) [David Zuelke]
+- ext-blackfire/1.27.1 [David Zuelke]
+- Nginx/1.16.1 [David Zuelke]
+
+### CHG
+
+- librdkafka/1.2.0 [David Zuelke]
+
 ## v161 (2019-08-30)
 
 ### ADD
