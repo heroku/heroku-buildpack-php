@@ -31,6 +31,21 @@ shared_examples "A PHP application with a composer.json" do |series|
 			                 .and match(/user_ini.cache_ttl => 86400/)
 			                 .and match(/variables_order => EGPCS/)
 		end
+		
+		it "uses all available RAM as PHP CLI memory_limit", :if => series.between?("7.2","7.4") do
+			expect(@app.run("php -i | grep memory_limit")).to match "memory_limit => 536870912 => 536870912"
+		end
+		
+		it "is running a PHP build that links against libc-client, libonig, libsqlite3 and libzip from the stack", :if => series.between?("7.2","7.4") && ENV["STACK"] != "cedar-14" do
+			ldd_output = @app.run("ldd .heroku/php/bin/php .heroku/php/lib/php/extensions/no-debug-non-zts-*/{imap,mbstring,pdo_sqlite,sqlite3}.so | grep -E ' => (/usr)?/lib/' | grep -e 'libc-client.so' -e 'libonig.so' -e 'libsqlite3.so' -e 'libzip.so' | wc -l")
+			# 1x libc-client.so for extensions/…/imap.so
+			# 1x libonig for extensions/…/mbstring.so
+			# 1x libsqlite3.so for extensions/…/pdo_sqlite.so
+			# 1x libsqlite3.so for extensions/…/sqlite3.so
+			# 1x libsqlite3.so for bin/php
+			# 1x libzip.so for bin/php
+			expect(ldd_output).to match(/^6$/)
+		end
 	end
 	
 	context "requiring PHP #{series} and using New Relic" do
@@ -231,45 +246,69 @@ shared_examples "A PHP application with a composer.json" do |series|
 			context "setting concurrency via .user.ini memory_limit" do
 				it "calculates concurrency correctly" do
 					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} docroot/") })
-						.to match("16 processes at 32MB memory limit")
+						 .to match("PHP memory_limit is 32M Bytes")
+						.and match("Starting php-fpm with 16 workers...")
 				end
 				it "always launches at least one worker" do
 					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} docroot/onegig/") })
-						.to match("1 processes at 1024MB memory limit")
+						 .to match("PHP memory_limit is 1024M Bytes")
+						.and match("Starting php-fpm with 1 workers...")
 				end
 				it "is only done for a .user.ini directly in the document root" do
 					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}") })
-						.to match("4 processes at 128MB memory limit")
+						 .to match("PHP memory_limit is 128M Bytes")
+						.and match("Starting php-fpm with 4 workers...")
 				end
 			end
 			
 			context "setting concurrency via FPM config memory_limit" do
 				it "calculates concurrency correctly" do
 					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.include.conf") })
-						.to match("16 processes at 32MB memory limit")
+						 .to match("PHP memory_limit is 32M Bytes")
+						.and match("Starting php-fpm with 16 workers...")
 				end
 				it "always launches at least one worker" do
 					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.onegig.conf") })
-						.to match("1 processes at 1024MB memory limit")
+						 .to match("PHP memory_limit is 1024M Bytes")
+						.and match("Starting php-fpm with 1 workers...")
 				end
 				it "takes precedence over a .user.ini memory_limit" do
 					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.include.conf docroot/onegig/") })
-						.to match("16 processes at 32MB memory limit")
+						 .to match("PHP memory_limit is 32M Bytes")
+						.and match("Starting php-fpm with 16 workers...")
 				end
 			end
 			
 			context "setting WEB_CONCURRENCY explicitly" do
 				it "uses the explicit value" do
 					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", nil, {:heroku => {:env => "WEB_CONCURRENCY=22"}}) })
-						.to match "Using WEB_CONCURRENCY=22"
+						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						.and match("Starting php-fpm with 22 workers...")
 				end
 				it "overrides a .user.ini memory_limit" do
 					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} docroot/onegig/", nil, {:heroku => {:env => "WEB_CONCURRENCY=22"}}) })
-						.to match "Using WEB_CONCURRENCY=22"
+						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						.and match("Starting php-fpm with 22 workers...")
 				end
 				it "overrides an FPM config memory_limit" do
 					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.onegig.conf", nil, {:heroku => {:env => "WEB_CONCURRENCY=22"}}) })
-						.to match "Using WEB_CONCURRENCY=22"
+						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						.and match("Starting php-fpm with 22 workers...")
+				end
+			end
+			
+			context "running on a Performance-L dyno" do
+				it "restricts the app to 6 GB of RAM", :if => series < "7.4" do
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", nil, {:heroku => {:size => "Performance-L"}}) })
+						 .to match("Detected 15032385536 Bytes of RAM")
+						.and match("Limiting to 6G Bytes of RAM usage")
+						.and match("Starting php-fpm with 48 workers...")
+				end
+				
+				it "uses all available RAM for PHP-FPM workers", :unless => series < "7.4" do
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", nil, {:heroku => {:size => "Performance-L"}}) })
+						 .to match("Detected 15032385536 Bytes of RAM")
+						.and match("Starting php-fpm with 112 workers...")
 				end
 			end
 		end
