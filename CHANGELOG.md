@@ -15,6 +15,7 @@
 - Support `python` not being symlinked to `python2` [Ed Morley]
 - Composer/1.10.6 [David Zuelke]
 - librdkafka/1.4.2 [David Zuelke]
+- libcassandra/2.15.2 [David Zuelke]
 
 ## v174 (2020-04-30)
 
