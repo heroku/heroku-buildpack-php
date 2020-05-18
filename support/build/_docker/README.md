@@ -7,6 +7,7 @@
     $ docker build --pull --tag heroku-php-build-cedar-14 --file $(pwd)/support/build/_docker/cedar-14.Dockerfile .
     $ docker build --pull --tag heroku-php-build-heroku-16 --file $(pwd)/support/build/_docker/heroku-16.Dockerfile .
     $ docker build --pull --tag heroku-php-build-heroku-18 --file $(pwd)/support/build/_docker/heroku-18.Dockerfile .
+    $ docker build --pull --tag heroku-php-build-heroku-20 --file $(pwd)/support/build/_docker/heroku-20.Dockerfile .
 
 ## Configuration
 
@@ -21,6 +22,7 @@ From the root of the Git repository (not from `support/build/_docker/`), you can
     docker run --rm -ti heroku-php-build-cedar-14 bash
     docker run --rm -ti heroku-php-build-heroku-16 bash
     docker run --rm -ti heroku-php-build-heroku-18 bash
+    docker run --rm -ti heroku-php-build-heroku-20 bash
 
 You then have a shell where you can run `bob build`, `deploy.sh` and so forth. You can of course also invoke these programs directly with `docker run`.
 

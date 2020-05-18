@@ -30,9 +30,13 @@ matrix:
         if: branch = master OR tag IS present
       - env: STACK=heroku-18
         if: branch = master OR tag IS present
+      - env: STACK=heroku-20
+        if: branch = master OR tag IS present
       - env: STACK=cedar-14 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-cedar-14-develop/"
         if: branch != master AND tag IS blank
       - env: STACK=heroku-16 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-heroku-16-develop/"
         if: branch != master AND tag IS blank
       - env: STACK=heroku-18 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-heroku-18-develop/"
+        if: branch != master AND tag IS blank
+      - env: STACK=heroku-20 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-heroku-20-develop/"
         if: branch != master AND tag IS blank
