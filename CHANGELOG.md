@@ -11,6 +11,7 @@
 - ext-newrelic/9.10.1.263 [David Zuelke]
 - ext-event/2.5.5 [David Zuelke]
 - ext-phalcon/4.0.6 [David Zuelke]
+- ext-blackfire/1.34.0 [David Zuelke]
 
 ### CHG
 
