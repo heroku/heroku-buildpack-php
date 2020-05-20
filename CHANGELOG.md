@@ -9,9 +9,9 @@
 - PHP/7.4.6 [David Zuelke]
 - ext-redis/5.2.2 [David Zuelke]
 - ext-newrelic/9.10.1.263 [David Zuelke]
-- ext-event/2.5.5 [David Zuelke]
 - ext-phalcon/4.0.6 [David Zuelke]
 - ext-blackfire/1.34.0 [David Zuelke]
+- ext-event/2.5.6 [David Zuelke]
 
 ### CHG
 
