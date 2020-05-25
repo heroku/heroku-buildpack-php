@@ -1,5 +1,25 @@
 # heroku-buildpack-php CHANGELOG
 
+## v175 (2020-05-25)
+
+### ADD
+
+- PHP/7.2.31 [David Zuelke]
+- PHP/7.3.18 [David Zuelke]
+- PHP/7.4.6 [David Zuelke]
+- ext-redis/5.2.2 [David Zuelke]
+- ext-newrelic/9.10.1.263 [David Zuelke]
+- ext-phalcon/4.0.6 [David Zuelke]
+- ext-blackfire/1.34.0 [David Zuelke]
+- ext-event/2.5.6 [David Zuelke]
+
+### CHG
+
+- Support `python` not being symlinked to `python2` [Ed Morley]
+- Composer/1.10.6 [David Zuelke]
+- librdkafka/1.4.2 [David Zuelke]
+- libcassandra/2.15.2 [David Zuelke]
+
 ## v174 (2020-04-30)
 
 ### ADD
