@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v176 (2020-05-26)
+
+### FIX
+
+- Fix build failures for apps that also use heroku/python, introduced in 04c5e14 (#412) [David Zuelke]
+
 ## v175 (2020-05-25)
 
 ### ADD

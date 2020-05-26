@@ -42,6 +42,6 @@ echo
 echo "ABI version is: ${ABI_VERSION}"
 echo
 
-python2 $(dirname $BASH_SOURCE)/../_util/include/manifest.py "heroku-sys-library" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "{}" "{}" "{}" "{\"heroku-sys/librdkafka-abi\":\"${ABI_VERSION}\"}" > $dep_manifest
+python $(dirname $BASH_SOURCE)/../_util/include/manifest.py "heroku-sys-library" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "{}" "{}" "{}" "{\"heroku-sys/librdkafka-abi\":\"${ABI_VERSION}\"}" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

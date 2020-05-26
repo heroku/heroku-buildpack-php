@@ -14,11 +14,7 @@ if ! type -p "realpath" > /dev/null; then
 	# readlink is not an option because BSD readlink does not have the GNU -f option
 	# must be a function so subshells, including $(…), can use it
 	realpath() {
-		# Required since OS X's Python 2 binary is named `python` not `python2`,
-		# and on newer Ubuntu `python` no longer exists.
-		python_bin=$(command -v python2 python) || { echo "This program requires 'python2' or 'python' to be on \$PATH." >&2; exit 1; }
-		python_bin=$(head -n1 <<< "$python_bin") # Only use the first path if both were present
-		"$python_bin" -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$@"
+		python -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$@"
 	}
 fi
 

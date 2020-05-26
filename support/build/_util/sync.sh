@@ -88,7 +88,7 @@ echo "" >&2
 
 # this mkrepo.sh call won't actually download, but use the given *.composer.json, and echo a generated packages.json
 # we use this to compare to the downloaded packages.json
-$here/mkrepo.sh $src_bucket $src_prefix ${src_tmp}/*.composer.json 2>/dev/null | python2 -c 'import sys, json; sys.exit(json.load(open(sys.argv[1])) != json.load(sys.stdin))' ${src_tmp}/packages.json || {
+$here/mkrepo.sh $src_bucket $src_prefix ${src_tmp}/*.composer.json 2>/dev/null | python -c 'import sys, json; sys.exit(json.load(open(sys.argv[1])) != json.load(sys.stdin))' ${src_tmp}/packages.json || {
 	cat >&2 <<-EOF
 		WARNING: packages.json from source does not match its list of manifests!
 		 You should run 'mkrepo.sh' to update, or ask the bucket maintainers to do so.
@@ -113,7 +113,7 @@ update_manifests=()
 ignore_manifests=()
 for filename in $common; do
 	result=0
-	python2 <(cat <<-'PYTHON' # beware of single quotes in body
+	python <(cat <<-'PYTHON' # beware of single quotes in body
 		from __future__ import print_function
 		import sys, json, os, datetime
 		# for python 2+3 compat
@@ -204,7 +204,7 @@ echo "" >&2
 copied_files=()
 for manifest in $add_manifests ${update_manifests[@]:-}; do
 	echo "Copying ${manifest%.composer.json}:" >&2
-	if filename=$(cat ${src_tmp}/${manifest} | python2 <(cat <<-'PYTHON' # beware of single quotes in body
+	if filename=$(cat ${src_tmp}/${manifest} | python <(cat <<-'PYTHON' # beware of single quotes in body
 		import sys, json;
 		manifest=json.load(sys.stdin)
 		url=manifest.get("dist",{}).get("url","").partition("https://"+sys.argv[1]+"."+sys.argv[2]+".amazonaws.com/"+sys.argv[3])
@@ -239,7 +239,7 @@ done
 remove_files=()
 for manifest in $remove_manifests; do
 	echo "Removing ${manifest%.composer.json}:" >&2
-	if filename=$(cat ${dst_tmp}/${manifest} | python2 <(cat <<-'PYTHON' # beware of single quotes in body
+	if filename=$(cat ${dst_tmp}/${manifest} | python <(cat <<-'PYTHON' # beware of single quotes in body
 		import sys, json;
 		manifest=json.load(sys.stdin)
 		url=manifest.get("dist",{}).get("url","").partition("https://"+sys.argv[1]+"."+sys.argv[2]+".amazonaws.com/"+sys.argv[3])
