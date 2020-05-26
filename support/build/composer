@@ -36,6 +36,6 @@ mkdir -p ${OUT_PREFIX}/bin
 
 mv composer.phar ${OUT_PREFIX}/bin/composer
 
-python2 $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-package" "heroku-sys/pkg-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" > $dep_manifest
+python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-package" "heroku-sys/pkg-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

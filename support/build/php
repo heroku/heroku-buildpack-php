@@ -208,11 +208,11 @@ for f in ${OUT_PREFIX}/lib/php/extensions/*/*.so; do
 	echo "extension=$(basename $f)" >> ${OUT_PREFIX}/etc/php/php.ini
 done
 
-extra=$(echo "${shared[@]}" | python2 -c 'import sys, json; json.dump({"shared": dict([item.split(":") if ":" in item else (item, True) for item in sys.stdin.read().split()]), "export": "bin/export.php.sh", "profile": "bin/profile.php.sh"}, sys.stdout)')
+extra=$(echo "${shared[@]}" | python -c 'import sys, json; json.dump({"shared": dict([item.split(":") if ":" in item else (item, True) for item in sys.stdin.read().split()]), "export": "bin/export.php.sh", "profile": "bin/profile.php.sh"}, sys.stdout)')
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/hhvm\":\"*\"}"}"
-MANIFEST_REPLACE=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b|hhvm\b)' | tr -s " " | cut -d " " -f1,2 | sed -e "s/ $dep_version\$/ self.version/" -e 's/^/heroku-sys\//' | python2 -c 'import sys, json; json.dump(dict(item.split() for item in sys.stdin), sys.stdout)')
+MANIFEST_REPLACE=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b|hhvm\b)' | tr -s " " | cut -d " " -f1,2 | sed -e "s/ $dep_version\$/ self.version/" -e 's/^/heroku-sys\//' | python -c 'import sys, json; json.dump(dict(item.split() for item in sys.stdin), sys.stdout)')
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"$extra"}"
 
@@ -261,6 +261,6 @@ fi
 
 EOF
 
-python2 $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

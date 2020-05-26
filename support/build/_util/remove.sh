@@ -92,7 +92,7 @@ echo "" >&2
 remove_files=()
 for manifest in "${manifests[@]}"; do
 	echo "Removing $(basename $manifest ".composer.json"):" >&2
-	if filename=$(cat $manifests_tmp/$(basename $manifest) | python2 <(cat <<-'PYTHON' # beware of single quotes in body
+	if filename=$(cat $manifests_tmp/$(basename $manifest) | python <(cat <<-'PYTHON' # beware of single quotes in body
 		import sys, json, re;
 		manifest=json.load(sys.stdin)
 		url=manifest.get("dist",{}).get("url","").partition("https://"+sys.argv[1]+"."+sys.argv[2]+".amazonaws.com/"+sys.argv[3])

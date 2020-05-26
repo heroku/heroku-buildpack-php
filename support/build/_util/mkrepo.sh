@@ -86,7 +86,7 @@ if $upload || [[ -t 1 ]]; then
 fi
 
 # sort so that packages with the same name and version (e.g. ext-memcached 2.2.0) show up with their hhvm or php requirement in descending order - otherwise a Composer limitation means that a simple "ext-memcached: * + php: ^5.5.17" request would install 5.5.latest and not 5.6.latest, as it finds the 5.5.* requirement extension first and sticks to that instead of 5.6. For packages with identical names and versions (but different e.g. requirements), Composer basically treats them as equal and picks as a winner whatever it finds first. The requirements have to be written like "x.y.*" for this to work of course.
-python2 -c 'import sys, json; from distutils import version; json.dump({"packages": [ sorted([json.load(open(item)) for item in sys.argv[1:] if json.load(open(item)).get("type", "") != "heroku-sys-package"], key=lambda package: version.LooseVersion(package.get("require", {}).get("heroku-sys/hhvm", package.get("require", {}).get("heroku-sys/php", "0.0.0"))), reverse=True) ] }, sys.stdout, sort_keys=True)' $manifests
+python -c 'import sys, json; from distutils import version; json.dump({"packages": [ sorted([json.load(open(item)) for item in sys.argv[1:] if json.load(open(item)).get("type", "") != "heroku-sys-package"], key=lambda package: version.LooseVersion(package.get("require", {}).get("heroku-sys/hhvm", package.get("require", {}).get("heroku-sys/php", "0.0.0"))), reverse=True) ] }, sys.stdout, sort_keys=True)' $manifests
 
 # restore stdout
 # note that 'exec >$(tty)' does not work as FD 1 may have been a pipe originally and not a tty
