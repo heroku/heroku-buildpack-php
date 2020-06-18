@@ -10,6 +10,10 @@
 - ext-newrelic/9.6.0.267 [David Zuelke]
 - ext-pcov/1.0.6 (#415) [David Zuelke]
 
+### CHG
+
+- Composer/1.10.7 [David Zuelke]
+
 ## v176 (2020-05-26)
 
 ### FIX
