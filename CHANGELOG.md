@@ -1,5 +1,19 @@
 # heroku-buildpack-php CHANGELOG
 
+## v177 (2020-06-18)
+
+### ADD
+
+- PHP/7.3.19 [David Zuelke]
+- PHP/7.4.7 [David Zuelke]
+- ext-blackfire/1.34.3 [David Zuelke]
+- ext-newrelic/9.6.0.267 [David Zuelke]
+- ext-pcov/1.0.6 (#415) [David Zuelke]
+
+### CHG
+
+- Composer/1.10.7 [David Zuelke]
+
 ## v176 (2020-05-26)
 
 ### FIX
