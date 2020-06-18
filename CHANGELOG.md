@@ -7,6 +7,7 @@
 - PHP/7.3.19 [David Zuelke]
 - PHP/7.4.7 [David Zuelke]
 - ext-blackfire/1.34.3 [David Zuelke]
+- ext-newrelic/9.6.0.267 [David Zuelke]
 
 ## v176 (2020-05-26)
 
