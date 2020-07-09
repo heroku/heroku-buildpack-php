@@ -8,6 +8,7 @@
 - PHP/7.3.20 [David Zuelke]
 - PHP/7.2.32 [David Zuelke]
 - ext-redis/5.3.1 [David Zuelke]
+- ext-mongodb/1.7.5 [David Zuelke]
 
 ## v177 (2020-06-18)
 
