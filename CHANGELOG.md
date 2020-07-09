@@ -10,6 +10,10 @@
 - ext-redis/5.3.1 [David Zuelke]
 - ext-mongodb/1.7.5 [David Zuelke]
 
+### CHG
+
+- librdkafka/1.4.4 [David Zuelke]
+
 ## v177 (2020-06-18)
 
 ### ADD
