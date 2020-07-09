@@ -21,7 +21,7 @@ describe "A PHP 7.4 application with a composer.json", :requires_php_on_stack =>
 						# ensure slowlog info and trace is there
 						# wait for timeout process
 						cmd = "timeout 10 heroku-php-apache2 -F fpm.request_slowlog_timeout.conf & sleep 3; curl \"localhost:$PORT/index.php?wait=5\"; wait"
-						output = app.run(cmd.shellescape)
+						output = app.run(cmd)
 						expect(output).to include("executing too slow")
 						expect(output).to include("sleep() /app/index.php:5")
 					end
@@ -35,7 +35,7 @@ describe "A PHP 7.4 application with a composer.json", :requires_php_on_stack =>
 						# ensure slowlog and terminate output is there
 						# wait for timeout process
 						cmd = "timeout 45 heroku-php-apache2 & sleep 3; curl \"localhost:$PORT/index.php?wait=35\"; wait"
-						output = app.run(cmd.shellescape)
+						output = app.run(cmd)
 						expect(output).to match(/executing too slow/)
 						expect(output).to match(/execution timed out/)
 					end
