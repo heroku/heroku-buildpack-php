@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v178 (2020-07-09)
+
+### ADD
+
+- PHP/7.4.8 [David Zuelke]
+
 ## v177 (2020-06-18)
 
 ### ADD
