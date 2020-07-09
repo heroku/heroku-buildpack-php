@@ -15,7 +15,7 @@ describe "A PHP application" do
 						# curl the sleep() script, kill it after two seconds
 						# wait for $pid so that we can be certain to get all the output
 						cmd = "heroku-php-#{server} & pid=$! ; sleep 5; curl \"localhost:$PORT/index.php?wait=5\" & sleep 2; kill $pid; wait $pid"
-						output = app.run(cmd.shellescape)
+						output = app.run(cmd)
 						expect(output).to match(/^hello world after 5 second\(s\)$/)
 					end
 				end

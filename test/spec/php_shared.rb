@@ -281,17 +281,17 @@ shared_examples "A PHP application with a composer.json" do |series|
 			
 			context "setting WEB_CONCURRENCY explicitly" do
 				it "uses the explicit value" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", nil, {:heroku => {:env => "WEB_CONCURRENCY=22"}}) })
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", :heroku => {:env => "WEB_CONCURRENCY=22"}) })
 						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("Starting php-fpm with 22 workers...")
 				end
 				it "overrides a .user.ini memory_limit" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} docroot/onegig/", nil, {:heroku => {:env => "WEB_CONCURRENCY=22"}}) })
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} docroot/onegig/", :heroku => {:env => "WEB_CONCURRENCY=22"}) })
 						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("Starting php-fpm with 22 workers...")
 				end
 				it "overrides an FPM config memory_limit" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.onegig.conf", nil, {:heroku => {:env => "WEB_CONCURRENCY=22"}}) })
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.onegig.conf", :heroku => {:env => "WEB_CONCURRENCY=22"}) })
 						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("Starting php-fpm with 22 workers...")
 				end
@@ -299,14 +299,14 @@ shared_examples "A PHP application with a composer.json" do |series|
 			
 			context "running on a Performance-L dyno" do
 				it "restricts the app to 6 GB of RAM", :if => series < "7.4" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", nil, {:heroku => {:size => "Performance-L"}}) })
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", :heroku => {:size => "Performance-L"}) })
 						 .to match("Detected 15032385536 Bytes of RAM")
 						.and match("Limiting to 6G Bytes of RAM usage")
 						.and match("Starting php-fpm with 48 workers...")
 				end
 				
 				it "uses all available RAM for PHP-FPM workers", :unless => series < "7.4" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", nil, {:heroku => {:size => "Performance-L"}}) })
+					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", :heroku => {:size => "Performance-L"}) })
 						 .to match("Detected 15032385536 Bytes of RAM")
 						.and match("Starting php-fpm with 112 workers...")
 				end
