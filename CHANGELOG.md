@@ -13,6 +13,7 @@
 ### CHG
 
 - librdkafka/1.4.4 [David Zuelke]
+- Composer/1.10.8 [David Zuelke]
 
 ## v177 (2020-06-18)
 
