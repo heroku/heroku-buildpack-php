@@ -1,0 +1,56 @@
+<!-- BEGIN {{ type|upper }}_EXTENSIONS -->
+<!-- THIS SECTION, BEGINNING WITH THE MARKER COMMENT ABOVE, IS AUTOMATICALLY GENERATED; DO NOT EDIT CONTENT BELOW BY HAND OR REMOVE MARKER ABOVE -->
+{% set numCaveats = 0 %}
+<table>
+	<thead>
+		<tr>
+			<th>Extension</th>
+{% for serie in series %}
+			<th{% if attribute(eol, serie) is defined %} style="{% if attribute(eol, serie) == "eol" %}background-color: rgba(194, 66, 0, 0.1); color: #C24200{% else %}background-color: #fff3c5; color: #927200{% endif %}"{% endif %}>PHP {{ serie }}</th>
+{% endfor %}
+		</tr>
+	</thead>
+	<tbody>
+{% for extension in extensions %}
+		<tr>
+			<td style="white-space: nowrap"><code>{% if extension.url %}<a href="{{ extension.url }}">{% endif %}{{ extension.name }}{% if extension.url %}</a>{% endif %}</code>{% if extension.major_version is defined %} ({{ extension.major_version }}x){% endif %}</td>
+	{% for serie, data in extension.data %}
+			<td {% if attribute(eol, serie) is defined %}style="{% if attribute(eol, serie) == "eol" %}background-color: rgba(194, 66, 0, 0.1); color: #C24200{% else %}background-color: #fff3c5; color: #927200{% endif %}"{% endif %}>
+		{% for version, caveats in data %}
+				{{ version|raw }}
+			{% for number, stack in caveats %}{% set numCaveats = numCaveats + 1 %}
+				<sup><a title="not available on the heroku-{{ stack }} stack" href="#footnote-{{ type }}-ext-not-{{ stack }}">&#x200b;[&#x200b;{{ number }}&#x200b;]</a></sup>
+			{% endfor %}
+				<br/>
+		{% else %}
+				-
+		{% endfor %}
+			</td>
+	{% endfor %}
+		</tr>
+{% endfor %}
+	</tbody>
+{% if numCaveats or type == "built-in" %}
+	<tfoot>
+{% if type == "built-in" %}
+		<tr>
+			<td colspan="{{ series|length + 1 }}">
+				<small>&#x2714;: enabled by default</small><br/>
+				<small>&#x2731;: optional, can be <a href="#using-optional-extensions">enabled via <code>composer.json</code></a></small><br/>
+			</td>
+		</tr>
+{% endif %}
+{% if numCaveats %}
+		<tr>
+			<td colspan="{{ series|length + 1 }}">
+{% for index, stack in stacks %}
+				<small id="footnote-{{ type }}-ext-not-{{ stack }}">[{{ index }}]: This extension is not available on the <a href="/articles/heroku-{{ stack }}-stack"><code>heroku-{{ stack }}</code> stack</a>.</small><br />
+{% endfor %}
+			</td>
+		</tr>
+{% endif %}
+	</tfoot>
+{% endif %}
+</table>
+<!-- THIS SECTION, ENDING WITH THE MARKER BELOW, IS AUTOMATICALLY GENERATED; DO NOT EDIT CONTENT ABOVE BY HAND OR REMOVE MARKER BELOW -->
+<!-- END {{ type|upper }}_EXTENSIONS -->
