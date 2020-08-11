@@ -10,6 +10,7 @@
 - ext-blackfire/1.36.0 [David Zuelke]
 - ext-mongodb/1.8.0 [David Zuelke]
 - ext-newrelic/9.12.0.268 [David Zuelke]
+- Apache/2.4.46 [David Zuelke]
 
 ## v178 (2020-07-09)
 
