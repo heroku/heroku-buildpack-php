@@ -24,7 +24,6 @@ RSpec.configure do |config|
 	
 	config.verbose_retry       = true # show retry status in spec process
 	config.default_retry_count = 2 if ENV['IS_RUNNING_ON_CI'] # retry all tests that fail again...
-	config.exceptions_to_retry = [Excon::Errors::Timeout] #... if they're caused by these exception types
 	config.fail_fast = 1 if ENV['IS_RUNNING_ON_CI']
 	
 	config.expect_with :rspec do |c|
