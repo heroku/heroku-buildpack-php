@@ -16,6 +16,7 @@
 
 - librdkafka/1.5.0 [David Zuelke]
 - Composer/1.10.10 [David Zuelke]
+- libcassandra/2.15.3 [David Zuelke]
 
 ## v178 (2020-07-09)
 
