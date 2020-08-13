@@ -1,5 +1,27 @@
 # heroku-buildpack-php CHANGELOG
 
+## v179 (2020-08-13)
+
+### ADD
+
+- PHP/7.2.33 [David Zuelke]
+- PHP/7.3.21 [David Zuelke]
+- PHP/7.4.9 [David Zuelke]
+- ext-blackfire/1.36.0 [David Zuelke]
+- ext-mongodb/1.8.0 [David Zuelke]
+- ext-newrelic/9.12.0.268 [David Zuelke]
+- Apache/2.4.46 [David Zuelke]
+
+### CHG
+
+- librdkafka/1.5.0 [David Zuelke]
+- Composer/1.10.10 [David Zuelke]
+- libcassandra/2.15.3 [David Zuelke]
+
+### FIX
+
+- Detection of `composer test` or common testing frameworks on Heroku CI occasionally fails on PHP 7.4 (#388) [David Zuelke]
+
 ## v178 (2020-07-09)
 
 ### ADD
