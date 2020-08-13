@@ -19,29 +19,30 @@ fi
 export COMPOSER_PROCESS_TIMEOUT=0
 
 echo "Trying to auto-detect test framework; first match will be found. You may use composer script 'test', or app.json, to specify what to run." >&2
+# all of the tests below use `grep … > /dev/null` instead if `grep -q` because the latter will occasionally cause the inputting program to fail, see #388
 # 'composer run-script -l' prints a "scripts:" header on stderr...
-if composer run-script -l 2> /dev/null | grep -q -- "^\s*test\b"; then
+if composer run-script -l 2> /dev/null | grep -- "^\s*test\b" > /dev/null; then
 	echo "Script 'composer test' found, executing..." >&2
 	composer run-script test
-elif composer exec -l | grep -q -- "^-\s*codecept\b"; then
+elif composer exec -l | grep -- "^-\s*codecept\b" > /dev/null; then
 	echo "Codeception found, executing 'codecept run'..." >&2
 	composer exec -v codecept run # without -v, no stderr output is printed
-elif composer exec -l | grep -q -- "^-\s*behat\b"; then
+elif composer exec -l | grep -- "^-\s*behat\b" > /dev/null; then
 	echo "Behat found, executing 'behat'..." >&2
 	composer exec -v behat # without -v, no stderr output is printed
-elif composer exec -l | grep -q -- "^-\s*phpspec\b"; then
+elif composer exec -l | grep -- "^-\s*phpspec\b" > /dev/null; then
 	echo "PHPSpec found, executing 'phpspec run'..." >&2
 	composer exec -v phpspec run # without -v, no stderr output is printed
-elif composer exec -l | grep -q -- "^-\s*atoum\b"; then
+elif composer exec -l | grep -- "^-\s*atoum\b" > /dev/null; then
 	echo "atoum found, executing 'atoum'..." >&2
 	composer exec -v atoum # without -v, no stderr output is printed
-elif composer exec -l | grep -q -- "^-\s*kahlan\b"; then
+elif composer exec -l | grep -- "^-\s*kahlan\b" > /dev/null; then
 	echo "Kahlan found, executing 'kahlan'..." >&2
 	composer exec -v kahlan # without -v, no stderr output is printed
-elif composer exec -l | grep -q -- "^-\s*peridot\b"; then
+elif composer exec -l | grep -- "^-\s*peridot\b" > /dev/null; then
 	echo "Peridot found, executing 'peridot'..." >&2
 	composer exec -v peridot # without -v, no stderr output is printed
-elif composer exec -l | grep -q -- "^-\s*phpunit\b"; then
+elif composer exec -l | grep -- "^-\s*phpunit\b" > /dev/null; then
 	echo "PHPUnit found, executing 'phpunit'..." >&2
 	composer exec -v phpunit # -dmemory_limit="${ram:-"-1"}" # composer exec -- is currently broken, so we can't pass -d to phpunit # without -v, no stderr output is printed
 else
