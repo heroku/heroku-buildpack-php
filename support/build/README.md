@@ -627,7 +627,7 @@ You can now test this repository on a Heroku app:
 
     $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://<yourbucketname>.s3.amazonaws.com/dist-develop/"
     $ git commit --allow-empty -m "test new nginx"
-    $ git push heroku master
+    $ git push heroku HEAD
 
 #### Repository Synchronization
 
@@ -744,7 +744,7 @@ You can now test this repository on a Heroku app by pushing an app that requires
     $ composer require "ext-xdebug:*"
     $ git add composer.{json,lock}
     $ git commit -m "require xdebug"
-    $ git push heroku master
+    $ git push heroku HEAD
 
 ### Hosting a Proprietary Extension Using Custom Tooling
 
@@ -787,7 +787,7 @@ The extension is then ready for use in applications by requiring it in `composer
     $ git add composer.{json,lock}
     $ git commit -m "use ext-myext"
     $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://download.example.com/heroku/"
-    $ git push heroku master
+    $ git push heroku HEAD
 
 ## Tips & Tricks
 

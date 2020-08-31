@@ -25,14 +25,14 @@ env:
 matrix:
     include:
       - env: STACK=cedar-14
-        if: branch = master OR tag IS present
+        if: branch = main OR tag IS present
       - env: STACK=heroku-16
-        if: branch = master OR tag IS present
+        if: branch = main OR tag IS present
       - env: STACK=heroku-18
-        if: branch = master OR tag IS present
+        if: branch = main OR tag IS present
       - env: STACK=cedar-14 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-cedar-14-develop/"
-        if: branch != master AND tag IS blank
+        if: branch != main AND tag IS blank
       - env: STACK=heroku-16 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-heroku-16-develop/"
-        if: branch != master AND tag IS blank
+        if: branch != main AND tag IS blank
       - env: STACK=heroku-18 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-heroku-18-develop/"
-        if: branch != master AND tag IS blank
+        if: branch != main AND tag IS blank
