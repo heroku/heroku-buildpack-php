@@ -69,6 +69,21 @@ def php_on_stack?(series)
 	available.include?(series)
 end
 
+module HatchetAppExtensions
+	def setup!
+		super
+		local_cmd_exec!("cp #{__dir__}/../utils/waitforit.sh .")
+		commit!
+		self
+	end
+end
+
+module Hatchet
+	class App
+		prepend HatchetAppExtensions
+	end
+end
+
 def new_app_with_stack_and_platrepo(*args, **kwargs)
 	kwargs[:stack] ||= ENV["STACK"]
 	kwargs[:config] ||= {}
