@@ -4,17 +4,13 @@ shared_examples "A PHP application with a composer.json" do |series|
 	context "requiring PHP #{series}" do
 		before(:all) do
 			@app = new_app_with_stack_and_platrepo('test/fixtures/default',
-				before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" }
+				before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" },
+				run_multi: true
 			)
 			@app.deploy
-			# so we don't have to worry about overlapping dynos causing test failures because only one free is allowed at a time
-			@app.api_rate_limit.call.formation.update(@app.name, "web", {"size" => "Standard-1X"})
 		end
 		
 		after(:all) do
-			# scale back down when we're done
-			# we should do this, because teardown! doesn't remove the app unless we're over the app limit
-			@app.api_rate_limit.call.formation.update(@app.name, "web", {"size" => "free"})
 			@app.teardown!
 		end
 		
@@ -198,17 +194,13 @@ shared_examples "A PHP application with a composer.json" do |series|
 		context "running PHP #{series} and the #{server} web server" do
 			before(:all) do
 				@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
-					before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" }
+					before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" },
+					run_multi: true
 				)
 				@app.deploy
-				# so we don't have to worry about overlapping dynos causing test failures because only one free is allowed at a time
-				@app.api_rate_limit.call.formation.update(@app.name, "web", {"size" => "Standard-1X"})
 			end
 			
 			after(:all) do
-				# scale back down when we're done
-				# we should do this, because teardown! doesn't remove the app unless we're over the app limit
-				@app.api_rate_limit.call.formation.update(@app.name, "web", {"size" => "free"})
 				@app.teardown!
 			end
 			
