@@ -7,6 +7,7 @@
 - PHP/7.3.22 [David Zuelke]
 - PHP/7.4.10 [David Zuelke]
 - ext-blackfire/1.39.1 [David Zuelke]
+- ext-event/2.5.7 [David Zuelke]
 
 ## v179 (2020-08-13)
 
