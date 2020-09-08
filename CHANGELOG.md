@@ -9,6 +9,10 @@
 - ext-blackfire/1.39.1 [David Zuelke]
 - ext-event/2.5.7 [David Zuelke]
 
+### CHG
+
+- Composer/1.10.13 [David Zuelke]
+
 ## v179 (2020-08-13)
 
 ### ADD
