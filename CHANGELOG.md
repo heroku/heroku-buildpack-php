@@ -8,6 +8,7 @@
 - PHP/7.4.10 [David Zuelke]
 - ext-blackfire/1.39.1 [David Zuelke]
 - ext-event/2.5.7 [David Zuelke]
+- ext-oauth/2.0.6 [David Zuelke]
 
 ### CHG
 
