@@ -17,8 +17,8 @@ env:
   global:
   - HATCHET_RETRIES=3
   - IS_RUNNING_ON_CI=true
-  - HATCHET_APP_LIMIT=80
-  - HEROKU_APP_LIMIT=9999
+  - HATCHET_APP_LIMIT=200
+  - HATCHET_EXPENSIVE_MODE=1
   - HATCHET_DEPLOY_STRATEGY=git
   - HATCHET_BUILDPACK_BASE="https://github.com/heroku/heroku-buildpack-php"
   - HATCHET_APP_PREFIX="htcht-${TRAVIS_JOB_ID}-"

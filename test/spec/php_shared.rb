@@ -4,17 +4,13 @@ shared_examples "A PHP application with a composer.json" do |series|
 	context "requiring PHP #{series}" do
 		before(:all) do
 			@app = new_app_with_stack_and_platrepo('test/fixtures/default',
-				before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" }
+				before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" },
+				run_multi: true
 			)
 			@app.deploy
-			# so we don't have to worry about overlapping dynos causing test failures because only one free is allowed at a time
-			@app.api_rate_limit.call.formation.update(@app.name, "web", {"size" => "Standard-1X"})
 		end
 		
 		after(:all) do
-			# scale back down when we're done
-			# we should do this, because teardown! doesn't remove the app unless we're over the app limit
-			@app.api_rate_limit.call.formation.update(@app.name, "web", {"size" => "free"})
 			@app.teardown!
 		end
 		
@@ -128,6 +124,9 @@ shared_examples "A PHP application with a composer.json" do |series|
 			0 => [
 				"heroku-php-apache2"
 			],
+			'--verbose' => [
+				true
+			],
 			'-C' => [
 				nil,
 				"conf/apache2.server.include.conf",
@@ -149,6 +148,9 @@ shared_examples "A PHP application with a composer.json" do |series|
 		"nginx" => {
 			0 => [
 				"heroku-php-nginx"
+			],
+			'--verbose' => [
+				true
 			],
 			'-C' => [
 				nil,
@@ -192,40 +194,36 @@ shared_examples "A PHP application with a composer.json" do |series|
 		context "running PHP #{series} and the #{server} web server" do
 			before(:all) do
 				@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
-					before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" }
+					before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" },
+					run_multi: true
 				)
 				@app.deploy
-				# so we don't have to worry about overlapping dynos causing test failures because only one free is allowed at a time
-				@app.api_rate_limit.call.formation.update(@app.name, "web", {"size" => "Standard-1X"})
 			end
 			
 			after(:all) do
-				# scale back down when we're done
-				# we should do this, because teardown! doesn't remove the app unless we're over the app limit
-				@app.api_rate_limit.call.formation.update(@app.name, "web", {"size" => "free"})
 				@app.teardown!
 			end
 			
 			# we don't want to test all possible combinations of all arguments, as that'd be thousands
 			interesting = Array.new
-			interesting << [0, 1] # with and without document root
-			interesting << [0, '-C']
-			interesting << [0, '-F']
+			interesting << [0, '--verbose', 1] # with and without document root
+			interesting << [0, '--verbose', '-C']
+			interesting << [0, '--verbose', '-F']
 			combinations = interesting.map {|v| genmatrix(matrix, v)}.flatten(1).uniq
 			# # a few more "manual" cases
-			combinations << {0 => "heroku-php-#{server}", "-C" => "conf/#{server}.server.include.conf", "-F" => "conf/fpm.include.conf"}
+			combinations << {0 => "heroku-php-#{server}", "--verbose" => true, "-C" => "conf/#{server}.server.include.conf", "-F" => "conf/fpm.include.conf"}
 			combinations.each do | combination |
 				cmd = gencmd(combination)
 				context "launching using `#{cmd}'" do
 					if combination.value?(false) or cmd.match("broken")
 						it "does not boot" do
 							# check if "timeout" exited with a status other than 124, which means the process exited (due to the expected error) before "timeout" stepped in after the given duration (five seconds) and terminated it
-							expect_exit(expect: :not_to, code: 124) { @app.run("timeout 5 #{cmd}") }
+							expect_exit(expect: :not_to, code: 124) { @app.run("timeout 15 #{cmd}") }
 						end
 					else
 						it "boots" do
-							# check if "timeout" exited with status 124, which means the process was still alive after the given duration (five seconds) and "timeout" terminated it as a result
-							expect_exit(expect: :to, code: 124) { @app.run("timeout 5 #{cmd}") }
+							# check if "waitforit" exited with status 0, which means the process successfully output the expected message
+							expect_exit(expect: :to, code: 0) { @app.run("./waitforit.sh 15 'ready for connections' #{cmd}") }
 						end
 					end
 				end
@@ -233,29 +231,29 @@ shared_examples "A PHP application with a composer.json" do |series|
 			
 			context "launching using too many arguments" do
 				it "fails to boot" do
-					expect_exit(expect: :not_to, code: 124) { @app.run("timeout 5 heroku-php-#{server} docroot/ anotherarg") }
+					expect_exit(expect: :to, code: 2) { @app.run("timeout 10 heroku-php-#{server} docroot/ anotherarg") }
 				end
 			end
 			
 			context "launching using unknown options" do
 				it "fails to boot" do
-					expect_exit(expect: :not_to, code: 124) { @app.run("timeout 5 heroku-php-#{server} --what -u erp") }
+					expect_exit(expect: :to, code: 2) { @app.run("timeout 10 heroku-php-#{server} --what -u erp") }
 				end
 			end
 			
 			context "setting concurrency via .user.ini memory_limit" do
 				it "calculates concurrency correctly" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} docroot/") })
+					expect(expect_exit(code: 0) { @app.run("./waitforit.sh 15 'ready for connections' heroku-php-#{server} --verbose docroot/") })
 						 .to match("PHP memory_limit is 32M Bytes")
 						.and match("Starting php-fpm with 16 workers...")
 				end
 				it "always launches at least one worker" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} docroot/onegig/") })
+					expect(expect_exit(code: 0) { @app.run("./waitforit.sh 15 'ready for connections' heroku-php-#{server} --verbose docroot/onegig/") })
 						 .to match("PHP memory_limit is 1024M Bytes")
 						.and match("Starting php-fpm with 1 workers...")
 				end
 				it "is only done for a .user.ini directly in the document root" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}") })
+					expect(expect_exit(code: 0) { @app.run("./waitforit.sh 15 'ready for connections' heroku-php-#{server} --verbose") })
 						 .to match("PHP memory_limit is 128M Bytes")
 						.and match("Starting php-fpm with 4 workers...")
 				end
@@ -263,17 +261,17 @@ shared_examples "A PHP application with a composer.json" do |series|
 			
 			context "setting concurrency via FPM config memory_limit" do
 				it "calculates concurrency correctly" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.include.conf") })
+					expect(expect_exit(code: 0) { @app.run("./waitforit.sh 15 'ready for connections' heroku-php-#{server} --verbose -F conf/fpm.include.conf") })
 						 .to match("PHP memory_limit is 32M Bytes")
 						.and match("Starting php-fpm with 16 workers...")
 				end
 				it "always launches at least one worker" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.onegig.conf") })
+					expect(expect_exit(code: 0) { @app.run("./waitforit.sh 15 'ready for connections' heroku-php-#{server} --verbose -F conf/fpm.onegig.conf") })
 						 .to match("PHP memory_limit is 1024M Bytes")
 						.and match("Starting php-fpm with 1 workers...")
 				end
 				it "takes precedence over a .user.ini memory_limit" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.include.conf docroot/onegig/") })
+					expect(expect_exit(code: 0) { @app.run("./waitforit.sh 15 'ready for connections' heroku-php-#{server} --verbose -F conf/fpm.include.conf docroot/onegig/") })
 						 .to match("PHP memory_limit is 32M Bytes")
 						.and match("Starting php-fpm with 16 workers...")
 				end
@@ -281,17 +279,17 @@ shared_examples "A PHP application with a composer.json" do |series|
 			
 			context "setting WEB_CONCURRENCY explicitly" do
 				it "uses the explicit value" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", :heroku => {:env => "WEB_CONCURRENCY=22"}) })
+					expect(expect_exit(code: 0) { @app.run("./waitforit.sh 15 'ready for connections' heroku-php-#{server} --verbose", :heroku => {:env => "WEB_CONCURRENCY=22"}) })
 						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("Starting php-fpm with 22 workers...")
 				end
 				it "overrides a .user.ini memory_limit" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} docroot/onegig/", :heroku => {:env => "WEB_CONCURRENCY=22"}) })
+					expect(expect_exit(code: 0) { @app.run("./waitforit.sh 15 'ready for connections' heroku-php-#{server} --verbose docroot/onegig/", :heroku => {:env => "WEB_CONCURRENCY=22"}) })
 						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("Starting php-fpm with 22 workers...")
 				end
 				it "overrides an FPM config memory_limit" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server} -F conf/fpm.onegig.conf", :heroku => {:env => "WEB_CONCURRENCY=22"}) })
+					expect(expect_exit(code: 0) { @app.run("./waitforit.sh 15 'ready for connections' heroku-php-#{server} --verbose -F conf/fpm.onegig.conf", :heroku => {:env => "WEB_CONCURRENCY=22"}) })
 						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("Starting php-fpm with 22 workers...")
 				end
@@ -299,14 +297,14 @@ shared_examples "A PHP application with a composer.json" do |series|
 			
 			context "running on a Performance-L dyno" do
 				it "restricts the app to 6 GB of RAM", :if => series < "7.4" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", :heroku => {:size => "Performance-L"}) })
+					expect(expect_exit(code: 0) { @app.run("./waitforit.sh 15 'ready for connections' heroku-php-#{server} --verbose", :heroku => {:size => "Performance-L"}) })
 						 .to match("Detected 15032385536 Bytes of RAM")
 						.and match("Limiting to 6G Bytes of RAM usage")
 						.and match("Starting php-fpm with 48 workers...")
 				end
 				
 				it "uses all available RAM for PHP-FPM workers", :unless => series < "7.4" do
-					expect(expect_exit(code: 124) { @app.run("timeout 5 heroku-php-#{server}", :heroku => {:size => "Performance-L"}) })
+					expect(expect_exit(code: 0) { @app.run("./waitforit.sh 15 'ready for connections' heroku-php-#{server} --verbose", :heroku => {:size => "Performance-L"}) })
 						 .to match("Detected 15032385536 Bytes of RAM")
 						.and match("Starting php-fpm with 112 workers...")
 				end

@@ -24,7 +24,7 @@ RSpec.configure do |config|
 	
 	config.verbose_retry       = true # show retry status in spec process
 	config.default_retry_count = 2 if ENV['IS_RUNNING_ON_CI'] # retry all tests that fail again...
-	config.exceptions_to_retry = [Excon::Errors::Timeout] #... if they're caused by these exception types
+	# config.exceptions_to_retry = [Excon::Errors::Timeout] #... if they're caused by these exception types
 	config.fail_fast = 1 if ENV['IS_RUNNING_ON_CI']
 	
 	config.expect_with :rspec do |c|
@@ -67,6 +67,21 @@ def php_on_stack?(series)
 			available = ["7.1", "7.2", "7.3", "7.4"]
 	end
 	available.include?(series)
+end
+
+module HatchetAppExtensions
+	def setup!
+		super
+		local_cmd_exec!("cp #{__dir__}/../utils/waitforit.sh .")
+		commit!
+		self
+	end
+end
+
+module Hatchet
+	class App
+		prepend HatchetAppExtensions
+	end
 end
 
 def new_app_with_stack_and_platrepo(*args, **kwargs)

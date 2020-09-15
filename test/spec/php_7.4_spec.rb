@@ -15,12 +15,11 @@ describe "A PHP 7.4 application with a composer.json", :requires_php_on_stack =>
 				# FIXME: move to php_shared.rb once all PHPs are rebuilt with that tracing capability
 				it "logs slowness after configured time and sees a trace" do
 					app.deploy do |app|
-						# first, launch in the background wrapped in a 10 second timeout
-						# then sleep three seconds to allow boot
-						# curl the sleep() script with a timeout
+						# launch web server wrapped in a 20 second timeout
+						# once web server is ready, `read` unblocks and we curl the sleep() script which will take a few seconds to run
+						# after `curl` completes, `wait-for.it.sh` will shut down
 						# ensure slowlog info and trace is there
-						# wait for timeout process
-						cmd = "timeout 10 heroku-php-apache2 -F fpm.request_slowlog_timeout.conf & sleep 3; curl \"localhost:$PORT/index.php?wait=5\"; wait"
+						cmd = "./waitforit.sh 20 'ready for connections' heroku-php-apache2 --verbose -F fpm.request_slowlog_timeout.conf | { read && curl \"localhost:$PORT/index.php?wait=5\"; }"
 						output = app.run(cmd)
 						expect(output).to include("executing too slow")
 						expect(output).to include("sleep() /app/index.php:5")
@@ -29,12 +28,11 @@ describe "A PHP 7.4 application with a composer.json", :requires_php_on_stack =>
 				
 				it "logs slowness after about 3 seconds and terminates the process after about 30 seconds" do
 					app.deploy do |app|
-						# first, launch in the background wrapped in a 45 second timeout
-						# then sleep three seconds to allow boot
-						# curl the sleep() script with a very long timeout
+						# launch web server wrapped in a 50 second timeout
+						# once web server is ready, `read` unblocks and we curl the sleep() script with a very long timeout
+						# after `curl` completes, `wait-for.it.sh` will shut down
 						# ensure slowlog and terminate output is there
-						# wait for timeout process
-						cmd = "timeout 45 heroku-php-apache2 & sleep 3; curl \"localhost:$PORT/index.php?wait=35\"; wait"
+						cmd = "./waitforit.sh 50 'ready for connections' heroku-php-apache2 --verbose | { read && curl \"localhost:$PORT/index.php?wait=35\"; }"
 						output = app.run(cmd)
 						expect(output).to match(/executing too slow/)
 						expect(output).to match(/execution timed out/)
