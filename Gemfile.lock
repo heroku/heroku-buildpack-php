@@ -43,7 +43,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  heroku_hatchet (~> 7.0)
+  heroku_hatchet
   parallel_tests
   rake
   rspec-expectations
