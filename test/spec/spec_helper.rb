@@ -40,12 +40,6 @@ def successful_body(app, options = {})
 	Excon.get("http://#{app.name}.herokuapp.com#{path}", :idempotent => true, :expects => 200, :retry_limit => retry_limit).body
 end
 
-def run!(cmd)
-  out = `#{cmd}`
-  raise "Error running command #{cmd.inspect}: #{out}" unless $?.success?
-  out
-end
-
 def expect_exit(expect: :to, operator: :eq, code: 0)
 	raise ArgumentError, "Expected a block but none given" unless block_given?
 	output = yield

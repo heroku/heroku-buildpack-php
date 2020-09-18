@@ -47,10 +47,10 @@ describe "A PHP application" do
     end
   end
 
-  it "should not restore cached directories" do
+  it "should not restore cached directories when changing stack" do
     Hatchet::Runner.new("php-getting-started", allow_failure: true, stack: "heroku-18").deploy do |app, heroku|
       app.update_stack("heroku-16")
-      run!('git commit --allow-empty -m "heroku-16 migrate"')
+      app.commit!
       app.push!
       expect(app.output).to include("Loading from cache")
     end
@@ -59,7 +59,7 @@ describe "A PHP application" do
   it "should not restore cache if the stack did not change" do
     Hatchet::Runner.new('php-getting-started', stack: "heroku-16").deploy do |app, heroku|
       app.update_stack("heroku-16")
-      run!('git commit --allow-empty -m "cedar migrate"')
+      app.commit!
       app.push!
       expect(app.output).to include("Loading from cache")
     end
