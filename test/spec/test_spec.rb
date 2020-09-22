@@ -3,7 +3,7 @@ require_relative "spec_helper"
 describe "A PHP application" do
 
   it "works with the getting started guide" do
-    Hatchet::Runner.new("php-getting-started").tap do |app|
+    new_app_with_stack_and_platrepo("php-getting-started").tap do |app|
       app.deploy do
       # deploy works
       end
@@ -11,7 +11,7 @@ describe "A PHP application" do
   end
 
   it "checks for bad version" do
-    Hatchet::Runner.new("php-getting-started", allow_failure: true).tap do |app|
+    new_app_with_stack_and_platrepo("php-getting-started", allow_failure: true).tap do |app|
       app.before_deploy do
         File.open("composer.json", "w+") do |f|
           f.write '{
@@ -31,7 +31,7 @@ describe "A PHP application" do
       :default,
       "https://github.com/sharpstone/force_absolute_paths_buildpack"
     ]
-    Hatchet::Runner.new("php-getting-started", buildpacks: buildpacks).deploy do |app|
+    new_app_with_stack_and_platrepo("php-getting-started", buildpacks: buildpacks).deploy do |app|
       #deploy works
     end
   end
@@ -47,20 +47,14 @@ describe "A PHP application" do
     end
   end
 
-  it "should not restore cached directories when changing stack" do
-    Hatchet::Runner.new("php-getting-started", allow_failure: true, stack: "heroku-18").deploy do |app, heroku|
-      app.update_stack("heroku-16")
-      app.commit!
-      app.push!
-      expect(app.output).to include("Loading from cache")
-    end
-  end
+  it "should restore cached dependencies when changing stack" do
+    new_app_with_stack_and_platrepo("php-getting-started", stack: "heroku-18").deploy do |app, heroku|
+      expect(app.output).to_not include("Loading from cache")
 
-  it "should not restore cache if the stack did not change" do
-    Hatchet::Runner.new('php-getting-started', stack: "heroku-16").deploy do |app, heroku|
       app.update_stack("heroku-16")
       app.commit!
       app.push!
+
       expect(app.output).to include("Loading from cache")
     end
   end
