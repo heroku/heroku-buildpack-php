@@ -27,6 +27,7 @@ describe "A PHP application" do
   end
 
   it "have absolute buildpack paths" do
+    skip("force absolute paths buildpack requires an modern ruby version") if ENV["STACK"] == "cedar-14"
     buildpacks = [
       :default,
       "https://github.com/sharpstone/force_absolute_paths_buildpack"
