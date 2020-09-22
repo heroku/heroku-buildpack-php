@@ -12,7 +12,7 @@ describe "A PHP application" do
 
   it "checks for bad version" do
     new_app_with_stack_and_platrepo("php-getting-started", allow_failure: true).tap do |app|
-      app.before_deploy do
+      app.before_deploy(:append) do
         File.open("composer.json", "w+") do |f|
           f.write '{
           "require": {

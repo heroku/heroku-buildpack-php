@@ -71,25 +71,20 @@ def php_on_stack?(series)
 	available.include?(series)
 end
 
-module HatchetAppExtensions
-	def setup!
-		super
-		local_cmd_exec!("cp #{__dir__}/../utils/waitforit.sh .")
-		commit!
-		self
-	end
-end
-
-module Hatchet
-	class App
-		prepend HatchetAppExtensions
-	end
-end
-
 def new_app_with_stack_and_platrepo(*args, **kwargs)
 	kwargs[:stack] ||= ENV["STACK"]
 	kwargs[:config] ||= {}
 	kwargs[:config]["HEROKU_PHP_PLATFORM_REPOSITORIES"] ||= ENV["HEROKU_PHP_PLATFORM_REPOSITORIES"]
 	kwargs[:config].compact!
-	Hatchet::Runner.new(*args, **kwargs)
+	app = Hatchet::Runner.new(*args, **kwargs)
+	app.before_deploy(:append) do
+		run!("cp #{__dir__}/../utils/waitforit.sh .")
+	end
+	app
+end
+
+def run!(cmd)
+	out = `#{cmd}`
+	raise "Command #{cmd} failed: #{out}" unless $?.success?
+	out
 end
