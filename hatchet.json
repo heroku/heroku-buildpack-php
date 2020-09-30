@@ -1,1 +1,4 @@
-{}
+{
+  "hatchet": {"directory": "test/fixtures"},
+  "github": ["heroku/php-getting-started"]
+}
