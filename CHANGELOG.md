@@ -6,6 +6,7 @@
 
 - PHP/7.2.34 [David Zuelke]
 - PHP/7.3.23 [David Zuelke]
+- PHP/7.4.11 [David Zuelke]
 
 ## v180 (2020-09-15)
 
