@@ -9,6 +9,7 @@
 - PHP/7.4.11 [David Zuelke]
 - ext-oauth/2.0.7 [David Zuelke]
 - ext-pq/2.1.8 [David Zuelke]
+- ext-newrelic/9.13.0.270 [David Zuelke]
 
 ## v180 (2020-09-15)
 
