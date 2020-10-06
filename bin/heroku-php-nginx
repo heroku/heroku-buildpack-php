@@ -389,6 +389,10 @@ mkfifo $wait_pipe
 exec 3<> $wait_pipe
 
 pids=()
+graceful_sigterm=
+if [[ "${HEROKU_PHP_GRACEFUL_SIGTERM:-0}" != "0" ]]; then
+	graceful_sigterm=1
+fi
 
 # trap SIGTERM (for when we get killed) and EXIT (upon failure of any command due to set -e, or because of the exit at the very end), we then
 # 1) restore the trap for the signal in question so it doesn't fire again due to the kill at the end of the trap, as well as for EXIT, because that would fire too
@@ -401,7 +405,7 @@ pids=()
 # 3) as the signal to subshells, we use SIGUSR1 if we're getting a SIGTERM or SIGINT (for graceful shutdown), and a SIGTERM otherwise
 # 3a) this is so subshells can tell whether we sent them the signal and they should in turn stop gracefully (SIGUSR1)...
 # 3b) ... or if something crashed, or e.g. Heroku's process manager sent SIGTERM to all processes in the group, in which case a graceful shutdown attempt is futile anyway
-# 3c) SIGINT oder SIGQUIT are not an option since backgrounded subshells cannot trap them (http://vaab.blog.kal.fr/2016/07/30/trapping-sigint-sigquit-in-asynchronous-tasks/)
+# 3c) SIGINT oder SIGQUIT are not an option since backgrounded subshells cannot trap them (http://vaab.blog.kal.fr/2016/07/30/trapping-sigint-sigquit-in-asynchronous-tasks/) in Bash 3 (it works in Bash 4+ in interactive shells at least)
 # 4) kill ourselves with the correct signal in case we're handling SIGTERM or, further down, SIGINT (http://www.cons.org/cracauer/sigint.html and http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT1)
 cleanup() {
 	signal=${1:-TERM}
@@ -414,9 +418,11 @@ cleanup() {
 	rm -f ${wait_pipe} || true;
 	echo "Shutdown complete." >&2
 }
+# we always try to shut down gracefully on SIGTERM
+# this may not work depending on env vars and platform behavior, but the subshells will take care of those details
 trap 'trap - TERM EXIT; echo "SIGTERM received, attempting graceful shutdown..." >&2; cleanup USR1; kill -TERM $$' TERM
 # on "regular" EXIT (i.e. when we reached the end of the script because a process exited unexpectedly) just clean up and let the exit status bubble through (see last line)
-trap 'trap - EXIT; echo "Process exited unexpectedly: $exitproc, shutting down..." >&2; cleanup TERM' EXIT
+trap 'trap - EXIT; echo "Process exited unexpectedly: $exitproc, shutting down..." >&2; cleanup USR1' EXIT
 
 # if FD 1 is a TTY (that's the -t 1 check), trap SIGINT/Ctrl+C, then same procedure as for TERM above
 if [[ -t 1 ]]; then
@@ -466,13 +472,32 @@ fi
 		sedbufarg="-u" # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
 	fi
 
-	tail -qF -n 0 "${logs[@]}" > "$logs_pipe" & logs_procs+=($!)
-	sed $sedbufarg -E -e 's/^\[[^]]+\] WARNING: \[pool [^]]+\] child [0-9]+ said into std(err|out): "(.*)("|...)$/\2\3/' -e 's/"$//' < "$logs_pipe" 1>&2 & logs_procs+=($!) # messages that are too long are cut off using "..." by FPM instead of closing double quotation marks; we want to preserve those three dots but not the closing double quotes
+	# we need 'tail' and 'sed' to ignore SIGTERM as well
+	# we do that by setting the handler for SIGTERM to SIG_IGN, then exec-ing the program, which preserves the signal handler (see https://pubs.opengroup.org/onlinepubs/9699919799/functions/execle.html):
+	# "Signals set to the default action (SIG_DFL) in the calling process image shall be set to the default action in the new process image. Except for SIGCHLD, signals set to be ignored (SIG_IGN) by the calling process image shall be set to be ignored by the new process image. Signals set to be caught by the calling process image shall be set to the default action in the new process image (see <signal.h>)."
+	# this of course doesn't work in more complex cases like Nginx or Apache or PHP, which install their own signal handlers on startup, but tail and sed don't do that
+	(
+		[[ $graceful_sigterm ]] && trap '' TERM
+		exec tail -qF -n 0 "${logs[@]}" > "$logs_pipe"
+	) & logs_procs+=($!)
+	(
+		[[ $graceful_sigterm ]] && trap '' TERM
+		# messages that are too long are cut off using "..." by FPM instead of closing double quotation marks; we want to preserve those three dots but not the closing double quotes
+		exec sed $sedbufarg -E -e 's/^\[[^]]+\] WARNING: \[pool [^]]+\] child [0-9]+ said into std(err|out): "(.*)("|...)$/\2\3/' -e 's/"$//' < "$logs_pipe" 1>&2
+	) & logs_procs+=($!)
 	# after the kill, we are redirecting stderr to /dev/null using exec to suppress "… Terminated …" messages from the shell, which it would print right before the next command is invoked
-	trap '[[ $verbose ]] && echo "Stopping log redirection..." >&2; kill -TERM "${logs_procs[@]}" 2> /dev/null || true; exec 2> /dev/null' TERM USR1
+	# we have to send SIGHUP to each process (could also use SIGUSR1 or any other process where the default behavior is termination, see https://man7.org/linux/man-pages/man7/signal.7.html); SIGQUIT or SIGINT doesn't work - this is because of the SIG_IGN workaround above, which is done using a backgrounded subshell and an exec - and backgrounded subshells cannot trap SIGTERM or SIGINT: http://vaab.blog.kal.fr/2016/07/30/trapping-sigint-sigquit-in-asynchronous-tasks/
+	trap '[[ $verbose ]] && echo "Stopping log redirection..." >&2; kill -HUP "${logs_procs[@]}" 2> /dev/null || true; exec 2> /dev/null' USR1
+	# ignore process group wide SIGTERM for this subshell if that env var is set
+	if [[ $graceful_sigterm ]]; then
+		trap '' TERM
+	else
+		trap '[[ $verbose ]] && echo "Stopping log redirection..." >&2; kill -TERM "${logs_procs[@]}" 2> /dev/null || true; exec 2> /dev/null' TERM
+	fi
 
 	wait 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
-	trap - TERM USR1
+	trap - USR1
+	[[ $graceful_sigterm ]] || trap - TERM # only reset to default if we're not ignoring, or a SIGTERM from the outside that tries to kill all running processes might arrive just in this moment to unblock the next wait
 	wait 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
 ) & pids+=($!)
 
@@ -494,11 +519,17 @@ fpm_pidfile=$(mktemp -t "heroku.php-fpm.pid-$PORT.XXXXXX" -u)
 
 	php-fpm --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config" ${php_config:+-c "$php_config"} & pid=$!
 	# wait for the pidfile in the trap; otherwise, a previous subshell failing may result in us getting a SIGTERM and forwarding it to the child process before that child process is ready to process signals
-	trap 'echo "Stopping php-fpm..." >&2; wait_pid_and_pidfile $pid "$fpm_pidfile"; kill -TERM $pid 2> /dev/null || true' TERM
 	trap 'echo "Stopping php-fpm gracefully..." >&2; wait_pid_and_pidfile $pid "$fpm_pidfile"; kill -QUIT $pid 2> /dev/null || true' USR1
+	# we always want to try and stop gracefully, especially since on Heroku we might be getting a process group wide SIGTERM but running a patched PHP-FPM that ignores SIGTERM; so if that env var is set, we ignore SIGTERM in this subshell as well
+	if [[ $graceful_sigterm ]]; then
+		trap '' TERM
+	else
+		trap 'echo "Stopping php-fpm..." >&2; wait_pid_and_pidfile $pid "$fpm_pidfile"; kill -TERM $pid 2> /dev/null || true' TERM
+	fi
 
 	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
-	trap - TERM USR1
+	trap - USR1
+	[[ $graceful_sigterm ]] || trap - TERM # only reset to default if we're not ignoring, or a SIGTERM from the outside that tries to kill all running processes might arrive just in this moment to unblock the next wait
 	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
 ) & pids+=($!)
 
@@ -517,8 +548,13 @@ nginx_pidfile=$(mktemp -t "heroku.nginx.pid-$PORT.XXXXXX" -u)
 
 	nginx -c "$nginx_main" -g "pid $nginx_pidfile; include $nginx_config;" & pid=$!
 	# wait for the pidfile in the trap; otherwise, a previous subshell failing may result in us getting a SIGTERM and forwarding it to the child process before that child process is ready to process signals
-	trap 'echo "Stopping nginx..." >&2; wait_pid_and_pidfile $pid "$nginx_pidfile"; kill -TERM $pid 2> /dev/null || true' TERM
 	trap 'echo "Stopping nginx gracefully..." >&2; wait_pid_and_pidfile $pid "$nginx_pidfile"; kill -QUIT $pid 2> /dev/null || true' USR1
+	# we always want to try and stop gracefully, especially since on Heroku we might be getting a process group wide SIGTERM but running a patched Nginx that ignores SIGTERM; so if that env var is set, we ignore SIGTERM in this subshell as well
+	if [[ $graceful_sigterm ]]; then
+		trap '' TERM
+	else
+		trap 'echo "Stopping nginx..." >&2; wait_pid_and_pidfile $pid "$nginx_pidfile"; kill -TERM $pid 2> /dev/null || true' TERM
+	fi
 
 	# first, we wait for the pid file to be written, so that we can emit a ready message
 	wait_pid_and_pidfile $pid "$nginx_pidfile"
@@ -526,7 +562,8 @@ nginx_pidfile=$(mktemp -t "heroku.nginx.pid-$PORT.XXXXXX" -u)
 	[[ -z ${DYNO:-} || $verbose ]] && kill -0 $pid 2> /dev/null && echo "Application ready for connections on port $PORT." >&2
 
 	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
-	trap - TERM USR1
+	trap - USR1
+	[[ $graceful_sigterm ]] || trap - TERM # only reset to default if we're not ignoring, or a SIGTERM from the outside that tries to kill all running processes might arrive just in this moment to unblock the next wait
 	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
 ) & pids+=($!)
 
