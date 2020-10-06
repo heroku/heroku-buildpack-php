@@ -29,6 +29,8 @@ if dpkg --compare-versions "$dep_version" "lt" 1.13.1; then
 	curl -L https://github.com/nginx/nginx/commit/8449f750e62cd229026e9df3bd023ec7e073a7d4.patch | patch -p1
 fi
 
+patch -p1 < $(dirname $BASH_SOURCE)/patches/nginx-ignoresigterm.patch
+
 ETC=${OUT_PREFIX}/etc
 VAR=${OUT_PREFIX}/var
 ./configure \

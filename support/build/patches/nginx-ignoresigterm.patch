@@ -1,0 +1,21 @@
+diff --git a/src/os/unix/ngx_process.c b/src/os/unix/ngx_process.c
+index 15680237..010a1877 100644
+--- a/src/os/unix/ngx_process.c
++++ b/src/os/unix/ngx_process.c
+@@ -286,10 +286,16 @@ ngx_init_signals(ngx_log_t *log)
+ {
+     ngx_signal_t      *sig;
+     struct sigaction   sa;
++    char* ignore_sigterm = getenv("HEROKU_PHP_GRACEFUL_SIGTERM");
+ 
+     for (sig = signals; sig->signo != 0; sig++) {
+         ngx_memzero(&sa, sizeof(struct sigaction));
+ 
++        if (strncmp(sig->name, "stop", 4) == 0 && ignore_sigterm && atoi(ignore_sigterm)) {
++            sig->name = "";
++            sig->handler = NULL;
++        }
++
+         if (sig->handler) {
+             sa.sa_sigaction = sig->handler;
+             sa.sa_flags = SA_SIGINFO;

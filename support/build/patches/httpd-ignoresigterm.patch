@@ -1,0 +1,43 @@
+diff --git a/os/unix/unixd.c b/os/unix/unixd.c
+index 0245720aa0..b7333c5e32 100644
+--- a/os/unix/unixd.c
++++ b/os/unix/unixd.c
+@@ -51,6 +51,7 @@
+ #ifdef HAVE_SYS_PRCTL_H
+ #include <sys/prctl.h>
+ #endif
++#include <stdlib.h>
+ 
+ unixd_config_rec ap_unixd_config;
+ 
+@@ -522,6 +523,7 @@ AP_DECLARE(void) ap_unixd_mpm_set_signals(apr_pool_t *pconf, int one_process)
+ #ifndef NO_USE_SIGACTION
+     struct sigaction sa;
+ #endif
++    char* ignore_sigterm = getenv("HEROKU_PHP_GRACEFUL_SIGTERM");
+ 
+     if (!one_process) {
+         ap_fatal_signal_setup(ap_server_conf, pconf);
+@@ -566,10 +568,12 @@ AP_DECLARE(void) ap_unixd_mpm_set_signals(apr_pool_t *pconf, int one_process)
+                      "sigaction(SIGXFSZ)");
+ #endif
+ 
+-    sa.sa_handler = sig_term;
++    sa.sa_handler = (ignore_sigterm && atoi(ignore_sigterm)) ? SIG_IGN : sig_term;
+     if (sigaction(SIGTERM, &sa, NULL) < 0)
+         ap_log_error(APLOG_MARK, APLOG_WARNING, errno, ap_server_conf, APLOGNO(00264)
+                      "sigaction(SIGTERM)");
++
++    sa.sa_handler = sig_term;
+ #ifdef SIGINT
+     if (sigaction(SIGINT, &sa, NULL) < 0)
+         ap_log_error(APLOG_MARK, APLOG_WARNING, errno, ap_server_conf, APLOGNO(00266)
+@@ -604,7 +608,7 @@ AP_DECLARE(void) ap_unixd_mpm_set_signals(apr_pool_t *pconf, int one_process)
+     apr_signal(SIGXFSZ, SIG_IGN);
+ #endif /* SIGXFSZ */
+ 
+-    apr_signal(SIGTERM, sig_term);
++    apr_signal(SIGTERM, (ignore_sigterm && atoi(ignore_sigterm)) ? SIG_IGN : sig_term);
+ #ifdef AP_SIG_GRACEFUL_STOP
+     apr_signal(AP_SIG_GRACEFUL_STOP, sig_term);
+ #endif /* AP_SIG_GRACEFUL_STOP */

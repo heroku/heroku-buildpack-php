@@ -31,6 +31,9 @@ mkdir -p ${dep_dirname}/srclib/apr-util
 curl -L ${aprutil_url} | tar xz --strip-components=1 -C ${dep_dirname}/srclib/apr-util
 
 pushd ${dep_dirname}
+
+patch -p1 < $(dirname $BASH_SOURCE)/patches/httpd-ignoresigterm.patch
+
 ./configure \
 	--enable-layout=GNU \
 	--prefix=${OUT_PREFIX} \
