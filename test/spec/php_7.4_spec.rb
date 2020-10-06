@@ -19,7 +19,7 @@ describe "A PHP 7.4 application with a composer.json", :requires_php_on_stack =>
 						# once web server is ready, `read` unblocks and we curl the sleep() script which will take a few seconds to run
 						# after `curl` completes, `wait-for.it.sh` will shut down
 						# ensure slowlog info and trace is there
-						cmd = "./waitforit.sh 20 'ready for connections' heroku-php-apache2 --verbose -F fpm.request_slowlog_timeout.conf | { read && curl \"localhost:$PORT/index.php?wait=5\"; }"
+						cmd = "./waitforit.sh 20 'ready for connections' heroku-php-#{server} --verbose -F fpm.request_slowlog_timeout.conf | { read && curl \"localhost:$PORT/index.php?wait=5\"; }"
 						output = app.run(cmd)
 						expect(output).to include("executing too slow")
 						expect(output).to include("sleep() /app/index.php:5")
@@ -32,7 +32,7 @@ describe "A PHP 7.4 application with a composer.json", :requires_php_on_stack =>
 						# once web server is ready, `read` unblocks and we curl the sleep() script with a very long timeout
 						# after `curl` completes, `wait-for.it.sh` will shut down
 						# ensure slowlog and terminate output is there
-						cmd = "./waitforit.sh 50 'ready for connections' heroku-php-apache2 --verbose | { read && curl \"localhost:$PORT/index.php?wait=35\"; }"
+						cmd = "./waitforit.sh 50 'ready for connections' heroku-php-#{server} --verbose | { read && curl \"localhost:$PORT/index.php?wait=35\"; }"
 						output = app.run(cmd)
 						expect(output).to match(/executing too slow/)
 						expect(output).to match(/execution timed out/)
