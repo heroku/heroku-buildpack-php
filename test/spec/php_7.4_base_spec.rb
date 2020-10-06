@@ -1,7 +1,7 @@
-require_relative "php_shared"
+require_relative "php_shared_base"
 
-describe "A PHP 7.4 application with a composer.json", :requires_php_on_stack => "7.4" do
-	include_examples "A PHP application with a composer.json", "7.4"
+describe "A basic PHP 7.4 application", :requires_php_on_stack => "7.4" do
+	include_examples "A basic PHP application", "7.4"
 	
 	context "with an index.php that allows for different execution times" do
 		['apache2', 'nginx'].each do |server|
