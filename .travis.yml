@@ -8,7 +8,16 @@ install:
 - bundle install
 before_script:
 - bundle exec hatchet ci:setup
-- heroku update
+# Heroku CLI's .deb installs to /usr/bin/heroku
+# Travis CI _also installs Heroku CLI_ in its base image to /usr/local/bin/heroku
+# On Travis CI, /usr/local/bin comes _before_ /usr/bin in the $PATH.
+# So even though we are installing the latest via hatchet, the Travis CI heroku
+# is winning out due to the /usr/local/bin coming first in the PATH.
+# Create a shim in /home/travis/bin (which comes before /usr/local/bin and /usr/bin)
+# to get the Heroku CLI installed from hatchet first in the PATH
+- ln -s /usr/bin/heroku /home/travis/bin/heroku
+- which heroku
+- heroku -v
 script: bundle exec parallel_rspec -n 7 --group-by runtime --unknown-runtime 1 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-process-command --combine-stderr --prefix-output-with-test-env-number test/spec/
 after_script:
 - bundle exec hatchet destroy --all
