@@ -1,6 +1,6 @@
 require_relative "spec_helper"
 
-shared_examples "A PHP application using New Relic"
+describe "A PHP application using New Relic" do
 	["explicitly", "without NEW_RELIC_LICENSE_KEY", "implicitly"].each do |mode|
 		context "#{mode}" do
 			before(:all) do
@@ -8,29 +8,28 @@ shared_examples "A PHP application using New Relic"
 					# ext-newrelic is listed as a dependency in composer.json, and a NEW_RELIC_LICENSE_KEY is provided
 					@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 						config: { "NEW_RELIC_LOG_LEVEL" => "info", "NEW_RELIC_LICENSE_KEY" => "somethingfake" },
-						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:*' 'ext-newrelic:*'") or raise "Failed to require PHP/ext-newrelic" }
+						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:*' 'ext-newrelic:*'") or raise "Failed to require PHP/ext-newrelic" },
+						run_multi: true
 					)
 				elsif mode == "without NEW_RELIC_LICENSE_KEY"
 					# ext-newrelic is listed as a dependency in composer.json, but a NEW_RELIC_LICENSE_KEY is missing
 					@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 						config: { "NEW_RELIC_LOG_LEVEL" => "info" },
-						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:*' 'ext-newrelic:*'") or raise "Failed to require PHP/ext-newrelic" }
+						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:*' 'ext-newrelic:*'") or raise "Failed to require PHP/ext-newrelic" },
+						run_multi: true
 					)
 				else
 					# a NEW_RELIC_LICENSE_KEY triggers the automatic installation of ext-newrelic at the end of the build
 					@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 						config: { "NEW_RELIC_LOG_LEVEL" => "info", "NEW_RELIC_LICENSE_KEY" => "thiswilltriggernewrelic" },
-						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:*'") or raise "Failed to require PHP version" }
+						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:*'") or raise "Failed to require PHP version" },
+						run_multi: true
 					)
 				end
 				@app.deploy
-				@app.api_rate_limit.call.formation.update(@app.name, "web", {"size" => "Standard-1X"})
 			end
 			
 			after(:all) do
-				# scale back down when we're done
-				# we should do this, because teardown! doesn't remove the app unless we're over the app limit
-				@app.api_rate_limit.call.formation.update(@app.name, "web", {"size" => "free"})
 				@app.teardown!
 			end
 			
