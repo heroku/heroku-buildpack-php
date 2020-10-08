@@ -51,11 +51,16 @@ elif [[ $STACK == "heroku-16" ]]; then
 	needed+=( libonig2 )
 	needed+=( libsodium18 )
 	needed+=( libzip4 )
-else
+elif [[ $STACK == "heroku-18" ]]; then
 	needed+=( libicu60 )
 	needed+=( libonig4 )
 	needed+=( libsodium23 )
 	needed+=( libzip4 )
+else
+	needed+=( libicu66 )
+	needed+=( libonig5 )
+	needed+=( libsodium23 )
+	needed+=( libzip5 )
 fi
 if [[ $dep_version == 5.* || $dep_version == 7.[0-1].* ]]; then
 	needed+=( libmcrypt4 )
@@ -85,6 +90,14 @@ if [[ "$missing" ]]; then
 	apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
 	apt-get install -q -y $missing
 fi
+
+# freetype-config is gone on 20.04, but 7.3 doesn't use pkg-config yet
+if [[ $STACK == "heroku-20" && $dep_version == 7.3.* ]]; then
+	patch -p1 < "$(dirname "$BASH_SOURCE")/patches/php-freetype-pkgconfig.patch"
+	# we changed config.m4 for GD, re-generate configure
+	./buildconf --force
+fi
+# all following sed "patches" modify configure directly, so we must do that after the above buildconf re-gen
 
 if dpkg --compare-versions "$dep_version" "lt" 7.0.16 || dpkg --compare-versions "$dep_version" "eq" 7.1.0 || dpkg --compare-versions "$dep_version" "eq" 7.1.1; then
 	# look for GMP libs in /usr/lib/x86_64-linux-gnu and not /usr/lib
