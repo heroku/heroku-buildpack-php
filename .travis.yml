@@ -3,18 +3,19 @@ dist: xenial
 sudo: false
 before_install:
 - gem install bundler
+- curl --fail --retry 3 --retry-delay 1 --connect-timeout 3 --max-time 30 https://cli-assets.heroku.com/install.sh | sh
 - composer self-update
 install:
 - bundle install
 before_script:
 - bundle exec hatchet ci:setup
-- heroku update
 script: bundle exec parallel_rspec -n 16 --group-by runtime --unknown-runtime 1 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-process-command --combine-stderr --prefix-output-with-test-env-number test/spec/
 after_script:
 - bundle exec hatchet destroy --all
 - cat parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort
 env:
   global:
+  - HEROKU_DISABLE_AUTOUPDATE=1
   - HATCHET_RETRIES=3
   - IS_RUNNING_ON_CI=true
   - HATCHET_APP_LIMIT=200
