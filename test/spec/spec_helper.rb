@@ -65,8 +65,10 @@ def php_on_stack?(series)
 			available = ["5.5", "5.6", "7.0", "7.1", "7.2", "7.3"]
 		when "heroku-16"
 			available = ["5.6", "7.0", "7.1", "7.2", "7.3", "7.4"]
-		else
+		when "heroku-18"
 			available = ["7.1", "7.2", "7.3", "7.4"]
+		else
+			available = ["7.3", "7.4"]
 	end
 	available.include?(series)
 end
