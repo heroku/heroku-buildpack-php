@@ -1,0 +1,16 @@
+test/spec/ci_spec.rb:274.321140925
+test/spec/newrelic_spec.rb:86.77255344099999
+test/spec/nginx_spec.rb:20.886132366
+test/spec/php_7.3-apache2_boot_spec.rb:135.224324281
+test/spec/php_7.3-apache2_concurrency_spec.rb:121.997482515
+test/spec/php_7.3_base_spec.rb:47.707490181000004
+test/spec/php_7.3-nginx_boot_spec.rb:127.24351971599998
+test/spec/php_7.3-nginx_concurrency_spec.rb:97.35256225500001
+test/spec/php_7.4-apache2_boot_spec.rb:134.466871313
+test/spec/php_7.4-apache2_concurrency_spec.rb:117.94966486199999
+test/spec/php_7.4_base_spec.rb:209.54589649499997
+test/spec/php_7.4-nginx_boot_spec.rb:135.319817913
+test/spec/php_7.4-nginx_concurrency_spec.rb:100.578034599
+test/spec/php_default_spec.rb:65.515156888
+test/spec/sigterm_spec.rb:56.08510167799997
+test/spec/test_spec.rb:115.505651812

@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v182 (2020-10-12)
+
+### ADD
+
+- Support for heroku-20 stack [David Zuelke]
+
 ## v181 (2020-10-01)
 
 ### ADD
