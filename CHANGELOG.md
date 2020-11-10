@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v183 (2020-11-??)
+
+### FIX
+
+- Explicit ext-newrelic require outputs info messages during builds [David Zuelke]
+
 ## v182 (2020-10-12)
 
 ### ADD

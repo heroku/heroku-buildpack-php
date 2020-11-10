@@ -59,15 +59,19 @@ find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i
 popd
 
 mkdir -p ${OUT_PREFIX}/bin
-# gets sourced on dyno boot
-cat > ${OUT_PREFIX}/bin/profile.newrelic.sh <<'EOF'
+
+# these env var defaults we want both during a build (used in the INI futher below) and at boot time
+tee ${OUT_PREFIX}/bin/export.newrelic.sh > ${OUT_PREFIX}/bin/profile.newrelic.sh <<'EOF'
 export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-${HEROKU_APP_NAME:-"PHP Application on Heroku"}}
 export NEW_RELIC_LOG_LEVEL=${NEW_RELIC_LOG_LEVEL:-"warning"}
 export NEW_RELIC_DAEMON_LOG_LEVEL="$NEW_RELIC_LOG_LEVEL"
 if [[ "$NEW_RELIC_DAEMON_LOG_LEVEL" == verbose* || "$NEW_RELIC_DAEMON_LOG_LEVEL" == *debug ]]; then
 	NEW_RELIC_DAEMON_LOG_LEVEL="debug"
 fi
+EOF
 
+# gets sourced on dyno boot
+cat > ${OUT_PREFIX}/bin/profile.newrelic.sh <<'EOF'
 # The daemon is a started in foreground mode so it will not daemonize
 # (i.e. disassociate from the controlling TTY and disappear into the
 # background).
@@ -121,7 +125,7 @@ MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/hhvm\":\"*\"}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/newrelic.ini-dist\",\"profile\":\"bin/profile.newrelic.sh\"}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/newrelic.ini-dist\",\"export\":\"bin/export.newrelic.sh\",\"profile\":\"bin/profile.newrelic.sh\"}"}"
 
 python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
