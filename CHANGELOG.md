@@ -13,6 +13,7 @@
 - ext-blackfire/1.44.0 [David Zuelke]
 - ext-event/3.0.0 [David Zuelke]
 - ext-mongodb/1.8.2 [David Zuelke]
+- ext-phalcon/4.1.0 [David Zuelke]
 
 ### CHG
 
