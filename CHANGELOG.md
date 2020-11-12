@@ -8,6 +8,7 @@
 - PHP/8.0.0RC4 (heroku-20 stack only) [David Zuelke]
 - ext-mongodb/1.9.0RC1 (PHP 8 only) [David Zuelke]
 - PHP/7.3.24 [David Zuelke]
+- PHP/7.4.12 [David Zuelke]
 
 ### CHG
 
