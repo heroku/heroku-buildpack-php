@@ -13,6 +13,7 @@
 ### CHG
 
 - Patches to optionally ignore SIGTERM in Apache, Nginx and PHP builds (not yet implemented by the buildpack) [David Zuelke]
+- librdkafka/1.5.2 [David Zuelke]
 
 ### FIX
 
