@@ -120,6 +120,8 @@ fi
 # see the AC_DEFUN([AC_FPM_TRACE] bits in sapi/fpm/config.m4
 sed -i 's/have_ptrace=yes/have_ptrace=no/' configure
 
+patch -p1 < $(dirname $BASH_SOURCE)/patches/php-ignoresigterm.patch
+
 configureopts=()
 if [[ $dep_version != 5.* ]]; then
 	if [[ $dep_version == 7.[0-3].* ]]; then

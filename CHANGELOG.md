@@ -8,6 +8,10 @@
 - PHP/8.0.0RC4 (heroku-20 stack only) [David Zuelke]
 - ext-mongodb/1.9.0RC1 (PHP 8 only) [David Zuelke]
 
+### CHG
+
+- Patches to optionally ignore SIGTERM in Apache, Nginx and PHP builds (not yet implemented by the buildpack) [David Zuelke]
+
 ### FIX
 
 - Explicit ext-newrelic require outputs info messages during builds [David Zuelke]
