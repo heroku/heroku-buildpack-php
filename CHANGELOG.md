@@ -14,6 +14,7 @@
 
 - Patches to optionally ignore SIGTERM in Apache, Nginx and PHP builds (not yet implemented by the buildpack) [David Zuelke]
 - librdkafka/1.5.2 [David Zuelke]
+- Composer/1.10.17 [David Zuelke]
 
 ### FIX
 
