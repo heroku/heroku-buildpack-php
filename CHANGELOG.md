@@ -16,6 +16,7 @@
 - ext-phalcon/4.1.0 [David Zuelke]
 - ext-rdkafka/4.0.4 [David Zuelke]
 - ext-redis/5.3.2 [David Zuelke]
+- ext-uuid/1.2.0 [David Zuelke]
 
 ### CHG
 
