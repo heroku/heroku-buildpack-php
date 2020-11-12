@@ -30,6 +30,8 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
 		dep_url=https://downloads.php.net/~cmb/${dep_archive_name}
 	elif [[ $dep_version == 7.4.* ]]; then
 		dep_url=https://downloads.php.net/~derick/${dep_archive_name}
+	elif [[ $dep_version == 8.0.* ]]; then
+		dep_url=https://downloads.php.net/~carusogabriel/${dep_archive_name}
 	fi
 else
 	dep_url=https://www.php.net/distributions/${dep_archive_name}
@@ -119,7 +121,7 @@ fi
 sed -i 's/have_ptrace=yes/have_ptrace=no/' configure
 
 configureopts=()
-if [[ $dep_version == 7.* ]]; then
+if [[ $dep_version != 5.* ]]; then
 	if [[ $dep_version == 7.[0-3].* ]]; then
 		configureopts+=("--enable-opcache-file" "--enable-zip")
 		configureopts+=("--with-sqlite3=shared${sqlite_prefix:+","}${sqlite_prefix}" "--with-pdo-sqlite=shared${sqlite_prefix:+","}${sqlite_prefix}")
@@ -148,6 +150,9 @@ if [[ $dep_version == 7.* ]]; then
 	fi
 else
 	configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr" "--with-mcrypt" "--with-mysql=shared" "--enable-zip" "--with-sqlite3=shared${sqlite_prefix:+","}${sqlite_prefix}" "--with-pdo-sqlite=shared${sqlite_prefix:+","}${sqlite_prefix}")
+fi
+if [[ $dep_version != 8.* ]]; then
+	configureopts+=("--with-xmlrpc=shared")
 fi
 if [[ $STACK == "cedar-14" ]]; then
 	configureopts+=("--without-libzip" "--without-onig") # there is no libzip and no libonig on cedar-14
@@ -190,7 +195,6 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--enable-pcntl=shared \
 	--enable-shmop=shared \
 	--enable-soap=shared \
-	--with-xmlrpc=shared \
 	--with-xsl=shared \
 	"${configureopts[@]}"
 make -s -j 9

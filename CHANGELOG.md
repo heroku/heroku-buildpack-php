@@ -5,6 +5,8 @@
 ### ADD
 
 - ext-newrelic/9.14.0.290 [David Zuelke]
+- PHP/8.0.0RC4 (heroku-20 stack only) [David Zuelke]
+- ext-mongodb/1.9.0RC1 (PHP 8 only) [David Zuelke]
 
 ### FIX
 
