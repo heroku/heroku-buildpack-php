@@ -11,6 +11,7 @@
 - PHP/7.4.12 [David Zuelke]
 - ext-apcu/5.1.19 [David Zuelke]
 - ext-blackfire/1.44.0 [David Zuelke]
+- ext-event/3.0.0 [David Zuelke]
 
 ### CHG
 
