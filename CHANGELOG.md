@@ -1,16 +1,29 @@
 # heroku-buildpack-php CHANGELOG
 
-## v183 (2020-11-??)
+## v183 (2020-11-13)
 
 ### ADD
 
 - ext-newrelic/9.14.0.290 [David Zuelke]
 - PHP/8.0.0RC4 (heroku-20 stack only) [David Zuelke]
 - ext-mongodb/1.9.0RC1 (PHP 8 only) [David Zuelke]
+- PHP/7.3.24 [David Zuelke]
+- PHP/7.4.12 [David Zuelke]
+- ext-apcu/5.1.19 [David Zuelke]
+- ext-blackfire/1.44.0 [David Zuelke]
+- ext-event/3.0.0 [David Zuelke]
+- ext-mongodb/1.8.2 [David Zuelke]
+- ext-phalcon/4.1.0 [David Zuelke]
+- ext-rdkafka/4.0.4 [David Zuelke]
+- ext-redis/5.3.2 [David Zuelke]
+- ext-uuid/1.2.0 [David Zuelke]
+- ext-psr/1.0.1 [David Zuelke]
 
 ### CHG
 
 - Patches to optionally ignore SIGTERM in Apache, Nginx and PHP builds (not yet implemented by the buildpack) [David Zuelke]
+- librdkafka/1.5.2 [David Zuelke]
+- Composer/1.10.17 [David Zuelke]
 
 ### FIX
 
