@@ -1,6 +1,6 @@
 # heroku-buildpack-php CHANGELOG
 
-## v183 (2020-11-12)
+## v183 (2020-11-13)
 
 ### ADD
 
@@ -17,6 +17,7 @@
 - ext-rdkafka/4.0.4 [David Zuelke]
 - ext-redis/5.3.2 [David Zuelke]
 - ext-uuid/1.2.0 [David Zuelke]
+- ext-psr/1.0.1 [David Zuelke]
 
 ### CHG
 
