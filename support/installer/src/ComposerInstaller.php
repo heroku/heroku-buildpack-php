@@ -22,6 +22,7 @@ class ComposerInstaller extends LibraryInstaller
 			'heroku-sys-library',
 			'heroku-sys-php',
 			'heroku-sys-php-extension',
+			'heroku-sys-program',
 			'heroku-sys-webserver',
 		]);
 	}

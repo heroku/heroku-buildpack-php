@@ -7,6 +7,8 @@ require["heroku-sys/"+stack.group(1)] = "^{}.0.0".format(stack.group(2) or "1")
 require["heroku/installer-plugin"] = "^1.2.0"
 if sys.argv[1] == 'heroku-sys-library':
 	require["heroku/installer-plugin"] = "^1.3.0"
+elif sys.argv[1] == 'heroku-sys-program':
+	require["heroku/installer-plugin"] = "^1.4.0"
 
 manifest = {
 	"type": sys.argv[1],
