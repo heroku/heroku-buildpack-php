@@ -241,12 +241,13 @@ curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.g
 		version of the Heroku PHP buildpack which may need updating.
 	EOF
 }
-tar xzf $build_dir/.heroku/composer.tar.gz -C $build_dir/.heroku/php
+tar xzf $build_dir/.heroku/composer.tar.gz -C $build_dir/.heroku/php bin/composer
 rm $build_dir/.heroku/composer.tar.gz
+mv $build_dir/.heroku/php/bin/composer{,1} # we will need this at the end even if user installs happen with Composer 2
 
 # this alias is just for now while we install platform packages
 composer() {
-	/app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer "$@"
+	/app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer1 "$@"
 }
 export -f composer
 
@@ -254,25 +255,7 @@ export -f composer
 composer_vendordir=$(composer config --no-plugins vendor-dir)
 composer_bindir=$(composer config --no-plugins bin-dir)
 
-# packages that get installed will add to this file, it's both for us and for buildpacks that follow
-# composer bin-dir goes last to avoid any conflicts
-echo "export PATH=/app/.heroku/php/bin:\$PATH:/app/$composer_bindir" > $bp_dir/export
-# make sure Composer and binaries for it are on the path at runtime
-# composer bin-dir goes last to avoid any conflicts
 mkdir -p $build_dir/.profile.d
-echo "export PATH=\$HOME/.heroku/php/bin:\$PATH:\$HOME/$composer_bindir" > $build_dir/.profile.d/100-composer.sh
-
-# a few more practical defaults for Composer (use available memory, always mirror path repos because of FS boundaries during build, always run non-interactively)
-cat | tee -a $bp_dir/export >> $build_dir/.profile.d/100-composer.sh <<-'EOF'
-	mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
-	if [[ -f "$mlib" ]]; then
-		export COMPOSER_MEMORY_LIMIT=${COMPOSER_MEMORY_LIMIT:-$(cat "$mlib")}
-	fi
-	export COMPOSER_MIRROR_PATH_REPOS=${COMPOSER_MIRROR_PATH_REPOS:-1}
-	export COMPOSER_NO_INTERACTION=${COMPOSER_NO_INTERACTION:-1}
-EOF
-# unlimited Composer process timeout only for runtime, not build time
-echo 'export COMPOSER_PROCESS_TIMEOUT=${COMPOSER_PROCESS_TIMEOUT:-0}' >> $build_dir/.profile.d/100-composer.sh
 
 # we perform this check early so people with stale lock files are reminded why if their lock file errors in the next step
 composer_lock_outdated=false
@@ -391,7 +374,7 @@ export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 	fi
 }
 
-# reset COMPOSER for the platform install step
+# reset $COMPOSER for the platform install step
 COMPOSER_bak="$COMPOSER"
 export COMPOSER=composer.json
 
@@ -503,11 +486,7 @@ echo "export PHP_INI_SCAN_DIR=\${PHP_INI_SCAN_DIR-}:$bp_dir/conf/php/apm-nostart
 # earlier we wrote at least one $PATH entry that we'll need now (and just above we added a PHP_INI_SCAN_DIR export), and installed packages will likely have added to it too
 source $bp_dir/export
 
-# from here onwards we're using composer with the PHP runtime that we installed
-composer() {
-	$engine $(which composer) "$@"
-}
-export -f composer
+# from here onwards we're using the composer we installed via platform install with the PHP runtime that we installed via platform install
 
 # log runtime version
 mcount "platform.packages.php.$($engine_r "echo ${engine^^}_VERSION;")"
@@ -759,3 +738,5 @@ fi
 # done with platform installs; restore COMPOSER from previous value
 export COMPOSER="$COMPOSER_bak"
 unset COMPOSER_bak
+# and remove the composer1 program we needed for platform installs
+rm $build_dir/.heroku/php/bin/composer1

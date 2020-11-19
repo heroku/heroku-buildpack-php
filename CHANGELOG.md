@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v184 (2020-11-20)
+
+### CHG
+
+- Install Composer using platform installer [David Zuelke]
+
 ## v183 (2020-11-13)
 
 ### ADD
