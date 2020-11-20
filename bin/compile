@@ -615,7 +615,7 @@ unset COMPOSER_GITHUB_OAUTH_TOKEN
 export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV|BPLOG_PREFIX|BUILDPACK_LOG_FILE|PHP_INI_SCAN_DIR)$'
 if cat "$COMPOSER" | python -c 'import sys,json; sys.exit(not json.load(sys.stdin));'; then
 	install_log=$(mktemp -t heroku-buildpack-php-composer-install-log-XXXX)
-	composer install ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --prefer-dist --optimize-autoloader --no-interaction 2>&1 | tee "$install_log" | indent || {
+	composer install ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --prefer-dist --optimize-autoloader --no-progress --no-interaction 2>&1 | tee "$install_log" | indent || {
 		code=$?
 		if [[ $code -eq 2 ]]; then
 			# dependency solving failed, which should only ever happen if people have platform overrides in their config

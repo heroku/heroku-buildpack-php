@@ -10,6 +10,7 @@
 ### CHG
 
 - Install Composer using platform installer [David Zuelke]
+- Do not output download progress during `composer install` [David Zuelke]
 
 ## v183 (2020-11-13)
 
