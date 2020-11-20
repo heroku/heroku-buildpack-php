@@ -2,6 +2,11 @@
 
 ## v184 (2020-11-20)
 
+### ADD
+
+- Support for Composer 2 (#440) [David Zuelke]
+- Composer/2.0.7 [David Zuelke]
+
 ### CHG
 
 - Install Composer using platform installer [David Zuelke]
