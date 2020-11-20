@@ -1,5 +1,6 @@
 test/spec/bugs_spec.rb:21.748024453999996
 test/spec/ci_spec.rb:274.321140925
+test/spec/composer_spec.rb:30.616864848999995
 test/spec/newrelic_spec.rb:86.77255344099999
 test/spec/nginx_spec.rb:20.886132366
 test/spec/php_7.1-apache2_boot_spec.rb:129.810977812
