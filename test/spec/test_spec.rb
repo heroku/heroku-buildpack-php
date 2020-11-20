@@ -26,17 +26,6 @@ describe "A PHP application" do
     end
   end
 
-  it "have absolute buildpack paths" do
-    skip("force absolute paths buildpack requires an modern ruby version") if ENV["STACK"] == "cedar-14"
-    buildpacks = [
-      :default,
-      "https://github.com/sharpstone/force_absolute_paths_buildpack"
-    ]
-    new_app_with_stack_and_platrepo("php-getting-started", buildpacks: buildpacks).deploy do |app|
-      #deploy works
-    end
-  end
-
   it "uses cache with ci" do
     app = new_app_with_stack_and_platrepo('test/fixtures/ci/devdeps')
     app.run_ci do |test_run|

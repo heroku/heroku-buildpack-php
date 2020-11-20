@@ -5,8 +5,8 @@ install_blackfire_ext() {
 	# otherwise users would have to have it in their require section, which is annoying in development environments
 	BLACKFIRE_SERVER_ID=${BLACKFIRE_SERVER_ID:-}
 	BLACKFIRE_SERVER_TOKEN=${BLACKFIRE_SERVER_TOKEN:-}
-	if [[ "$engine" == "php" && -n "$BLACKFIRE_SERVER_TOKEN" && -n "$BLACKFIRE_SERVER_ID" ]] && ! $engine -n $(which composer) show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/ext-blackfire 2>/dev/null; then
-		if $engine -n $(which composer) require --update-no-dev -d "$build_dir/.heroku/php" -- "heroku-sys/ext-blackfire:*" >> $build_dir/.heroku/php/install.log 2>&1; then
+	if [[ "$engine" == "php" && -n "$BLACKFIRE_SERVER_TOKEN" && -n "$BLACKFIRE_SERVER_ID" ]] && ! $engine -n $(which composer1) show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/ext-blackfire 2>/dev/null; then
+		if $engine -n $(which composer1) require --update-no-dev -d "$build_dir/.heroku/php" -- "heroku-sys/ext-blackfire:*" >> $build_dir/.heroku/php/install.log 2>&1; then
 			echo "- Blackfire detected, installed ext-blackfire" | indent
 		else
 			mcount "warnings.addons.blackfire.extension_missing"

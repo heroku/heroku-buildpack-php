@@ -1,4 +1,5 @@
 test/spec/ci_spec.rb:291.599527972
+test/spec/composer_spec.rb:30.616864848999995
 test/spec/newrelic_spec.rb:95.20561092300001
 test/spec/nginx_spec.rb:21.700082380999994
 test/spec/php_5.6-apache2_boot_spec.rb:135.503073009

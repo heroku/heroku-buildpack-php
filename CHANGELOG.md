@@ -1,5 +1,21 @@
 # heroku-buildpack-php CHANGELOG
 
+## v184 (2020-11-20)
+
+### ADD
+
+- Support for Composer 2 (#440) [David Zuelke]
+- Composer/2.0.7 [David Zuelke]
+
+### CHG
+
+- Install Composer using platform installer [David Zuelke]
+- Do not output download progress during `composer install` [David Zuelke]
+
+### FIX
+
+- ext-newrelic prints info messages during startup regardless of `NEW_RELIC_LOG_LEVEL` [David Zuelke]
+
 ## v183 (2020-11-13)
 
 ### ADD
