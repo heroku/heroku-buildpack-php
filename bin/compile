@@ -479,6 +479,13 @@ rm -rf /app/.heroku/php-min $build_dir/.heroku/php-min
 # unset composer function that used php-min for invocation
 unset -f composer
 
+if [[ "$engine" == "hhvm" ]]; then
+	composer() {
+		$engine $(which composer) "$@"
+	}
+	export -f composer
+fi
+
 # export our "do not auto.start APM extensions" magic INI directory to PHP_INI_SCAN_DIR for ourself and for later buildpacks (but not for runtime)
 export_env_dir "$env_dir" '^PHP_INI_SCAN_DIR$'
 echo "export PHP_INI_SCAN_DIR=\${PHP_INI_SCAN_DIR-}:$bp_dir/conf/php/apm-nostart-overrides/" >> $bp_dir/export
