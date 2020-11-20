@@ -12,6 +12,10 @@
 - Install Composer using platform installer [David Zuelke]
 - Do not output download progress during `composer install` [David Zuelke]
 
+### FIX
+
+- ext-newrelic prints info messages during startup regardless of `NEW_RELIC_LOG_LEVEL` [David Zuelke]
+
 ## v183 (2020-11-13)
 
 ### ADD

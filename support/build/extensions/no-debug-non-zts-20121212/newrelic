@@ -71,7 +71,7 @@ fi
 EOF
 
 # gets sourced on dyno boot
-cat > ${OUT_PREFIX}/bin/profile.newrelic.sh <<'EOF'
+cat >> ${OUT_PREFIX}/bin/profile.newrelic.sh <<'EOF'
 # The daemon is a started in foreground mode so it will not daemonize
 # (i.e. disassociate from the controlling TTY and disappear into the
 # background).

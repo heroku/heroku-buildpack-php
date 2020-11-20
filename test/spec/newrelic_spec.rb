@@ -60,7 +60,17 @@ describe "A PHP application using New Relic" do
 			end
 			
 			['heroku-php-apache2', 'heroku-php-nginx'].each do |script|
-				next if mode == "with default NEW_RELIC_LOG_LEVEL" # without log level info, we will not see the messages we're using to test the behavior
+				if mode == "with default NEW_RELIC_LOG_LEVEL"
+					# without log level info, we will not see the messages we're using to test any behavior
+					# but we need to assert that no info is printed at all in this case
+					it "does not output info messages during startup with #{script}" do
+						out = @app.run("#{script} -F conf/fpm.include.broken") # prevent FPM from starting up using an invalid config, that way we don't have to wrap the server start in a `timeout` call
+						
+						expect(out).not_to match(/New Relic PHP Agent globally disabled/) # this message should not occur if defaults are applied correctly even at build time
+						expect(out).not_to match(/New Relic daemon/) # this message should not occur if defaults are applied correctly even at build time
+					end
+					next # the other tests do not apply to this case since the log level isn't sufficient to assert anything
+				end
 				it "launches newrelic-daemon, but not the extension, during boot preparations, with #{script}" do
 					out = @app.run("#{script} -F conf/fpm.include.broken") # prevent FPM from starting up using an invalid config, that way we don't have to wrap the server start in a `timeout` call
 					
