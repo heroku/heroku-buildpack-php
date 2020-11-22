@@ -62,7 +62,8 @@ export PATH="/app/.heroku/php/bin:$PATH"
 # - then we cd up three times (from .heroku/php/bin, from .heroku/php, from .heroku) so we're in the build dir
 # - then we invoke 'composer config bin-dir' in there and realpath that so it's absolute
 # no scan dir so no newrelic starts up and outputs messages etc
-export PATH="$PATH:$(cd "$(dirname "$(realpath "$(which composer)")")"; cd ../../..; realpath "$(PHP_INI_SCAN_DIR= composer config --no-plugins bin-dir)")"
+# FIXME: cedar-14 realpath doesn't have --canonicalize-missing, so we have to mkdir -p the bin-dir (it's not there yet when we source export early on in bin/compile)
+export PATH="$PATH:$(cd "$(dirname "$(realpath "$(which composer)")")"; cd ../../..; bin_dir="$(PHP_INI_SCAN_DIR= composer config --no-plugins bin-dir)"; mkdir -p "$bin_dir"; realpath "$bin_dir")"
 EOF
 # this gets sourced on dyno boot
 # unlimited Composer process timeout only for runtime, not build time

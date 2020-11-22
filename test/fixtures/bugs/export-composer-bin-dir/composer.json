@@ -1,0 +1,5 @@
+{
+    "require": {
+        "atoum/atoum": "^4.0"
+    }
+}
