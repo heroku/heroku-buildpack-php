@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v185 (2020-11-22)
+
+### FIX
+
+- composer bin-dir is not available on $PATH to subsequent buildpacks [David Zuelke]
+
 ## v184 (2020-11-20)
 
 ### ADD
