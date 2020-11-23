@@ -16,4 +16,16 @@ describe "A PHP application" do
 			end
 		end
 	end
+	context "that has another buildpack running after the PHP buildpack" do
+		it "puts binaries from composer's bin-dir on $PATH for subsequent buildpacks" do
+			buildpacks = [
+				:default,
+				"https://github.com/weibeld/heroku-buildpack-run"
+			]
+			app = new_app_with_stack_and_platrepo("test/fixtures/bugs/export-composer-bin-dir", buildpacks: buildpacks)
+			app.deploy do |app|
+				expect(app.output).to match("atoum version")
+			end
+		end
+	end
 end

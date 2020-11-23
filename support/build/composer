@@ -54,8 +54,16 @@ EOF
 cat >> ${OUT_PREFIX}/bin/export.composer.sh <<-'EOF'
 export PATH="/app/.heroku/php/bin:$PATH"
 # now composer is on the path
+# the export script is called with /app as the cwd, but the app source with composer.json is in another location
+# we need to cd to the dirname of realpath 'composer' first to find the actual location of the app during the build:
+# - we know 'composer' is on $PATH in /app/.heroku/php/bin
+# - we know /app/.heroku/php is a symlink to the build dir
+# - we $(dirname $(realpath 'composer')) to get $build_dir/.heroku/php/bin/
+# - then we cd up three times (from .heroku/php/bin, from .heroku/php, from .heroku) so we're in the build dir
+# - then we invoke 'composer config bin-dir' in there and realpath that so it's absolute
 # no scan dir so no newrelic starts up and outputs messages etc
-export PATH="$PATH:$(PHP_INI_SCAN_DIR= composer config --no-plugins bin-dir)"
+# FIXME: cedar-14 realpath doesn't have --canonicalize-missing, so we have to mkdir -p the bin-dir (it's not there yet when we source export early on in bin/compile)
+export PATH="$PATH:$(cd "$(dirname "$(realpath "$(which composer)")")"; cd ../../..; bin_dir="$(PHP_INI_SCAN_DIR= composer config --no-plugins bin-dir)"; mkdir -p "$bin_dir"; realpath "$bin_dir")"
 EOF
 # this gets sourced on dyno boot
 # unlimited Composer process timeout only for runtime, not build time
@@ -66,9 +74,10 @@ export COMPOSER_PROCESS_TIMEOUT=${COMPOSER_PROCESS_TIMEOUT:-0}
 export PATH="$HOME/.heroku/php/bin:$PATH"
 # now composer is on the path
 # no scan dir so no newrelic starts up and outputs messages etc
-export PATH="$PATH:$(PHP_INI_SCAN_DIR= composer config --no-plugins bin-dir)"
+export PATH="$PATH:$(realpath "$(PHP_INI_SCAN_DIR= composer config --no-plugins bin-dir)")"
 EOF
 
+# FIXME: we should also require heroku-sys/php so that gets installed before us; can't do that until cedar-14 with HHVM is history (it works fine right now because 'php' and 'composer' are in the same location on $PATH so our own $PATH logic above adds 'php' along with 'composer')
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
