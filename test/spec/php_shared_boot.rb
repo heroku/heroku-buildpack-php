@@ -82,9 +82,8 @@ shared_examples "A PHP application for testing boot options" do |series, server|
 	matrix = matrices[server]
 	context "running PHP #{series} and the #{server} web server" do
 		before(:all) do
-			suffix=(series == "8.0" ? "@RC" : "")
 			@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
-				before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*#{suffix}'") or raise "Failed to require PHP version" },
+				before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" },
 				run_multi: true
 			)
 			@app.deploy
