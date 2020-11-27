@@ -8,6 +8,7 @@
 - PHP/7.4.13 [David Zuelke]
 - PHP/8.0.0 (for stacks `heroku-18` and `heroku-20`) [David Zuelke]
 - ext-ev/1.0.9 [David Zuelke]
+- ext-mongodb/1.9.0 [David Zuelke]
 
 ## v185 (2020-11-22)
 
