@@ -54,8 +54,10 @@ def expected_default_php(stack)
 	case stack
 		when "cedar-14", "heroku-16"
 			"5.6"
-		else
+		when "heroku-18"
 			"7.4"
+		else
+			"8.0"
 	end
 end
 

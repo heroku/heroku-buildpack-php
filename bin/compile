@@ -337,8 +337,10 @@ status "Installing platform packages..."
 
 if [[ $STACK == "cedar-14" || $STACK == "heroku-16" ]]; then
 	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^5.5.17"
-else
+elif [[ $STACK == "heroku-18" ]]; then
 	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.0.0"
+else
+	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.0.0 | ^8.0.0"
 fi
 export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # extract requirements from composer.lock

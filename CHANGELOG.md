@@ -10,6 +10,10 @@
 - ext-ev/1.0.9 [David Zuelke]
 - ext-mongodb/1.9.0 [David Zuelke]
 
+### CHG
+
+- Default to PHP 8 if possible for heroku-20 [David Zuelke]
+
 ## v185 (2020-11-22)
 
 ### FIX
