@@ -108,12 +108,12 @@ shared_examples "A PHP application for testing boot options" do |series, server|
 				if combination.value?(false) or cmd.match("broken")
 					it "does not boot" do
 						# check if "timeout" exited with a status other than 124, which means the process exited (due to the expected error) before "timeout" stepped in after the given duration (five seconds) and terminated it
-						expect_exit(expect: :not_to, code: 124) { @app.run("timeout 15 #{cmd}") }
+						expect_exit(expect: :not_to, code: 124) { @app.run("timeout 15 #{cmd}", :return_obj => true) }
 					end
 				else
 					it "boots" do
 						# check if "waitforit" exited with status 0, which means the process successfully output the expected message
-						expect_exit(expect: :to, code: 0) { @app.run("./waitforit.sh 15 'ready for connections' #{cmd}") }
+						expect_exit(expect: :to, code: 0) { @app.run("./waitforit.sh 15 'ready for connections' #{cmd}", :return_obj => true) }
 					end
 				end
 			end
@@ -121,13 +121,13 @@ shared_examples "A PHP application for testing boot options" do |series, server|
 		
 		context "launching using too many arguments" do
 			it "fails to boot" do
-				expect_exit(expect: :to, code: 2) { @app.run("timeout 10 heroku-php-#{server} docroot/ anotherarg") }
+				expect_exit(expect: :to, code: 2) { @app.run("timeout 10 heroku-php-#{server} docroot/ anotherarg", :return_obj => true) }
 			end
 		end
 		
 		context "launching using unknown options" do
 			it "fails to boot" do
-				expect_exit(expect: :to, code: 2) { @app.run("timeout 10 heroku-php-#{server} --what -u erp") }
+				expect_exit(expect: :to, code: 2) { @app.run("timeout 10 heroku-php-#{server} --what -u erp", :return_obj => true) }
 			end
 		end
 	end
