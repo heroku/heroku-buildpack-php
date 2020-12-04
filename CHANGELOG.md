@@ -15,6 +15,7 @@
 
 - Default to PHP 8 if possible for heroku-20 [David Zuelke]
 - Composer/1.10.19 [David Zuelke]
+- Composer/2.0.8 [David Zuelke]
 
 ## v185 (2020-11-22)
 
