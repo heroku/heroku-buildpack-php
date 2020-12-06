@@ -29,7 +29,7 @@ describe "A PHP application using New Relic" do
 					# a NEW_RELIC_LICENSE_KEY triggers the automatic installation of ext-newrelic at the end of the build
 					@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 						config: { "NEW_RELIC_LOG_LEVEL" => "info", "NEW_RELIC_LICENSE_KEY" => "thiswilltriggernewrelic" },
-						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:*'") or raise "Failed to require PHP version" },
+						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:7.*'") or raise "Failed to require PHP version" },
 						run_multi: true
 					)
 				end

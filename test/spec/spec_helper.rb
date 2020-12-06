@@ -42,12 +42,12 @@ end
 
 def expect_exit(expect: :to, operator: :eq, code: 0)
 	raise ArgumentError, "Expected a block but none given" unless block_given?
-	output = yield
-	expect($?.exitstatus).method(expect).call(
+	run_obj = yield
+	expect(run_obj.status.exitstatus).method(expect).call(
 		method(operator).call(code),
-		"Expected exit code #{$?.exitstatus} #{expect} be #{operator} to #{code}; output:\n#{output}"
+		"Expected exit code #{run_obj.status.exitstatus} #{expect} be #{operator} to #{code}; output:\n#{run_obj.output}"
 	)
-	output # so that can be tested too
+	run_obj # so that can be tested too
 end
 
 def expected_default_php(stack)

@@ -1,49 +1,55 @@
+GIT
+  remote: https://github.com/heroku/hatchet.git
+  revision: 1e771cb2577a9c4ef3caa52d793e1c83fb8410af
+  branch: timeouts-etc
+  specs:
+    heroku_hatchet (7.4.0)
+      excon (~> 0)
+      platform-api (~> 3)
+      rrrretry (~> 1)
+      thor (~> 1)
+      threaded (~> 0)
+
 GEM
   remote: https://rubygems.org/
   specs:
     diff-lcs (1.4.4)
     erubis (2.7.0)
-    excon (0.76.0)
+    excon (0.78.0)
     heroics (0.1.1)
       erubis (~> 2.0)
       excon
       moneta
       multi_json (>= 1.9.2)
-    heroku_hatchet (7.3.0)
-      excon (~> 0)
-      platform-api (~> 3)
-      rrrretry (~> 1)
-      thor (~> 0)
-      threaded (~> 0)
     moneta (1.0.0)
     multi_json (1.15.0)
-    parallel (1.19.2)
-    parallel_tests (3.3.0)
+    parallel (1.20.1)
+    parallel_tests (3.4.0)
       parallel
-    platform-api (3.0.0)
+    platform-api (3.2.0)
       heroics (~> 0.1.1)
       moneta (~> 1.0.0)
       rate_throttle_client (~> 0.1.0)
     rake (13.0.1)
     rate_throttle_client (0.1.2)
     rrrretry (1.0.0)
-    rspec-core (3.9.2)
-      rspec-support (~> 3.9.3)
-    rspec-expectations (3.9.2)
+    rspec-core (3.10.0)
+      rspec-support (~> 3.10.0)
+    rspec-expectations (3.10.0)
       diff-lcs (>= 1.2.0, < 2.0)
-      rspec-support (~> 3.9.0)
+      rspec-support (~> 3.10.0)
     rspec-retry (0.6.2)
       rspec-core (> 3.3)
-    rspec-support (3.9.3)
+    rspec-support (3.10.0)
     sem_version (2.0.1)
-    thor (0.20.3)
+    thor (1.0.1)
     threaded (0.0.4)
 
 PLATFORMS
   ruby
 
 DEPENDENCIES
-  heroku_hatchet
+  heroku_hatchet!
   parallel_tests
   rake
   rspec-expectations
