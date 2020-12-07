@@ -218,7 +218,7 @@ fi
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 
-curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.3.24.tar.gz" || {
+curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.3.25.tar.gz" || {
 	mcount "failures.bootstrap.download.php-min"
 	error <<-EOF
 		Failed to download minimal PHP for bootstrapping!
@@ -231,7 +231,7 @@ curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
-curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.10.17.tar.gz" || {
+curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.10.19.tar.gz" || {
 	mcount "failures.bootstrap.download.composer"
 	error <<-EOF
 		Failed to download Composer for bootstrapping!
@@ -337,8 +337,10 @@ status "Installing platform packages..."
 
 if [[ $STACK == "cedar-14" || $STACK == "heroku-16" ]]; then
 	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^5.5.17"
-else
+elif [[ $STACK == "heroku-18" ]]; then
 	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.0.0"
+else
+	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.0.0 | ^8.0.0"
 fi
 export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # extract requirements from composer.lock

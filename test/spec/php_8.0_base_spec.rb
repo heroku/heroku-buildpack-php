@@ -8,7 +8,7 @@ describe "A basic PHP 8.0 application", :requires_php_on_stack => "8.0" do
 			context "running the #{server} web server" do
 				let(:app) {
 					new_app_with_stack_and_platrepo('test/fixtures/sigterm',
-						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '8.0.*@RC'") or raise "Failed to require PHP version" }
+						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '8.0.*'") or raise "Failed to require PHP version" }
 					)
 				}
 				

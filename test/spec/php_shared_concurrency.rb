@@ -3,10 +3,9 @@ require_relative "spec_helper"
 shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |series, server|
 
 	context "running PHP #{series} and the #{server} web server" do
-		suffix=(series == "8.0" ? "@RC" : "")
 		before(:all) do
 			@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
-				before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*#{suffix}'") or raise "Failed to require PHP version" },
+				before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" },
 				run_multi: true
 			)
 			@app.deploy
