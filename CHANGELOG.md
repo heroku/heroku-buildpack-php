@@ -10,6 +10,7 @@
 - ext-ev/1.0.9 [David Zuelke]
 - ext-mongodb/1.9.0 [David Zuelke]
 - ext-blackfire/1.46.4 [David Zuelke]
+- ext-event/3.0.2 [David Zuelke]
 
 ### CHG
 
