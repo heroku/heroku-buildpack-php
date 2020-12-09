@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-rdkafka/4.1.1 [David Zuelke]
+- ext-newrelic/9.15.0.293 [David Zuelke]
 
 ### CHG
 
