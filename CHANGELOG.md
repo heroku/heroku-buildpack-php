@@ -2,6 +2,10 @@
 
 ## v187 (2020-12-09)
 
+### ADD
+
+- ext-rdkafka/4.1.1 [David Zuelke]
+
 ### FIX
 
 - ext-redis is missing for PHP 8 (#452) [David Zuelke]
