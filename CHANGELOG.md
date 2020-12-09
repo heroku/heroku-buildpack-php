@@ -1,5 +1,20 @@
 # heroku-buildpack-php CHANGELOG
 
+## v187 (2020-12-09)
+
+### ADD
+
+- ext-rdkafka/4.1.1 [David Zuelke]
+- ext-newrelic/9.15.0.293 [David Zuelke]
+
+### CHG
+
+- librdkafka/1.5.3 [David Zuelke]
+
+### FIX
+
+- ext-redis is missing for PHP 8 (#452) [David Zuelke]
+
 ## v186 (2020-12-07)
 
 ### ADD
