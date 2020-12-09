@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v187 (2020-12-09)
+
+### FIX
+
+- ext-redis is missing for PHP 8 (#452) [David Zuelke]
+
 ## v186 (2020-12-07)
 
 ### ADD
