@@ -6,6 +6,10 @@
 
 - ext-rdkafka/4.1.1 [David Zuelke]
 
+### CHG
+
+- librdkafka/1.5.3 [David Zuelke]
+
 ### FIX
 
 - ext-redis is missing for PHP 8 (#452) [David Zuelke]
