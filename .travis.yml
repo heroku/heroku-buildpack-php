@@ -25,16 +25,12 @@ env:
   - HATCHET_APP_PREFIX="htcht-${TRAVIS_JOB_ID}-"
 matrix:
     include:
-      - env: STACK=cedar-14
-        if: branch = main OR tag IS present
       - env: STACK=heroku-16
         if: branch = main OR tag IS present
       - env: STACK=heroku-18
         if: branch = main OR tag IS present
       - env: STACK=heroku-20
         if: branch = main OR tag IS present
-      - env: STACK=cedar-14 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-cedar-14-develop/"
-        if: branch != main AND tag IS blank
       - env: STACK=heroku-16 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-heroku-16-develop/"
         if: branch != main AND tag IS blank
       - env: STACK=heroku-18 HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-heroku-18-develop/"
