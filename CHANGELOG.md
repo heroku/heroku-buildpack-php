@@ -2,6 +2,10 @@
 
 ## v189 (2021-02-??)
 
+### ADD
+
+- ext-rdkafka/5.0.0 [David Zuelke]
+
 ### CHG
 
 - Drop support for cedar-14 [David Zuelke]
