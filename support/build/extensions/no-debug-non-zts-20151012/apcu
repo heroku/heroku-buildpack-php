@@ -18,7 +18,7 @@ dep_package=ext-${dep_name}-${dep_version}
 dep_dirname=${dep_name}-${dep_version}
 dep_archive_name=${dep_dirname}.tgz
 dep_url=https://pecl.php.net/get/${dep_archive_name}
-series=$(php-config --version | cut -d. -f1,2) # get "5.5", "5.6", "7.0" etc for the php requirement in the manifest
+series=$(php-config --version | cut -d. -f1,2) # get "5.6", "7.3", "8.0" etc for the php requirement in the manifest
 dep_manifest=${dep_package}_php-$series.composer.json
 
 echo "-----> Building ${dep_package} (from PECL)..."
@@ -69,7 +69,7 @@ extension=apc.so
 EOF
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
-MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/hhvm\":\"*\"}"}"
+MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{\"heroku-sys/ext-apc\":\"self.version\"}"}" # despite version 1.0.3 or whatever, apcu_bc identifies itself using the apcu version number
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/apcu-apc.ini-dist\"}"}"

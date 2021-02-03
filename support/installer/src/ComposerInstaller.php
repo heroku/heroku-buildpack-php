@@ -18,7 +18,6 @@ class ComposerInstaller extends LibraryInstaller
 	public function supports($packageType)
 	{
 		return in_array($packageType, [
-			'heroku-sys-hhvm',
 			'heroku-sys-library',
 			'heroku-sys-php',
 			'heroku-sys-php-extension',

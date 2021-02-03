@@ -9,7 +9,7 @@ set -eu
 # move hidden files too, just in case
 shopt -s dotglob
 
-STACK=${STACK:-cedar-14} # Anvil has none
+STACK=${STACK:-heroku-18} # Anvil has none
 build_dir=$1
 cache_dir=$2/php
 mkdir -p "$cache_dir"
@@ -218,7 +218,7 @@ fi
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 
-curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.3.26.tar.gz" || {
+curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-7.4.14.tar.gz" || {
 	mcount "failures.bootstrap.download.php-min"
 	error <<-EOF
 		Failed to download minimal PHP for bootstrapping!
@@ -335,8 +335,8 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 
 status "Installing platform packages..."
 
-if [[ $STACK == "cedar-14" || $STACK == "heroku-16" ]]; then
-	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^5.5.17"
+if [[ $STACK == "heroku-16" ]]; then
+	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^5.6.0"
 elif [[ $STACK == "heroku-18" ]]; then
 	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.0.0"
 else
@@ -446,7 +446,6 @@ else
 		For reference, the following runtimes are currently available:
 		
 		PHP:  $(composer show -d "$build_dir/.heroku/php" --available heroku-sys/php 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
-		HHVM: $(composer show -d "$build_dir/.heroku/php" --available heroku-sys/hhvm 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
 		
 		Please verify that all requirements for runtime versions in
 		'$COMPOSER_LOCK' are compatible with the list above, and ensure
@@ -461,14 +460,6 @@ else
 	EOF
 fi
 
-if composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/php 2>/dev/null; then
-	engine="php"
-	engine_r="php -r"
-elif composer show -d "$build_dir/.heroku/php" --installed --quiet heroku-sys/hhvm 2>/dev/null; then
-	engine="hhvm"
-	engine_r="hhvm --php -r"
-fi
-
 # log number of installed platform packages
 mmeasure "platform.count" $(composer show -d "$build_dir/.heroku/php" --installed "heroku-sys/*" 2> /dev/null | wc -l)
 
@@ -481,13 +472,6 @@ rm -rf /app/.heroku/php-min $build_dir/.heroku/php-min
 # unset composer function that used php-min for invocation
 unset -f composer
 
-if [[ "$engine" == "hhvm" ]]; then
-	composer() {
-		$engine $(which composer) "$@"
-	}
-	export -f composer
-fi
-
 # export our "do not auto.start APM extensions" magic INI directory to PHP_INI_SCAN_DIR for ourself and for later buildpacks (but not for runtime)
 export_env_dir "$env_dir" '^PHP_INI_SCAN_DIR$'
 echo "export PHP_INI_SCAN_DIR=\${PHP_INI_SCAN_DIR-}:$bp_dir/conf/php/apm-nostart-overrides/" >> $bp_dir/export
@@ -498,9 +482,9 @@ source $bp_dir/export
 # from here onwards we're using the composer we installed via platform install with the PHP runtime that we installed via platform install
 
 # log runtime version
-mcount "platform.packages.php.$($engine_r "echo ${engine^^}_VERSION;")"
+mcount "platform.packages.php.$(php -r "echo PHP_VERSION;")"
 
-if eoldate=$($engine $bp_dir/bin/util/eol.php); then
+if eoldate=$(php $bp_dir/bin/util/eol.php); then
 	:
 else
 	code=$?
@@ -723,8 +707,8 @@ ln -fs $relbins .
 cd $build_dir
 
 if [[ ! -f "Procfile" ]]; then
-	echo "web: heroku-$engine-apache2" > Procfile
-	notice_inline "No Procfile, using 'web: heroku-$engine-apache2'."
+	echo "web: heroku-php-apache2" > Procfile
+	notice_inline "No Procfile, using 'web: heroku-php-apache2'."
 fi
 
 # write empty WEB_CONCURRENCY.sh to overwrite the defaults logic from a prior buildpack, e.g. Node (all buildpacks use the same filename to allow this)

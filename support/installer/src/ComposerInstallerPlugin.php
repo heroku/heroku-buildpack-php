@@ -57,7 +57,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 
 	public function onPostPackageInstall(PackageEvent $event)
 	{
-		if(!in_array($event->getOperation()->getPackage()->getType(), ['heroku-sys-php', 'heroku-sys-hhvm', 'heroku-sys-php-extension', 'heroku-sys-hhvm-extension', 'heroku-sys-webserver', 'heroku-sys-library', 'heroku-sys-program'])) return;
+		if(!in_array($event->getOperation()->getPackage()->getType(), ['heroku-sys-php', 'heroku-sys-php-extension', 'heroku-sys-webserver', 'heroku-sys-library', 'heroku-sys-program'])) return;
 		
 		$this->initAllPlatformRequirements($event->getOperations());
 		
@@ -89,7 +89,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	
 	protected function configurePackage(PackageInterface $package)
 	{
-		if(in_array($package->getType(), ['heroku-sys-php-extension', 'heroku-sys-hhvm-extension'])) {
+		if($package->getType() == 'heroku-sys-php-extension') {
 			$this->enableExtension($package->getPrettyName(), $package);
 		}
 	}

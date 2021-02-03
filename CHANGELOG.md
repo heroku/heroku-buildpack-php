@@ -1,5 +1,14 @@
 # heroku-buildpack-php CHANGELOG
 
+## v189 (2021-02-??)
+
+### CHG
+
+- Drop support for cedar-14 [David Zuelke]
+- Drop support for HHVM [David Zuelke]
+- Drop support for PHP 5.5 [David Zuelke]
+- Use PHP 7.4 for bootstrapping [David Zuelke]
+
 ## v188 (2021-01-08)
 
 ### ADD

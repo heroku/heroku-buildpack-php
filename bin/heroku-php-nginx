@@ -10,7 +10,7 @@ shopt -s extglob
 shopt -s nullglob
 
 if ! type -p "realpath" > /dev/null; then
-	# cedar-14 and macOS don't have realpath
+	# macOS doesn't have realpath
 	# readlink is not an option because BSD readlink does not have the GNU -f option
 	# must be a function so subshells, including $(…), can use it
 	realpath() {

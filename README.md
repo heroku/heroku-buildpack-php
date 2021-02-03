@@ -5,7 +5,7 @@
 
 This is the official [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) for PHP applications.
 
-It uses Composer for dependency management, supports PHP or HHVM (experimental) as runtimes, and offers a choice of Apache2 or Nginx web servers.
+It uses Composer for dependency management, supports all recent versions of PHP as runtimes, and offers a choice of Apache2 or Nginx web servers.
 
 ## Usage
 
@@ -27,11 +27,11 @@ Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for fu
 
 ## Custom Platform Repositories
 
-The buildpack uses Composer repositories to resolve platform (`php`, `hhvm`, `ext-something`, ...) dependencies.
+The buildpack uses Composer repositories to resolve platform (`php`, `ext-something`, ...) dependencies.
 
 To use a custom Composer repository with additional or different platform packages, add the URL to its `packages.json` to the `HEROKU_PHP_PLATFORM_REPOSITORIES` config var:
 
-    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://mybucket.s3.amazonaws.com/cedar-14/packages.json"
+    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://mybucket.s3.amazonaws.com/heroku-18/packages.json"
 
 To allow the use of multiple custom repositories, the config var may hold a list of multiple repository URLs, separated by a space character, in ascending order of precedence.
 

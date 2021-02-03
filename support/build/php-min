@@ -37,7 +37,7 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--enable-cli\
 	--with-bz2 \
 	--disable-dom \
-	--disable-libxml \
+	--without-libxml \
 	--with-openssl \
 	--without-pear \
 	--disable-pdo \
@@ -50,9 +50,8 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--disable-xml \
 	--disable-xmlreader \
 	--disable-xmlwriter \
-	--enable-zip \
-	--with-zlib \
-	--without-libzip # FIXME: change to --with-libzip once cedar-14 is EOL, as the other stacks have an up to date enough version
+	--with-zip \
+	--with-zlib
 make -s -j 9
 
 mkdir -p ${OUT_PREFIX}/bin

@@ -3,12 +3,12 @@
 
 $COMPOSER = getenv("COMPOSER")?:"composer.json";
 $COMPOSER_LOCK = getenv("COMPOSER_LOCK")?:"composer.lock";
-$STACK = getenv("STACK")?:"cedar-14";
+$STACK = getenv("STACK")?:"heroku-18";
 
 // prefix keys with "heroku-sys/"
 function mkdep($require) { return array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require); }
 // check if require section demands a runtime
-function hasreq($require) { return isset($require["php"]) || isset($require["hhvm"]); }
+function hasreq($require) { return isset($require["php"]); }
 
 // return stability flag string for Composer's internal numeric value from lock file
 function getflag($number) {
@@ -28,7 +28,7 @@ function getflag($number) {
 
 function mkmetas($package, array &$metapaks, &$have_runtime_req = false) {
 	// filter platform reqs
-	$platfilter = function($v) { return preg_match("#^(hhvm$|php(-64bit)?$|ext-)#", $v); };
+	$platfilter = function($v) { return preg_match("#^(php(-64bit)?$|ext-)#", $v); };
 	
 	// extract only platform requires, replaces and provides
 	$preq = array_filter(isset($package["require"]) ? $package["require"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
@@ -149,16 +149,16 @@ if(file_exists($COMPOSER_LOCK)) {
 	if($metapaks) $repositories[] = ["type" => "package", "package" => $metapaks];
 }
 
-// if no PHP or HHVM is required anywhere, we need to add something
+// if no PHP is required anywhere, we need to add something
 if(!$have_runtime_req) {
 	if($have_dev_runtime_req) {
-		// there is no requirement for a PHP or HHVM version in "require", nor in any dependencies therein, but there is one in "require-dev"
-		// that's problematic, because requirements in there may effectively result in a rule like "7.0.*", but we'd next write "^5.5.17" into our "require" to have a sane default, and that'd blow up in CI where dev dependenies are installed
+		// there is no requirement for a PHP version in "require", nor in any dependencies therein, but there is one in "require-dev"
+		// that's problematic, because requirements in there may effectively result in a rule like "7.0.*", but we'd next write "^5.6.0" into our "require" to have a sane default for old stacks, and that'd blow up in CI where dev dependenies are installed
 		// we can't compute a resulting version rule (that's the whole point of the custom installer that uses Composer's solver), so throwing an error is the best thing we can do here
 		exit(3);
 	}
 	file_put_contents("php://stderr", "\033[1;33mNOTICE:\033[0m No runtime required in $COMPOSER_LOCK; using PHP ". ($require["heroku-sys/php"] = getenv("HEROKU_PHP_DEFAULT_RUNTIME_VERSION") ?: "^7.0.0") . "\n");
-} elseif(!isset($root["require"]["php"]) && !isset($root["require"]["hhvm"])) {
+} elseif(!isset($root["require"]["php"])) {
 	file_put_contents("php://stderr", "\033[1;33mNOTICE:\033[0m No runtime required in $COMPOSER; requirements\nfrom dependencies in $COMPOSER_LOCK will be used for selection\n");
 }
 
