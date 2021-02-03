@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v189 (2021-02-??)
+
+### CHG
+
+- Drop support for cedar-14 [David Zuelke]
+
 ## v188 (2021-01-08)
 
 ### ADD
