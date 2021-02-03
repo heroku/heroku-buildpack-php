@@ -44,7 +44,7 @@ The relevant parts of the corresponding `composer.lock` would look roughly like 
     				"ext-hash": "*",
     				"ext-json": "*",
     				"ext-mongodb": "^1.5.0",
-    				"php": ">=5.5"
+    				"php": ">=5.6.0"
     			}
     		},
     	],
@@ -91,7 +91,7 @@ From this, the buildpack would create a "platform package" `.heroku/php/composer
     						"heroku-sys/ext-hash": "*",
     						"heroku-sys/ext-json": "*",
     						"heroku-sys/ext-mongodb": "^1.5.0",
-    						"heroku-sys/php": ">=5.5"
+    						"heroku-sys/php": ">=5.6.0"
     					}
     				},
     				{
@@ -550,7 +550,7 @@ However, in rare circumstances, such as when you want to fully host all platform
 
 The `remove.sh` helper removes a package manifest and its tarball from a bucket, and re-generates the repository. It accepts one or more names of a JSON manifest file from the bucket (optionally without "`.composer.json`" suffix) as arguments:
 
-    ~ $ remove.sh ext-imagick-3.3.0_php-5.5.composer.json ext-imagick-3.3.0_php-5.6.composer.json
+    ~ $ remove.sh ext-imagick-3.4.4_php-7.3.composer.json ext-imagick-3.4.4_php-7.4.composer.json
 
 Unless the `--no-publish` option is given, the repository will be re-generated immediately after removal. Otherwise, the manifests and tarballs would be removed, but the main repository would remain in place, pointing to non-existing packages, so usage of this flag is only recommended for debugging purposes or similar.
 

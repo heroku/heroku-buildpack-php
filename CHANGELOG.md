@@ -6,6 +6,7 @@
 
 - Drop support for cedar-14 [David Zuelke]
 - Drop support for HHVM [David Zuelke]
+- Drop support for PHP 5.5 [David Zuelke]
 
 ## v188 (2021-01-08)
 
