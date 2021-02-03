@@ -122,7 +122,7 @@ blackfire.agent_socket = "unix:///app/.heroku/php/var/blackfire/run/agent.sock"
 EOF
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
-MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/hhvm\":\"*\"}"}"
+MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/blackfire.ini-dist\",\"profile\":\"bin/profile.blackfire.sh\"}"}"

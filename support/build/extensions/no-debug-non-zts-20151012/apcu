@@ -69,7 +69,7 @@ extension=apc.so
 EOF
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
-MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/hhvm\":\"*\"}"}"
+MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{\"heroku-sys/ext-apc\":\"self.version\"}"}" # despite version 1.0.3 or whatever, apcu_bc identifies itself using the apcu version number
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/apcu-apc.ini-dist\"}"}"

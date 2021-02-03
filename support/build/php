@@ -218,8 +218,8 @@ done
 extra=$(echo "${shared[@]}" | python -c 'import sys, json; json.dump({"shared": dict([item.split(":") if ":" in item else (item, True) for item in sys.stdin.read().split()]), "export": "bin/export.php.sh", "profile": "bin/profile.php.sh"}, sys.stdout)')
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
-MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{\"heroku-sys/hhvm\":\"*\"}"}"
-MANIFEST_REPLACE=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b|hhvm\b)' | tr -s " " | cut -d " " -f1,2 | sed -e "s/ $dep_version\$/ self.version/" -e 's/^/heroku-sys\//' | python -c 'import sys, json; json.dump(dict(item.split() for item in sys.stdin), sys.stdout)')
+MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
+MANIFEST_REPLACE=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b)' | tr -s " " | cut -d " " -f1,2 | sed -e "s/ $dep_version\$/ self.version/" -e 's/^/heroku-sys\//' | python -c 'import sys, json; json.dump(dict(item.split() for item in sys.stdin), sys.stdout)')
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"$extra"}"
 

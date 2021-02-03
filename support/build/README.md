@@ -231,9 +231,7 @@ All packages in the official Heroku S3 bucket use manifests, even for packages t
 A manifest looks roughly like this (example is for `ext-apcu/5.1.17` for PHP 7.3 on stack `heroku-18`):
 
     {
-    	"conflict": {
-    		"heroku-sys/hhvm": "*"
-    	},
+    	"conflict": {},
     	"dist": {
     		"type": "heroku-sys-tar",
     		"url": "https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/extensions/no-debug-non-zts-20180731/apcu-5.1.17.tar.gz"
@@ -251,7 +249,7 @@ A manifest looks roughly like this (example is for `ext-apcu/5.1.17` for PHP 7.3
 
 *Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php-extension" and .name == "heroku-sys/ext-apcu") ] | .[0]'`*
 
-Package `name`s must be prefixed with "`heroku-sys/`". Possible `type`s are `heroku-sys-php`, `heroku-sys-hhvm`, `heroku-sys-library`, `heroku-sys-php-extension`, `heroku-sys-program` or `heroku-sys-webserver`. The `dist` type must be "`heroku-sys-tar`". If the package is a `heroku-sys-php-extension`, it's important to specify a `conflict` with "`heroku-sys/hhvm`".
+Package `name`s must be prefixed with "`heroku-sys/`". Possible `type`s are `heroku-sys-php`, `heroku-sys-library`, `heroku-sys-php-extension`, `heroku-sys-program` or `heroku-sys-webserver`. The `dist` type must be "`heroku-sys-tar`".
 
 The special package type `heroku-sys-package` is used for internal packages used for bootstrapping (e.g. a minimal PHP build).
 
