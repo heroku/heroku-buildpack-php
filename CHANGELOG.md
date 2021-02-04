@@ -7,6 +7,7 @@
 - ext-rdkafka/5.0.0 [David Zuelke]
 - PHP/7.3.27 [David Zuelke]
 - PHP/7.4.15 [David Zuelke]
+- PHP/8.0.2 [David Zuelke]
 
 ### CHG
 
