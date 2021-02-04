@@ -19,6 +19,7 @@
 - Use PHP 7.4 for bootstrapping [David Zuelke]
 - librdkafka/1.6.0 [David Zuelke]
 - Composer/1.10.20 [David Zuelke]
+- Composer/2.0.9 [David Zuelke]
 
 ## v188 (2021-01-08)
 
