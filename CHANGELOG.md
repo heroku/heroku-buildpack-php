@@ -8,6 +8,7 @@
 - PHP/7.3.27 [David Zuelke]
 - PHP/7.4.15 [David Zuelke]
 - PHP/8.0.2 [David Zuelke]
+- ext-ev/1.1.1 [David Zuelke]
 
 ### CHG
 
