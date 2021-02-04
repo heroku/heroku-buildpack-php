@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-rdkafka/5.0.0 [David Zuelke]
+- PHP/7.3.27 [David Zuelke]
 
 ### CHG
 
