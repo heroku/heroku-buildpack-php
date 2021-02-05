@@ -10,6 +10,7 @@
 - PHP/8.0.2 [David Zuelke]
 - ext-ev/1.1.1 [David Zuelke]
 - ext-redis/5.3.3 [David Zuelke]
+- ext-blackfire/1.49.1 [David Zuelke]
 
 ### CHG
 
