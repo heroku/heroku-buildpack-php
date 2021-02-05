@@ -77,7 +77,21 @@ export PATH="$HOME/.heroku/php/bin:$PATH"
 export PATH="$PATH:$(realpath "$(PHP_INI_SCAN_DIR= composer config --no-plugins bin-dir)")"
 EOF
 
-MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"*\"}"}"
+# the || true (needs to be there, not before the <<-'HEREDOC') prevents 'set -e' induced termination from the 'read' encountering EOF
+read -r -d '' require <<-'EOF' || true
+{
+	"heroku-sys/php": ">=5.3.2",
+	"heroku-sys/ext-filter": "*",
+	"heroku-sys/ext-hash": "*",
+	"heroku-sys/ext-iconv": "*",
+	"heroku-sys/ext-json": "*",
+	"heroku-sys/ext-phar": "*",
+	"heroku-sys/ext-openssl": "*",
+	"heroku-sys/ext-zlib": "*"
+}
+EOF
+
+MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"$require"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{\"heroku-sys/composer-plugin-api\":\"${plugin_api_version}\"}"}"
