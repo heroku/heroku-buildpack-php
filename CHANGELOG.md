@@ -11,6 +11,7 @@
 - ext-ev/1.1.1 [David Zuelke]
 - ext-redis/5.3.3 [David Zuelke]
 - ext-blackfire/1.49.1 [David Zuelke]
+- ext-newrelic/9.16.0.295 [David Zuelke]
 
 ### CHG
 
