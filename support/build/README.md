@@ -780,7 +780,7 @@ Assuming that the extension has no stack-specific requirements (meaning it can r
     				"version": "1.2.3",
     				"type": "heroku-sys-php-extension",
     				"require": {
-    					"php": "7.3.*",
+    					"heroku-sys/php": "7.3.*",
     					"heroku/installer-plugin": "^1.2.0",
     				},
     				"dist": {
