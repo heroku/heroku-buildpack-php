@@ -433,7 +433,7 @@ fi
 # 2a) if a SIGTERM or SIGUSR1 is received, this will unblock the first 'wait' and execute the corresponding trap
 # 2b) a second 'wait' then ensures that the subshell remains alive until the process inside has shut down
 # 2c) both 'wait' calls use || true to prevent 'set -e' failures: 'wait' returns the exit status of the given program, and that won't be zero, because it's getting killed
-# 2d) 'wait' on that killed subprocess, sending wait's output to /dev/null - this prevents the logs getting cluttered with "vendor/bin/heroku-...: line 309:    96 Terminated" messages (we can't use 'disown' after launching programs for that purpose because that removes the jobs from the shell's jobs table and then we can no longer 'wait' on the program)
+# 2d) we restore traps before the second wait, because restoring them inside the trap handler occasionally caused bizarre signal handling failures
 # 3) each subshell has another trap on INT which does nothing (to prevent Ctrl+C interference)
 # 4) we execute the command in the background, recording its PID(s) for the subshell's TERM trap
 # 5) we also execute the subshell in the background, recording its PID for the main TERM/INT traps
