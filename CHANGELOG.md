@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v190 (2021-03-04)
+
+### CHG
+
+- If `HEROKU_PHP_GRACEFUL_SIGTERM=1`, gracefully shut down PHP-FPM, Apache/Nginx, and log redirection in environments where all processes (not just the leader) receive a SIGTERM for termination [David Zuelke]
+
 ## v189 (2021-02-05)
 
 ### ADD
