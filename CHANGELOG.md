@@ -12,6 +12,7 @@
 ### CHG
 
 - If `HEROKU_PHP_GRACEFUL_SIGTERM=1`, gracefully shut down PHP-FPM, Apache/Nginx, and log redirection in environments where all processes (not just the leader) receive a SIGTERM for termination [David Zuelke]
+- Composer/2.0.11 [David Zuelke]
 
 ## v189 (2021-02-05)
 
