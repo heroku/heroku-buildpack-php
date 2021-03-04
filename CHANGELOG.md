@@ -2,9 +2,18 @@
 
 ## v190 (2021-03-04)
 
+### ADD
+
+- PHP/7.4.15 [David Zuelke]
+- PHP/8.0.3 [David Zuelke]
+- ext-blackfire/1.50.0 (PHP 5.6) [David Zuelke]
+- ext-blackfire/1.51.0 (PHP 7+) [David Zuelke]
+
 ### CHG
 
 - If `HEROKU_PHP_GRACEFUL_SIGTERM=1`, gracefully shut down PHP-FPM, Apache/Nginx, and log redirection in environments where all processes (not just the leader) receive a SIGTERM for termination [David Zuelke]
+- Composer/2.0.11 [David Zuelke]
+- librdkafka/1.6.1 [David Zuelke]
 
 ## v189 (2021-02-05)
 
