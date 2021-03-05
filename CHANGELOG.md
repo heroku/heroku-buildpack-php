@@ -4,7 +4,7 @@
 
 ### ADD
 
-- PHP/7.4.15 [David Zuelke]
+- PHP/7.4.16 [David Zuelke]
 - PHP/8.0.3 [David Zuelke]
 - ext-blackfire/1.50.0 (PHP 5.6) [David Zuelke]
 - ext-blackfire/1.51.0 (PHP 7+) [David Zuelke]
