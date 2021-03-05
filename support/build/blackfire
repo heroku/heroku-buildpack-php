@@ -1,0 +1,70 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
+source $(dirname $BASH_SOURCE)/_util/include/manifest.sh
+
+bin_dir=${OUT_PREFIX}/bin
+
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=$(basename $BASH_SOURCE)
+dep_version=${dep_formula#"${dep_name}-"}
+dep_package=${dep_name}-${dep_version}
+dep_manifest=${dep_package}.composer.json
+
+echo "-----> Packaging ${dep_package}..."
+echo "FYI: Blackfire API reports latest version as $(curl -A "Heroku" -I -L -s https://blackfire.io/api/v1/releases/agent/linux/amd64 | grep -i 'X-Blackfire-Release-Version: ' | sed "s%X-Blackfire-Release-Version: %%i" | sed s%.$%%)"
+
+curl -L -o agent.tar.gz "https://packages.blackfire.io/binaries/blackfire-agent/${dep_version}/blackfire-agent-linux_amd64.tar.gz"
+
+mkdir -p ${OUT_PREFIX}/var/blackfire/run
+mkdir -p ${OUT_PREFIX}/etc/blackfire
+echo -e "[blackfire]\nserver-id=f1abf3a8-3f85-4743-99b2-97f066c099b9\nserver-token=5ecbc6486e9db6b780a0c0a9ef1e244709e632996fe9105cb9075ab2826944d5" > ${OUT_PREFIX}/etc/blackfire/agent.ini
+mkdir -p ${bin_dir}
+tar -zxf agent.tar.gz
+chmod +x agent
+mv agent ${bin_dir}/blackfire-agent
+rm agent.tar.gz agent.sha1
+
+echo "-----> Packaging bin/blackfire ${dep_version}..."
+curl -L -o client.tar.gz "https://packages.blackfire.io/binaries/blackfire-agent/${dep_version}/blackfire-cli-linux_amd64.tar.gz"
+tar -zxf client.tar.gz
+chmod +x blackfire
+mv blackfire ${bin_dir}/blackfire
+rm client.tar.gz blackfire.sha1
+
+find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
+
+# these env var defaults we want both during a build (used in the INI futher below) and at boot time
+tee ${OUT_PREFIX}/bin/export.blackfire-agent.sh > ${OUT_PREFIX}/bin/profile.blackfire-agent.sh <<'EOF'
+export BLACKFIRE_LOG_LEVEL=${BLACKFIRE_LOG_LEVEL:-"1"}
+EOF
+
+# PATH should be available both for subsequent buildpacks and on boot
+cat >> ${OUT_PREFIX}/bin/export.blackfire-agent.sh <<'EOF'
+export PATH="/app/.heroku/php/bin:$PATH"
+EOF
+
+# gets sourced on dyno boot
+cat >> ${OUT_PREFIX}/bin/profile.blackfire-agent.sh <<'EOF'
+export PATH="$HOME/.heroku/php/bin:$PATH"
+
+touch /app/.heroku/php/var/blackfire/run/agent.sock
+/app/.heroku/php/bin/blackfire-agent --config=/app/.heroku/php/etc/blackfire/agent.ini --socket="unix:///app/.heroku/php/var/blackfire/run/agent.sock" --log-level="${BLACKFIRE_LOG_LEVEL}" &
+EOF
+
+MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
+MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
+MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
+MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.blackfire-agent.sh\",\"profile\":\"bin/profile.blackfire-agent.sh\"}"}"
+
+python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-program" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+
+print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
