@@ -32,6 +32,7 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 					"WEB_CONCURRENCY=22 heroku-php-#{server} -tt docroot/onegig/",
 					"WEB_CONCURRENCY=22 heroku-php-#{server} -tt -F conf/fpm.onegig.conf",
 					"WEB_CONCURRENCY=zomg heroku-php-#{server} -tt",
+					"WEB_CONCURRENCY=1 WEB_CONCURRENCY_SET_BY=heroku/nodejs heroku-php-#{server} -tt",
 				]
 					# there are very rare cases of stderr and stdout getting read (by the dyno runner) slightly out of order
 					# if that happens, the last stderr line(s) from the program might get picked up after the next thing we echo
@@ -112,6 +113,15 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and include("Setting WEB_CONCURRENCY=1 (was outside allowed range)")
 						.and match("pm.max_children = 1")
+				end
+			end
+			
+			context "a WEB_CONCURRENCY value set by another buildpack" do
+				it "warns and discards the value" do
+					expect(@run[12])
+						 .to match("NOTICE: ignoring WEB_CONCURRENCY value set by heroku/nodejs")
+						.and match("PHP memory_limit is 128M Bytes")
+						.and match("pm.max_children = 4")
 				end
 			end
 		end
