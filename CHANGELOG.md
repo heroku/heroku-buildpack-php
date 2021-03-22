@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v191 (2021-04-??)
+
+### ADD
+
+- ext-pcov/1.0.8 [David Zuelke]
+
 ## v190 (2021-03-04)
 
 ### ADD
