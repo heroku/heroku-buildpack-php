@@ -6,6 +6,10 @@
 
 - ext-pcov/1.0.8 [David Zuelke]
 
+### CHG
+
+- libcassandra/2.16.0 [David Zuelke]
+
 ## v190 (2021-03-04)
 
 ### ADD
