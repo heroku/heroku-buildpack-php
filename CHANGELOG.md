@@ -6,6 +6,7 @@
 
 - ext-pcov/1.0.8 [David Zuelke]
 - ext-blackfire/1.54.0 [David Zuelke]
+- ext-amqp/1.11.0beta (PHP 8.0.* only) [David Zuelke]
 
 ### CHG
 
