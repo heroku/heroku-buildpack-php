@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-pcov/1.0.8 [David Zuelke]
+- ext-blackfire/1.54.0 [David Zuelke]
 
 ### CHG
 
