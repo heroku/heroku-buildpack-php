@@ -8,6 +8,7 @@
 - ext-blackfire/1.54.0 [David Zuelke]
 - ext-amqp/1.11.0beta (PHP 8.0.* only) [David Zuelke]
 - ext-redis/5.3.4 [David Zuelke]
+- ext-event/3.0.3 [David Zuelke]
 
 ### CHG
 
