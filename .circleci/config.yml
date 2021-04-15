@@ -16,6 +16,7 @@ jobs:
       HATCHET_APP_LIMIT: 200
       HATCHET_EXPENSIVE_MODE: 1
       HATCHET_BUILDPACK_BASE: https://github.com/heroku/heroku-buildpack-php
+      HATCHET_BUILDPACK_BRANCH: << pipeline.git.revision >>
     steps:
       - run:
           name: Install Bundler
