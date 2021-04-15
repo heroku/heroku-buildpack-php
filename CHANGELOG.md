@@ -1,10 +1,26 @@
 # heroku-buildpack-php CHANGELOG
 
+## v191 (2021-04-15)
+
+### ADD
+
+- ext-pcov/1.0.8 [David Zuelke]
+- ext-blackfire/1.54.0 [David Zuelke]
+- ext-amqp/1.11.0beta (PHP 8.0.* only) [David Zuelke]
+- ext-redis/5.3.4 [David Zuelke]
+- ext-event/3.0.3 [David Zuelke]
+
+### CHG
+
+- libcassandra/2.16.0 [David Zuelke]
+- Composer/1.10.21 [David Zuelke]
+- Composer/2.0.12 [David Zuelke]
+
 ## v190 (2021-03-04)
 
 ### ADD
 
-- PHP/7.4.15 [David Zuelke]
+- PHP/7.4.16 [David Zuelke]
 - PHP/8.0.3 [David Zuelke]
 - ext-blackfire/1.50.0 (PHP 5.6) [David Zuelke]
 - ext-blackfire/1.51.0 (PHP 7+) [David Zuelke]
