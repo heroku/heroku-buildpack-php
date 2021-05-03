@@ -54,22 +54,11 @@ tar -zxf probe.tar.gz
 cp blackfire-${ZEND_MODULE_API_VERSION}.so ${ext_dir}/blackfire.so
 rm probe.tar.gz blackfire-${ZEND_MODULE_API_VERSION}.so blackfire-${ZEND_MODULE_API_VERSION}.sha
 
-mkdir -p ${OUT_PREFIX}/etc/php/conf.d
-cat > ${OUT_PREFIX}/etc/php/conf.d/blackfire.ini-dist <<'EOF'
-extension = blackfire.so
-
-blackfire.log_level = ${BLACKFIRE_LOG_LEVEL}
-
-blackfire.server_token = ${BLACKFIRE_SERVER_TOKEN}
-blackfire.server_id = ${BLACKFIRE_SERVER_ID}
-blackfire.agent_socket = "unix:///app/.heroku/php/var/blackfire/run/agent.sock"
-EOF
-
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\",\"heroku-sys/blackfire\":\"1.*\"}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/blackfire.ini-dist\"}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{}"}"
 
 python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 

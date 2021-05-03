@@ -24,8 +24,6 @@ echo "FYI: Blackfire API reports latest version as $(curl -A "Heroku" -I -L -s h
 curl -L -o agent.tar.gz "https://packages.blackfire.io/binaries/blackfire-agent/${dep_version}/blackfire-agent-linux_amd64.tar.gz"
 
 mkdir -p ${OUT_PREFIX}/var/blackfire/run
-mkdir -p ${OUT_PREFIX}/etc/blackfire
-echo -e "[blackfire]\nserver-id=f1abf3a8-3f85-4743-99b2-97f066c099b9\nserver-token=5ecbc6486e9db6b780a0c0a9ef1e244709e632996fe9105cb9075ab2826944d5" > ${OUT_PREFIX}/etc/blackfire/agent.ini
 mkdir -p ${bin_dir}
 tar -zxf agent.tar.gz
 chmod +x agent
@@ -43,7 +41,9 @@ find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i
 
 # these env var defaults we want both during a build (used in the INI futher below) and at boot time
 tee ${OUT_PREFIX}/bin/export.blackfire-agent.sh > ${OUT_PREFIX}/bin/profile.blackfire-agent.sh <<'EOF'
-export BLACKFIRE_LOG_LEVEL=${BLACKFIRE_LOG_LEVEL:-"1"}
+# hard-code these two; no need for users to override them
+export BLACKFIRE_LOG_FILE=stderr
+export BLACKFIRE_AGENT_SOCKET="unix:///app/.heroku/php/var/blackfire/run/agent.sock"
 EOF
 
 # PATH should be available both for subsequent buildpacks and on boot
@@ -55,8 +55,9 @@ EOF
 cat >> ${OUT_PREFIX}/bin/profile.blackfire-agent.sh <<'EOF'
 export PATH="$HOME/.heroku/php/bin:$PATH"
 
-touch /app/.heroku/php/var/blackfire/run/agent.sock
-/app/.heroku/php/bin/blackfire-agent --config=/app/.heroku/php/etc/blackfire/agent.ini --socket="unix:///app/.heroku/php/var/blackfire/run/agent.sock" --log-level="${BLACKFIRE_LOG_LEVEL}" &
+# we need no config, as everything will be read from the environment
+# exception is BLACKFIRE_SOCKET, which we pass in explicitly; the extension uses BLACKFIRE_AGENT_SOCKET instead
+/app/.heroku/php/bin/blackfire-agent --config="/dev/null" --socket="${BLACKFIRE_AGENT_SOCKET}" &
 EOF
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
