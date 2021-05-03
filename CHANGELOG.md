@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v194 (2021-06-25)
+
+### CHG
+
+- ext-blackfire installs blackfire agent as separate dependency [David Zuelke]
+
 ## v193 (2021-06-07)
 
 ### ADD
