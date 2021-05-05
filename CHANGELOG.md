@@ -15,6 +15,10 @@
 - Composer/1.10.22 [David Zuelke]
 - Composer/2.0.13 [David Zuelke]
 
+### FIX
+
+- ext-apcu_bc should only be built for PHP 5/7 [David Zuelke]
+
 ## v191 (2021-04-15)
 
 ### ADD
