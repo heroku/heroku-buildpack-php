@@ -13,6 +13,7 @@
 ### CHG
 
 - Composer/1.10.22 [David Zuelke]
+- Composer/2.0.13 [David Zuelke]
 
 ## v191 (2021-04-15)
 
