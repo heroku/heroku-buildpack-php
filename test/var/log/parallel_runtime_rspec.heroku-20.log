@@ -20,4 +20,4 @@ test/spec/php_8.0-nginx_boot_spec.rb:137.466478774
 test/spec/php_8.0-nginx_concurrency_spec.rb:130.15884861399996
 test/spec/php_default_spec.rb:65.515156888
 test/spec/sigterm_spec.rb:56.08510167799997
-test/spec/test_spec.rb:115.505651812
+test/spec/test_spec.rb:100.505651812

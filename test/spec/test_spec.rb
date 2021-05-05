@@ -51,9 +51,9 @@ describe "A PHP application" do
     new_app_with_stack_and_platrepo("php-getting-started").deploy do |app|
       expect(app.output).to_not include("Loading from cache")
 
-      app.update_stack("heroku-16")
-      # we are changing the stack to heroku-16, so we also need to adjust the platform repository accordingly, otherwise, for tests running on branches where HEROKU_PHP_PLATFORM_REPOSITORIES is set to a value, the build would use the wrong repo
-      app.set_config({"HEROKU_PHP_PLATFORM_REPOSITORIES" => ENV["HEROKU_PHP_PLATFORM_REPOSITORIES"].sub("heroku-18", "heroku-16")}) if ENV["HEROKU_PHP_PLATFORM_REPOSITORIES"]
+      app.update_stack("heroku-20")
+      # we are changing the stack to heroku-20, so we also need to adjust the platform repository accordingly, otherwise, for tests running on branches where HEROKU_PHP_PLATFORM_REPOSITORIES is set to a value, the build would use the wrong repo
+      app.set_config({"HEROKU_PHP_PLATFORM_REPOSITORIES" => ENV["HEROKU_PHP_PLATFORM_REPOSITORIES"].sub("heroku-18", "heroku-20")}) if ENV["HEROKU_PHP_PLATFORM_REPOSITORIES"]
       app.commit!
       app.push!
 
