@@ -14,6 +14,7 @@
 
 - Composer/1.10.22 [David Zuelke]
 - Composer/2.0.13 [David Zuelke]
+- Bump ext-apcu_bc (bundled with ext-apcu) to 1.0.5 [David Zuelke]
 
 ### FIX
 

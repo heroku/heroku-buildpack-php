@@ -38,7 +38,7 @@ if [[ $series == 5.* || $series == 7.* ]]; then
 	popd
 
 	dep2_name=apcu_bc
-	dep2_version=1.0.4
+	dep2_version=1.0.5
 	dep2_dirname=${dep2_name}-${dep2_version}
 	dep2_archive_name=${dep2_dirname}.tgz
 	dep2_url=https://pecl.php.net/get/${dep2_archive_name}
