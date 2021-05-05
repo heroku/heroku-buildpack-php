@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/7.3.28 [David Zuelke]
+- PHP/7.4.18 [David Zuelke]
 
 ## v191 (2021-04-15)
 
