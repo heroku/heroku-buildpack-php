@@ -9,6 +9,10 @@
 - PHP/8.0.5 [David Zuelke]
 - ext-phalcon/4.1.2 [David Zuelke]
 
+### CHG
+
+- Composer/1.10.22 [David Zuelke]
+
 ## v191 (2021-04-15)
 
 ### ADD
