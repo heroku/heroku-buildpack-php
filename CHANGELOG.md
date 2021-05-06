@@ -1,5 +1,25 @@
 # heroku-buildpack-php CHANGELOG
 
+## v192 (2021-05-06)
+
+### ADD
+
+- PHP/7.3.28 [David Zuelke]
+- ext-phalcon/4.1.2 [David Zuelke]
+- ext-newrelic/9.17.1.301 [David Zuelke]
+- PHP/7.4.19 [David Zuelke]
+- PHP/8.0.6 [David Zuelke]
+
+### CHG
+
+- Composer/1.10.22 [David Zuelke]
+- Composer/2.0.13 [David Zuelke]
+- Bump ext-apcu_bc (bundled with ext-apcu) to 1.0.5 [David Zuelke]
+
+### FIX
+
+- ext-apcu_bc should only be built for PHP 5/7 [David Zuelke]
+
 ## v191 (2021-04-15)
 
 ### ADD
