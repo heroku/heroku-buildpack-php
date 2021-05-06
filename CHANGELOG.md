@@ -5,10 +5,10 @@
 ### ADD
 
 - PHP/7.3.28 [David Zuelke]
-- PHP/7.4.18 [David Zuelke]
 - PHP/8.0.5 [David Zuelke]
 - ext-phalcon/4.1.2 [David Zuelke]
 - ext-newrelic/9.17.1.301 [David Zuelke]
+- PHP/7.4.19 [David Zuelke]
 
 ### CHG
 
