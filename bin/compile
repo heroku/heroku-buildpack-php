@@ -478,6 +478,7 @@ echo "export PHP_INI_SCAN_DIR=\${PHP_INI_SCAN_DIR-}:$bp_dir/conf/php/apm-nostart
 
 # earlier we wrote at least one $PATH entry that we'll need now (and just above we added a PHP_INI_SCAN_DIR export), and installed packages will likely have added to it too
 source $bp_dir/export
+source $bp_dir/bin/trader
 
 # from here onwards we're using the composer we installed via platform install with the PHP runtime that we installed via platform install
 
