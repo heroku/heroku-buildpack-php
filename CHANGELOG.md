@@ -6,6 +6,7 @@
 
 - Remove support for heroku-16 [David Zuelke]
 - Bump minimum supported PHP version to 7.1.x [David Zuelke]
+- Composer/2.0.14 [David Zuelke]
 
 ## v192 (2021-05-06)
 
