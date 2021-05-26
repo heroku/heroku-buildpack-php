@@ -2,6 +2,10 @@
 
 ## v193 (2021-06-??)
 
+### ADD
+
+- ext-newrelic for PHP 8 [David Zuelke]
+
 ### CHG
 
 - Remove support for heroku-16 [David Zuelke]
