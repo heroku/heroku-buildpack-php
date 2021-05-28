@@ -83,10 +83,12 @@ $handlerStack->push(GuzzleHttp\Middleware::retry(function($times, $req, $res, $e
 }));
 $client = new GuzzleHttp\Client(['handler' => $handlerStack, "timeout" => "2.0"]);
 
+$sections = getopt('', ['runtimes', 'built-in-extensions', 'third-party-extensions'], $restIndex);
+$posArgs = array_slice($argv, $restIndex);
+
 $repositories = [];
-array_shift($argv);
-$responses = GuzzleHttp\Pool::batch($client, (function() use($argv, $client) {
-	foreach($argv as $arg) {
+$responses = GuzzleHttp\Pool::batch($client, (function() use($posArgs, $client) {
+	foreach($posArgs as $arg) {
 		yield function() use($client, $arg) {
 			if(file_exists($arg)) { // for local files
 				return new GuzzleHttp\Psr7\Response(200, [], file_get_contents($arg));
@@ -100,9 +102,9 @@ $responses = GuzzleHttp\Pool::batch($client, (function() use($argv, $client) {
 	'rejected' => function($reason) {
 		throw $reason;
 	},
-	'fulfilled' => function($response, $index) use(&$repositories, $argv) {
+	'fulfilled' => function($response, $index) use(&$repositories, $posArgs) {
 		if(!($repositories[] = json_decode($response->getBody(), true))) {
-			throw new Exception('Could not decode JSON for ' . $argv[$index]);
+			throw new Exception('Could not decode JSON for ' . $posArgs[$index]);
 		}
 	},
 ]);
@@ -282,22 +284,27 @@ foreach($extCounts as $name => $count) {
 }
 
 $twig = new Twig\Environment(new \Twig\Loader\FilesystemLoader(__DIR__));
-echo $twig->render("runtimes.twig", [
-	'stacks' => $stacks,
-	'eol' => $eol,
-	'runtimes' => $runtimes,
-]);
-echo $twig->render("extensions.twig", [
-	'type' => 'built-in',
-	'series' => $series,
-	'stacks' => $stacks,
-	'eol' => $eol,
-	'extensions' => $bExtensions,
-]);
-echo $twig->render("extensions.twig", [
-	'type' => 'third-party',
-	'series' => $series,
-	'stacks' => $stacks,
-	'eol' => $eol,
-	'extensions' => $eExtensions,
-]);
+
+$templates = [
+	"runtimes" =>  [
+		'stacks' => $stacks,
+		'eol' => $eol,
+		'runtimes' => $runtimes,
+	],
+	"built-in-extensions" => [
+		'series' => $series,
+		'stacks' => $stacks,
+		'eol' => $eol,
+		'extensions' => $bExtensions,
+	],
+	"third-party-extensions" => [
+		'series' => $series,
+		'stacks' => $stacks,
+		'eol' => $eol,
+		'extensions' => $eExtensions,
+	],
+];
+
+foreach(($sections?: ["runtimes" => true, "built-in-extensions" => true, "third-party-extensions" => true]) as $section => $ignore) {
+	echo $twig->render("$section.twig", $templates[$section]);
+}
