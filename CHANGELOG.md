@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-newrelic for PHP 8 [David Zuelke]
+- Nginx/1.20.1 [David Zuelke]
 
 ### CHG
 
