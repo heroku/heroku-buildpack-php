@@ -29,7 +29,7 @@ shift $((OPTIND-1))
 if [[ $# -lt "1" ]]; then
 	cat >&2 <<-EOF
 		Usage: $(basename $0) [--no-publish] MANIFEST...
-		  MANIFEST: name of manifest file, e.g. 'ext-event-2.0.0_php-5.6.composer.json'
+		  MANIFEST: name of manifest file, e.g. 'ext-event-2.0.0_php-7.4.composer.json'
 		  If --no-publish is given, mkrepo.sh will NOT be invoked after removal to
 		  re-generate the repo.
 		  CAUTION: re-generating the repo will cause all manifests in the bucket

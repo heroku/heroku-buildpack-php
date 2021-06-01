@@ -16,7 +16,7 @@ export PATH=${OUT_PREFIX}/bin:${PATH}
 # we need to declare the required version of libcassandra
 dep_formula=${0#$WORKSPACE_DIR/}
 dep_version=${dep_formula##*"/${dep_name}-"}
-series=$(php-config --version | cut -d. -f1,2) # get "5.5", "5.6", "7.0" etc for the php requirement in the manifest
+series=$(php-config --version | cut -d. -f1,2) # get "7.3", "7.4", "8.0" etc for the php requirement in the manifest
 case "$dep_version" in
 	*)
 		MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\",\"heroku-sys/libcassandra\":\"^2.7.0\",\"heroku-sys/libcassandra-abi\":\"^2\"}"}"
