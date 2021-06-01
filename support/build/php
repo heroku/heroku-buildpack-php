@@ -44,12 +44,7 @@ pushd ${dep_dirname}
 
 # we need libgmp for GMP, libpam0g/libc-client for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP
 needed=( libgmp10 libpam0g libc-client2007e libsasl2-2 libkrb5-3 libldap-2.4-2 )
-if [[ $STACK == "heroku-16" ]]; then
-	needed+=( libicu55 )
-	needed+=( libonig2 )
-	needed+=( libsodium18 )
-	needed+=( libzip4 )
-elif [[ $STACK == "heroku-18" ]]; then
+if [[ $STACK == "heroku-18" ]]; then
 	needed+=( libicu60 )
 	needed+=( libonig4 )
 	needed+=( libsodium23 )
@@ -70,10 +65,7 @@ if [[ "$missing" ]]; then
 	exit 1
 fi
 # we need libgmp-dev for GMP, libpam0g-dev/libc-client-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP
-needed=( libgmp-dev libpam0g-dev libc-client2007e-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev libonig-dev libsodium-dev libsqlite3-dev libzip-dev )
-if [[ $STACK != "heroku-16" ]]; then
-	needed+=( libwebp-dev )
-fi
+needed=( libgmp-dev libpam0g-dev libc-client2007e-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev libonig-dev libsodium-dev libsqlite3-dev libzip-dev libwebp-dev )
 if [[ $dep_version == 5.* || $dep_version == 7.[0-1].* ]]; then
 	needed+=( libmcrypt-dev )
 fi
@@ -117,26 +109,17 @@ if [[ $dep_version != 5.* ]]; then
 	if [[ $dep_version == 7.[0-3].* ]]; then
 		configureopts+=("--enable-opcache-file" "--enable-zip")
 		configureopts+=("--with-sqlite3=shared,/usr" "--with-pdo-sqlite=shared,/usr")
-		configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr") # for ext-gd
-		if [[ $STACK != "heroku-16" ]]; then
-			configureopts+=("--with-webp-dir=/usr") # for ext-gd
-		fi
+		configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr" "--with-webp-dir=/usr") # for ext-gd
 	else
 		configureopts+=("--with-zip")
 		configureopts+=("--with-sqlite3=shared" "--with-pdo-sqlite=shared")
-		configureopts+=("--enable-gd=shared" "--with-freetype" "--with-jpeg") # for ext-gd
-		if [[ $STACK != "heroku-16" ]]; then
-			configureopts+=("--with-webp") # for ext-gd
-		fi
+		configureopts+=("--enable-gd=shared" "--with-freetype" "--with-jpeg" "--with-webp") # for ext-gd
 	fi
 	
 	if [[ $dep_version == 7.[0-1].* ]]; then
 		configureopts+=("--with-mcrypt=shared")
 	else
-		configureopts+=("--with-sodium=shared")
-		if [[ $STACK != "heroku-16" ]]; then
-			configureopts+=("--with-password-argon2")
-		fi
+		configureopts+=("--with-sodium=shared" "--with-password-argon2")
 	fi
 else
 	configureopts+=("--with-gd=shared" "--with-freetype-dir=/usr" "--with-jpeg-dir=/usr" "--with-png-dir=/usr" "--with-mcrypt" "--with-mysql=shared" "--enable-zip" "--with-sqlite3=shared,/usr" "--with-pdo-sqlite=shared,/usr")

@@ -335,9 +335,7 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 
 status "Installing platform packages..."
 
-if [[ $STACK == "heroku-16" ]]; then
-	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^5.6.0"
-elif [[ $STACK == "heroku-18" ]]; then
+if [[ $STACK == "heroku-18" ]]; then
 	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.0.0"
 else
 	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.0.0 | ^8.0.0"

@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v193 (2021-06-??)
+
+### CHG
+
+- Remove support for heroku-16 [David Zuelke]
+
 ## v192 (2021-05-06)
 
 ### ADD
