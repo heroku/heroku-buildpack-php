@@ -52,8 +52,6 @@ end
 
 def expected_default_php(stack)
 	case stack
-		when "heroku-16"
-			"5.6"
 		when "heroku-18"
 			"7.4"
 		else
@@ -63,8 +61,6 @@ end
 
 def php_on_stack?(series)
 	case ENV["STACK"]
-		when "heroku-16"
-			available = ["5.6", "7.0", "7.1", "7.2", "7.3", "7.4"]
 		when "heroku-18"
 			available = ["7.1", "7.2", "7.3", "7.4", "8.0"]
 		else

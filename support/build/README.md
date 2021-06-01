@@ -157,13 +157,12 @@ The following environment variables are required:
 - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with credentials for the S3 bucket
 - `S3_BUCKET` with the name of the S3 bucket to use for builds
 - `S3_PREFIX` (just a slash, or a prefix directory name **with a trailing, but no leading, slash**)
-- `STACK` (currently, only "`heroku-16`", "`heroku-18`" or "`heroku-20`" make any sense)
+- `STACK` (currently, only "`heroku-18`" or "`heroku-20`" make any sense)
 
 The following environment variables are highly recommended (see section *Understanding Upstream Buckets*):
 
 - `UPSTREAM_S3_BUCKET` where dependencies are pulled from if they can't be found in `S3_BUCKET+S3_PREFIX`, should probably be set to "`lang-php`", the official Heroku bucket
 - `UPSTREAM_S3_PREFIX`, where dependencies are pulled from if they can't be found in `S3_BUCKET+S3_PREFIX` should probably be set to
-  - "`dist-heroku-16-stable/`", the official Heroku stable repository prefix for the [heroku-16 stack](https://devcenter.heroku.com/articles/stack).
   - "`dist-heroku-18-stable/`", the official Heroku stable repository prefix for the [heroku-18 stack](https://devcenter.heroku.com/articles/stack).
   - "`dist-heroku-20-stable/`", the official Heroku stable repository prefix for the [heroku-20 stack](https://devcenter.heroku.com/articles/stack).
 
@@ -311,7 +310,7 @@ The `require` key must contain dependencies on at least the following packages:
 
 If a package is built against a specific (or multiple) stacks, there must be a dependency on the following packages:
 
-- `heroku-sys/heroku`, version "16" for `heroku-16`, version "18" for `heroku-18`, or version "20" for `heroku-20` (use version selectors `^16.0.0` or `^18.0.0` or `^20.0.0`, or a valid Composer combination)
+- `heroku-sys/heroku`, version "18" for `heroku-18`, or version "20" for `heroku-20` (use version selectors `^16.0.0` or `^18.0.0` or `^20.0.0`, or a valid Composer combination)
 
 *Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {require}'`*
 
@@ -562,7 +561,7 @@ Unless the `--no-publish` option is given, the repository will be re-generated i
 
 In this example, you will fork the buildpack and add your own formula to it. **The fork is only used for building the package and publishing the repository, it is not used to build and run applications.**
 
-The `heroku-16`, `heroku-18` and `heroku-20` stack variants of the package will be hosted in the same repository.
+The `heroku-18` and `heroku-20` stack variants of the package will be hosted in the same repository.
 
 A development and a stable S3 bucket prefix are used for the repository, and helpers are used for synchronization between them.
 
@@ -603,7 +602,6 @@ Finally, build the containers for each stack:
 
     $ docker build --pull --tag heroku-php-build-heroku-20 --file $(pwd)/support/build/_docker/heroku-20.Dockerfile .
     $ docker build --pull --tag heroku-php-build-heroku-18 --file $(pwd)/support/build/_docker/heroku-18.Dockerfile .
-    $ docker build --pull --tag heroku-php-build-heroku-16 --file $(pwd)/support/build/_docker/heroku-16.Dockerfile .
 
 #### Building and Deploying
 
@@ -611,13 +609,11 @@ Verify that the build works:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-20 bob build nginx-1.15.4
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-18 bob build nginx-1.15.4
-    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-16 bob build nginx-1.15.4
 
 If all went well, deploy it using the helper script:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-20 deploy.sh nginx-1.15.4
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-18 deploy.sh nginx-1.15.4
-    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-16 deploy.sh nginx-1.15.4
 
 #### Repository Creation
 
@@ -647,7 +643,7 @@ You can then use that repository:
 
 The Heroku PHP buildpack will be pulled in as a Composer dependency. Its build `Dockerfile`s are built and tagged locally, and a custom `Dockerfile` for each targeted stack builds upon those tagged images.
 
-The `heroku-16`, `heroku-18` and `heroku-20` stack variants of the package will be hosted in the same repository.
+The `heroku-18` and `heroku-20` stack variants of the package will be hosted in the same repository.
 
 The package in this example is the Xdebug extension. The extension formula can re-use an existing buildpack base formula for PECL extensions.
 
@@ -670,7 +666,6 @@ Build the base Docker images from the buildpack for all stacks:
     $ cd vendor/heroku/heroku-buildpack-php
     $ docker build --pull --tag php-heroku-20 --file $(pwd)/support/build/_docker/heroku-20.Dockerfile .
     $ docker build --pull --tag php-heroku-18 --file $(pwd)/support/build/_docker/heroku-18.Dockerfile .
-    $ docker build --pull --tag php-heroku-16 --file $(pwd)/support/build/_docker/heroku-16.Dockerfile .
     $ cd -
 
 #### Creating Custom Dockerfiles
@@ -689,14 +684,6 @@ Create a `heroku-18.Dockerfile` with the following contents:
     ENV WORKSPACE_DIR=/app
     ENV UPSTREAM_S3_BUCKET=lang-php
     ENV UPSTREAM_S3_PREFIX=dist-heroku-18-stable/
-    COPY . /app
-
-Create a `heroku-16.Dockerfile` with the following contents:
-
-    FROM formulatest-heroku-16:latest
-    ENV WORKSPACE_DIR=/app
-    ENV UPSTREAM_S3_BUCKET=lang-php
-    ENV UPSTREAM_S3_PREFIX=dist-heroku-16-stable/
     COPY . /app
 
 Both set the correct upstream S3 bucket and prefix, so that formula dependencies like PHP are pulled from the official Heroku S3 locations.
@@ -730,7 +717,6 @@ Build one Docker image for each stack:
 
     $ docker build --tag xdebug-heroku-20 --file heroku-20.Dockerfile .
     $ docker build --tag xdebug-heroku-18 --file heroku-18.Dockerfile .
-    $ docker build --tag xdebug-heroku-16 --file heroku-16.Dockerfile .
 
 #### Building and Deploying
 
@@ -738,13 +724,11 @@ Verify that the build works by building a specific formula for a specific PHP ve
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-20 bob build php-7.3/xdebug-2.7.0
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-18 bob build php-7.3/xdebug-2.7.0
-    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-16 bob build php-7.3/xdebug-2.7.0
 
 If all went well, deploy it using the helper script:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-20 deploy.sh php-7.3/xdebug-2.7.0
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-18 deploy.sh php-7.3/xdebug-2.7.0
-    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-16 deploy.sh php-7.3/xdebug-2.7.0
 
 #### Repository Creation
 

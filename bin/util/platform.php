@@ -153,7 +153,7 @@ if(file_exists($COMPOSER_LOCK)) {
 if(!$have_runtime_req) {
 	if($have_dev_runtime_req) {
 		// there is no requirement for a PHP version in "require", nor in any dependencies therein, but there is one in "require-dev"
-		// that's problematic, because requirements in there may effectively result in a rule like "7.0.*", but we'd next write "^5.6.0" into our "require" to have a sane default for old stacks, and that'd blow up in CI where dev dependenies are installed
+		// that's problematic, because requirements in there may effectively result in a rule like "8.0.*", but we'd next write "^7.0.0" into our "require" to have a sane default for all stacks, and that'd blow up in CI where dev dependenies are installed
 		// we can't compute a resulting version rule (that's the whole point of the custom installer that uses Composer's solver), so throwing an error is the best thing we can do here
 		exit(3);
 	}
