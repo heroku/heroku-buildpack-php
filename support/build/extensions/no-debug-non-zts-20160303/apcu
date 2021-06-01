@@ -32,7 +32,7 @@ phpize
 	${CONFIGURE_EXTRA:-}
 make -s -j 9
 
-if [[ $series == 5.* || $series == 7.* ]]; then
+if [[ $series == 7.* ]]; then
 	# we need to install apcu first to build this
 	make install -s
 	popd
@@ -73,7 +73,7 @@ mkdir -p ${OUT_PREFIX}/etc/php/conf.d
 cat > ${OUT_PREFIX}/etc/php/conf.d/apcu.ini-dist <<'EOF'
 extension=apcu.so
 EOF
-if [[ $series == 5.* || $series == 7.* ]]; then
+if [[ $series == 7.* ]]; then
 	cat >> ${OUT_PREFIX}/etc/php/conf.d/apcu.ini-dist <<-'EOF'
 		extension=apc.so
 	EOF
