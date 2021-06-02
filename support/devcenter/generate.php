@@ -7,14 +7,11 @@ require('vendor/autoload.php');
 
 // these need updating from time to time to add new stacks and remove EOL ones
 $stacks = [
-	1 => '16', // the offset we start with here is relevant for the numbering of footnotes
-	'18',
+	1 => '18', // the offset we start with here is relevant for the numbering of footnotes
 	'20',
 ];
 // these need updating from time to time to add new series and remove EOL ones
 $series = [
-	'5.6',
-	'7.0',
 	'7.1',
 	'7.2',
 	'7.3',
