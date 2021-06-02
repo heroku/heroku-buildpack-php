@@ -5,13 +5,13 @@ use Composer\Semver\Comparator;
 
 require('vendor/autoload.php');
 
-// TODO: could we dynamically generate these by scanning all repos and somehow evaluating the constraints?
+// these need updating from time to time to add new stacks and remove EOL ones
 $stacks = [
 	1 => '16', // the offset we start with here is relevant for the numbering of footnotes
 	'18',
 	'20',
 ];
-// TODO: could we dynamically generate these by scanning all repos and somehow evaluating the constraints?
+// these need updating from time to time to add new series and remove EOL ones
 $series = [
 	'5.6',
 	'7.0',
@@ -196,6 +196,12 @@ while($row = $results->fetchArray(SQLITE3_ASSOC)) {
 		}
 	}
 }
+
+// now show just the real series that are even available as runtimes; no need to show empty columns
+$series = array_unique(array_merge(...$seriesByStack));
+// and from these also get the stacks that are actually populated
+$stacks = array_keys(array_filter($seriesByStack)); // filter with no args removes empty items
+$stacks = array_combine(range(1, count($stacks)), array_values($stacks)); // reindex from key 1, for our footnotes
 
 $extensionsQuery = ["SELECT extensions.name, extensions.url"];
 foreach($series as $serie) {
