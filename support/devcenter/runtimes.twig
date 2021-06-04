@@ -1,0 +1,24 @@
+<!-- BEGIN RUNTIMES -->
+<!-- THIS SECTION, BEGINNING WITH THE MARKER COMMENT ABOVE, IS AUTOMATICALLY GENERATED; DO NOT EDIT CONTENT BELOW BY HAND OR REMOVE MARKER ABOVE -->
+<table>
+	<thead>
+		<tr>
+			<th>Runtime&nbsp;/&nbsp;series</th>
+{% for stack in stacks %}
+			<th><a href="/articles/heroku-{{ stack }}-stack"><code>heroku-{{ stack }}</code></a></th>
+{% endfor %}
+		</tr>
+	</thead>
+	<tbody>
+{% for runtime in runtimes %}
+		<tr {% if attribute(eol, runtime.series) is defined %}style="{% if attribute(eol, runtime.series) == "eol" %}background-color: rgba(194, 66, 0, 0.1); color: #C24200{% else %}background-color: #fff3c5; color: #927200{% endif %}"{% endif %}>
+			<td style="white-space:nowrap">PHP {{ runtime.series }}</td>
+	{% for stack in stacks %}
+			<td>{% if attribute(runtime, stack) %}{{ attribute(runtime, stack) }}{% else %}-{% endif %}</td>
+	{% endfor %}
+		</tr>
+{% endfor %}
+	</tbody>
+</table>
+<!-- THIS SECTION, ENDING WITH THE MARKER BELOW, IS AUTOMATICALLY GENERATED; DO NOT EDIT CONTENT ABOVE BY HAND OR REMOVE MARKER BELOW -->
+<!-- END RUNTIMES -->
