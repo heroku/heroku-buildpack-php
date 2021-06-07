@@ -6,6 +6,7 @@
 
 - ext-newrelic for PHP 8 [David Zuelke]
 - Nginx/1.20.1 [David Zuelke]
+- PHP/7.4.20 [David Zuelke]
 
 ### CHG
 
