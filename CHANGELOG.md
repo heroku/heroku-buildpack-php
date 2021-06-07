@@ -10,6 +10,7 @@
 - PHP/8.0.7 [David Zuelke]
 - ext-pcov/1.0.9 [David Zuelke]
 - ext-mongodb/1.9.1 [David Zuelke]
+- ext-event/3.0.4 [David Zuelke]
 
 ### CHG
 
