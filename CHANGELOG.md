@@ -9,6 +9,7 @@
 - PHP/7.4.20 [David Zuelke]
 - PHP/8.0.7 [David Zuelke]
 - ext-pcov/1.0.9 [David Zuelke]
+- ext-mongodb/1.9.1 [David Zuelke]
 
 ### CHG
 
