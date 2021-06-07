@@ -11,6 +11,7 @@
 - ext-pcov/1.0.9 [David Zuelke]
 - ext-mongodb/1.9.1 [David Zuelke]
 - ext-event/3.0.4 [David Zuelke]
+- ext-ev/1.1.2 [David Zuelke]
 
 ### CHG
 
