@@ -154,6 +154,7 @@ foreach($packages as $package) {
 	foreach($findstacks($package) as $stack) {
 		$insertPackage->reset();
 		$insertPackage->bindValue(':name', str_replace("heroku-sys/", "", $package['name']), SQLITE3_TEXT);
+		$insertPackage->bindValue(':url', $package['homepage'] ?? null, SQLITE3_TEXT);
 		$insertPackage->bindValue(':version', $package['version'], SQLITE3_TEXT);
 		$insertPackage->bindValue(':stack', $stack, SQLITE3_TEXT);
 		if($package['type'] == 'heroku-sys-php') {
