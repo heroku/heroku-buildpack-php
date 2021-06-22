@@ -190,6 +190,7 @@ $runtimesQuery[] = "FROM packages WHERE name = 'php' GROUP BY name, series ORDER
 $results = $db->query(implode(" ", $runtimesQuery));
 $runtimes = [];
 while($row = $results->fetchArray(SQLITE3_ASSOC)) {
+	$row["name"] = strtoupper($row["name"]); // "PHP"
 	$runtimes[] = $row;
 	foreach($stacks as $stack) {
 		if($row["${stack}"]) {
@@ -297,7 +298,7 @@ $templates = [
 	"runtimes" =>  [
 		'stacks' => $stacks,
 		'eol' => $eol,
-		'runtimes' => $runtimes,
+		'packages' => $runtimes,
 	],
 	"built-in-extensions" => [
 		'series' => $series,
