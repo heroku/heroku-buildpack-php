@@ -128,36 +128,13 @@ foreach($repositories as $repository) {
 
 $db = new SQLite3(':memory:');
 $db->createCollation('VERSION_CMP', 'version_compare'); // for sorting/MAXing versions; we have to use it explicitly inside MAX(CASE…) statements in addition to setting it on the version column
-$db->exec("CREATE TABLE runtimes (name TEXT COLLATE NOCASE, version TEXT COLLATE VERSION_CMP, series TEXT, stack TEXT)");
+$db->exec("CREATE TABLE packages (name TEXT COLLATE NOCASE, version TEXT COLLATE VERSION_CMP, series TEXT, stack TEXT)");
 $db->exec("CREATE TABLE extensions (name TEXT COLLATE NOCASE, url TEXT, version TEXT COLLATE VERSION_CMP, runtime TEXT, series TEXT, stack TEXT, bundled INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)");
-$insertRuntime = $db->prepare("INSERT INTO runtimes (name, version, series, stack) VALUES(:name, :version, :series, :stack)");
+$insertPackage = $db->prepare("INSERT INTO packages (name, version, series, stack) VALUES(:name, :version, :series, :stack)");
 $insertExtension = $db->prepare("INSERT INTO extensions (name, url, version, runtime, series, stack, bundled, enabled) VALUES(:name, :url, :version, :runtime, :series, :stack, :bundled, :enabled)");
 
 foreach($packages as $package) {
-	if($package['type'] == 'heroku-sys-php') {
-		foreach($findstacks($package) as $stack) {
-			$serie = implode('.', array_slice(explode('.', $package['version']), 0, 2));
-			$insertRuntime->reset();
-			$insertRuntime->bindValue(':name', 'php', SQLITE3_TEXT);
-			$insertRuntime->bindValue(':version', $package['version'], SQLITE3_TEXT);
-			$insertRuntime->bindValue(':series', $serie, SQLITE3_TEXT);
-			$insertRuntime->bindValue(':stack', $stack, SQLITE3_TEXT);
-			$insertRuntime->execute();
-			foreach($package["replace"] as $rname => $rversion) {
-				if(strpos($rname, "heroku-sys/ext-") !== 0) continue;
-				$insertExtension->reset();
-				$insertExtension->bindValue(':name', str_replace("heroku-sys/", "", $rname), SQLITE3_TEXT);
-				$insertExtension->bindValue(':url', $getBuiltinExtensionUrl($rname), SQLITE3_TEXT);
-				$insertExtension->bindValue(':version', $package['version'], SQLITE3_TEXT);
-				$insertExtension->bindValue(':runtime', 'php', SQLITE3_TEXT);
-				$insertExtension->bindValue(':series', $serie, SQLITE3_TEXT);
-				$insertExtension->bindValue(':stack', $stack, SQLITE3_TEXT);
-				$insertExtension->bindValue(':bundled', 1, SQLITE3_INTEGER);
-				$insertExtension->bindValue(':enabled', !($package["extra"]["shared"][$rname]??false), SQLITE3_INTEGER);
-				$insertExtension->execute();
-			}
-		}
-	} elseif($package['type'] == 'heroku-sys-php-extension') {
+	if($package['type'] == 'heroku-sys-php-extension') {
 		foreach($findstacks($package) as $stack) {
 			foreach($findseries($package) as $serie) {
 				$insertExtension->reset();
@@ -172,32 +149,59 @@ foreach($packages as $package) {
 				$insertExtension->execute();
 			}
 		}
+		continue;
+	}
+	foreach($findstacks($package) as $stack) {
+		$insertPackage->reset();
+		$insertPackage->bindValue(':name', str_replace("heroku-sys/", "", $package['name']), SQLITE3_TEXT);
+		$insertPackage->bindValue(':version', $package['version'], SQLITE3_TEXT);
+		$insertPackage->bindValue(':stack', $stack, SQLITE3_TEXT);
+		if($package['type'] == 'heroku-sys-php') {
+			$serie = implode('.', array_slice(explode('.', $package['version']), 0, 2)); // 7.3, 7.4, 8.0 etc
+			foreach($package["replace"] as $rname => $rversion) {
+				if(strpos($rname, "heroku-sys/ext-") !== 0) continue;
+				$insertExtension->reset();
+				$insertExtension->bindValue(':name', str_replace("heroku-sys/", "", $rname), SQLITE3_TEXT);
+				$insertExtension->bindValue(':url', $getBuiltinExtensionUrl($rname), SQLITE3_TEXT);
+				$insertExtension->bindValue(':version', $package['version'], SQLITE3_TEXT);
+				$insertExtension->bindValue(':runtime', 'php', SQLITE3_TEXT);
+				$insertExtension->bindValue(':series', $serie, SQLITE3_TEXT);
+				$insertExtension->bindValue(':stack', $stack, SQLITE3_TEXT);
+				$insertExtension->bindValue(':bundled', 1, SQLITE3_INTEGER);
+				$insertExtension->bindValue(':enabled', !($package["extra"]["shared"][$rname]??false), SQLITE3_INTEGER);
+				$insertExtension->execute();
+			}
+		} else {
+			$serie = explode('.', $package['version'])[0]; // 3, 4, 5 etc - semver major version
+		}
+		$insertPackage->bindValue(':series', $serie, SQLITE3_TEXT);
+		$insertPackage->execute();
 	}
 }
 
-$latestByStack = []; // remember these for the next step, where we fetch all default extensions for them
-$seriesByStack = [];
+$latestRuntimesByStack = []; // remember these for the next step, where we fetch all default extensions for them
+$runtimeSeriesByStack = [];
 $runtimesQuery = ["SELECT name, series"];
 foreach($stacks as $key => $stack) {
 	$runtimesQuery[] = ", MAX(CASE WHEN stack = '${stack}' THEN version END COLLATE VERSION_CMP) AS '${stack}'";
 }
-$runtimesQuery[] = "FROM runtimes GROUP BY name, series ORDER BY series ASC";
+$runtimesQuery[] = "FROM packages WHERE name = 'php' GROUP BY name, series ORDER BY series ASC";
 $results = $db->query(implode(" ", $runtimesQuery));
 $runtimes = [];
 while($row = $results->fetchArray(SQLITE3_ASSOC)) {
 	$runtimes[] = $row;
 	foreach($stacks as $stack) {
 		if($row["${stack}"]) {
-			$latestByStack[$stack][$row["series"]] = $row["${stack}"];
-			$seriesByStack[$stack][] = $row["series"];
+			$latestRuntimesByStack[$stack][$row["series"]] = $row["${stack}"];
+			$runtimeSeriesByStack[$stack][] = $row["series"];
 		}
 	}
 }
 
 // now show just the real series that are even available as runtimes; no need to show empty columns
-$series = array_unique(array_merge(...$seriesByStack));
+$series = array_unique(array_merge(...$runtimeSeriesByStack));
 // and from these also get the stacks that are actually populated
-$stacks = array_keys(array_filter($seriesByStack)); // filter with no args removes empty items
+$stacks = array_keys(array_filter($runtimeSeriesByStack)); // filter with no args removes empty items
 $stacks = array_combine(range(1, count($stacks)), array_values($stacks)); // reindex from key 1, for our footnotes
 
 $extensionsQuery = ["SELECT extensions.name, extensions.url"];
@@ -208,7 +212,7 @@ foreach($series as $serie) {
 }
 $extensionsQuery[] = "FROM extensions";
 $extensionsQuery[] = "WHERE extensions.bundled = 1 AND(0";
-foreach($latestByStack as $stack => $versions) {
+foreach($latestRuntimesByStack as $stack => $versions) {
 	foreach($versions as $serie => $version) {
 		// we intentionally don't use prepared statements here
 		// some bug with positional parameter binding...
@@ -221,7 +225,7 @@ $bExtensions = [];
 while($row = $result->fetchArray(SQLITE3_ASSOC)) {
 	$row['data'] = [];
 	foreach($series as $serie) {
-		$row['data'][$serie] = $filterStackVersions($row, $serie, $stacks, $seriesByStack, function($row, $serie, $stack) { return isset($row["enabled_${serie}_${stack}"]) ? strtr($row["enabled_${serie}_${stack}"], ["0" => "&#x2731;", "1" => "&#x2714;"]) : null; });
+		$row['data'][$serie] = $filterStackVersions($row, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return isset($row["enabled_${serie}_${stack}"]) ? strtr($row["enabled_${serie}_${stack}"], ["0" => "&#x2731;", "1" => "&#x2714;"]) : null; });
 	}
 	$bExtensions[] = $row;
 }
@@ -238,7 +242,7 @@ $eExtensions = [];
 while($row = $result->fetchArray(SQLITE3_ASSOC)) {
 	$row['data'] = [];
 	foreach($series as $serie) {
-		$row['data'][$serie] = $filterStackVersions($row, $serie, $stacks, $seriesByStack, function($row, $serie, $stack) { return $row["version_${serie}_${stack}"] ?? null; });
+		$row['data'][$serie] = $filterStackVersions($row, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return $row["version_${serie}_${stack}"] ?? null; });
 	}
 	$eExtensions[] = $row;
 }
@@ -278,7 +282,7 @@ foreach($extCounts as $name => $count) {
 		$collapse = array_merge(...$collapse); // result is one row, and we unpack it
 		// recalculate data array
 		foreach($series as $serie) {
-			$collapse['data'][$serie] = $filterStackVersions($collapse, $serie, $stacks, $seriesByStack, function($row, $serie, $stack) { return $row["version_${serie}_${stack}"] ?? null; });
+			$collapse['data'][$serie] = $filterStackVersions($collapse, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return $row["version_${serie}_${stack}"] ?? null; });
 		}
 		unset($collapse['major_version']);
 		// overwrite collapsible rows with our new single one
