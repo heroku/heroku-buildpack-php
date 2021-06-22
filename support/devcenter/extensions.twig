@@ -15,17 +15,17 @@
 		<tr>
 			<td style="white-space: nowrap"><code>{% if extension.url %}<a href="{{ extension.url }}">{% endif %}{{ extension.name }}{% if extension.url %}</a>{% endif %}</code>{% if extension.major_version is defined %} ({{ extension.major_version }}x){% endif %}</td>
 	{% for serie, data in extension.data %}
-			<td {% if attribute(eol, serie) is defined %}style="{% if attribute(eol, serie) == "eol" %}background-color: rgba(194, 66, 0, 0.1); color: #C24200{% else %}background-color: #fff3c5; color: #927200{% endif %}"{% endif %}>
-		{% for version, caveats in data %}
-				{{ version|raw }}
-			{% for number, stack in caveats %}{% set numCaveats = numCaveats + 1 %}
-				<sup><a title="not available on the heroku-{{ stack }} stack" href="#footnote-{{ type }}-ext-not-{{ stack }}">&#x200b;[&#x200b;{{ number }}&#x200b;]</a></sup>
-			{% endfor %}
-				<br/>
-		{% else %}
-				-
-		{% endfor %}
-			</td>
+			<td{% if attribute(eol, serie) is defined %} style="{% if attribute(eol, serie) == "eol" %}background-color: rgba(194, 66, 0, 0.1); color: #C24200{% else %}background-color: #fff3c5; color: #927200{% endif %}"{% endif %}>{% 
+		for version, caveats in data
+				 %}{{ version|raw }}{% 
+			for number, stack in caveats %}{% set numCaveats = numCaveats + 1
+				 %}<sup><a title="not available on the heroku-{{ stack }} stack" href="#footnote-{{ type }}-ext-not-{{ stack }}">&#x200b;[&#x200b;{{ number }}&#x200b;]</a></sup><sup><a title="not available on the heroku-{{ stack }} stack" href="#footnote-{{ type }}-ext-not-{{ stack }}">&#x200b;[&#x200b;{{ number }}&#x200b;]</a></sup>{% 
+			endfor
+				 %}<br/>{% 
+		else
+				%}-{% 
+		endfor
+			 %}</td>
 	{% endfor %}
 		</tr>
 {% endfor %}
