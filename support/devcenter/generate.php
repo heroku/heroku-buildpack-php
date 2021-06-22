@@ -80,7 +80,7 @@ $handlerStack->push(GuzzleHttp\Middleware::retry(function($times, $req, $res, $e
 }));
 $client = new GuzzleHttp\Client(['handler' => $handlerStack, "timeout" => "2.0"]);
 
-$sections = getopt('', ['runtimes', 'built-in-extensions', 'third-party-extensions'], $restIndex);
+$sections = getopt('', ['runtimes', 'built-in-extensions', 'third-party-extensions', 'composers', 'webservers'], $restIndex);
 $posArgs = array_slice($argv, $restIndex);
 
 $repositories = [];
@@ -128,9 +128,9 @@ foreach($repositories as $repository) {
 
 $db = new SQLite3(':memory:');
 $db->createCollation('VERSION_CMP', 'version_compare'); // for sorting/MAXing versions; we have to use it explicitly inside MAX(CASE…) statements in addition to setting it on the version column
-$db->exec("CREATE TABLE packages (name TEXT COLLATE NOCASE, version TEXT COLLATE VERSION_CMP, series TEXT, stack TEXT)");
+$db->exec("CREATE TABLE packages (name TEXT COLLATE NOCASE, version TEXT COLLATE VERSION_CMP, type TEXT, series TEXT, stack TEXT)");
 $db->exec("CREATE TABLE extensions (name TEXT COLLATE NOCASE, url TEXT, version TEXT COLLATE VERSION_CMP, runtime TEXT, series TEXT, stack TEXT, bundled INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)");
-$insertPackage = $db->prepare("INSERT INTO packages (name, version, series, stack) VALUES(:name, :version, :series, :stack)");
+$insertPackage = $db->prepare("INSERT INTO packages (name, version, type, series, stack) VALUES(:name, :version, :type, :series, :stack)");
 $insertExtension = $db->prepare("INSERT INTO extensions (name, url, version, runtime, series, stack, bundled, enabled) VALUES(:name, :url, :version, :runtime, :series, :stack, :bundled, :enabled)");
 
 foreach($packages as $package) {
@@ -156,6 +156,7 @@ foreach($packages as $package) {
 		$insertPackage->bindValue(':name', str_replace("heroku-sys/", "", $package['name']), SQLITE3_TEXT);
 		$insertPackage->bindValue(':url', $package['homepage'] ?? null, SQLITE3_TEXT);
 		$insertPackage->bindValue(':version', $package['version'], SQLITE3_TEXT);
+		$insertPackage->bindValue(':type', $package['type'], SQLITE3_TEXT);
 		$insertPackage->bindValue(':stack', $stack, SQLITE3_TEXT);
 		if($package['type'] == 'heroku-sys-php') {
 			$serie = implode('.', array_slice(explode('.', $package['version']), 0, 2)); // 7.3, 7.4, 8.0 etc
@@ -292,6 +293,32 @@ foreach($extCounts as $name => $count) {
 	}
 }
 
+$composersQuery = ["SELECT name, series"];
+foreach($stacks as $key => $stack) {
+	$composersQuery[] = ", MAX(CASE WHEN stack = '${stack}' THEN version END COLLATE VERSION_CMP) AS '${stack}'";
+}
+$composersQuery[] = "FROM packages WHERE name = 'composer' GROUP BY name, series ORDER BY series ASC";
+$results = $db->query(implode(" ", $composersQuery));
+$composers = [];
+while($row = $results->fetchArray(SQLITE3_ASSOC)) {
+	$row["name"] = ucfirst($row["name"]); // "Composer"
+	$row["series"] = $row["series"].".x"; // "2.x"
+	$composers[] = $row;
+}
+
+$webserversQuery = ["SELECT name, series"];
+foreach($stacks as $key => $stack) {
+	$webserversQuery[] = ", MAX(CASE WHEN stack = '${stack}' THEN version END COLLATE VERSION_CMP) AS '${stack}'";
+}
+$webserversQuery[] = "FROM packages WHERE type = 'heroku-sys-webserver' GROUP BY name, series ORDER BY name ASC, series ASC";
+$results = $db->query(implode(" ", $webserversQuery));
+$webservers = [];
+while($row = $results->fetchArray(SQLITE3_ASSOC)) {
+	$row["name"] = ucfirst($row["name"]); // "Nginx"
+	$row["series"] = $row["series"].".x"; // "1.x"
+	$webservers[] = $row;
+}
+
 $twig = new Twig\Environment(new \Twig\Loader\FilesystemLoader(__DIR__));
 
 $templates = [
@@ -312,8 +339,16 @@ $templates = [
 		'eol' => $eol,
 		'extensions' => $eExtensions,
 	],
+	"composers" =>  [
+		'stacks' => $stacks,
+		'packages' => $composers,
+	],
+	"webservers" =>  [
+		'stacks' => $stacks,
+		'packages' => $webservers,
+	],
 ];
 
-foreach(($sections?: ["runtimes" => true, "built-in-extensions" => true, "third-party-extensions" => true]) as $section => $ignore) {
+foreach(($sections?: ["runtimes" => true, "built-in-extensions" => true, "third-party-extensions" => true, "composers" => true, "webservers" => true]) as $section => $ignore) {
 	echo $twig->render("$section.twig", $templates[$section]);
 }
