@@ -15,7 +15,7 @@ GEM
   specs:
     diff-lcs (1.4.4)
     erubis (2.7.0)
-    excon (0.79.0)
+    excon (0.82.0)
     heroics (0.1.2)
       erubis (~> 2.0)
       excon
@@ -25,7 +25,7 @@ GEM
     moneta (1.0.0)
     multi_json (1.15.0)
     parallel (1.20.1)
-    parallel_tests (3.5.0)
+    parallel_tests (3.7.0)
       parallel
     platform-api (3.3.0)
       heroics (~> 0.1.1)
