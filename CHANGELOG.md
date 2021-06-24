@@ -11,6 +11,10 @@
 
 - ext-blackfire installs blackfire agent as separate dependency [David Zuelke]
 
+### FIX
+
+- ext-blackfire attempts to instrument during web dyno startup [David Zuelke]
+
 ## v193 (2021-06-07)
 
 ### ADD
