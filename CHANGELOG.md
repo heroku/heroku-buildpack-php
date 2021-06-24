@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-blackfire/1.61.0 [David Zuelke]
+- blackfire/1.49.1 [David Zuelke]
 
 ### CHG
 
