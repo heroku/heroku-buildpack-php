@@ -2,6 +2,10 @@
 
 ## v194 (2021-06-25)
 
+### ADD
+
+- ext-blackfire/1.61.0 [David Zuelke]
+
 ### CHG
 
 - ext-blackfire installs blackfire agent as separate dependency [David Zuelke]
