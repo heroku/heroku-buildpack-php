@@ -13,6 +13,7 @@ GIT
 GEM
   remote: https://rubygems.org/
   specs:
+    ansi (1.5.0)
     diff-lcs (1.4.4)
     erubis (2.7.0)
     excon (0.82.0)
@@ -51,6 +52,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  ansi
   heroku_hatchet!
   parallel_tests
   rake
