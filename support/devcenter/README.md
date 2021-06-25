@@ -5,6 +5,8 @@ This `generate.php` tool will, given platform repository URLs as arguments, gene
 - the list of PHP runtimes, per stack
 - the list of built-in extensions, per PHP runtime series
 - the list of third-party extensions, per PHP runtime series
+- the list of Composer versions, per stack
+- the list of web servers, per stack
 
 for inclusion in https://devcenter.heroku.com/articles/php-support
 
@@ -12,17 +14,19 @@ The extensions list is, where needed, annotated with footnotes that indicate if 
 
 The third-party extensions list will list major version series (e.g. 2.x and 3.x) separately unless they can be collapsed into a single row (e.g. because for PHP 7, they're all versions 1.x and for PHP 8, versions 2.x). Separate entries will be generated in a single cell if the versions should, for any reason, differ between stacks. Only the latest version of an x.0.0 series is listed.
 
+For the "Composers" and web servers, only the latest release of each major version series is listed per stack.
+
 ## Invocation
 
 First, `composer install` the dependencies.
 
-By default, all three sections will be generated:
+By default, all sections will be generated:
 
 ```ShellSession
 $ ./generate.php https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/packages.json
 ```
 
-You may also generate any of the three sections individually using the `--runtimes`, `--built-in-extensions` or `--third-party-extensions` options:
+You may also generate any of the five sections individually using the `--runtimes`, `--built-in-extensions`, `--third-party-extensions`, `--composers`, or `--webservers` options:
 
 ```ShellSession
 $ ./generate.php --third-party-extensions https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/packages.json
