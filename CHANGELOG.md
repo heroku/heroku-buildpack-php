@@ -10,6 +10,7 @@
 ### CHG
 
 - ext-blackfire installs blackfire agent as separate dependency [David Zuelke]
+- ext-blackfire will use blackfire agent from https://github.com/blackfireio/integration-heroku if present [David Zuelke]
 
 ### FIX
 

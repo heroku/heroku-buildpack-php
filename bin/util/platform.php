@@ -169,11 +169,24 @@ $require["heroku-sys/nginx"] = "^1.8.0";
 
 preg_match("#^([^-]+)(?:-([0-9]+))?\$#", $STACK, $stack);
 $provide = ["heroku-sys/".$stack[1] => (isset($stack[2])?$stack[2]:"1").gmdate(".Y.m.d")]; # heroku: 20.2021.02.04 etc
+
+$replace = [];
+// check whether the blackfire CLI is already there (from their https://github.com/blackfireio/integration-heroku buildpack)
+exec("blackfire --no-ansi version 2>/dev/null", $blackfire_version, $have_blackfire);
+if($have_blackfire === 0 && preg_match("/^Blackfire version (\d+\.\d+\.\d+)/", $blackfire_version[0], $matches)) {
+	// and if so, "replace" it, so that we don't install our version - a "provide" would lead the solver to prefer a "real" package instead at least in Composer 1
+	$replace["heroku-sys/blackfire"] = $matches[1];
+	file_put_contents("php://stderr", "\033[1;33mNOTICE:\033[0m Blackfire CLI version $matches[1] detected.\n");
+} elseif($have_blackfire === 0) {
+	file_put_contents("php://stderr", "\033[1;33mWARNING:\033[0m Blackfire CLI detected, but could not determine version - falling back to bundled package!\n");
+}
+
 $json = [
 	"config" => ["cache-files-ttl" => 0, "discard-changes" => true],
 	"minimum-stability" => isset($lock["minimum-stability"]) ? $lock["minimum-stability"] : "stable",
 	"prefer-stable" => isset($lock["prefer-stable"]) ? $lock["prefer-stable"] : false,
 	"provide" => $provide,
+	"replace" => (object) $replace,
 	"require" => $require,
 	// only write out require-dev if we're installing in CI, as indicated by the HEROKU_PHP_INSTALL_DEV set (to an empty string)
 	"require-dev" => getenv("HEROKU_PHP_INSTALL_DEV") === false ? (object)[] : (object)$requireDev,
