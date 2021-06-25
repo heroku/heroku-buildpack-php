@@ -6,6 +6,7 @@
 
 - blackfire/2.4.2 [David Zuelke]
 - ext-blackfire/1.62.0 [David Zuelke]
+- ext-imagick/3.5.0 [David Zuelke]
 
 ### CHG
 
