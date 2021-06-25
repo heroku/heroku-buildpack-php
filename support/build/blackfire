@@ -1,0 +1,62 @@
+#!/usr/bin/env bash
+# Build Path: /app/.heroku/php
+
+OUT_PREFIX=$1
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
+source $(dirname $BASH_SOURCE)/_util/include/manifest.sh
+
+bin_dir=${OUT_PREFIX}/bin
+
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=$(basename $BASH_SOURCE)
+dep_version=${dep_formula#"${dep_name}-"}
+dep_package=${dep_name}-${dep_version}
+dep_manifest=${dep_package}.composer.json
+
+echo "-----> Packaging ${dep_package}..."
+echo "FYI: Blackfire API reports latest version as $(curl -A "Heroku" -I -L -s https://blackfire.io/api/v1/releases/cli/linux/amd64 | grep -i 'X-Blackfire-Release-Version: ' | sed "s%X-Blackfire-Release-Version: %%i" | sed s%.$%%)"
+
+curl -L "https://packages.blackfire.io/binaries/blackfire/${dep_version}/blackfire-linux_amd64.tar.gz" | tar xz
+
+mkdir -p ${OUT_PREFIX}/var/blackfire/run
+mkdir -p ${bin_dir}
+chmod +x blackfire
+mv blackfire ${bin_dir}/
+
+find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
+
+# these env var defaults we want both during a build (used in the INI futher below) and at boot time
+tee ${OUT_PREFIX}/bin/export.blackfire.sh > ${OUT_PREFIX}/bin/profile.blackfire.sh <<'EOF'
+# hard-code these two; no need for users to override them
+export BLACKFIRE_LOG_FILE=stderr
+export BLACKFIRE_AGENT_SOCKET="unix:///app/.heroku/php/var/blackfire/run/agent.sock"
+EOF
+
+# PATH should be available both for subsequent buildpacks and on boot
+cat >> ${OUT_PREFIX}/bin/export.blackfire.sh <<'EOF'
+export PATH="/app/.heroku/php/bin:$PATH"
+EOF
+
+# gets sourced on dyno boot
+cat >> ${OUT_PREFIX}/bin/profile.blackfire.sh <<'EOF'
+export PATH="$HOME/.heroku/php/bin:$PATH"
+
+# we need no config, as everything will be read from the environment
+# exception is BLACKFIRE_SOCKET, which we pass in explicitly; the extension uses BLACKFIRE_AGENT_SOCKET instead
+/app/.heroku/php/bin/blackfire agent:start --config="/dev/null" --socket="${BLACKFIRE_AGENT_SOCKET}" &
+EOF
+
+MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
+MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
+MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
+MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.blackfire.sh\",\"profile\":\"bin/profile.blackfire.sh\"}"}"
+
+python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-program" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+
+print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

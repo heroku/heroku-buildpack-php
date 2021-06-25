@@ -1,5 +1,21 @@
 # heroku-buildpack-php CHANGELOG
 
+## v194 (2021-06-25)
+
+### ADD
+
+- blackfire/2.4.2 [David Zuelke]
+- ext-blackfire/1.62.0 [David Zuelke]
+
+### CHG
+
+- ext-blackfire installs blackfire agent as separate dependency [David Zuelke]
+- ext-blackfire will use blackfire agent from https://github.com/blackfireio/integration-heroku if present [David Zuelke]
+
+### FIX
+
+- ext-blackfire attempts to instrument during web dyno startup [David Zuelke]
+
 ## v193 (2021-06-07)
 
 ### ADD

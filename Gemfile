@@ -6,3 +6,4 @@ gem 'rspec-expectations'
 gem 'sem_version'
 gem "parallel_tests"
 gem "rake"
+gem "ansi"
