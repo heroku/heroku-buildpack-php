@@ -390,7 +390,8 @@ exec 3<> $wait_pipe
 
 pids=()
 graceful_sigterm=
-if [[ "${HEROKU_PHP_GRACEFUL_SIGTERM:-0}" != "0" ]]; then
+if [[ -n "${DYNO:-}" && "${HEROKU_PHP_GRACEFUL_SIGTERM:-1}" != "0" ]]; then
+	export HEROKU_PHP_GRACEFUL_SIGTERM=1
 	graceful_sigterm=1
 fi
 

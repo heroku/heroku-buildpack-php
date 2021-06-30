@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v195 (2021-07-??)
+
+### CHG
+
+- `$HEROKU_PHP_GRACEFUL_SIGTERM` now defaults to "1" on Heroku dynos to enable graceful shutdowns for PHP-FPM, Apache and Nginx [David Zuelke]
+
 ## v194 (2021-06-25)
 
 ### ADD
