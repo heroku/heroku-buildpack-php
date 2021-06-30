@@ -24,7 +24,7 @@ describe "A PHP application" do
 					expect(output).to match(/^request complete$/) # ensure a late log line is captured, meaning the logs tail process stays alive until the end
 				end
 				
-				it "gracefully shuts down when all processes receives a SIGTERM and HEROKU_PHP_GRACEFUL_SIGTERM is set" do
+				it "gracefully shuts down when all processes receives a SIGTERM because HEROKU_PHP_GRACEFUL_SIGTERM is on by default" do
 					# first, launch in the background and get the pid
 					# then sleep five seconds to allow boot (semicolon before ! needs a space, Bash...)
 					# curl the sleep() script (and remember the curl pid)
@@ -32,7 +32,7 @@ describe "A PHP application" do
 					# hand all those PIDs to kill
 					# wait for $pid so that we can be certain to get all the output
 					cmd = "heroku-php-#{server} & pid=$! ; sleep 5; curl \"localhost:$PORT/index.php?wait=5\" & curlpid=$!; sleep 2; kill $(pgrep -U $UID | grep -vw -e $$ -e $curlpid) 2>/dev/null; wait $pid"
-					output = @app.run(cmd, { :heroku => { "env" => "HEROKU_PHP_GRACEFUL_SIGTERM=1" }} )
+					output = @app.run(cmd)
 					expect(output).to match(/^hello world after 5 second\(s\)$/)
 					expect(output).to match(/^request complete$/) # ensure a late log line is captured, meaning the logs tail process stays alive until the end
 				end
