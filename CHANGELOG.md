@@ -1,10 +1,19 @@
 # heroku-buildpack-php CHANGELOG
 
-## v195 (2021-07-??)
+## v195 (2021-07-01)
+
+### ADD
+
+- PHP/7.3.29 [David Zuelke]
+- PHP/7.4.21 [David Zuelke]
+- PHP/8.0.8 [David Zuelke]
+- ext-blackfire/1.63.0 [David Zuelke]
+- Apache/2.4.48 [David Zuelke]
 
 ### CHG
 
 - `$HEROKU_PHP_GRACEFUL_SIGTERM` now defaults to "1" on Heroku dynos to enable graceful shutdowns for PHP-FPM, Apache and Nginx [David Zuelke]
+- Composer/2.1.3 [David Zuelke]
 
 ## v194 (2021-06-25)
 
