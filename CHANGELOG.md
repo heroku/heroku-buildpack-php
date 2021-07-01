@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v196 (2021-07-??)
+
+### ADD
+
+- blackfire/2.4.3 [David Zuelke]
+
 ## v195 (2021-07-01)
 
 ### ADD
