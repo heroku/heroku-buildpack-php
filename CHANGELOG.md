@@ -2,6 +2,10 @@
 
 ## v195 (2021-07-??)
 
+### ADD
+
+- PHP/7.3.29 [David Zuelke]
+
 ### CHG
 
 - `$HEROKU_PHP_GRACEFUL_SIGTERM` now defaults to "1" on Heroku dynos to enable graceful shutdowns for PHP-FPM, Apache and Nginx [David Zuelke]
