@@ -7,6 +7,7 @@
 - blackfire/2.4.3 [David Zuelke]
 - PHP/7.4.22 [David Zuelke]
 - PHP/8.0.9 [David Zuelke]
+- ext-ev/1.1.4 [David Zuelke]
 
 ### CHG
 
