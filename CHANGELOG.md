@@ -5,6 +5,7 @@
 ### ADD
 
 - blackfire/2.4.3 [David Zuelke]
+- PHP/7.4.22 [David Zuelke]
 
 ### CHG
 
