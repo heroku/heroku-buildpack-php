@@ -6,6 +6,10 @@
 
 - blackfire/2.4.3 [David Zuelke]
 
+### CHG
+
+- Composer/2.1.5 [David Zuelke]
+
 ## v195 (2021-07-01)
 
 ### ADD
