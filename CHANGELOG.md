@@ -1,5 +1,20 @@
 # heroku-buildpack-php CHANGELOG
 
+## v196 (2021-07-30)
+
+### ADD
+
+- blackfire/2.4.3 [David Zuelke]
+- PHP/7.4.22 [David Zuelke]
+- PHP/8.0.9 [David Zuelke]
+- ext-ev/1.1.4 [David Zuelke]
+- ext-imagick/3.5.1 [David Zuelke]
+- ext-blackfire/1.64.0 [David Zuelke]
+
+### CHG
+
+- Composer/2.1.5 [David Zuelke]
+
 ## v195 (2021-07-01)
 
 ### ADD
