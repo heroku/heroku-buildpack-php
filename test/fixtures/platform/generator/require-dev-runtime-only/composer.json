@@ -1,0 +1,7 @@
+{
+	"require": {
+	},
+	"require-dev": {
+		"kahlan/kahlan": "^5.0.0"
+	}
+}

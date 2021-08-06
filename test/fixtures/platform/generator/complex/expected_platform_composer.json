@@ -1,0 +1,108 @@
+{
+    "config": {
+        "cache-files-ttl": 0,
+        "discard-changes": true
+    },
+    "minimum-stability": "RC",
+    "prefer-stable": true,
+    "provide": {
+        "heroku-sys\/heroku": "20.2021.08.05"
+    },
+    "replace": {},
+    "require": {
+        "composer.json\/composer.lock": "dev-c2b9dcae256d1b255b7265eef089f6c3",
+        "symfony\/polyfill-php80": "v1.23.1",
+        "symfony\/process": "v5.1.0-RC1",
+        "heroku-sys\/composer": "*",
+        "heroku-sys\/composer-plugin-api": "^2.1.0",
+        "heroku-sys\/apache": "^2.4.10",
+        "heroku-sys\/nginx": "^1.8.0"
+    },
+    "require-dev": {
+        "composer.json\/composer.lock-require-dev": "dev-c2b9dcae256d1b255b7265eef089f6c3",
+        "kahlan\/kahlan": "5.1.3"
+    },
+    "repositories": [
+        {
+            "packagist": false
+        },
+        {
+            "type": "path",
+            "url": "..\/..\/..\/..\/..\/support\/installer",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "composer",
+            "url": "https:\/\/lang-php.s3.amazonaws.com\/dist-heroku-20-stable\/packages.json"
+        },
+        {
+            "type": "package",
+            "package": [
+                {
+                    "type": "metapackage",
+                    "name": "symfony\/polyfill-php80",
+                    "version": "v1.23.1",
+                    "require": {
+                        "heroku-sys\/php": ">=7.1"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                },
+                {
+                    "type": "metapackage",
+                    "name": "symfony\/process",
+                    "version": "v5.1.0-RC1",
+                    "require": {
+                        "heroku-sys\/php": "^7.2.5"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                },
+                {
+                    "type": "metapackage",
+                    "name": "composer.json\/composer.lock",
+                    "version": "dev-c2b9dcae256d1b255b7265eef089f6c3",
+                    "require": {
+                        "heroku-sys\/ext-gmp": "*",
+                        "heroku-sys\/ext-intl": "*",
+                        "heroku-sys\/ext-mbstring": "*",
+                        "heroku-sys\/ext-redis": "*",
+                        "heroku-sys\/ext-sqlite3": "*",
+                        "heroku-sys\/ext-ldap": "*",
+                        "heroku-sys\/ext-imap": "*",
+                        "heroku-sys\/ext-blackfire": "*"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                },
+                {
+                    "type": "metapackage",
+                    "name": "kahlan\/kahlan",
+                    "version": "5.1.3",
+                    "require": {
+                        "heroku-sys\/php": ">=7.1"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                },
+                {
+                    "type": "metapackage",
+                    "name": "composer.json\/composer.lock-require-dev",
+                    "version": "dev-c2b9dcae256d1b255b7265eef089f6c3",
+                    "require": {
+                        "heroku-sys\/ext-pcov": "*"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                }
+            ]
+        }
+    ]
+}

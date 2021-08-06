@@ -1,0 +1,2 @@
+#!/usr/bin/env bash
+echo "Blackfire version 2.4.3"
