@@ -18,6 +18,8 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	protected $io;
 	protected $ops;
 	
+	// profile.d/ and etc/php/conf.d/ files are written with incrementing numeric prefixes by us
+	// this ensures that the shell and PHP also load these files in the order we installed them
 	protected $profileCounter = 10;
 	protected $configCounter = 10;
 	
@@ -28,7 +30,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		$this->composer = $composer;
 		$this->io = $io;
 		
-		// check if there already are scripts in .profile.d, or INI files (because we got invoked before), then calculate new starting point for file names
+		// check if there already are scripts in .profile.d, or INI files (because we got invoked before, e.g. because this is a `composer require` to add another package after the main install), then calculate new starting point for file names
 		foreach([
 			'profileCounter' => (getenv('profile_dir_path')?:'/dev/null').'/[0-9][0-9][0-9]-*.sh',
 			'configCounter' => self::CONF_D_PATHNAME.'/[0-9][0-9][0-9]-*.ini'
@@ -44,7 +46,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 				$io,
 				$composer->getConfig(),
 				$composer->getEventDispatcher()
-				// $cache
+				// no cache passed in as we explicitly don't want one; inside the slug it makes no sense, as slugs are immutable, and outside the slug (in the app's build cache), it makes little difference (packages are on S3, the cache is on S3) performance wise but would massively bloat the cache size and thus storage cost
 			)
 		);
 		$composer->getInstallationManager()->addInstaller(new ComposerInstaller($io, $composer));
@@ -59,12 +61,18 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	{
 		if(!in_array($event->getOperation()->getPackage()->getType(), ['heroku-sys-php', 'heroku-sys-php-extension', 'heroku-sys-webserver', 'heroku-sys-library', 'heroku-sys-program'])) return;
 		
+		// first, load all platform requirements from all operations
+		// this is because if a package requires `ext-bcmath`, which is `replace`d by `php`, no install event is generated for `ext-bcmath`, but we still need to enable it
 		$this->initAllPlatformRequirements($event->getOperations());
 		
 		try {
+			// configure the package if needed (currently only applies to extensions)
 			$this->configurePackage($event->getOperation()->getPackage());
+			// enable any packages this package claims to "replace"
 			$this->enableReplaces($event->getOperation()->getPackage());
+			// write package's runtime init logic to a `profile.d/` script, sourced at dyno boot by the shell to e.g. put binaries on $PATH
 			$this->writeProfile($event->getOperation()->getPackage());
+			// append package's build-time init logic to `export` script, sourced by the build system before invoking following buildpacks to e.g. put binaries on $PATH
 			$this->writeExport($event->getOperation()->getPackage());
 		} catch(\Exception $e) {
 			$this->io->writeError(sprintf('<error>Failed to activate package %s</error>', $event->getOperation()->getPackage()->getName()));
@@ -76,6 +84,9 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	protected function initAllPlatformRequirements(array $operations)
 	{
 		if($this->allPlatformRequirements !== null) return;
+		
+		// if a package requires `ext-bcmath`, which is `replace`d by `php`, no install event is generated for `ext-bcmath`, but we still need to enable it
+		// to do this, we first collect all requirements in a list, then later check a package's `replace` declarations against this list (in enableReplaces())
 		
 		$this->allPlatformRequirements = [];
 		foreach($operations as $operation) {
@@ -96,8 +107,8 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	
 	protected function enableReplaces(PackageInterface $package)
 	{
-		// we may "replace" any of the packages (e.g. ext-mbstring is bundled with PHP) that have been required
-		// figure out which those are so we can decide if they need enabling (because they're built shared)
+		// the current package may be "replace"ing any of the packages (e.g. ext-bcmath is bundled with PHP) that are required by another package
+		// we need to figure out which those are so enableExtension() can decide if they need enabling (because they're built shared)
 		$enable = array_intersect_key($package->getReplaces(), $this->allPlatformRequirements);
 		
 		foreach(array_keys($enable) as $extension) {
@@ -118,10 +129,12 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		$extra = $parent->getExtra();
 		
 		if($parent->getName() == $packageName) {
-			// we're enabling the parent package itself
+			// we're enabling this current package itself (meaning it's an extension package)
 			$config = isset($extra['config']) ? $extra['config'] : true;
 		} else {
-			// we're enabling another extension that this package provides
+			// we're enabling another extension that this package `replace`s - e.g. we are PHP, and we bundle an extension another package has declared as a dependency
+			// in this case, a package lists all those `replace`d extensions that are built as a shared library (as opposed to compiled into PHP) in a hash named `shared` in the package metadata's `extra` section
+			// this way we can know whether an extension is compiled into PHP, or compiled as a shared library, in which case we need to write an "extension=extname.so" entry into an INI file
 			$shared = isset($extra['shared']) ? array_change_key_case($extra['shared'], CASE_LOWER) : [];
 			if(!isset($shared[$packageName])) {
 				// that ext is on by default or whatever
@@ -134,17 +147,19 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 			$config = $shared[$packageName];
 		}
 		
+		// compute a filename for this config file - if we already have "100-something.ini", we'll get "110-ourname.ini"
 		$ini = sprintf('%s/%03u-%%s.ini', self::CONF_D_PATHNAME, $this->configCounter++*10);
 		@mkdir(dirname($ini), 0777, true);
 		
+		// check if the `config` entry in the package metadata's `extra` section simply refers to the `.so` name of the extension, or if it points to an actual INI file (with the extension loading directive as well as other config settings) that we have to copy over
 		if($config === true || (is_string($config) && substr($config, -3) === '.so' && is_readable($config))) {
-			// just enable that ext (arg is true, or the .so filename)
+			// simple case: just enable that ext using the given (or auto-determined) `.so` filename
 			file_put_contents(sprintf($ini, "ext-$extName"), sprintf("extension=%s\n", $config === true ? "$extName.so" : $config));
 		} elseif(is_string($config) && is_readable($config)) {
-			// ini file, maybe with special contents like extra config or different .so name (think "zend-opcache" vs "opcache.so")
-			// FIXME: consider ignoring/overriding the numeric prefix and re-using the original file name for "replace"d extensions, which may deliberately be different to ensure a certain loading order?
-			// example: some rare extensions (e.g. recode: http://php.net/manual/en/recode.installation.php) need to be loaded in a specific order (https://www.pingle.org/2006/10/18/php-crashes-extensions)
-			// this can only happen if several extensions, built as shared, are included in a package and will be activated (so typically just PHP with its shared exts); for real dependencies (ext-apc needs ext-apcu, ext-foobar needs ext-mysql), Composer already does that ordering for us
+			// entry points to an actual ini file, maybe with special contents like extra config or different .so name (think "zend-opcache" vs "opcache.so")
+			// FIXMEMAYBE: consider ignoring/overriding the numeric prefix and re-using the original file name for "replace"d extensions, which may deliberately be different to ensure a certain loading order?
+			// FIXMEMAYBE: example: some rare extensions (e.g. recode: http://php.net/manual/en/recode.installation.php) need to be loaded in a specific order (https://www.pingle.org/2006/10/18/php-crashes-extensions)
+			// FIXMEMAYBE: this can only happen if several extensions, built as shared, are included in a package and will be activated (so typically just PHP with its shared exts); for real dependencies (ext-apc needs ext-apcu, ext-foobar needs ext-mysql), Composer already does that ordering for us
 			rename($config, sprintf($ini, "ext-$extName"));
 		} elseif (!$config) {
 			return;
@@ -155,41 +170,47 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	
 	protected function writeExport(PackageInterface $package)
 	{
+		// destination file path is given via environment
 		if(!($fn = getenv('export_file_path'))) return;
 		
+		// does this package even have an export script declared?
 		$extra = $package->getExtra();
 		if(!isset($extra['export']) || !$extra['export']) return;
 		
 		if(is_string($extra['export']) && is_readable($extra['export'])) {
-			// a file from the package used to export vars for the next buildpack, e.g. $PATH
+			// given value points to a file inside the package, read it
 			$export = file_get_contents($extra['export']);
 			@unlink($extra['export']);
 		} elseif(is_array($extra['export'])) {
-			// a hash of vars for the next buildpack, e.g. "PATH": "$HOME/.heroku/php/bin:$PATH"
+			// given value is not a file name, but a hash of env vars for the next buildpack, e.g. "PATH": "$HOME/.heroku/php/bin:$PATH", so we generate that
 			$export = implode("\n", array_map(function($v, $k) { return sprintf('export %s="%s"', $k, $v); }, $extra['export'], array_keys($extra['export'])));
 		} else {
 			throw new \RuntimeException('Package declares invalid or missing "export" in "extra"');
 		}
 		
+		// append our contents to the export script file
 		file_put_contents($fn, "\n$export\n", FILE_APPEND);
 	}
 	
 	protected function writeProfile(PackageInterface $package)
 	{
+		// destination file path is given via environment
 		if(!getenv('profile_dir_path')) return;
 		
+		// does this package even have a `profile.d/` script declared?
 		$profile = $package->getExtra();
 		if(!isset($profile['profile']) || !$profile['profile']) return;
 		$profile = $profile['profile'];
 		
+		// compute a filename for this profile script file - if we already have "100-something.sh", we'll get "110-ourname.sh"
 		$fn = sprintf("%s/%03u-%s.sh", getenv('profile_dir_path'), $this->profileCounter++*10, str_replace('heroku-sys/', '', $package->getName()));
 		@mkdir(dirname($fn), 0777, true);
 		
 		if(is_string($profile) && is_readable($profile)) {
-			// move profile file to ~/.profile.d/
+			// given value points to a file inside the package, move it to ~/.profile.d/
 			rename($profile, $fn);
 		} elseif(is_array($profile)) {
-			// a hash of vars for startup, e.g. "PATH": "$HOME/.heroku/php/bin:$PATH"
+			// given value is not a file name, but a simple hash of env vars for startup, e.g. "PATH": "$HOME/.heroku/php/bin:$PATH", so we write those to a file
 			file_put_contents(
 				$fn,
 				implode("\n", array_map(function($v, $k) { return sprintf('export %s="%s"', $k, $v); }, $profile, array_keys($profile)))
