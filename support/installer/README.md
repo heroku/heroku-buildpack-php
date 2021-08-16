@@ -18,7 +18,7 @@ Otherwise, we'd have to re-implement Composer's dependency resolution rules ours
 
 Consider e.g. a case where an app and its dependencies require PHP, as well as the Redis extension. If it requires `php:*` and `ext-redis:*`, that should give the latest PHP for which an `ext-redis` is available, and the corresponding latest version of `ext-redis`. But if it requires `php:*` and `ext-redis:3.*`, that will install PHP 7.2, since `ext-redis` v3 is not compatible with PHP 7.3 or later.
 
-Then there are `conflict` rules (certain packages may not be installable together), `replace`s (a PHP build bundles a lot of built-in extensions that users may specify as an explicit dependency), dependencies between packages (`ext-blackfire`)
+Then there are `conflict` rules (certain packages may not be installable together), `replace`s (a PHP build bundles a lot of built-in extensions that users may specify as an explicit dependency), dependencies between packages (`ext-blackfire` needs the `blackfire` program)... a ton of complexity that Composer has already implemented.
 
 The full list of dependencies, as a graph with guaranteed integrity, is available from a project's `composer.lock`, conveniently flattened to a list of packages, so it can (relatively) easily be transformed into our own "`platform.json`" for the installation of "platform packages" (this is done by `bin/util/platform.php`).
 
@@ -32,18 +32,18 @@ The `bin/util/platform.php` program reads a project's `composer.lock`, extracts 
 
 It utilizes the following environment variables:
 
-- `$COMPOSER` and `$COMPOSER_LOCK` for the project `composer.json` and `composer.lock` file names;
+- `$COMPOSER` and `$COMPOSER_LOCK` for the project `composer.json` and `composer.lock` file names
 - `$HEROKU_PHP_DEFAULT_RUNTIME_VERSION` with the default version selection string for PHP runtimes (differs by stack)
 - `$HEROKU_PHP_INSTALL_DEV` (which is an empty string when installing on Heroku CI)
-- `$STACK` for the name of the current stack ("heroku-20" etc)
+- `$STACK` for the name of the current stack ("heroku-20" etc).
 
 First, it generates a list of all repositories that should be used. Packagist gets disabled as a repository (we do not want to install public packages here), then a `path` type repository (forcing copying vs symlinking, due to different filesystems at build time and runtime) points Composer to our installer plugin (given to the program as the first argument).
 
-Next, it lists all `composer` type repositories - that's usually the default platform repository, plus any other custom repositories given by the user, and they're given as arguments to the. These are given as additional arguments to the program.
+Next, it lists all `composer` type repositories - that's usually the default platform repository, plus any other custom repositories given by the user, which are all passed as additional arguments to the program.
 
-For each package listed as a dependency in the project's `composer.lock`, it then writes a metapackage of the same name and version to a list of `path` `repositories` in "`platform.json`". For each platform package entries in the original package's `require` section, it rewrites that entry with a prefix of "heroku-sys/", so if a package requires "ext-mbstring", it writes "heroku-sys/ext-mbstring" into the metapackage's `require` section instead.
+For each package listed as a dependency in the project's `composer.lock`, it then writes a metapackage of the same name and version to a list of `path` `repositories` in "`platform.json`". For each platform package dependency listed in the original package's `require` section, it rewrites that entry to have a prefix of "`heroku-sys/`"  (e.g. if a package requires "`ext-mbstring`", it writes "`heroku-sys/ext-mbstring`" into the metapackage's `require` section instead).
 
-To this same list, it also writes a metapackage named `composer.json/composer.lock` (this makes for nice output in the case of package resolution failures) containing all of the project's direct platform package `require`s from `composer.json`, and places that package into the `require` section of "`platform.json`" along with all the userland dependency metapackages from the paragraph above, as well as a few default platform packages such as `heroku-sys/composer` (along with a require for the lock file's `composer-plugin-api` version, which will automatically ensure the correct installation of Composer 1 or Composer 2), or `heroku-sys/apache`.
+To this same list, it also writes a metapackage named `composer.json/composer.lock` (this makes for nice output in the case of package resolution failures) containing all of the project's direct platform package `require`s from `composer.json`. That package is added to the `require` section of "`platform.json`" along with all the userland dependency metapackages from the paragraph above, as well as a few default platform package dependencies, for example `heroku-sys/composer` (along with a require for the lock file's `composer-plugin-api` version, which will automatically ensure the correct installation of Composer 1 or Composer 2), or `heroku-sys/apache` and `heroku-sys/nginx`.
 
 Any `minimum-stability` and `prefer-stable` settings from `composer.lock` are carried over, and special logic is applied to stability flags from a project's root platform package `require`s - as these requires are "collected" in the `composer.json/composer.lock` metapackage, an additional "dummy" entry for platform requirements with a stability flag (e.g. `"ext-redis":"^5.0@RC"`) must also be written to the root `require` section of "`platform.json`".
 
@@ -170,7 +170,7 @@ The effective PHP runtime version that will be chosen for this install will be a
 
 ## Platform Repositories
 
-See `support/build/README.md` for details.
+See [`support/build/README.md`](../build/README.md) for details.
 
 ## Composer Platform Installer Plugin
 
