@@ -8,6 +8,7 @@
 - ext-mongodb/1.10.0 [David Zuelke]
 - PHP/7.3.30 [David Zuelke]
 - PHP/7.4.23 [David Zuelke]
+- PHP/8.0.10 [David Zuelke]
 
 ## v196 (2021-07-30)
 
