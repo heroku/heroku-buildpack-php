@@ -6,6 +6,7 @@
 
 - ext-blackfire/1.65.0 [David Zuelke]
 - ext-mongodb/1.10.0 [David Zuelke]
+- PHP/7.3.30 [David Zuelke]
 
 ## v196 (2021-07-30)
 
