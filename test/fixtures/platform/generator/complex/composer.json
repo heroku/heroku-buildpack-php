@@ -1,0 +1,19 @@
+{
+	"require": {
+		"ext-gmp": "*",
+		"ext-intl": "*",
+		"ext-mbstring": "*",
+		"ext-redis": "*",
+		"ext-sqlite3": "*",
+		"ext-ldap": "*",
+		"ext-imap": "*",
+		"ext-blackfire": "*",
+		"symfony/process": "5.1.0-RC1"
+	},
+	"require-dev": {
+		"kahlan/kahlan": "^5.0.0",
+		"ext-pcov": "*"
+	},
+	"minimum-stability": "RC",
+	"prefer-stable": true
+}

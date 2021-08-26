@@ -1,0 +1,56 @@
+{
+    "config": {
+        "cache-files-ttl": 0,
+        "discard-changes": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": false,
+    "provide": {
+        "heroku-sys\/heroku": "20.2021.08.06"
+    },
+    "replace": {},
+    "require": {
+        "composer.json\/composer.lock": "dev-a90ecf736d0c5431a479f94e52129fcf",
+        "heroku-sys\/composer": "*",
+        "heroku-sys\/composer-plugin-api": "^1.1.0",
+        "heroku-sys\/apache": "^2.4.10",
+        "heroku-sys\/nginx": "^1.8.0"
+    },
+    "require-dev": {},
+    "repositories": [
+        {
+            "packagist": false
+        },
+        {
+            "type": "path",
+            "url": "..\/..\/..\/..\/..\/support\/installer",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "composer",
+            "url": "https:\/\/localhost:8080\/packages.json"
+        },
+        {
+            "type": "composer",
+            "url": "https:\/\/lang-php.s3.amazonaws.com\/dist-heroku-20-stable\/packages.json"
+        },
+        {
+            "type": "package",
+            "package": [
+                {
+                    "type": "metapackage",
+                    "name": "composer.json\/composer.lock",
+                    "version": "dev-a90ecf736d0c5431a479f94e52129fcf",
+                    "require": {
+                        "heroku-sys\/php": "7.4.*"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                }
+            ]
+        }
+    ]
+}
