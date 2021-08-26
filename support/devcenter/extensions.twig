@@ -19,7 +19,7 @@
 		for version, caveats in data
 				 %}{{ version|raw }}{% 
 			for number, stack in caveats %}{% set numCaveats = numCaveats + 1
-				 %}<sup><a title="not available on the heroku-{{ stack }} stack" href="#footnote-{{ type }}-ext-not-{{ stack }}">&#x200b;[&#x200b;{{ number }}&#x200b;]</a></sup><sup><a title="not available on the heroku-{{ stack }} stack" href="#footnote-{{ type }}-ext-not-{{ stack }}">&#x200b;[&#x200b;{{ number }}&#x200b;]</a></sup>{% 
+				 %}<sup><a title="not available on the heroku-{{ stack }} stack" href="#footnote-{{ type }}-ext-not-{{ stack }}">&#x200b;[&#x200b;{{ number }}&#x200b;]</a></sup>{% 
 			endfor
 				 %}<br/>{% 
 		else
