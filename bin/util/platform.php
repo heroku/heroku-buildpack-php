@@ -36,19 +36,6 @@ function mkmetas($package, array &$metapaks, &$have_runtime_req = false) {
 	$ppro = array_filter(isset($package["provide"]) ? $package["provide"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
 	$pcon = array_filter(isset($package["conflict"]) ? $package["conflict"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
 	if(!$preq && !$prep && !$ppro && !$pcon) return false;
-	// for known "polyfill" packages, rewrite any extensions they declare as "provide"d to "replace"
-	// using "provide" will otherwise cause the solver to get stuck on that package from the repository, if it exists, even if it conflicts with other rules (e.g. PHP versions) and could fall back onto that polyfill packge
-	// example: alcaeus/mongo-php-adapter provides "ext-mongo", but installing it together with a PHP 7 requirement will fail, as ext-mongo is only available for PHP 5, and the solver never uses "alcaeus/mongo-php-adapter" as the solution for "ext-mongo" unless it specifies "ext-mongo" in "replace", which it shouldn't, as it's a polyfill (that will quietly let the real extension take over if it's present, e.g. on PHP 5 environments), and not a replacement for the extension
-	// we do not want to do this for all packages that so declare their "provide"s, because many polyfills are just an incomplete or slower fallback (e.g. Symfony mbstring with only UTF-8 support, or intl which is slower than native C ICU bindings), and it's rare that extensions are only available for certain versions of a runtime
-	// see https://github.com/composer/composer/issues/6753
-	if(in_array($package["name"], ["alcaeus/mongo-php-adapter"])) {
-		$prep = $prep + array_filter($ppro, function($k) { return strpos($k, "ext-") === 0; }, ARRAY_FILTER_USE_KEY);
-		$ppro = array_diff_key($ppro, $prep);
-	}
-	// hotfix for https://github.com/heroku/heroku-buildpack-php/issues/528 until Composer2 installer lands: remove ext-* provides from symfony/polyfill-* packages
-	if(strpos($package["name"], "symfony/polyfill-") === 0) {
-		$ppro = array_filter($ppro, function($k) { return strpos($k, "ext-") !== 0; }, ARRAY_FILTER_USE_KEY);
-	}
 	$have_runtime_req |= hasreq($preq);
 	$metapaks[] = [
 		"type" => "metapackage",
@@ -186,7 +173,13 @@ if($have_blackfire === 0 && preg_match("/^Blackfire version (\d+\.\d+\.\d+)/", $
 }
 
 $json = [
-	"config" => ["cache-files-ttl" => 0, "discard-changes" => true],
+	"config" => [
+		"cache-files-ttl" => 0,
+		"discard-changes" => true,
+		"allow-plugins" => [
+			"heroku/installer-plugin" => true
+		],
+	],
 	"minimum-stability" => isset($lock["minimum-stability"]) ? $lock["minimum-stability"] : "stable",
 	"prefer-stable" => isset($lock["prefer-stable"]) ? $lock["prefer-stable"] : false,
 	"provide" => $provide,

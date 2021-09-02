@@ -62,7 +62,7 @@ describe "The PHP Platform Installer" do
 						end
 					end
 					
-					break unless ["base", "blackfire-cli", "complex", "defaultphp", "mongo-php-adapter", "symfony-polyfill"].include?(testcase)
+					break unless ["base", "blackfire-cli", "complex", "defaultphp", "mongo-php-adapter", "provided-ext-bcmath", "symfony-polyfill"].include?(testcase)
 					
 					# and finally check if it's installable in a dry run
 					cmd = "COMPOSER=expected_platform_composer.json composer install --dry-run"
@@ -181,19 +181,6 @@ describe "The PHP Platform Installer" do
 				
 				# our expected packages.json has the PHP 8.0.* extension before the PHP 7.4.* extension, do they match?
 				expect(expected_json).to eq(generated_json)
-			end
-		end
-	end
-	
-	describe "handling edge case" do
-		describe "provided ext-bcmath" do
-			it "does not install" do
-				# this extension is declared "replace"d by package "php", and thus conflicts in Composer 1
-				Dir.chdir("#{generator_fixtures_subdir}/provided-ext-bcmath") do |cwd|
-					cmd = "COMPOSER=expected_platform_composer.json composer install --dry-run"
-					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
-					expect(status.exitstatus).not_to eq(0), "dry run install succeeded unexpectedly; stderr: #{stderr}, stdout: #{stdout}"
-				end
 			end
 		end
 	end

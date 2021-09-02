@@ -1,5 +1,15 @@
 # heroku-buildpack-php CHANGELOG
 
+## v206 (2021-02-01)
+
+### CHG
+
+- Use Composer 2 for platform installation step [David Zuelke]
+
+### FIX
+
+- Userland packages declaring PHP extensions as provided cause platform installation failure [David Zuelke]
+
 ## v205 (2021-01-07)
 
 ### FIX

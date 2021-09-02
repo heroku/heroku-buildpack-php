@@ -27,10 +27,4 @@ class ComposerInstaller extends LibraryInstaller
 			'heroku-sys-webserver',
 		]);
 	}
-
-	protected function installCode(PackageInterface $package)
-	{
-		$downloadPath = $this->getInstallPath($package);
-		$this->downloadManager->download($package, $downloadPath);
-	}
 }
