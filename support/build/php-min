@@ -36,6 +36,7 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--disable-cgi \
 	--enable-cli\
 	--with-bz2 \
+	--with-curl \
 	--disable-dom \
 	--without-libxml \
 	--with-openssl \
