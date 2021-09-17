@@ -1,0 +1,21 @@
+{
+  "conflict": {},
+  "dist": {
+    "type": "heroku-sys-tar",
+    "url": "https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/php-7.4.22.tar.gz"
+  },
+  "extra": {
+    "export": "bin/export.php.sh",
+    "profile": "bin/profile.php.sh"
+  },
+  "name": "heroku-sys/php",
+  "provide": {},
+  "replace": {},
+  "require": {
+    "heroku-sys/heroku": "^20.0.0",
+    "heroku/installer-plugin": "^1.2.0"
+  },
+  "time": "2021-07-29 20:06:21",
+  "type": "heroku-sys-php",
+  "version": "7.4.22"
+}

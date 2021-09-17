@@ -23,9 +23,16 @@ jobs:
           command: |
             gem install bundler --version="~> 1"
       - run:
-          name: Install PHP
+          name: Update apt
           command: |
             sudo apt-get update
+      - run:
+          name: Install Python
+          command: |
+            sudo apt-get install python
+      - run:
+          name: Install PHP
+          command: |
             sudo apt-get install php-cli
       - run:
           name: Install Composer
