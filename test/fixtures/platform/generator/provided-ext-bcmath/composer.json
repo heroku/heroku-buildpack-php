@@ -1,0 +1,5 @@
+{
+    "require": {
+        "moontoast/math": "^1.2"
+    }
+}

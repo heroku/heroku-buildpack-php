@@ -1,0 +1,100 @@
+{
+    "config": {
+        "cache-files-ttl": 0,
+        "discard-changes": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": false,
+    "provide": {
+        "heroku-sys\/heroku": "20.2021.08.19"
+    },
+    "replace": {},
+    "require": {
+        "moontoast\/math": "1.2.1",
+        "paragonie\/constant_time_encoding": "v2.4.0",
+        "paragonie\/random_compat": "v9.99.100",
+        "phpseclib\/bcmath_compat": "2.0.0",
+        "phpseclib\/phpseclib": "3.0.10",
+        "heroku-sys\/composer": "*",
+        "heroku-sys\/composer-plugin-api": "^1.1.0",
+        "heroku-sys\/apache": "^2.4.10",
+        "heroku-sys\/nginx": "^1.8.0"
+    },
+    "require-dev": {},
+    "repositories": [
+        {
+            "packagist": false
+        },
+        {
+            "type": "path",
+            "url": "..\/..\/..\/..\/..\/support\/installer",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "composer",
+            "url": "https:\/\/lang-php.s3.amazonaws.com\/dist-heroku-20-stable\/packages.json"
+        },
+        {
+            "type": "package",
+            "package": [
+                {
+                    "type": "metapackage",
+                    "name": "moontoast\/math",
+                    "version": "1.2.1",
+                    "require": {
+                        "heroku-sys\/php": ">=5.3.3"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                },
+                {
+                    "type": "metapackage",
+                    "name": "paragonie\/constant_time_encoding",
+                    "version": "v2.4.0",
+                    "require": {
+                        "heroku-sys\/php": "^7|^8"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                },
+                {
+                    "type": "metapackage",
+                    "name": "paragonie\/random_compat",
+                    "version": "v9.99.100",
+                    "require": {
+                        "heroku-sys\/php": ">= 7"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                },
+                {
+                    "type": "metapackage",
+                    "name": "phpseclib\/bcmath_compat",
+                    "version": "2.0.0",
+                    "require": {},
+                    "replace": {},
+                    "provide": {
+                        "heroku-sys\/ext-bcmath": "8.0.0"
+                    },
+                    "conflict": {}
+                },
+                {
+                    "type": "metapackage",
+                    "name": "phpseclib\/phpseclib",
+                    "version": "3.0.10",
+                    "require": {
+                        "heroku-sys\/php": ">=5.6.1"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                }
+            ]
+        }
+    ]
+}

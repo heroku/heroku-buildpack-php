@@ -184,4 +184,17 @@ describe "The PHP Platform Installer" do
 			end
 		end
 	end
+	
+	describe "handling edge case" do
+		describe "provided ext-bcmath" do
+			it "does not install" do
+				# this extension is declared "replace"d by package "php", and thus conflicts in Composer 1
+				Dir.chdir("#{generator_fixtures_subdir}/provided-ext-bcmath") do |cwd|
+					cmd = "COMPOSER=expected_platform_composer.json composer install --dry-run"
+					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
+					expect(status.exitstatus).not_to eq(0), "dry run install succeeded unexpectedly; stderr: #{stderr}, stdout: #{stdout}"
+				end
+			end
+		end
+	end
 end
