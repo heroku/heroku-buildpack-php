@@ -133,6 +133,28 @@ describe "The PHP Platform Installer" do
 		end
 	end
 	
+	describe "Repository" do
+		after(:each) do
+			Process.kill("TERM", @pid)
+			Process.wait(@pid)
+		end
+		
+		it "can hold packages compatible with future versions of the buildpack the current version will ignore" do
+			Dir.chdir("test/fixtures/platform/repository/bundledextpacks") do |cwd|
+				# we spawn a web server that serves packages.json, like a real composer repository
+				# this is to ensure that Composer really uses ComposerRepository behavior for provide/replace declarations
+				@pid = spawn("php -S localhost:8080")
+				
+				cmd = "composer install --dry-run"
+				stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
+				expect(status.exitstatus).to eq(0), "dry run install failed, stderr: #{stderr}, stdout: #{stdout}"
+				
+				expect(stderr).to include("heroku-sys/php (8.0.8)")
+				expect(stderr).not_to include("heroku-sys/ext-gmp")
+			end
+		end
+	end
+	
 	describe "Repository Generator Script" do
 		it "orders PHP extensions in descending PHP version requirement order" do
 			# our PHP packages are named "php", and versioned "7.4.0", "8.0.9", and so forth
