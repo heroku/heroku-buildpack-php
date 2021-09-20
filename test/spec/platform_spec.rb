@@ -36,7 +36,7 @@ describe "The PHP Platform Installer" do
 					end
 					
 					begin
-						expected_stderr = File.read("expected_stderr") # any env vars (e.g. `HEROKU_PHP_INSTALL_DEV=`), or function declarations
+						expected_stderr = File.read("expected_stderr")
 						expect(stderr).to eq(expected_stderr)
 					rescue Errno::ENOENT
 					end
