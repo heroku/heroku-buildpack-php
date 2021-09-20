@@ -32,7 +32,7 @@ describe "The PHP Platform Installer" do
 					rescue Errno::ENOENT
 						expected_status = 0
 					ensure
-						expect(status.exitstatus).to eq(expected_status), "platform.php failed, stderr: #{stderr}, stdout: #{stdout}"
+						expect(status.exitstatus).to eq(expected_status), "platform.php exited with status #{status.exitstatus}, expected #{expected_status}; stderr: #{stderr}, stdout: #{stdout}"
 					end
 					
 					begin
