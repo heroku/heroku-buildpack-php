@@ -17,6 +17,7 @@
 ### CHG
 
 - Composer/2.1.8 [David Zuelke]
+- librdkafka/1.8.0 [David Zuelke]
 
 ## v197 (2021-08-26)
 
