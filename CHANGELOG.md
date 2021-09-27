@@ -12,6 +12,7 @@
 - ext-event/3.0.6 [David Zuelke]
 - ext-pq/2.2.0 [David Zuelke]
 - Apache/2.4.49 [David Zuelke]
+- blackfire/2.5.0 [David Zuelke]
 
 ## v197 (2021-08-26)
 
