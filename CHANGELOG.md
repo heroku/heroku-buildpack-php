@@ -8,6 +8,7 @@
 - PHP/7.4.24 [David Zuelke]
 - PHP/8.0.11 [David Zuelke]
 - ext-blackfire/1.67.0 [David Zuelke]
+- ext-ev/1.1.5 [David Zuelke]
 
 ## v197 (2021-08-26)
 
