@@ -14,6 +14,10 @@
 - Apache/2.4.49 [David Zuelke]
 - blackfire/2.5.0 [David Zuelke]
 
+### CHG
+
+- Composer/2.1.8 [David Zuelke]
+
 ## v197 (2021-08-26)
 
 ### ADD
