@@ -49,6 +49,21 @@ export PATH="$HOME/.heroku/php/bin:$PATH"
 # we need no config, as everything will be read from the environment
 # exception is BLACKFIRE_SOCKET, which we pass in explicitly; the extension uses BLACKFIRE_AGENT_SOCKET instead
 /app/.heroku/php/bin/blackfire agent:start --config="/dev/null" --socket="${BLACKFIRE_AGENT_SOCKET}" &
+blackfire_pid=$!
+
+# give it a moment to start up...
+while ! test -S "${BLACKFIRE_AGENT_SOCKET#"unix://"}"; do
+	# ...unless it somehow crashes on start, then we have to bail to prevent an infite loop
+	if ! kill -0 $blackfire_pid 2> /dev/null; then # kill -0 checks if process exists
+		echo "Failed to start blackfire agent!" >&2
+		break;
+	fi
+	if [[ "$BLACKFIRE_LOG_LEVEL" == [34] ]]; then
+		echo "Waiting for blackfire agent..." >&2
+	fi
+	sleep 0.1
+done
+
 EOF
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"

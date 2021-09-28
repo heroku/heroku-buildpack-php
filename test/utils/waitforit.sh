@@ -55,8 +55,8 @@ duration=$1; shift
 text=$1; shift
 
 pipeout=
-# check if stdout is a pipeline, in which case we'll behave differently
-[[ -p /dev/stdout ]] && pipeout=1
+# check if stdout is a pipeline (we can't -p /dev/stdout, so a TTY check on FD 1 is the next closest thing), in which case we'll behave differently
+[[ -t 1 ]] || pipeout=1
 
 if [[ $pipeout ]]; then
 	grepargs="-m1"
@@ -69,7 +69,6 @@ fi
 # trap 'trap - PIPE; echo "SIGPIPE received, shutting down..." >&2; cleanup TERM; kill -PIPE $$' PIPE
 
 # TODO: have option to suppress output to stderr
-teedest="/dev/stderr"
 (
 	# trap 'echo "finished" >&3;' EXIT
 
@@ -77,7 +76,7 @@ teedest="/dev/stderr"
 
 	# we redirect stderr to stdout so it can be captured as well...
 	# ... and redirect stdout to a tee that also writes to stderr (so the output is visible) - this is done so that $! is still the pid of the timeout command
-	timeout $duration "$@" > >(tee "$teedest") 2>&1 & pid=$!
+	timeout $duration "$@" > >(tee >(cat 1>&2)) 2>&1 & pid=$!
 	
 	while kill -0 $pid 2>/dev/null; do echo "." 2>/dev/null; sleep 0.1; done;
 	

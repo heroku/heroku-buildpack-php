@@ -73,7 +73,7 @@ cat >> ${OUT_PREFIX}/bin/profile.newrelic.sh <<'EOF'
 newrelic_pidfile=/tmp/newrelic-daemon.pid
 
 # daemon start
-/app/.heroku/php/bin/newrelic-daemon --watchdog-foreground --port "@newrelic-daemon" --logfile "/dev/stderr" --loglevel "${NEW_RELIC_DAEMON_LOG_LEVEL}" --pidfile "$newrelic_pidfile" &
+/app/.heroku/php/bin/newrelic-daemon --watchdog-foreground --port "@newrelic-daemon" --logfile "stderr" --loglevel "${NEW_RELIC_DAEMON_LOG_LEVEL}" --pidfile "$newrelic_pidfile" &
 newrelic_pid=$!
 
 # give it a moment to start up...
@@ -108,7 +108,7 @@ newrelic.daemon.port = @newrelic-daemon
 
 newrelic.daemon.loglevel = ${NEW_RELIC_DAEMON_LOG_LEVEL}
 
-newrelic.daemon.logfile = /dev/stderr
+newrelic.daemon.logfile = stderr
 
 ; or else:
 ; 2015-05-18 13:00:43.144 (28 28) warning: unable to find suitable pidfile location, using none
