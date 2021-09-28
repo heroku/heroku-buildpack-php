@@ -9,7 +9,7 @@ describe "A PHP application using ext-blackfire" do
 				context "#{mode}" do
 					before(:all) do
 						buildpacks = [:default]
-						buildpacks.unshift("https://github.com/blackfireio/integration-heroku") if agent == "blackfireio/integration-heroku"
+						buildpacks.unshift("https://github.com/dzuelke/integration-heroku.git#wait-on-startup") if agent == "blackfireio/integration-heroku"
 						credentials = {
 							"BLACKFIRE_CLIENT_ID" => ENV["BLACKFIRE_CLIENT_ID"],
 							"BLACKFIRE_CLIENT_TOKEN" => ENV["BLACKFIRE_CLIENT_TOKEN"],
