@@ -20,20 +20,16 @@ jobs:
     steps:
       - run:
           name: Install Bundler
-          command: |
-            gem install bundler --version="~> 1"
+          command: gem install bundler --version="~> 1"
       - run:
           name: Update apt
-          command: |
-            sudo apt-get update
+          command: sudo apt-get update
       - run:
           name: Install Python
-          command: |
-            sudo apt-get install python
+          command: sudo apt-get install python
       - run:
           name: Install PHP
-          command: |
-            sudo apt-get install php-cli
+          command: sudo apt-get install php-cli
       - run:
           name: Install Composer
           command: |
