@@ -1,0 +1,96 @@
+{
+    "config": {
+        "cache-files-ttl": 0,
+        "discard-changes": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": false,
+    "provide": {
+        "heroku-sys\/heroku": "20.2021.08.19"
+    },
+    "replace": {},
+    "require": {
+        "alcaeus\/mongo-php-adapter": "1.2.1",
+        "jean85\/pretty-package-versions": "2.0.4",
+        "mongodb\/mongodb": "1.9.0",
+        "symfony\/polyfill-php80": "v1.23.1",
+        "heroku-sys\/composer": "*",
+        "heroku-sys\/composer-plugin-api": "^1.1.0",
+        "heroku-sys\/apache": "^2.4.10",
+        "heroku-sys\/nginx": "^1.8.0"
+    },
+    "require-dev": {},
+    "repositories": [
+        {
+            "packagist": false
+        },
+        {
+            "type": "path",
+            "url": "..\/..\/..\/..\/..\/support\/installer",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "composer",
+            "url": "https:\/\/lang-php.s3.amazonaws.com\/dist-heroku-20-stable\/packages.json"
+        },
+        {
+            "type": "package",
+            "package": [
+                {
+                    "type": "metapackage",
+                    "name": "alcaeus\/mongo-php-adapter",
+                    "version": "1.2.1",
+                    "require": {
+                        "heroku-sys\/ext-ctype": "*",
+                        "heroku-sys\/ext-hash": "*",
+                        "heroku-sys\/ext-mongodb": "^1.2.0",
+                        "heroku-sys\/php": "^5.6 || ^7.0 || ^8.0"
+                    },
+                    "replace": {
+                        "heroku-sys\/ext-mongo": "1.6.14"
+                    },
+                    "provide": {},
+                    "conflict": {}
+                },
+                {
+                    "type": "metapackage",
+                    "name": "jean85\/pretty-package-versions",
+                    "version": "2.0.4",
+                    "require": {
+                        "heroku-sys\/php": "^7.1|^8.0"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                },
+                {
+                    "type": "metapackage",
+                    "name": "mongodb\/mongodb",
+                    "version": "1.9.0",
+                    "require": {
+                        "heroku-sys\/ext-hash": "*",
+                        "heroku-sys\/ext-json": "*",
+                        "heroku-sys\/ext-mongodb": "^1.10.0",
+                        "heroku-sys\/php": "^7.1 || ^8.0"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                },
+                {
+                    "type": "metapackage",
+                    "name": "symfony\/polyfill-php80",
+                    "version": "v1.23.1",
+                    "require": {
+                        "heroku-sys\/php": ">=7.1"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                }
+            ]
+        }
+    ]
+}
