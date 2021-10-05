@@ -20,25 +20,21 @@ jobs:
     steps:
       - run:
           name: Install Bundler
-          command: |
-            gem install bundler --version="~> 1"
+          command: gem install bundler --version="~> 1"
       - run:
           name: Update apt
-          command: |
-            sudo apt-get update
+          command: sudo apt-get update
       - run:
           name: Install Python
-          command: |
-            sudo apt-get install python
+          command: sudo apt-get install python
       - run:
           name: Install PHP
-          command: |
-            sudo apt-get install php-cli
+          command: sudo apt-get install php-cli
       - run:
           name: Install Composer
           command: |
             php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
-            php -r "if (hash_file('sha384', 'composer-setup.php') === '756890a4488ce9024fc62c56153228907f1545c228516cbf63f885e036d37e9a59d27d63f46af1d4d07ee0f76181c7d3') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+            php -r "if (hash_file('sha384', 'composer-setup.php') === file_get_contents('https://composer.github.io/installer.sig')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
             sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
             rm composer-setup.php
             sudo composer self-update --1
