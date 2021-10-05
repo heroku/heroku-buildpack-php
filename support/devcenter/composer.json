@@ -1,7 +1,7 @@
 {
 	"require": {
 		"composer/semver": "^1.4",
-		"guzzlehttp/guzzle": "^6.0",
+		"guzzlehttp/guzzle": "^7.3",
 		"twig/twig": "^3.0"
 	}
 }
