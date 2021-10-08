@@ -9,6 +9,7 @@
 ### CHG
 
 - Composer/2.1.9 [David Zuelke]
+- Composer/1.10.23 [David Zuelke]
 
 ## v198 (2021-09-28)
 
