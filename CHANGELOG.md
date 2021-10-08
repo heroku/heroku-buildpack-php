@@ -6,6 +6,10 @@
 
 - Apache/2.4.51 [David Zuelke]
 
+### CHG
+
+- Composer/2.1.9 [David Zuelke]
+
 ## v198 (2021-09-28)
 
 ### ADD
