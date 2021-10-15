@@ -1,55 +1,29 @@
-# Heroku buildpack: PHP [![Build Status](https://circleci.com/gh/heroku/heroku-buildpack-php.svg?style=svg)](https://circleci.com/gh/heroku/heroku-buildpack-php)
+# Heroku Buildpack PHP with Snowflake Driver
 
-![php](https://cloud.githubusercontent.com/assets/51578/8882982/73ea501a-3219-11e5-8f87-311e6b8a86fc.jpg)
+This is the official [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) for PHP applications with adjustments to build [Snowflake PDO](https://github.com/snowflakedb/pdo_snowflake) driver.
 
-
-This is the official [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) for PHP applications.
-
-It uses Composer for dependency management, supports all recent versions of PHP as runtimes, and offers a choice of Apache2 or Nginx web servers.
+It uses Composer for dependency management, supports PHP or HHVM (experimental) as runtimes, and offers a choice of Apache2 or Nginx web servers.
 
 ## Usage
 
-You'll need to use at least an empty `composer.json` in your application.
+1. On your `app.json` you will need to add this repo git address as a buildpack
+2. You may need to edit the file `bin/snowflake.sh` and adjust the extension folder address of your setup. `phpinfo()` will tell you the correct folder address.
 
-    $ echo '{}' > composer.json
-    $ git add composer.json
-    $ git commit -m "add composer.json for PHP app detection"
 
-If you also have files from other frameworks or languages that could trigger another buildpack to detect your application as one of its own, e.g. a `package.json` which might cause your code to be detected as a Node.js application even if it is a PHP application, then you need to manually set your application to use this buildpack:
+## Update process
 
-    $ heroku buildpacks:set heroku/php
-
-This will use the officially published version. To use the default branch from GitHub instead:
-
-    $ heroku buildpacks:set https://github.com/heroku/heroku-buildpack-php
-
-Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for further usage instructions.
-
-## Custom Platform Repositories
-
-The buildpack uses Composer repositories to resolve platform (`php`, `ext-something`, ...) dependencies.
-
-To use a custom Composer repository with additional or different platform packages, add the URL to its `packages.json` to the `HEROKU_PHP_PLATFORM_REPOSITORIES` config var:
-
-    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://mybucket.s3.amazonaws.com/heroku-18/packages.json"
-
-To allow the use of multiple custom repositories, the config var may hold a list of multiple repository URLs, separated by a space character, in ascending order of precedence.
-
-If the first entry in the list is "`-`" instead of a URL, the default platform repository is disabled entirely. This can be useful when testing development repositories, or to forcefully prevent the use of unwanted packages from the default platform repository.
-
-For instructions on how to build custom platform packages (and a repository to hold them), please refer to the instructions [further below](#custom-platform-packages-and-repositories).
-
-**Please note that Heroku cannot provide support for issues related to custom platform repositories and packages.**
-
-## Development
-
-The following information only applies if you're forking and hacking on this buildpack for your own purposes.
-
-### Pull Requests
-
-Please submit all pull requests against `develop` as the base branch.
-
-### Custom Platform Packages and Repositories
-
-Please refer to the [README in `support/build/`](support/build/README.md) for instructions.
-
+1. Add the original repo as "upstream":
+    `git remote add upstream https://github.com/snowflakedb/pdo_snowflake.git`
+2. Fetch all branches of remote upstream
+    `git fetch upstream`
+3. Rewrite your master with latest tag version
+    `git rebase upstream/main`
+4. Sync changes to retrieve the new data. Check if bin/snowflake.sh is in place
+5. Add the followin code to `bin/compile` just above the row `status "Preparing runtime environment..."`
+    `# snowflake
+    source $bp_dir/bin/snowflake.sh`
+6. Add the following lines to `conf/php/php.ini`
+    `extension=pdo_snowflake.so
+    pdo_snowflake.cacert=cacert.pem`
+7. Update `conf/php/cacert.pem` with content from `https://github.com/gisle/mozilla-ca/blob/master/lib/Mozilla/CA/cacert.pem`
+8. Commit and push to main
