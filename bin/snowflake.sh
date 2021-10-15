@@ -24,7 +24,7 @@ bash $snowflake_dir/scripts/build_pdo_snowflake.sh
 echo "[DEBUG] PHP_HOME=$PHP_HOME"
 echo "[DEBUG] SNOWFLAKE DIR=$snowflake_dir"
 echo "[LOG] Copying PDO Snowflake to Extensions Folder"
-cp $PHP_HOME/pdo_snowflake/modules/pdo_snowflake.so /app/.heroku/php/lib/php/extensions/no-debug-non-zts-20190902
+cp $PHP_HOME/pdo_snowflake/modules/pdo_snowflake.so /app/.heroku/php/lib/php/extensions/no-debug-non-zts-20200930
 
 echo "[LOG] Copying cacert to configuration folder"
 cp $snowflake_dir/libsnowflakeclient/cacert.pem /app/.heroku/php/etc/php/
