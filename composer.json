@@ -1,14 +1,18 @@
 {
-	"name": "heroku/heroku-buildpack-php",
+	"name": "studiohyperset/heroku-buildpack-php",
 	"description": "Toolkit for starting a PHP application locally, with or without foreman, using the same config for PHP and Apache2/Nginx as on Heroku",
-	"keywords": ["heroku", "foreman", "php", "apache", "apache2", "nginx"],
-	"homepage": "https://github.com/heroku/heroku-buildpack-php",
+	"keywords": ["heroku", "foreman", "php", "apache", "apache2", "nginx", "snowflake"],
+	"homepage": "https://github.com/studiohyperset/heroku-buildpack-php",
 	"type": "library",
 	"license": "MIT",
 	"authors": [
 		{
 			"name": "David Zuelke",
 			"email": "dz@heroku.com"
+		},
+        {
+			"name": "Bruno Cantuaria",
+			"email": "bruno@cantuaria.net.br"
 		}
 	],
 	"bin": [
