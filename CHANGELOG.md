@@ -5,6 +5,7 @@
 ### CHG
 
 - blackfire/2.5.1 [David Zuelke]
+- librdkafka/1.8.2 [David Zuelke]
 
 ### FIX
 
