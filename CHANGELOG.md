@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v200 (2021-10-28)
+
+### FIX
+
+- Malformed `$COMPOSER_AUTH` causes app startup failure (#513) [David Zuelke]
+
 ## v199 (2021-10-08)
 
 ### ADD
