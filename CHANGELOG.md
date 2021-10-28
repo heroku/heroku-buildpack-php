@@ -2,6 +2,10 @@
 
 ## v200 (2021-10-28)
 
+### CHG
+
+- blackfire/2.5.1 [David Zuelke]
+
 ### FIX
 
 - Malformed `$COMPOSER_AUTH` causes app startup failure (#513) [David Zuelke]
