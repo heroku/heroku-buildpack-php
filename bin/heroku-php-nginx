@@ -298,9 +298,10 @@ composer() {
 	# check if the composer binary is executable by PHP
 	if file --brief --dereference "$composer_bin" | grep -e "shell" -e "bash" > /dev/null ; then # newer versions of file return "data" for .phar
 		# run it directly; it's probably a bash script or similar (homebrew-php does this)
-		"$composer_bin" "$@"
+		# re-set COMPOSER_AUTH to ensure a malformed `heroku config:set` will not cause immediate outage
+		COMPOSER_AUTH= "$composer_bin" "$@"
 	else
-		php "$composer_bin" "$@"
+		COMPOSER_AUTH= php "$composer_bin" "$@"
 	fi
 }
 # these exports are used in default web server configs to lock down access to composer directories

@@ -63,7 +63,7 @@ export PATH="/app/.heroku/php/bin:$PATH"
 # - then we invoke 'composer config bin-dir' in there and realpath that so it's absolute
 # no scan dir so no newrelic starts up and outputs messages etc
 # we need to use --canonicalize-missing, otherwise we'd have to mkdir -p the bin-dir (it's not there yet when we source export early on in bin/compile)
-export PATH="$PATH:$(cd "$(dirname "$(realpath "$(which composer)")")"; cd ../../..; bin_dir="$(PHP_INI_SCAN_DIR= composer config --no-plugins bin-dir)"; realpath --canonicalize-missing "$bin_dir")"
+export PATH="$PATH:$(cd "$(dirname "$(realpath "$(which composer)")")"; cd ../../..; bin_dir="$(PHP_INI_SCAN_DIR= COMPOSER_AUTH= composer config --no-plugins bin-dir)"; realpath --canonicalize-missing "$bin_dir")"
 EOF
 # this gets sourced on dyno boot
 # unlimited Composer process timeout only for runtime, not build time
@@ -74,7 +74,8 @@ export COMPOSER_PROCESS_TIMEOUT=${COMPOSER_PROCESS_TIMEOUT:-0}
 export PATH="$HOME/.heroku/php/bin:$PATH"
 # now composer is on the path
 # no scan dir so no newrelic starts up and outputs messages etc
-export PATH="$PATH:$(realpath "$(PHP_INI_SCAN_DIR= composer config --no-plugins bin-dir)")"
+# re-set COMPOSER_AUTH to ensure a malformed `heroku config:set` will not cause immediate outage
+export PATH="$PATH:$(realpath "$(PHP_INI_SCAN_DIR= COMPOSER_AUTH= composer config --no-plugins bin-dir)")"
 EOF
 
 # the || true (needs to be there, not before the <<-'HEREDOC') prevents 'set -e' induced termination from the 'read' encountering EOF

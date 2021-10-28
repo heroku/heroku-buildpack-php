@@ -1,5 +1,24 @@
 # heroku-buildpack-php CHANGELOG
 
+## v200 (2021-10-28)
+
+### ADD
+
+- PHP/7.3.32 [David Zuelke]
+- PHP/7.4.25 [David Zuelke]
+- PHP/8.0.12 [David Zuelke]
+- ext-apcu/5.1.21 [David Zuelke]
+- ext-blackfire/1.69.0 [David Zuelke]
+
+### CHG
+
+- blackfire/2.5.1 [David Zuelke]
+- librdkafka/1.8.2 [David Zuelke]
+
+### FIX
+
+- Malformed `$COMPOSER_AUTH` causes app startup failure (#513) [David Zuelke]
+
 ## v199 (2021-10-08)
 
 ### ADD
