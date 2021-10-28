@@ -2,6 +2,10 @@
 
 ## v200 (2021-10-28)
 
+### ADD
+
+- PHP/7.3.32 [David Zuelke]
+
 ### CHG
 
 - blackfire/2.5.1 [David Zuelke]
