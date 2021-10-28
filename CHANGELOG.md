@@ -7,6 +7,7 @@
 - PHP/7.3.32 [David Zuelke]
 - PHP/7.4.25 [David Zuelke]
 - PHP/8.0.12 [David Zuelke]
+- ext-apcu/5.1.21 [David Zuelke]
 
 ### CHG
 
