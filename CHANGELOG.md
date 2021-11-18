@@ -6,6 +6,7 @@
 
 - PHP/7.3.33 [Ed Morley]
 - PHP/7.4.26 [Ed Morley]
+- PHP/8.0.13 [Ed Morley]
 
 ## v200 (2021-10-28)
 
