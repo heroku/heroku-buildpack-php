@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-amqp/1.11.0 [David Zuelke]
+- ext-blackfire/1.71.0 [David Zuelke]
 
 ### CHG
 
