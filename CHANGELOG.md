@@ -7,6 +7,7 @@
 - ext-amqp/1.11.0 [David Zuelke]
 - ext-blackfire/1.71.0 [David Zuelke]
 - ext-imagick/3.6.0 [David Zuelke]
+- ext-mongodb/1.11.1 [David Zuelke]
 
 ### CHG
 
