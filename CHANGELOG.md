@@ -2,6 +2,10 @@
 
 ## v202 (2012-12-08)
 
+### ADD
+
+- ext-amqp/1.11.0 [David Zuelke]
+
 ### CHG
 
 - blackfire/2.5.2 [David Zuelke]
