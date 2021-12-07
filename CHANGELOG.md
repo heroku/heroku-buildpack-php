@@ -10,6 +10,7 @@
 - ext-mongodb/1.11.1 [David Zuelke]
 - ext-pcov/1.0.10 [David Zuelke]
 - ext-rdkafka/5.0.2 [David Zuelke]
+- Nginx/1.20.2 [David Zuelke]
 
 ### CHG
 
