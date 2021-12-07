@@ -8,6 +8,7 @@
 - ext-blackfire/1.71.0 [David Zuelke]
 - ext-imagick/3.6.0 [David Zuelke]
 - ext-mongodb/1.11.1 [David Zuelke]
+- ext-pcov/1.0.10 [David Zuelke]
 
 ### CHG
 
