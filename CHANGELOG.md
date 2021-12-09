@@ -16,6 +16,7 @@
 
 - blackfire/2.5.2 [David Zuelke]
 - Composer/2.1.14 [David Zuelke]
+- Composer/1.10.24 [David Zuelke]
 
 ## v201 (2021-11-18)
 
