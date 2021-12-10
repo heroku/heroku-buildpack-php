@@ -20,9 +20,11 @@ describe "A basic PHP 7.4 application", :requires_php_on_stack => "7.4" do
 						# after `curl` completes, `wait-for.it.sh` will shut down
 						# ensure slowlog info and trace is there
 						cmd = "./waitforit.sh 20 'ready for connections' heroku-php-#{server} --verbose -F fpm.request_slowlog_timeout.conf | { read && curl \"localhost:$PORT/index.php?wait=5\"; }"
-						output = app.run(cmd)
-						expect(output).to include("executing too slow")
-						expect(output).to include("sleep() /app/index.php:5")
+						retry_until retry: 3, sleep: 5 do
+							output = app.run(cmd)
+							expect(output).to include("executing too slow")
+							expect(output).to include("sleep() /app/index.php:5")
+						end
 					end
 				end
 				
@@ -33,9 +35,11 @@ describe "A basic PHP 7.4 application", :requires_php_on_stack => "7.4" do
 						# after `curl` completes, `wait-for.it.sh` will shut down
 						# ensure slowlog and terminate output is there
 						cmd = "./waitforit.sh 50 'ready for connections' heroku-php-#{server} --verbose | { read && curl \"localhost:$PORT/index.php?wait=35\"; }"
-						output = app.run(cmd)
-						expect(output).to match(/executing too slow/)
-						expect(output).to match(/execution timed out/)
+						retry_until retry: 3, sleep: 5 do
+							output = app.run(cmd)
+							expect(output).to match(/executing too slow/)
+							expect(output).to match(/execution timed out/)
+						end
 					end
 				end
 			end

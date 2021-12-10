@@ -64,25 +64,29 @@ describe "A PHP application using New Relic" do
 					# without log level info, we will not see the messages we're using to test any behavior
 					# but we need to assert that no info is printed at all in this case
 					it "does not output info messages during startup with #{script}" do
-						out = @app.run("#{script} -F conf/fpm.include.broken") # prevent FPM from starting up using an invalid config, that way we don't have to wrap the server start in a `timeout` call
+						retry_until retry: 3, sleep: 5 do
+							out = @app.run("#{script} -F conf/fpm.include.broken") # prevent FPM from starting up using an invalid config, that way we don't have to wrap the server start in a `timeout` call
 						
-						expect(out).not_to match(/New Relic PHP Agent globally disabled/) # this message should not occur if defaults are applied correctly even at build time
-						expect(out).not_to match(/New Relic daemon/) # this message should not occur if defaults are applied correctly even at build time
+							expect(out).not_to match(/New Relic PHP Agent globally disabled/) # this message should not occur if defaults are applied correctly even at build time
+							expect(out).not_to match(/New Relic daemon/) # this message should not occur if defaults are applied correctly even at build time
+						end
 					end
 					next # the other tests do not apply to this case since the log level isn't sufficient to assert anything
 				end
 				it "launches newrelic-daemon, but not the extension, during boot preparations, with #{script}" do
-					out = @app.run("#{script} -F conf/fpm.include.broken") # prevent FPM from starting up using an invalid config, that way we don't have to wrap the server start in a `timeout` call
+					retry_until retry: 3, sleep: 5 do
+						out = @app.run("#{script} -F conf/fpm.include.broken") # prevent FPM from starting up using an invalid config, that way we don't have to wrap the server start in a `timeout` call
 					
-					expect(out).not_to match(/spawned daemon child/) # extension does not spawn its own daemon
+						expect(out).not_to match(/spawned daemon child/) # extension does not spawn its own daemon
 					
-					out_before_fpm, out_after_fpm = out.split("Starting php-fpm", 2)
+						out_before_fpm, out_after_fpm = out.split("Starting php-fpm", 2)
 					
-					expect(out_before_fpm).to match(/listen="@newrelic-daemon"[^\n]+?startup=init/) # NR daemon starts on boot
-					expect(out_before_fpm).not_to match(/daemon='@newrelic-daemon'[^\n]+?startup=agent/) # extension does not connect to daemon before FPM starts
-					expect(out_before_fpm).to match(/New Relic PHP Agent globally disabled/) # NR extension reports itself disabled
+						expect(out_before_fpm).to match(/listen="@newrelic-daemon"[^\n]+?startup=init/) # NR daemon starts on boot
+						expect(out_before_fpm).not_to match(/daemon='@newrelic-daemon'[^\n]+?startup=agent/) # extension does not connect to daemon before FPM starts
+						expect(out_before_fpm).to match(/New Relic PHP Agent globally disabled/) # NR extension reports itself disabled
 					
-					expect(out_after_fpm).to match(/daemon='@newrelic-daemon'[^\n]+?startup=agent/m) # extension connects to daemon when FPM starts
+						expect(out_after_fpm).to match(/daemon='@newrelic-daemon'[^\n]+?startup=agent/m) # extension connects to daemon when FPM starts
+					end
 				end
 			end
 		end

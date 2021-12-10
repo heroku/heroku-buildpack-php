@@ -85,25 +85,29 @@ describe "A PHP application using ext-blackfire" do
 						# without log level info, we will not see the messages we're using to test any behavior
 						# but we need to assert that no info is printed at all in this case
 						it "does not output info messages during startup with #{script}", if: mode == "with default BLACKFIRE_LOG_LEVEL" do
-							out = @app.run("#{script} -F conf/fpm.include.broken") # prevent FPM from starting up using an invalid config, that way we don't have to wrap the server start in a `timeout` call
-							expect(out).not_to match(/\[Info\]/) # this message should not occur if defaults are applied correctly
+							retry_until retry: 3, sleep: 5 do
+								out = @app.run("#{script} -F conf/fpm.include.broken") # prevent FPM from starting up using an invalid config, that way we don't have to wrap the server start in a `timeout` call
+								expect(out).not_to match(/\[Info\]/) # this message should not occur if defaults are applied correctly
+							end
 						end
 						it "launches blackfire CLI, but not the extension, during boot preparations, with #{script}", if: mode != "with default BLACKFIRE_LOG_LEVEL" do
-							out = @app.run("#{script} -F conf/fpm.include.broken") # prevent FPM from starting up using an invalid config, that way we don't have to wrap the server start in a `timeout` call
+							retry_until retry: 3, sleep: 5 do
+								out = @app.run("#{script} -F conf/fpm.include.broken") # prevent FPM from starting up using an invalid config, that way we don't have to wrap the server start in a `timeout` call
 							
-							out_before_fpm, out_after_fpm = out.unansi.split("Starting php-fpm", 2)
+								out_before_fpm, out_after_fpm = out.unansi.split("Starting php-fpm", 2)
 							
-							expect(out_before_fpm).to match(/blackfire Reading agent configuration file/) # that is the very first thing the agent prints
-							if mode == "without BLACKFIRE_SERVER_TOKEN"
-								expect(out_before_fpm).to match(/The server ID parameter is not set/)
-							else
-								expect(out.unansi).to match(/blackfire Waiting for new connection/) # match on whole output in case it takes a bit longer to start <up></up>
+								expect(out_before_fpm).to match(/blackfire Reading agent configuration file/) # that is the very first thing the agent prints
+								if mode == "without BLACKFIRE_SERVER_TOKEN"
+									expect(out_before_fpm).to match(/The server ID parameter is not set/)
+								else
+									expect(out.unansi).to match(/blackfire Waiting for new connection/) # match on whole output in case it takes a bit longer to start <up></up>
+								end
+								expect(out_before_fpm).not_to match(/\[Warning\] APM: Cannot start/) # extension does not attempt to start on `php-fpm -i` during boot
+								expect(out_before_fpm).to match(/\[Debug\] APM: disabled/) # blackfire reports itself disabled (by us) during the various boot prep PHP invocations
+							
+								expect(out_after_fpm).not_to match(/\[Debug\] APM: disabled/)
+								expect(out_after_fpm).to match(/\[Info\] APCu extension is not loaded/)
 							end
-							expect(out_before_fpm).not_to match(/\[Warning\] APM: Cannot start/) # extension does not attempt to start on `php-fpm -i` during boot
-							expect(out_before_fpm).to match(/\[Debug\] APM: disabled/) # blackfire reports itself disabled (by us) during the various boot prep PHP invocations
-							
-							expect(out_after_fpm).not_to match(/\[Debug\] APM: disabled/)
-							expect(out_after_fpm).to match(/\[Info\] APCu extension is not loaded/)
 						end
 					end
 				end

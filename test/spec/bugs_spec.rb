@@ -10,9 +10,11 @@ describe "A PHP application" do
 			
 			app.deploy do |app|
 				expect(app.output).to match("- ext-imap")
-				output = app.run('php -r \'imap_open("{imap.gmail.com:993/imap/ssl}INBOX", "user", "pass") or die(imap_last_error());\'')
-				expect(output).to match("Can not authenticate to IMAP server")
-				expect(output).not_to match("Certificate failure")
+				retry_until retry: 3, sleep: 5 do
+					output = app.run('php -r \'imap_open("{imap.gmail.com:993/imap/ssl}INBOX", "user", "pass") or die(imap_last_error());\'')
+					expect(output).to match("Can not authenticate to IMAP server")
+					expect(output).not_to match("Certificate failure")
+				end
 			end
 		end
 	end
