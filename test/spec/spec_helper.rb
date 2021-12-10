@@ -55,16 +55,16 @@ def expected_default_php(stack)
 		when "heroku-18"
 			"7.4"
 		else
-			"8.0"
+			"8.1"
 	end
 end
 
 def php_on_stack?(series)
 	case ENV["STACK"]
 		when "heroku-18"
-			available = ["7.1", "7.2", "7.3", "7.4", "8.0"]
+			available = ["7.1", "7.2", "7.3", "7.4", "8.0", "8.1"]
 		else
-			available = ["7.3", "7.4", "8.0"]
+			available = ["7.3", "7.4", "8.0", "8.1"]
 	end
 	available.include?(series)
 end

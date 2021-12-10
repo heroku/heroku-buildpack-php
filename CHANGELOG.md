@@ -1,5 +1,24 @@
 # heroku-buildpack-php CHANGELOG
 
+## v202 (2012-12-10)
+
+### ADD
+
+- ext-amqp/1.11.0 [David Zuelke]
+- ext-blackfire/1.71.0 [David Zuelke]
+- ext-imagick/3.6.0 [David Zuelke]
+- ext-mongodb/1.11.1 [David Zuelke]
+- ext-pcov/1.0.10 [David Zuelke]
+- ext-rdkafka/5.0.2 [David Zuelke]
+- Nginx/1.20.2 [David Zuelke]
+- PHP/8.1.0 [David Zuelke]
+
+### CHG
+
+- blackfire/2.5.2 [David Zuelke]
+- Composer/2.1.14 [David Zuelke]
+- Composer/1.10.24 [David Zuelke]
+
 ## v201 (2021-11-18)
 
 ### ADD

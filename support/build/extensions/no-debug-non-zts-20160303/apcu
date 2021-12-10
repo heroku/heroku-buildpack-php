@@ -32,6 +32,11 @@ phpize
 	${CONFIGURE_EXTRA:-}
 make -s -j 9
 
+# php was a build dep, and it's in $OUT_PREFIX; we only want our build results in the final archive, and no build deps
+# the easiest way is to nuke $OUT_PREFIX and running "make install", but extensions built for PHP 8.1+ need PHP headers during linking
+# so instead we use the extension Makefile's INSTALL_ROOT variable to prefix the install destination path name, and then move that back to $OUT_PREFIX
+tmpdest=$(mktemp -d)
+
 if [[ $series == 7.* ]]; then
 	# we need to install apcu first to build this
 	make install -s
@@ -51,22 +56,21 @@ if [[ $series == 7.* ]]; then
 	phpize
 	./configure \
 		--prefix=${OUT_PREFIX}
-	make -s -j 9
-	# php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
-	rm -rf ${OUT_PREFIX}/*
-	make install -s
+	echo "-----> Installing into clean ${tmpdest}..."
+	make INSTALL_ROOT=$tmpdest install -s
 	popd
 
 	MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{\"heroku-sys/ext-apc\":\"self.version\"}"}" # despite version 1.0.3 or whatever, apcu_bc identifies itself using the apcu version number
 	
 	pushd ${dep_dirname}
-else
-	# php was a build dep, and it's in $OUT_PREFIX. nuke that, then make install so all we're left with is the extension
-	rm -rf ${OUT_PREFIX}/*
 fi
 
 # install apcu ext
-make install -s
+echo "-----> Installing into clean ${tmpdest}..."
+make INSTALL_ROOT=$tmpdest install -s
+echo "-----> Moving install result from ${tmpdest}${OUT_PREFIX} to $OUT_PREFIX..."
+rm -rf $OUT_PREFIX # remove $OUT_PREFIX first (otherwise we'd move things *into* it)
+mv ${tmpdest}${OUT_PREFIX} $OUT_PREFIX # move from /tmp/foobarz/app/.heroku/php to /app/.heroku/php
 popd
 
 mkdir -p ${OUT_PREFIX}/etc/php/conf.d

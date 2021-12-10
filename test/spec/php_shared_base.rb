@@ -28,11 +28,11 @@ shared_examples "A basic PHP application" do |series|
 			                 .and match(/variables_order => EGPCS/)
 		end
 		
-		it "uses all available RAM as PHP CLI memory_limit", :if => series.between?("7.2","8.0") do
+		it "uses all available RAM as PHP CLI memory_limit", :if => series.between?("7.2","8.1") do
 			expect(@app.run("php -i | grep memory_limit")).to match "memory_limit => 536870912 => 536870912"
 		end
 		
-		it "is running a PHP build that links against libc-client, libonig, libsqlite3 and libzip from the stack", :if => series.between?("7.2","8.0") do
+		it "is running a PHP build that links against libc-client, libonig, libsqlite3 and libzip from the stack", :if => series.between?("7.2","8.1") do
 			ldd_output = @app.run("ldd .heroku/php/bin/php .heroku/php/lib/php/extensions/no-debug-non-zts-*/{imap,mbstring,pdo_sqlite,sqlite3}.so | grep -E ' => (/usr)?/lib/' | grep -e 'libc-client.so' -e 'libonig.so' -e 'libsqlite3.so' -e 'libzip.so' | wc -l")
 			# 1x libc-client.so for extensions/…/imap.so
 			# 1x libonig for extensions/…/mbstring.so
