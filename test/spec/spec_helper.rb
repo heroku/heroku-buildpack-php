@@ -86,3 +86,25 @@ def run!(cmd)
 	raise "Command #{cmd} failed: #{out}" unless $?.success?
 	out
 end
+
+def retry_until(options = {})
+	options = {
+		retry: 1,
+		sleep: 1,
+		rescue: RSpec::Expectations::ExpectationNotMetError
+	}.merge(options)
+
+	options[:rescue] = Array(options[:rescue])
+
+	tries = 0
+	begin
+		tries += 1
+		yield
+	rescue *options[:rescue] => e
+		can_retry = tries < options[:retry]
+		raise e unless can_retry
+
+		sleep options[:sleep]
+		retry
+	end
+end
