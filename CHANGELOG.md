@@ -7,6 +7,7 @@
 - PHP/7.4.27 [David Zuelke]
 - PHP/8.0.14 [David Zuelke]
 - PHP/8.1.1 [David Zuelke]
+- ext-blackfire/1.72.0 [David Zuelke]
 
 ## v202 (2012-12-10)
 
