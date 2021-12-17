@@ -18,8 +18,9 @@ export PHP_HOME=$1
 echo "[LOG] Building Snowflake"
 bash $snowflake_dir/scripts/build_pdo_snowflake.sh
 
-echo "[LOG] Checking if in memory"
-$PHP_HOME/bin/php -dextension=modules/pdo_snowflake.so -m | grep pdo_snowflake
+#Heroku does not have cache/memory
+#echo "[LOG] Checking if in memory"
+#$PHP_HOME/bin/php -dextension=modules/pdo_snowflake.so -m | grep pdo_snowflake
 
 echo "[DEBUG] PHP_HOME=$PHP_HOME"
 echo "[DEBUG] SNOWFLAKE DIR=$snowflake_dir"
