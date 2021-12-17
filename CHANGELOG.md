@@ -1,5 +1,17 @@
 # heroku-buildpack-php CHANGELOG
 
+## v203 (2021-12-17)
+
+## ADD
+
+- PHP/7.4.27 [David Zuelke]
+- PHP/8.0.14 [David Zuelke]
+- PHP/8.1.1 [David Zuelke]
+- ext-blackfire/1.72.0 [David Zuelke]
+- ext-mongodb/1.12.0 [David Zuelke]
+- ext-psr/1.1.0 (for PHP 7.2) [David Zuelke]
+- ext-psr/1.2.0 (for PHP 7.3+) [David Zuelke]
+
 ## v202 (2012-12-10)
 
 ### ADD
