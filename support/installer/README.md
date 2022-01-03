@@ -70,7 +70,7 @@ Example generated "`platform.json`" from a simple project's `composer.lock`:
         "symfony\/polyfill-php80": "v1.23.1",
         "symfony\/process": "v5.1.0-RC1",
         "heroku-sys\/composer": "*",
-        "heroku-sys\/composer-plugin-api": "^2.1.0",
+        "heroku-sys\/composer-plugin-api": "^2",
         "heroku-sys\/apache": "^2.4.10",
         "heroku-sys\/nginx": "^1.8.0"
     },

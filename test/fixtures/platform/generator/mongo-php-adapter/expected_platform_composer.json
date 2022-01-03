@@ -15,7 +15,7 @@
         "mongodb\/mongodb": "1.9.0",
         "symfony\/polyfill-php80": "v1.23.1",
         "heroku-sys\/composer": "*",
-        "heroku-sys\/composer-plugin-api": "^1.1.0",
+        "heroku-sys\/composer-plugin-api": "^1",
         "heroku-sys\/apache": "^2.4.10",
         "heroku-sys\/nginx": "^1.8.0"
     },

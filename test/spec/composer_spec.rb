@@ -25,6 +25,14 @@ describe "A PHP application" do
 			end
 		end
 	end
+	context "with a composer.lock generatead by a future version 2 of Composer" do
+		it "builds using Composer 2.x" do
+			new_app_with_stack_and_platrepo('test/fixtures/composer/basic_lock_v2.999').deploy do |app|
+				expect(app.output).to match(/- composer \(2/)
+				expect(app.output).to match(/Composer version 2/)
+			end
+		end
+	end
 	context "with a malformed COMPOSER_AUTH env var" do
 		it "the app still boots" do
 			['v1', 'v2'].each do |cv|

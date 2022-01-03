@@ -5,6 +5,7 @@
 ### CHG
 
 - Composer/2.2.3 [David Zuelke]
+- Forward compatibility for Composer version selection [David Zuelke]
 
 ## v203 (2021-12-17)
 
