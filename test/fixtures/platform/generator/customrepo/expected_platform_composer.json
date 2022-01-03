@@ -12,7 +12,7 @@
     "require": {
         "composer.json\/composer.lock": "dev-a90ecf736d0c5431a479f94e52129fcf",
         "heroku-sys\/composer": "*",
-        "heroku-sys\/composer-plugin-api": "^1.1.0",
+        "heroku-sys\/composer-plugin-api": "^1",
         "heroku-sys\/apache": "^2.4.10",
         "heroku-sys\/nginx": "^1.8.0"
     },

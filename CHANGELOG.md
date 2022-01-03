@@ -1,5 +1,12 @@
 # heroku-buildpack-php CHANGELOG
 
+## v204 (2021-01-03)
+
+### CHG
+
+- Composer/2.2.3 [David Zuelke]
+- Forward compatibility for Composer version selection [David Zuelke]
+
 ## v203 (2021-12-17)
 
 ## ADD

@@ -16,7 +16,7 @@
         "phpseclib\/bcmath_compat": "2.0.0",
         "phpseclib\/phpseclib": "3.0.10",
         "heroku-sys\/composer": "*",
-        "heroku-sys\/composer-plugin-api": "^1.1.0",
+        "heroku-sys\/composer-plugin-api": "^1",
         "heroku-sys\/apache": "^2.4.10",
         "heroku-sys\/nginx": "^1.8.0"
     },
