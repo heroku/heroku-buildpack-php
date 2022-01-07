@@ -1,0 +1,5 @@
+{
+    "require": {
+        "symfony/polyfill-ctype": "^1.24"
+    }
+}

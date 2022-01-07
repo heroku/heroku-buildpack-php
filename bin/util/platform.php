@@ -45,6 +45,10 @@ function mkmetas($package, array &$metapaks, &$have_runtime_req = false) {
 		$prep = $prep + array_filter($ppro, function($k) { return strpos($k, "ext-") === 0; }, ARRAY_FILTER_USE_KEY);
 		$ppro = array_diff_key($ppro, $prep);
 	}
+	// hotfix for https://github.com/heroku/heroku-buildpack-php/issues/528 until Composer2 installer lands: remove ext-* provides from symfony/polyfill-* packages
+	if(strpos($package["name"], "symfony/polyfill-") === 0) {
+		$ppro = array_filter($ppro, function($k) { return strpos($k, "ext-") !== 0; }, ARRAY_FILTER_USE_KEY);
+	}
 	$have_runtime_req |= hasreq($preq);
 	$metapaks[] = [
 		"type" => "metapackage",
