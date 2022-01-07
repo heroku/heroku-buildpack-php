@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v205 (2021-01-07)
+
+### FIX
+
+- `symfony/polyfill-…` packages' `ext-…` `provide` declarations (added in v1.24) cause install failure (#528) [David Zuelke]
+
 ## v204 (2021-01-03)
 
 ### CHG
