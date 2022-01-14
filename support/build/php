@@ -173,36 +173,8 @@ if [[ $dep_version == 7.[1-3].* ]]; then
 	${OUT_PREFIX}/bin/pecl channel-update pecl.php.net
 fi
 
-curl -sS https://getcomposer.org/installer | php
-
-# enable all extensions
-echo "-----> Preparing built-in extensions..."
-mkdir -p ${OUT_PREFIX}/etc/php/conf.d
-shared=()
-for f in ${OUT_PREFIX}/lib/php/extensions/*/*.so; do
-	if [[ $(basename $f) == "opcache.so" ]]; then
-		# opcache needs to be loaded using zend_extension
-		echo -n "zend_" >> ${OUT_PREFIX}/etc/php/php.ini
-	else
-		# do not record opcache.so as shared; always on via php.ini
-		shared+=("heroku-sys/ext-$(basename $f .so)")
-	fi
-	echo "extension=$(basename $f)" >> ${OUT_PREFIX}/etc/php/php.ini
-done
-
-echo "-----> Preparing manifest contents..."
-extra=$(echo "${shared[@]}" | python -c 'import sys, json; json.dump({"shared": dict([item.split(":") if ":" in item else (item, True) for item in sys.stdin.read().split()]), "export": "bin/export.php.sh", "profile": "bin/profile.php.sh"}, sys.stdout)')
-
-MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
-MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
-MANIFEST_REPLACE=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b)' | tr -s " " | cut -d " " -f1,2 | sed -e "s/ $dep_version\$/ self.version/" -e 's/^/heroku-sys\//' | python -c 'import sys, json; json.dump(dict(item.split() for item in sys.stdin), sys.stdout)')
-MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"$extra"}"
-
-# remove temporary ini file that enables all extensions, and the composer download
-rm ${OUT_PREFIX}/etc/php/php.ini composer.phar
-
 echo "-----> Preparing php.ini..."
+mkdir -p ${OUT_PREFIX}/etc/php/conf.d
 # we begin with PHP's recommended production config as the default
 cp ${dep_dirname}/php.ini-production ${OUT_PREFIX}/etc/php/php.ini
 # next, include any more specific config files that we have created
@@ -246,6 +218,40 @@ if [[ -f "$mlib" && -n "$php_ini_path" ]]; then
 fi
 
 EOF
+
+# we need composer to extract all extensions with versions
+curl -sS https://getcomposer.org/installer | php
+
+# first, read all platform packages (just "ext-" and "php-") that are already there; could be statically built, or enabled through one of the INIs loaded
+platform_default=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b)' | sed s@^@heroku-sys/@ | tr -s " " | cut -d " " -f1,2 | sort)
+
+# next enable all bundled shared extensions temporarily so we can fetch their info too
+echo "-----> Preparing built-in extensions..."
+for f in ${OUT_PREFIX}/lib/php/extensions/*/*.so; do
+	if [[ $(basename $f) == "opcache.so" ]]; then
+		# opcache needs to be loaded using zend_extension
+		echo -n "zend_" >> ${OUT_PREFIX}/etc/php/conf.d/999-sharedexts.ini
+	fi
+	# if an extension is already loaded (due to a config loaded further above), there will be a warning on startup, but that doesn't matter for our purposes
+	echo "extension=$(basename $f)" >> ${OUT_PREFIX}/etc/php/conf.d/999-sharedexts.ini
+done
+
+# now we'll get all platform packages (just "ext-" and "php-")
+platform_all=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b)' | sed s@^@heroku-sys/@ | tr -s " " | cut -d " " -f1,2 | sort)
+
+# remove temporary ini file that enables all extensions, and the composer download
+rm ${OUT_PREFIX}/etc/php/conf.d/999-sharedexts.ini composer.phar
+
+# extract only additions (that's the extensions people have to explicitly enable) from the diff
+exts_shared=$(diff --new-line-format="%L" --old-line-format="" --unchanged-line-format="" <(cat <<<"$platform_default") <(cat <<<"$platform_all")) || diff_result=$?
+(( $diff_result == 1 )) || { echo "Failed to diff list of shared extensions"; exit 1; }
+
+echo "-----> Preparing manifest contents..."
+MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
+MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
+MANIFEST_REPLACE=$(echo "$platform_all" | sed "s/ $dep_version\$/ self.version/" | python -c 'import sys, json; json.dump(dict(item.split() for item in sys.stdin), sys.stdout)')
+MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
+MANIFEST_EXTRA=$(echo "$exts_shared" | python -c 'import sys, json; json.dump({"shared": dict(item.split() for item in sys.stdin), "export": "bin/export.php.sh", "profile": "bin/profile.php.sh"}, sys.stdout)')
 
 echo "-----> Generating manifest..."
 python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
