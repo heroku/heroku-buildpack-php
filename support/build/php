@@ -223,7 +223,7 @@ EOF
 curl -sS https://getcomposer.org/installer | php
 
 # first, read all platform packages (just "ext-" and "php-") that are already there; could be statically built, or enabled through one of the INIs loaded
-platform_default=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b)' | sed s@^@heroku-sys/@ | tr -s " " | cut -d " " -f1,2 | sort)
+platform_default=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-\S+)' | sed s@^@heroku-sys/@ | tr -s " " | cut -d " " -f1,2 | sort)
 
 # next enable all bundled shared extensions temporarily so we can fetch their info too
 echo "-----> Preparing built-in extensions..."
@@ -237,7 +237,7 @@ for f in ${OUT_PREFIX}/lib/php/extensions/*/*.so; do
 done
 
 # now we'll get all platform packages (just "ext-" and "php-")
-platform_all=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-64bit\b)' | sed s@^@heroku-sys/@ | tr -s " " | cut -d " " -f1,2 | sort)
+platform_all=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-\S+)' | sed s@^@heroku-sys/@ | tr -s " " | cut -d " " -f1,2 | sort)
 
 # remove temporary ini file that enables all extensions, and the composer download
 rm ${OUT_PREFIX}/etc/php/conf.d/999-sharedexts.ini composer.phar
