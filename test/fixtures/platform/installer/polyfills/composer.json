@@ -1,0 +1,25 @@
+{
+	"repositories": [
+		{
+			"type": "package",
+			"package": {
+				"name": "dummypak/ext-xmlrpc-polyfill",
+				"version": "1.0.3",
+				"type": "metapackage",
+				"require": {
+					"php": "^7.0 | ^8.0"
+				},
+				"provide": {
+					"ext-xmlrpc": "8.1.0"
+				}
+			}
+		}
+	],
+	"require": {
+		"php": "7.4.*",
+		"dummypak/ext-xmlrpc-polyfill": "^1.0",
+		"symfony/polyfill-uuid": "^1.24.0",
+		"ext-uuid": "*",
+		"ext-xmlrpc": "*"
+	}
+}

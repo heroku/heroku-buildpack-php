@@ -85,11 +85,21 @@ if $upload || [[ -t 1 ]]; then
 	exec 3>&1 1>packages.json
 fi
 
+# load and filter all the given manifests in two steps: 1) expand shared PHP extensions; 2) sort
+# expand shared PHP extensions by creating a dummy package for every extension (in every PHP package) that is built as shared, so the solver can correctly pick it for installation
 # sort so that packages with the same name and version (e.g. ext-memcached 2.2.0) show up with their php requirement in descending order - otherwise a Composer limitation means that a simple "ext-memcached: * + php: ^7.0.0" request would install 7.0.latest and not 7.4.latest, as it finds the 7.0.* requirement extension first and sticks to that instead of 7.4. For packages with identical names and versions (but different e.g. requirements), Composer basically treats them as equal and picks as a winner whatever it finds first. The requirements have to be written like "x.y.*" for this to work of course (we replace "*", "<=" and so forth with "0", as that's fine for the purpose of just sorting - otherwise, a comparison of e.g. "^7.0.0" and "7.0.*" would cause "TypeError: '<' not supported between instances of 'str' and 'int'")
 python <(cat <<-'PYTHON' # beware of single quotes in body
 	import sys, re, json
 	from distutils import version
 	manifests = [ json.load(open(item)) for item in sys.argv[1:] if json.load(open(item)).get("type", "") != "heroku-sys-package" ]
+	# for PHP, transform all manifests in extra.shared into their own packages
+	for php in filter(lambda package: package.get("type", "") == "heroku-sys-php", manifests):
+	    shared = php.get("extra", {}).get("shared", {})
+	    for extname in shared.keys():
+	        if shared[extname] is True:
+	            continue # an older php package manifest that only has a list of shared extensions (name as key, true as value) rather than the versions as well, and lists even shared extensions in "replace"; this means we don't want to give it this treatment below
+	        manifests.append(shared[extname]); # add ext manifest to our repo list
+	        shared[extname] = False # make sure there still is a record of this extension in the PHP package (e.g. for tooling that generates version infos for Heroku Dev Center), but prevent e.g. the legacy Installer Plugin logic from handling this
 	manifests.sort(
 	    key=lambda package: version.LooseVersion(re.sub("[<>=*~^]", "0", package.get("require", {}).get("heroku-sys/php", "0.0.0"))),
 	    reverse=True)

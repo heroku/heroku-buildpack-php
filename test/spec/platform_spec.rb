@@ -180,7 +180,40 @@ describe "The PHP Platform Installer" do
 		end
 	end
 	
+	describe "Package Manifest Generator Script" do
+		it "populates full package manifests for shared PHP extensions" do
+			Dir.chdir("test/fixtures/platform/builder/manifest/php-bundled-extension") do
+				cmd = File.read("ENV") # any env vars for the test (manifest.py needs STACK, S3_BUCKET, S3_PREFIX, TIME)
+				cmd << " python ../../../../../../support/build/_util/include/manifest.py "
+				cmd << File.read("ARGS")
+				stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
+				
+				expect(status.exitstatus).to eq(0), "manifest.py failed, stdout: #{stdout}, stderr: #{stderr}"
+				
+				expected_json = JSON.parse(File.read("expected_manifest.json"))
+				generated_json = JSON.parse(stdout)
+				
+				expect(expected_json).to eq(generated_json)
+			end
+		end
+	end
+	
 	describe "Repository Generator Script" do
+		it "transforms inline PHP shared extension manifests into separate package entries" do
+			Dir.chdir("test/fixtures/platform/builder/mkrepo/gen-shared-exts") do
+				cmd = "../../../../../../support/build/_util/mkrepo.sh OURS3BUCKET OURS3PREFIX/ *.composer.json"
+				stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
+				
+				expect(status.exitstatus).to eq(0), "mkrepo.sh failed, stdout: #{stdout}, stderr: #{stderr}"
+				
+				expected_json = JSON.parse(File.read("expected_packages.json"))
+				generated_json = JSON.parse(stdout)
+				
+				# our expected packages.json has the PHP 8.0.* extension before the PHP 7.4.* extension, do they match?
+				expect(expected_json).to eq(generated_json)
+			end
+		end
+		
 		it "orders PHP extensions in descending PHP version requirement order" do
 			# our PHP packages are named "php", and versioned "7.4.0", "8.0.9", and so forth
 			# each extension, say "ext-redis", has a release version, say "5.1.2", but gets compiled for each PHP version series
@@ -206,6 +239,25 @@ describe "The PHP Platform Installer" do
 				
 				# our expected packages.json has the PHP 8.0.* extension before the PHP 7.4.* extension, do they match?
 				expect(expected_json).to eq(generated_json)
+			end
+		end
+	end
+	
+	describe "during a build" do
+		context "of a project that uses polyfills providing both bundled-with-PHP and third-party extensions" do
+			it "treats polyfills for bundled-with-PHP and third-party extensions the same" do
+				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills').deploy do |app|
+					expect(app.output).to include("- php (7.4")
+					expect(app.output).not_to include("- ext-xmlrpc")
+					expect(app.output).not_to include("- ext-uuid")
+				end
+			end
+			it "installs native bundled extensions even if they are provided by a polyfill for legacy PHP versions" do
+				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-legacy').deploy do |app|
+					expect(app.output).to include("- php (7.3")
+					expect(app.output).to include("- ext-xmlrpc")
+					expect(app.output).not_to include("- ext-uuid")
+				end
 			end
 		end
 	end

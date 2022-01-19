@@ -1,0 +1,1 @@
+heroku-sys-php heroku-sys/php 8.1.1 php-8.1.1.tar.gz '{}' '{}' '{"heroku-sys/ext-bz2": "self.version", "heroku-sys/php-64bit": "self.version", "heroku-sys/php-ipv6": "self.version"}' '{}' '{"shared": {"heroku-sys/ext-bcmath": "8.1.1"}, "export": "bin/export.php.sh", "profile": "bin/profile.php.sh"}'

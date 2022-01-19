@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v208 (2021-02-10)
+
+### CHG
+
+- Treat shared PHP extensions the same as third-party extensions during installation e.g. if userland polyfills declare a `provide` for them [David Zuelke]
+
 ## v207 (2021-02-07)
 
 ### CHG
