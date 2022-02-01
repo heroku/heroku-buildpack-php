@@ -10,6 +10,7 @@
 - ext-imagick/3.7.0 [David Zuelke]
 - ext-pcov/1.0.11 [David Zuelke]
 - ext-phalcon/4.1.3 [David Zuelke]
+- ext-rdkafka/6.0.0 [David Zuelke]
 
 ### CHG
 
