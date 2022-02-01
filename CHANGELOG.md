@@ -17,6 +17,7 @@
 ### CHG
 
 - Use Composer 2 for platform installation step [David Zuelke]
+- Composer/1.10.25 [David Zuelke]
 
 ### FIX
 
