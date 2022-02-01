@@ -14,7 +14,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -33,7 +33,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -52,7 +52,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -71,7 +71,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -90,7 +90,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -109,7 +109,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -128,7 +128,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -147,7 +147,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -166,7 +166,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -185,7 +185,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -204,7 +204,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -223,7 +223,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -242,7 +242,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -261,7 +261,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -280,7 +280,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -299,7 +299,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -318,7 +318,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -337,7 +337,7 @@
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
@@ -1003,7 +1003,7 @@
         },
         "require": {
           "heroku-sys/heroku": "^20.0.0",
-          "heroku/installer-plugin": "^1.5.0"
+          "heroku/installer-plugin": "^1.99.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php",

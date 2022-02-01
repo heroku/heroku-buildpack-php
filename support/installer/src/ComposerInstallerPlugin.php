@@ -9,6 +9,7 @@ use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Installer\PackageEvent;
 use Composer\Installer\PackageEvents;
 use Composer\Package\PackageInterface;
+use Composer\Util\Filesystem;
 
 class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterface
 {
@@ -40,16 +41,31 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 			}
 		}
 		
+		$loop = $composer->getLoop();
+		$process = $loop->getProcessExecutor();
 		$composer->getDownloadManager()->setDownloader(
 			'heroku-sys-tar',
 			new Downloader(
 				$io,
 				$composer->getConfig(),
-				$composer->getEventDispatcher()
-				// no cache passed in as we explicitly don't want one; inside the slug it makes no sense, as slugs are immutable, and outside the slug (in the app's build cache), it makes little difference (packages are on S3, the cache is on S3) performance wise but would massively bloat the cache size and thus storage cost
+				$loop->getHttpDownloader(),
+				$composer->getEventDispatcher(),
+				null, // no cache passed in as we explicitly don't want one; inside the slug it makes no sense, as slugs are immutable, and outside the slug (in the app's build cache), it makes little difference (packages are on S3, the cache is on S3) performance wise but would massively bloat the cache size and thus storage cost
+				new Filesystem($process),
+				$process
 			)
 		);
 		$composer->getInstallationManager()->addInstaller(new ComposerInstaller($io, $composer));
+	}
+	
+	public function deactivate(Composer $composer, IOInterface $io)
+	{
+		// nothing to do in our plugin case
+	}
+	
+	public function uninstall(Composer $composer, IOInterface $io)
+	{
+		// nothing to do in our plugin case
 	}
 	
 	public static function getSubscribedEvents()
@@ -63,6 +79,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		
 		// first, load all platform requirements from all operations
 		// this is because if a package requires `ext-bcmath`, which is `replace`d by `php`, no install event is generated for `ext-bcmath`, but we still need to enable it
+		// we cannot do this via InstallerEvents::PRE_OPERATIONS_EXEC, as that fires before this plugin is even installed
 		$this->initAllPlatformRequirements($event->getOperations());
 		
 		try {
@@ -81,6 +98,10 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		}
 	}
 	
+	// this is for legacy packages/repos, targeting installer v1.5 or earlier, where PHP's own extensions were not written out as separate packages like it will (likely) be the case in v1.6
+	// since this is, realistically, only used by PHP (for its bundled shared extensions), we can probably remove this in the future; however, doing this without a BC break would require bumping the installer version to 2.0, which (even if we fully re-built our own repositories) would break third-party repositories
+	// the alternative will be to remove this in e.g. v1.7 or v1.8, and adding deprecation warnings beforehand, in order to warn the (few, if any) users that have custom repositories with their own builds of PHP
+	// TODO: potentially remove this in a future version
 	protected function initAllPlatformRequirements(array $operations)
 	{
 		if($this->allPlatformRequirements !== null) return;
@@ -105,6 +126,8 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		}
 	}
 	
+	// this is part of the "shared extensions bundled with PHP" functionality described in the comments for initAllPlatformRequirements
+	// TODO: potentially remove this in a future version
 	protected function enableReplaces(PackageInterface $package)
 	{
 		// the current package may be "replace"ing any of the packages (e.g. ext-bcmath is bundled with PHP) that are required by another package
@@ -132,6 +155,8 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 			// we're enabling this current package itself (meaning it's an extension package)
 			$config = isset($extra['config']) ? $extra['config'] : true;
 		} else {
+			// this is part of the "shared extensions bundled with PHP" functionality described in the comments for initAllPlatformRequirements
+			// TODO: potentially remove this in a future version
 			// we're enabling another extension that this package `replace`s - e.g. we are PHP, and we bundle an extension another package has declared as a dependency
 			// in this case, a package lists all those `replace`d extensions that are built as a shared library (as opposed to compiled into PHP) in a hash named `shared` in the package metadata's `extra` section
 			// this way we can know whether an extension is compiled into PHP, or compiled as a shared library, in which case we need to write an "extension=extname.so" entry into an INI file

@@ -1,5 +1,8 @@
 {
     "config": {
+        "allow-plugins": {
+            "heroku/installer-plugin": true
+        },
         "cache-files-ttl": 0,
         "discard-changes": true,
         "secure-http": false

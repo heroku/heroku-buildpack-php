@@ -231,7 +231,7 @@ curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
-curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-1.10.24.tar.gz" || {
+curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-2.2.3.tar.gz" || {
 	mcount "failures.bootstrap.download.composer"
 	error <<-EOF
 		Failed to download Composer for bootstrapping!
@@ -243,11 +243,11 @@ curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.g
 }
 tar xzf $build_dir/.heroku/composer.tar.gz -C $build_dir/.heroku/php bin/composer
 rm $build_dir/.heroku/composer.tar.gz
-mv $build_dir/.heroku/php/bin/composer{,1} # we will need this at the end even if user installs happen with Composer 2
+mv $build_dir/.heroku/php/bin/composer{,2} # we will need this at the end in case user installs happen with Composer v1
 
 # this alias is just for now while we install platform packages
 composer() {
-	/app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer1 "$@"
+	/app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer2 "$@"
 }
 export -f composer
 
@@ -729,5 +729,5 @@ fi
 # done with platform installs; restore COMPOSER from previous value
 export COMPOSER="$COMPOSER_bak"
 unset COMPOSER_bak
-# and remove the composer1 program we needed for platform installs
-rm $build_dir/.heroku/php/bin/composer1
+# and remove the composer2 program we needed for platform installs
+rm $build_dir/.heroku/php/bin/composer2
