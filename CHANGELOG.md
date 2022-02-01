@@ -9,6 +9,7 @@
 - ext-blackfire/1.73.0 [David Zuelke]
 - ext-imagick/3.7.0 [David Zuelke]
 - ext-pcov/1.0.11 [David Zuelke]
+- ext-phalcon/4.1.3 [David Zuelke]
 
 ### CHG
 
