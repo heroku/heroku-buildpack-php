@@ -12,6 +12,7 @@
 - ext-phalcon/4.1.3 [David Zuelke]
 - ext-rdkafka/6.0.0 [David Zuelke]
 - ext-redis/5.3.6 [David Zuelke]
+- Apache/2.4.52 [David Zuelke]
 
 ### CHG
 
