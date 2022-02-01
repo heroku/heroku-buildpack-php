@@ -2,6 +2,10 @@
 
 ## v206 (2021-02-01)
 
+### ADD
+
+- PHP/8.0.15 [David Zuelke]
+
 ### CHG
 
 - Use Composer 2 for platform installation step [David Zuelke]
