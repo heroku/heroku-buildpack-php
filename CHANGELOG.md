@@ -2,9 +2,23 @@
 
 ## v206 (2021-02-01)
 
+### ADD
+
+- PHP/8.0.15 [David Zuelke]
+- PHP/8.1.2 [David Zuelke]
+- ext-blackfire/1.73.0 [David Zuelke]
+- ext-imagick/3.7.0 [David Zuelke]
+- ext-pcov/1.0.11 [David Zuelke]
+- ext-phalcon/4.1.3 [David Zuelke]
+- ext-rdkafka/6.0.0 [David Zuelke]
+- ext-redis/5.3.6 [David Zuelke]
+- Apache/2.4.52 [David Zuelke]
+
 ### CHG
 
 - Use Composer 2 for platform installation step [David Zuelke]
+- Composer/1.10.25 [David Zuelke]
+- Composer/2.2.5 [David Zuelke]
 
 ### FIX
 
