@@ -8,6 +8,7 @@
 - PHP/8.1.2 [David Zuelke]
 - ext-blackfire/1.73.0 [David Zuelke]
 - ext-imagick/3.7.0 [David Zuelke]
+- ext-pcov/1.0.11 [David Zuelke]
 
 ### CHG
 
