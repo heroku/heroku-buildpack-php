@@ -204,13 +204,14 @@ s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
 # prepend the default repo to the list configured by the user
 # list of repositories to use is in ascening order of precedence
 export_env_dir "$env_dir" '^HEROKU_PHP_PLATFORM_REPOSITORIES$'
+have_custom_platform_repos="${HEROKU_PHP_PLATFORM_REPOSITORIES:+1}"
 HEROKU_PHP_PLATFORM_REPOSITORIES="${s3_url} ${HEROKU_PHP_PLATFORM_REPOSITORIES:-}"
 if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
 	# a single "-" in the user supplied string removes everything to the left of it; can be used to delete the default repo
 	notice_inline "Default platform repository disabled."
 	HEROKU_PHP_PLATFORM_REPOSITORIES=${HEROKU_PHP_PLATFORM_REPOSITORIES#*" - "}
 	s3_url=$(echo "$HEROKU_PHP_PLATFORM_REPOSITORIES" | cut -f1 -d" " | sed 's/[^/]*$//')
-	notice_inline "Bootstrapping using ${s3_url}..."
+	notice_inline 'Bootstrapping using first repository in $HEROKU_PHP_PLATFORM_REPOSITORIES.'
 fi
 
 
@@ -333,7 +334,7 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 	EOF
 }
 
-status "Installing platform packages..."
+status "Preparing platform package installation..."
 
 if [[ $STACK == "heroku-18" ]]; then
 	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.1.0"
@@ -342,9 +343,9 @@ else
 fi
 export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # extract requirements from composer.lock
-/app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | indent || {
+/app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php ${have_custom_platform_repos:+"--list-repositories"} "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | indent || {
 	code=$?
-	if [[ $code -eq 3 ]]; then
+	if (( code == 3 )); then
 		mcount "failures.platform.composer_lock.runtime_only_in_dev"
 		error <<-EOF
 			Runtime specified in 'require-dev' but not in 'require'!
@@ -368,6 +369,9 @@ export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 			For more information on selecting PHP runtimes, please refer to
 			https://devcenter.heroku.com/articles/php-support
 		EOF
+	elif (( code == 4 )); then
+		mcount "failures.platform.repositories_url_invalid"
+		error 'Invalid $HEROKU_PHP_PLATFORM_REPOSITORIES value'
 	else
 		mcount "failures.platform.composer_lock.parse"
 		error "$composer_lock_parse_error"
@@ -377,6 +381,8 @@ export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # reset $COMPOSER for the platform install step
 COMPOSER_bak="$COMPOSER"
 export COMPOSER=composer.json
+
+status "Installing platform packages..."
 
 # pass export_file_path and profile_dir_path to composer install; they will be used by the installer plugin
 # they are also used in later install attempts for add-on extensions (blackfire, newrelic, ...)

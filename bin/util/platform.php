@@ -50,15 +50,69 @@ function mkmetas($package, array &$metapaks, &$have_runtime_req = false) {
 	return true;
 }
 
-// remove first arg (0)
-array_shift($argv);
+// parse options/flags, then advance $argv pointer (to skip $0, too)
+$flags = getopt("", ["list-repositories"], $rest_index);
+$argv = array_slice($argv, $rest_index);
+
 // base repos we need - no packagist, and the installer plugin path (first arg)
 $repositories = [
 	["packagist" => false],
 	["type" => "path", "url" => array_shift($argv), "options" => ["symlink" => false]],
 ];
+// little helper for prefixing extension names filtered in repositories below with the correct "heroku-sys/"
+$prefixExtname = function($value) {
+	$value = trim($value);
+	return strpos($value, "/") === false ? "heroku-sys/$value" : $value;
+};
+if(!count($argv)) {
+	file_put_contents("php://stderr", "ERROR: no platform repositories given; aborting.\n");
+	exit(4);
+}
+if(isset($flags['list-repositories'])) {
+	file_put_contents("php://stderr", "\033[1;33mNOTICE:\033[0m Platform repositories used (in lookup order):\n");
+}
 // all other args are repo URLs; they get passed in ascending order of precedence, so we reverse
-foreach(array_reverse($argv) as $repo) $repositories[] = ["type" => "composer", "url" => $repo];
+foreach(array_reverse($argv) as $repo) {
+	$url = parse_url($repo);
+	if(!$url || !isset($url["scheme"]) || !isset($url["host"])) {
+		file_put_contents("php://stderr", "ERROR: could not parse platform repository URL '$repo'.\n");
+		exit(4);
+	}
+	if(isset($flags['list-repositories'])) {
+		file_put_contents(
+			"php://stderr",
+			sprintf(
+				"- %s://%s%s%s\n", # hide auth info and query args
+				$url["scheme"],
+				$url["host"],
+				isset($url["port"]) ? ":".$url["port"] : "",
+				$url["path"]??"/"
+			)
+		);
+	}
+	$repo = ["type" => "composer", "url" => $repo];
+	// allow control of https://getcomposer.org/doc/articles/repository-priorities.md via query args "composer-repository-canonical", "composer-repository-exclude" and "composer-repository-only"
+	if(isset($url["query"])) {
+		parse_str($url["query"], $query); // parse query string into array
+		if(isset($query["composer-repository-canonical"])) {
+			$repo["canonical"] = filter_var($query["composer-repository-canonical"], FILTER_VALIDATE_BOOLEAN);
+		}
+		if(isset($query["composer-repository-exclude"])) {
+			$repo["exclude"] = array_map(
+				$prefixExtname, // add "heroku-sys/" prefix to entries
+				is_array($query["composer-repository-exclude"]) ? $query["composer-repository-exclude"] : explode(",", $query["composer-repository-exclude"])
+			);
+		}
+		if(isset($query["composer-repository-only"])) {
+			$repo["only"] = array_map(
+				$prefixExtname, // add "heroku-sys/" prefix to entries
+				is_array($query['composer-repository-only']) ? $query["composer-repository-only"] : explode(",", $query["composer-repository-only"])
+			);
+		}
+	}
+	
+	$repositories[] = $repo;
+}
 
 $json = json_decode(file_get_contents($COMPOSER), true);
 if(!is_array($json)) exit(1);

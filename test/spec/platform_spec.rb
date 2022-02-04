@@ -18,12 +18,16 @@ describe "The PHP Platform Installer" do
 					rescue Errno::ENOENT
 					end
 					cmd << " STACK=heroku-20 " # that's the stack all the tests are written for
-					cmd << " php #{bp_root}/bin/util/platform.php #{bp_root}/support/installer "
-					cmd << "https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/packages.json " # our default repo
+					cmd << " php #{bp_root}/bin/util/platform.php"
+					args = ""
 					begin
-						cmd << File.read("ARGS") # any additional args (other repos)
+						args = File.read("ARGS") # any additional args (other repos)
+						cmd << " --list-repositories"
 					rescue Errno::ENOENT
 					end
+					cmd << " #{bp_root}/support/installer "
+					cmd << " https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/packages.json " # our default repo
+					cmd << args
 					
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 					
@@ -151,6 +155,27 @@ describe "The PHP Platform Installer" do
 				
 				expect(stderr).to include("heroku-sys/php (8.0.8)")
 				expect(stderr).not_to include("heroku-sys/ext-gmp")
+			end
+		end
+		
+		it "combined with a custom repository installs packages from that repo according to the priority given" do
+			Dir.chdir("test/fixtures/platform/repository/priorities") do |cwd|
+				# we spawn a web server that serves packages*.json, like a real composer repository
+				# this is to ensure that Composer really uses ComposerRepository behavior for priorities etc
+				@pid = spawn("php -S localhost:8080")
+				Dir.glob("composer-*.json") do |testcase|
+					cmd = "COMPOSER=#{testcase} composer install --dry-run"
+					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
+					expect(status.exitstatus).to eq(0), "dry run install failed for case #{testcase}, stderr: #{stderr}, stdout: #{stdout}"
+					
+					expect(stderr).to include("heroku-sys/php (8.0.8)")
+					expect(stderr).to include("heroku-sys/ext-igbinary (3.2.7)")
+					if ["composer-default.json"].include? testcase
+						expect(stderr).to include("heroku-sys/ext-redis (5.3.4)") # packages from the custom repo (listed first) are authoritative; the newer package version from the default repo is not selected
+					else
+						expect(stderr).to include("heroku-sys/ext-redis (5.3.5)") # canonical=false or an appropriate only/exclude setting on the custom repo means the newer version from the default repo is selected
+					end
+				end
 			end
 		end
 	end
