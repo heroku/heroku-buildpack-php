@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v207 (2021-02-07)
+
+### CHG
+
+- Allow control of Composer repository priority for entries in `$HEROKU_PHP_PLATFORM_REPOSITORIES` [David Zuelke]
+
 ## v206 (2021-02-01)
 
 ### ADD

@@ -1,0 +1,44 @@
+{
+  "packages": [
+    [
+      {
+        "conflict": {},
+        "dist": {
+          "type": "heroku-sys-tar",
+          "url": "https://mycustomrepo.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/redis-5.3.4.tar.gz"
+        },
+        "extra": {},
+        "name": "heroku-sys/ext-redis",
+        "provide": {},
+        "replace": {},
+        "require": {
+          "heroku-sys/heroku": "^20.0.0",
+          "heroku-sys/php": "8.0.*",
+          "heroku/installer-plugin": "^1.2.0"
+        },
+        "time": "2022-01-14 18:01:17",
+        "type": "heroku-sys-php-extension",
+        "version": "5.3.4"
+      },
+      {
+        "conflict": {},
+        "dist": {
+          "type": "heroku-sys-tar",
+          "url": "https://mycustomrepo.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/igbinary-3.2.7.tar.gz"
+        },
+        "extra": {},
+        "name": "heroku-sys/ext-igbinary",
+        "provide": {},
+        "replace": {},
+        "require": {
+          "heroku-sys/heroku": "^20.0.0",
+          "heroku-sys/php": "8.0.*",
+          "heroku/installer-plugin": "^1.2.0"
+        },
+        "time": "2022-01-14 18:01:17",
+        "type": "heroku-sys-php-extension",
+        "version": "3.2.7"
+      }
+    ]
+  ]
+}

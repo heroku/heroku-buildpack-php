@@ -1,0 +1,59 @@
+{
+    "config": {
+        "allow-plugins": {
+            "heroku/installer-plugin": true
+        },
+        "cache-files-ttl": 0,
+        "discard-changes": true,
+        "secure-http": false
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": false,
+    "provide": {
+        "heroku-sys\/heroku": "20.2021.08.03"
+    },
+    "replace": {},
+    "require": {
+        "composer-exclude.json\/composer-exclude.lock": "dev-fc385a27e5169a169062c230878645d1"
+    },
+    "require-dev": {},
+    "repositories": [
+        {
+            "packagist": false
+        },
+        {
+            "type": "path",
+            "url": "..\/..\/..\/..\/..\/support\/installer",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "composer",
+            "url": "http://localhost:8080/packages-custom.json",
+            "exclude": ["heroku-sys/ext-redis"]
+        },
+        {
+            "type": "composer",
+            "url": "http://localhost:8080/packages.json"
+        },
+        {
+            "type": "package",
+            "package": [
+                {
+                    "type": "metapackage",
+                    "name": "composer-exclude.json\/composer-exclude.lock",
+                    "version": "dev-fc385a27e5169a169062c230878645d1",
+                    "require": {
+                        "heroku-sys\/php": "8.*",
+                        "heroku-sys\/ext-igbinary": "*",
+                        "heroku-sys\/ext-redis": "5.3.5"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                }
+            ]
+        }
+    ]
+}
