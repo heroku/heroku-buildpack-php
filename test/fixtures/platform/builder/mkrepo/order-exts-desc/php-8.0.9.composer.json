@@ -15,6 +15,9 @@
           "url": "https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/php-8.0.9.tar.gz?extension=heroku-sys/ext-bcmath"
         },
         "name": "heroku-sys/ext-bcmath",
+        "replace": {
+          "heroku-sys/ext-bcmath.native": "self.version"
+        },
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
@@ -29,7 +32,8 @@
   "name": "heroku-sys/php",
   "provide": {},
   "replace": {
-    "heroku-sys/ext-bz2": "self.version"
+    "heroku-sys/ext-bz2": "self.version",
+    "heroku-sys/ext-bz2.native": "self.version"
   },
   "require": {
     "heroku-sys/heroku": "^20.0.0",

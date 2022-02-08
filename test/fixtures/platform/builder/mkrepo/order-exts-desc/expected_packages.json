@@ -8,6 +8,9 @@
           "url": "https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/php-8.0.9.tar.gz?extension=heroku-sys/ext-bcmath"
         },
         "name": "heroku-sys/ext-bcmath",
+        "replace": {
+          "heroku-sys/ext-bcmath.native": "self.version"
+        },
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.9",
@@ -28,7 +31,9 @@
         },
         "name": "heroku-sys/ext-apcu",
         "provide": {},
-        "replace": {},
+        "replace": {
+          "heroku-sys/ext-apcu.native": "self.version"
+        },
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.*",
@@ -45,6 +50,9 @@
           "url": "https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/php-7.4.22.tar.gz?extension=heroku-sys/ext-bcmath"
         },
         "name": "heroku-sys/ext-bcmath",
+        "replace": {
+          "heroku-sys/ext-bcmath.native": "self.version"
+        },
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "7.4.22",
@@ -66,7 +74,9 @@
         "name": "heroku-sys/ext-apcu",
         "provide": {},
         "replace": {
-          "heroku-sys/ext-apc": "self.version"
+          "heroku-sys/ext-apc": "self.version",
+          "heroku-sys/ext-apc.native": "self.version",
+          "heroku-sys/ext-apcu.native": "self.version"
         },
         "require": {
           "heroku-sys/heroku": "^20.0.0",
@@ -93,7 +103,8 @@
         "name": "heroku-sys/php",
         "provide": {},
         "replace": {
-          "heroku-sys/ext-bz2": "self.version"
+          "heroku-sys/ext-bz2": "self.version",
+          "heroku-sys/ext-bz2.native": "self.version"
         },
         "require": {
           "heroku-sys/heroku": "^20.0.0",
@@ -119,7 +130,8 @@
         "name": "heroku-sys/php",
         "provide": {},
         "replace": {
-          "heroku-sys/ext-bz2": "self.version"
+          "heroku-sys/ext-bz2": "self.version",
+          "heroku-sys/ext-bz2.native": "self.version"
         },
         "require": {
           "heroku-sys/heroku": "^20.0.0",

@@ -227,32 +227,37 @@ All packages in the official Heroku S3 bucket use manifests, even for packages t
 
 ### Manifest Contents
 
-A manifest looks roughly like this (example is for `ext-apcu/5.1.17` for PHP 7.3 on stack `heroku-18`):
+A manifest looks roughly like this (example is for `ext-amqp/1.11.0` for PHP 8.1 on stack `heroku-20`):
 
     {
     	"conflict": {},
     	"dist": {
     		"type": "heroku-sys-tar",
-    		"url": "https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/extensions/no-debug-non-zts-20180731/apcu-5.1.17.tar.gz"
+    		"url": "https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20210902/amqp-1.11.0.tar.gz"
     	},
-    	"name": "heroku-sys/ext-apcu",
+    	"name": "heroku-sys/ext-amqp",
+    	"replace": {
+    		"heroku-sys/ext-amqp.native": "self.version"
+    	},
     	"require": {
-    		"heroku-sys/heroku": "^18.0.0",
-    		"heroku-sys/php": "7.3.*",
-    		"heroku/installer-plugin": "^1.2.0"
+    		"heroku-sys/heroku": "^20.0.0",
+    		"heroku-sys/php": "8.1.*",
+    		"heroku/installer-plugin": "^1.6.0"
     	},
     	"time": "2019-02-16 01:18:50",
     	"type": "heroku-sys-php-extension",
     	"version": "5.1.17"
     }
 
-*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php-extension" and .name == "heroku-sys/ext-apcu") ] | .[0]'`*
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php-extension" and .name == "heroku-sys/ext-amqp") ] | .[0]'`*
 
 Package `name`s must be prefixed with "`heroku-sys/`". Possible `type`s are `heroku-sys-php`, `heroku-sys-library`, `heroku-sys-php-extension`, `heroku-sys-program` or `heroku-sys-webserver`. The `dist` type must be "`heroku-sys-tar`".
 
 The special package type `heroku-sys-package` is used for internal packages used for bootstrapping (e.g. a minimal PHP build).
 
-The `require`d package `heroku/installer-plugin` will be available during install. Package `heroku-sys/heroku` is a virtual package `provide`d by the platform `composer.json` generated in `bin/compile` and has the right stack version (either "`16`" or "`18`"); the selector for `heroku-sys/php` ensures that the package only applies to PHP 7.0.x.
+The `require`d package `heroku/installer-plugin` will be available during install. Package `heroku-sys/heroku` is a virtual package `provide`d by the platform `composer.json` generated in `bin/compile` and has the right stack version (either "`18`" or "`20`"); the selector for `heroku-sys/php` ensures that the package only applies to PHP 8.1.x.
+
+The `replace` declaration for the same package name but postfixed with "`.native`" will allow future versions of the buildpack to attempt installation of the extension in case it was not selected by the dependency solver due to a userland package `provide`ing it.
 
 ### Manifest Helpers
 
