@@ -146,7 +146,7 @@ describe "The PHP Platform Installer" do
 		end
 		
 		it "can hold packages compatible with future versions of the buildpack the current version will ignore" do
-			Dir.chdir("test/fixtures/platform/repository/bundledextpacks") do |cwd|
+			Dir.chdir("test/fixtures/platform/repository/futurepaks") do |cwd|
 				# we spawn a web server that serves packages.json, like a real composer repository
 				# this is to ensure that Composer really uses ComposerRepository behavior for provide/replace declarations
 				@pid = spawn("php -S localhost:8080")
