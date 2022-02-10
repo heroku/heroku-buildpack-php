@@ -225,7 +225,7 @@ describe "The PHP Platform Installer" do
 	
 	describe "during a build" do
 		context "of a project that uses polyfills providing both bundled-with-PHP and third-party extensions" do
-			skip "treats polyfills for bundled-with-PHP and third-party extensions the same" do
+			it "treats polyfills for bundled-with-PHP and third-party extensions the same" do
 				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills').deploy do |app|
 					expect(app.output).to include("- php (7.4")
 					expect(app.output).not_to include("- ext-xmlrpc")
