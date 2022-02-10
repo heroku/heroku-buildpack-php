@@ -121,7 +121,7 @@ The custom Composer repository in the S3 bucket provides all of these magic `her
 
 The platform installer, implemented as a Heroku plugin, knows how to deal with all these details: it unpacks the binary tarballs, copies configuration files, prepares environment variable exports for `$PATH` so that binaries like `php` can be invoked.
 
-In the example above, the `ext-mbstring` extension is, for example, not a separate package, but provided by the `php` package. Unlike the `ext-json` and `ext-hash` requirements from `mongodb/mongodb`, which are also bundled with PHP, but always enabled, the `ext-mbstring` extension is built as a shared extension, and must explicitly be loaded. The metadata information for the `php` package contains the details of all provided extensions, so the installer knows, based on a list of requirements and Composer's internal installer and dependency state, that a `php.ini` include that explicitly loads the `mbstring.so` library must be generated for the application to function.
+In the example above, the `ext-mbstring` extension is, for example, not a standalone source package, but bundled with PHP. Unlike the `ext-json` and `ext-hash` requirements from `mongodb/mongodb`, which are also bundled with PHP, but always enabled, the `ext-mbstring` extension is built as a shared extension, and must explicitly be loaded. The metadata information for the `php` package contains the details of all extensions, whether compiled in statically or shared, so the installer knows, based on a list of requirements and Composer's internal installer and dependency state, that a `php.ini` include that explicitly loads the `mbstring.so` library must be generated for the application to function (because the resulting repository, as explained below, will contain a "dummy" entry for the shared `ext-mbstring` package).
 
 The application also contains a requirement for the `ext-pq` PostgreSQL extension. This extension in turn internally requires `ext-raphf`. This dependency is contained in the platform repository that is used for installation, so the dependency graph will automatically contain this package, and it will be installed in the correct order: `ext-raphf` before `ext-pq`. As a result, the platform installer will generate the `extension=raphf.so` INI directive before the `extension=pq.so` INI directive, and PHP will start successfully. Were this not the case, PHP would fail to load `ext-pq` on startup, as `pq.so` could not find the `raphf.so` shared library it needs to function.
 
@@ -227,32 +227,37 @@ All packages in the official Heroku S3 bucket use manifests, even for packages t
 
 ### Manifest Contents
 
-A manifest looks roughly like this (example is for `ext-apcu/5.1.17` for PHP 7.3 on stack `heroku-18`):
+A manifest looks roughly like this (example is for `ext-amqp/1.11.0` for PHP 8.1 on stack `heroku-20`):
 
     {
     	"conflict": {},
     	"dist": {
     		"type": "heroku-sys-tar",
-    		"url": "https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/extensions/no-debug-non-zts-20180731/apcu-5.1.17.tar.gz"
+    		"url": "https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20210902/amqp-1.11.0.tar.gz"
     	},
-    	"name": "heroku-sys/ext-apcu",
+    	"name": "heroku-sys/ext-amqp",
+    	"replace": {
+    		"heroku-sys/ext-amqp.native": "self.version"
+    	},
     	"require": {
-    		"heroku-sys/heroku": "^18.0.0",
-    		"heroku-sys/php": "7.3.*",
-    		"heroku/installer-plugin": "^1.2.0"
+    		"heroku-sys/heroku": "^20.0.0",
+    		"heroku-sys/php": "8.1.*",
+    		"heroku/installer-plugin": "^1.6.0"
     	},
     	"time": "2019-02-16 01:18:50",
     	"type": "heroku-sys-php-extension",
     	"version": "5.1.17"
     }
 
-*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php-extension" and .name == "heroku-sys/ext-apcu") ] | .[0]'`*
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php-extension" and .name == "heroku-sys/ext-amqp") ] | .[0]'`*
 
 Package `name`s must be prefixed with "`heroku-sys/`". Possible `type`s are `heroku-sys-php`, `heroku-sys-library`, `heroku-sys-php-extension`, `heroku-sys-program` or `heroku-sys-webserver`. The `dist` type must be "`heroku-sys-tar`".
 
 The special package type `heroku-sys-package` is used for internal packages used for bootstrapping (e.g. a minimal PHP build).
 
-The `require`d package `heroku/installer-plugin` will be available during install. Package `heroku-sys/heroku` is a virtual package `provide`d by the platform `composer.json` generated in `bin/compile` and has the right stack version (either "`16`" or "`18`"); the selector for `heroku-sys/php` ensures that the package only applies to PHP 7.0.x.
+The `require`d package `heroku/installer-plugin` will be available during install. Package `heroku-sys/heroku` is a virtual package `provide`d by the platform `composer.json` generated in `bin/compile` and has the right stack version (either "`18`" or "`20`"); the selector for `heroku-sys/php` ensures that the package only applies to PHP 8.1.x.
+
+The `replace` declaration for the same package name but postfixed with "`.native`" will allow future versions of the buildpack to attempt installation of the extension in case it was not selected by the dependency solver due to a userland package `provide`ing it.
 
 ### Manifest Helpers
 
@@ -287,6 +292,48 @@ For example, the Apache HTTPD web server is built roughly as follows:
 In this example, after building the program from source and "installing" it to the right prefix, two scripts are added that take care of adding HTTPD's `bin/` and `sbin/` directories to `$PATH` during build (for following buildpacks to access), and during dyno boot (for the application to work at runtime).
 
 Afterwards, `manifest.py` is passed several JSON objects as arguments for the various parts that make up the manifest. The `print_or_export_manifest_cmd` is then used to automatically either output instructions (when the formula is invoked via a `bob build` or `bob deploy`) on how to upload the manifest, or export the necessary manifest upload commands for automatic execution (when the formula is invoked via `deploy.sh`).
+
+#### Manifest expansion of shared PHP extensions
+
+For package type `heroku-sys-php`, the `manifest.py` helper will expand key/value (name/version) pairs in struct `extra.shared` into complete package manifests as the value; these will later be extracted into separate packages by `mkrepo.sh`, and the value will be reset to `false`.
+
+Example "extra" argument contents to `manifest.py` for a PHP 8.1.1 with shared extension `ext-bcmath` (other arguments to `manifest.py` omitted):
+
+    {"shared": {"heroku-sys/ext-bcmath": "8.1.1"}}
+
+Example generated PHP package manifest (reduced to relevant sections):
+
+    {
+    	"dist": {
+    		"type": "heroku-sys-tar",
+    		"url": "https://lang-php.s3.amazonaws.com/dist-heroku-20-develop/php-8.1.1.tar.gz"
+    	},
+    	"extra": {
+    		"shared": {
+    			"heroku-sys/ext-bcmath": {
+    				"dist": {
+    					"type": "heroku-sys-php-bundled-extension",
+    					"url": "https://lang-php.s3.amazonaws.com/dist-heroku-20-develop/php-8.1.1.tar.gz?extension=heroku-sys/ext-bcmath"
+    				},
+    				"name": "heroku-sys/ext-bcmath",
+    				"require": {
+    					"heroku-sys/heroku": "^20.0.0",
+    					"heroku-sys/php": "8.1.1",
+    					"heroku/installer-plugin": "^1.6.0"
+    				},
+    				"time": "2022-01-26 20:49:45",
+    				"type": "heroku-sys-php-extension",
+    				"version": "8.1.1"
+    			}
+    		}
+    	},
+    	"name": "heroku-sys/php",
+    	"time": "2022-01-26 20:49:45",
+    	"type": "heroku-sys-php",
+    	"version": "8.1.1"
+    }
+
+The "embedded" manifest for `ext-bcmath` will be written to a separate package entry by `mkrepo.sh`.
 
 ### Manifest Specification
 
@@ -344,11 +391,15 @@ The `dist` key must contain a struct with key `type` set to "`heroku-sys-tar`", 
 
 *Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {dist}'`*
 
+For "dummy" entries for extensions bundled with PHP, a `type` of `heroku-sys-php-bundled-extension` will cause no download operation to happen; however, the package will still generate an install event internally, and the package will participate in dependency resolution the same way a "real", third-party extension would. Their `url` field will be ignored, but should be a valid URL.
+
 #### Replaces
 
 Composer packages may replace other packages. In the case of platform packages, this is useful mostly in case of a runtime. PHP is bundled with many extensions out of the box, so the manifest for the PHP package must indicate that it contains `ext-standard`, `ext-dom`, and so forth, and thus its manifest contains a long list of `heroku-sys/ext-…` entries under the `replace` key.
 
 *Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {replace}'`*
+
+PHP extensions built as shared are not listed in `replace`, as they get dedicated package entries in the repository, with a `dist` type of `heroku-sys-php-bundled-extension` (see above).
 
 #### Extra: Config
 
@@ -391,11 +442,9 @@ For most packages, the `export` key is never needed; the `profile` key is someti
 
 #### Extra: Shared
 
-As package of type `heroku-sys-php` may come bundled with a bunch of extensions, it must list these extensions in the `replace` section of its manifest. However, not all of these bundled extensions may be built into the engine, but instead may have been built as `shared`, meaning their `.so` needs to be loaded into the engine using an [`extension=…`](http://php.net/manual/en/ini.core.php#ini.extension) INI directive.
+As package of type `heroku-sys-php` may come bundled with a bunch of extensions, it must list the all statically-built-in extensions in the `replace` section of its manifest; all extensions built as `shared` must instead be generated as separate packages (see further above). In order to allow external tooling to still quickly determine which packages belong to a PHP release, an entry for each shared extension should be generated in struct `extra.shared`, with package names as keys and `false` as the value.
 
-In order for the custom platform installer to know that an extension is built as shared, the names of all shared extensions (in full "`heroku-sys/ext-…`" format) must be listed inside the `extra`.`shared` struct as keys, each with a value of boolean `true`.
-
-*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {extra: {shared: .extra.shared}}'`*
+*Example: `curl -s https://lang-php.s3.amazonaws.com/dist-heroku-18-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php" and .require["heroku/installer-plugin"] == "^1.6.0") ][0] | {extra: {shared: .extra.shared}}'`*
 
 ## About Repositories
 

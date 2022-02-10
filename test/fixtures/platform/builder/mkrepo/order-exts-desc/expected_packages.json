@@ -4,6 +4,25 @@
       {
         "conflict": {},
         "dist": {
+          "type": "heroku-sys-php-bundled-extension",
+          "url": "https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/php-8.0.9.tar.gz?extension=heroku-sys/ext-bcmath"
+        },
+        "name": "heroku-sys/ext-bcmath",
+        "replace": {
+          "heroku-sys/ext-bcmath.native": "self.version"
+        },
+        "require": {
+          "heroku-sys/heroku": "^20.0.0",
+          "heroku-sys/php": "8.0.9",
+          "heroku/installer-plugin": "^1.6.0"
+        },
+        "time": "2021-07-29 20:07:21",
+        "type": "heroku-sys-php-extension",
+        "version": "8.0.9"
+      },
+      {
+        "conflict": {},
+        "dist": {
           "type": "heroku-sys-tar",
           "url": "https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/apcu-5.1.20.tar.gz"
         },
@@ -12,15 +31,36 @@
         },
         "name": "heroku-sys/ext-apcu",
         "provide": {},
-        "replace": {},
+        "replace": {
+          "heroku-sys/ext-apcu.native": "self.version"
+        },
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "8.0.*",
-          "heroku/installer-plugin": "^1.2.0"
+          "heroku/installer-plugin": "^1.6.0"
         },
         "time": "2021-06-07 14:51:08",
         "type": "heroku-sys-php-extension",
         "version": "5.1.20"
+      },
+      {
+        "conflict": {},
+        "dist": {
+          "type": "heroku-sys-php-bundled-extension",
+          "url": "https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/php-7.4.22.tar.gz?extension=heroku-sys/ext-bcmath"
+        },
+        "name": "heroku-sys/ext-bcmath",
+        "replace": {
+          "heroku-sys/ext-bcmath.native": "self.version"
+        },
+        "require": {
+          "heroku-sys/heroku": "^20.0.0",
+          "heroku-sys/php": "7.4.22",
+          "heroku/installer-plugin": "^1.6.0"
+        },
+        "time": "2021-07-29 20:06:21",
+        "type": "heroku-sys-php-extension",
+        "version": "7.4.22"
       },
       {
         "conflict": {},
@@ -33,11 +73,15 @@
         },
         "name": "heroku-sys/ext-apcu",
         "provide": {},
-        "replace": {},
+        "replace": {
+          "heroku-sys/ext-apc": "self.version",
+          "heroku-sys/ext-apc.native": "self.version",
+          "heroku-sys/ext-apcu.native": "self.version"
+        },
         "require": {
           "heroku-sys/heroku": "^20.0.0",
           "heroku-sys/php": "7.4.*",
-          "heroku/installer-plugin": "^1.2.0"
+          "heroku/installer-plugin": "^1.6.0"
         },
         "time": "2021-06-07 14:50:08",
         "type": "heroku-sys-php-extension",
@@ -51,14 +95,20 @@
         },
         "extra": {
           "export": "bin/export.php.sh",
-          "profile": "bin/profile.php.sh"
+          "profile": "bin/profile.php.sh",
+          "shared": {
+            "heroku-sys/ext-bcmath": false
+          }
         },
         "name": "heroku-sys/php",
         "provide": {},
-        "replace": {},
+        "replace": {
+          "heroku-sys/ext-bz2": "self.version",
+          "heroku-sys/ext-bz2.native": "self.version"
+        },
         "require": {
           "heroku-sys/heroku": "^20.0.0",
-          "heroku/installer-plugin": "^1.2.0"
+          "heroku/installer-plugin": "^1.6.0"
         },
         "time": "2021-07-29 20:06:21",
         "type": "heroku-sys-php",
@@ -72,14 +122,20 @@
         },
         "extra": {
           "export": "bin/export.php.sh",
-          "profile": "bin/profile.php.sh"
+          "profile": "bin/profile.php.sh",
+          "shared": {
+            "heroku-sys/ext-bcmath": false
+          }
         },
         "name": "heroku-sys/php",
         "provide": {},
-        "replace": {},
+        "replace": {
+          "heroku-sys/ext-bz2": "self.version",
+          "heroku-sys/ext-bz2.native": "self.version"
+        },
         "require": {
           "heroku-sys/heroku": "^20.0.0",
-          "heroku/installer-plugin": "^1.2.0"
+          "heroku/installer-plugin": "^1.6.0"
         },
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php",

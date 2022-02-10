@@ -1,0 +1,1 @@
+This test case asserts that for each shared PHP extension manifest generated into `extra.shared` by `manifest.py` for a PHP package, `mkrepo.sh` will produce a standalone package in the repository (and then scrub the info from `extra.shared`).

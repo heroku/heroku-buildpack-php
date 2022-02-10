@@ -171,7 +171,7 @@ foreach($packages as $package) {
 				$insertExtension->bindValue(':series', $serie, SQLITE3_TEXT);
 				$insertExtension->bindValue(':stack', $stack, SQLITE3_TEXT);
 				$insertExtension->bindValue(':bundled', 1, SQLITE3_INTEGER);
-				$insertExtension->bindValue(':enabled', !($package["extra"]["shared"][$rname]??false), SQLITE3_INTEGER);
+				$insertExtension->bindValue(':enabled', !isset($package["extra"]["shared"][$rname]), SQLITE3_INTEGER);
 				$insertExtension->execute();
 			}
 		} else {

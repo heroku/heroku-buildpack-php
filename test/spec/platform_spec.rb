@@ -5,6 +5,8 @@ require "shellwords"
 require "tempfile"
 
 generator_fixtures_subdir = "test/fixtures/platform/generator"
+manifest_fixtures_subdir = "test/fixtures/platform/builder/manifest"
+mkrepo_fixtures_subdir = "test/fixtures/platform/builder/mkrepo"
 
 describe "The PHP Platform Installer" do
 	describe "composer.json Generator Script" do
@@ -144,7 +146,7 @@ describe "The PHP Platform Installer" do
 		end
 		
 		it "can hold packages compatible with future versions of the buildpack the current version will ignore" do
-			Dir.chdir("test/fixtures/platform/repository/bundledextpacks") do |cwd|
+			Dir.chdir("test/fixtures/platform/repository/futurepaks") do |cwd|
 				# we spawn a web server that serves packages.json, like a real composer repository
 				# this is to ensure that Composer really uses ComposerRepository behavior for provide/replace declarations
 				@pid = spawn("php -S localhost:8080")
@@ -180,32 +182,62 @@ describe "The PHP Platform Installer" do
 		end
 	end
 	
+	describe "Package Manifest Generator Script" do
+		Dir.each_child(manifest_fixtures_subdir) do |testcase|
+			it "produces the expected package manifest JSON for case #{testcase}" do
+				bp_root = [".."].cycle("#{manifest_fixtures_subdir}/#{testcase}".count("/")+1).to_a.join("/") # right "../.." sequence to get us back to the root of the buildpack
+				Dir.chdir("#{manifest_fixtures_subdir}/#{testcase}") do |cwd|
+					cmd = File.read("ENV") # any env vars for the test (manifest.py needs STACK, S3_BUCKET, S3_PREFIX, TIME)
+					cmd << " python #{bp_root}/support/build/_util/include/manifest.py "
+					cmd << File.read("ARGS")
+					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
+				
+					expect(status.exitstatus).to eq(0), "manifest.py failed, stdout: #{stdout}, stderr: #{stderr}"
+				
+					expected_json = JSON.parse(File.read("expected_manifest.json"))
+					generated_json = JSON.parse(stdout)
+				
+					expect(expected_json).to eq(generated_json)
+				end
+			end
+		end
+	end
+	
 	describe "Repository Generator Script" do
-		it "orders PHP extensions in descending PHP version requirement order" do
-			# our PHP packages are named "php", and versioned "7.4.0", "8.0.9", and so forth
-			# each extension, say "ext-redis", has a release version, say "5.1.2", but gets compiled for each PHP version series
-			# as a result, there are multiple packages named "ext-redis" with version "5.1.2", pointing to different tarballs
-			# each of these packages' Composer package metadata lists the respective PHP version series as a dependency in its "require" section, e.g. "php": "8.0.*" or "php": "7.4.*"
-			# Composer's dependency solver supports multiple packages with the same name and version inside a repository, but to keep complexity manageable, it will pick the first packages that satisfy the given version range requirements, and "stick" to them, even if for some selected packages, a different combination with higher version numbers might be resolvable
-			# this is never a problem in "real life" for user-land dependencies, because no package there can exist multiple times with the same name and version, but different requirements inside
-			# we do however need this for extensions, and if a user's requirements have no specific bounds (e.g. the user requires "php":">=7.0.0" and "ext-redis":"*"), and edge case might be triggered
-			# in this particular situation, a user would get PHP 8 and ext-redis
-			# however, if a user lists "ext-redis":"*" first, and "php":">=7.0.0" second, and the repository lists the "ext-redis" package for PHP 7.4.* before the "ext-redis" package for PHP 8.0.*, a user will get PHP 7.4 installed instead of PHP 8.0
-			# if the repository however lists the "ext-redis" package for PHP 8.0.* first, a user will get PHP 8.0 installed instead
-			# that's why mkrepo.sh re-orders extension packages to be in descending order of PHP series they are compiled for, to ensure that users always get the highest possible PHP version that also satisfies all other requirements
-			
-			Dir.chdir("test/fixtures/platform/builder/mkrepo/order-exts-desc") do
-				# shell glob expansion means mkrepo.sh will receive the file arguments in alnum order, so our PHP 7.4 extension package metadata file will be handed in before the PHP 8.0 extension one
-				cmd = "../../../../../../support/build/_util/mkrepo.sh OURS3BUCKET OURS3PREFIX/ *.composer.json"
-				stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
+		Dir.each_child(mkrepo_fixtures_subdir) do |testcase|
+			it "produces the expected platform packages.json for case #{testcase}" do
+				bp_root = [".."].cycle("#{mkrepo_fixtures_subdir}/#{testcase}".count("/")+1).to_a.join("/") # right "../.." sequence to get us back to the root of the buildpack
+				Dir.chdir("#{mkrepo_fixtures_subdir}/#{testcase}") do |cwd|
+					
+					cmd = "#{bp_root}/support/build/_util/mkrepo.sh OURS3BUCKET OURS3PREFIX/ *.composer.json"
+					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 				
-				expect(status.exitstatus).to eq(0), "mkrepo.sh failed, stdout: #{stdout}, stderr: #{stderr}"
+					expect(status.exitstatus).to eq(0), "mkrepo.sh failed, stdout: #{stdout}, stderr: #{stderr}"
 				
-				expected_json = JSON.parse(File.read("expected_packages.json"))
-				generated_json = JSON.parse(stdout)
+					expected_json = JSON.parse(File.read("expected_packages.json"))
+					generated_json = JSON.parse(stdout)
 				
-				# our expected packages.json has the PHP 8.0.* extension before the PHP 7.4.* extension, do they match?
-				expect(expected_json).to eq(generated_json)
+					expect(expected_json).to eq(generated_json)
+				end
+			end
+		end
+	end
+	
+	describe "during a build" do
+		context "of a project that uses polyfills providing both bundled-with-PHP and third-party extensions" do
+			skip "treats polyfills for bundled-with-PHP and third-party extensions the same" do
+				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills').deploy do |app|
+					expect(app.output).to include("- php (7.4")
+					expect(app.output).not_to include("- ext-xmlrpc")
+					expect(app.output).not_to include("- ext-uuid")
+				end
+			end
+			it "installs native bundled extensions even if they are provided by a polyfill for legacy PHP versions" do
+				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-legacy').deploy do |app|
+					expect(app.output).to include("- php (7.3")
+					expect(app.output).to include("- ext-xmlrpc")
+					expect(app.output).not_to include("- ext-uuid")
+				end
 			end
 		end
 	end

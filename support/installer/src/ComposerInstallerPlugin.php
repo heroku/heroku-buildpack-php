@@ -43,6 +43,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		
 		$loop = $composer->getLoop();
 		$process = $loop->getProcessExecutor();
+		// our custom tar installer handles extraction into a shared base dir, and works around symlink troubles in PHAR
 		$composer->getDownloadManager()->setDownloader(
 			'heroku-sys-tar',
 			new Downloader(
@@ -53,6 +54,14 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 				null, // no cache passed in as we explicitly don't want one; inside the slug it makes no sense, as slugs are immutable, and outside the slug (in the app's build cache), it makes little difference (packages are on S3, the cache is on S3) performance wise but would massively bloat the cache size and thus storage cost
 				new Filesystem($process),
 				$process
+			)
+		);
+		// for packages that are bundled extensions of a "parent" PHP, the dist download points to PHP itself; we don't have to download anything, but just enable the extension via config using the same hooks as for "real" extension packages
+		$composer->getDownloadManager()->setDownloader(
+			'heroku-sys-php-bundled-extension',
+			new NoopDownloader(
+				$io,
+				function($package, $path) { return 'Enabling <info>'.$package->getPrettyName().'</info> (bundled with <comment>php</comment>)'; } // the suffix string we want after our bundled ext "install"
 			)
 		);
 		$composer->getInstallationManager()->addInstaller(new ComposerInstaller($io, $composer));
@@ -108,6 +117,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		
 		// if a package requires `ext-bcmath`, which is `replace`d by `php`, no install event is generated for `ext-bcmath`, but we still need to enable it
 		// to do this, we first collect all requirements in a list, then later check a package's `replace` declarations against this list (in enableReplaces())
+		// PHP packages built for v1.6 or later of the installer no longer need this, as they cause generating of "dummy" extension packages in the repository; for those, enableExtension() below will not be called, because the shared extensions are no longer listed in the package's `replace` section.
 		
 		$this->allPlatformRequirements = [];
 		foreach($operations as $operation) {
@@ -132,6 +142,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	{
 		// the current package may be "replace"ing any of the packages (e.g. ext-bcmath is bundled with PHP) that are required by another package
 		// we need to figure out which those are so enableExtension() can decide if they need enabling (because they're built shared)
+		// PHP packages built for installer v1.6 or later no longer list shared extensions in `replace`
 		$enable = array_intersect_key($package->getReplaces(), $this->allPlatformRequirements);
 		
 		foreach(array_keys($enable) as $extension) {
@@ -156,7 +167,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 			$config = isset($extra['config']) ? $extra['config'] : true;
 		} else {
 			// this is part of the "shared extensions bundled with PHP" functionality described in the comments for initAllPlatformRequirements
-			// TODO: potentially remove this in a future version
+			// TODO: potentially remove this in a future version, as PHP packages for installer v1.6 and later no longer use this
 			// we're enabling another extension that this package `replace`s - e.g. we are PHP, and we bundle an extension another package has declared as a dependency
 			// in this case, a package lists all those `replace`d extensions that are built as a shared library (as opposed to compiled into PHP) in a hash named `shared` in the package metadata's `extra` section
 			// this way we can know whether an extension is compiled into PHP, or compiled as a shared library, in which case we need to write an "extension=extname.so" entry into an INI file
