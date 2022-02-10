@@ -52,7 +52,6 @@ jobs:
             not:
               or:
                 - equal: [ main, << pipeline.git.branch >> ]
-                - equal: [ composer2installer, << pipeline.git.branch >> ]
                 - << pipeline.git.tag >>
           steps:
             - run: 
