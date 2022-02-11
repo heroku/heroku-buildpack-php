@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "92aa14853b5fa7e3f0c6cd8d900c30df",
+    "content-hash": "e3b46e9d44539b00a50d3340c1882871",
     "packages": [
         {
             "name": "dummypak/ext-pq-polyfill",
@@ -283,7 +283,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "7.3.*",
+        "php": "*",
         "ext-ctype": "*",
         "ext-pq": "*",
         "ext-uuid": "*",
