@@ -30,7 +30,7 @@
 		}
 	],
 	"require": {
-		"php": "7.3.*",
+		"php": "*",
 		"dummypak/ext-pq-polyfill": "^1.0",
 		"dummypak/ext-xmlrpc-polyfill": "^1.0",
 		"symfony/polyfill-ctype": "^1.24.0",

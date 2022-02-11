@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v210 (2021-02-11)
+
+### CHG
+
+- For any PHP extension declared as `provide`d by a userland package ("polyfill"), attempt explicit installation after main platform install succeeded [David Zuelke]
+
 ## v209 (2021-02-10)
 
 (no changes; release bump for rolling out v208 repository update)
