@@ -384,10 +384,11 @@ export COMPOSER=composer.json
 
 status "Installing platform packages..."
 
-# pass export_file_path and profile_dir_path to composer install; they will be used by the installer plugin
+# pass export_file_path, profile_dir_path and providedextensionslog_file_path (used to record packages that provide native extensions) to composer install; they will be used by the installer plugin
 # they are also used in later install attempts for add-on extensions (blackfire, newrelic, ...)
 export export_file_path=$bp_dir/export
 export profile_dir_path=$build_dir/.profile.d
+export providedextensionslog_file_path=$(mktemp -t "provided-extensions.log.XXXXXX" -u)
 # grep and sed in a subshell with || true, or a failing grep match will cause the exit code to be 1 if "composer install" fails with code 2
 if composer install -d "$build_dir/.heroku/php" ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} 2>&1 | tee $build_dir/.heroku/php/install.log | ( grep --line-buffered -E '^  - (Instal|Enab)ling heroku-sys/' | sed -u -E -e 's/^  - (Instal|Enab)ling /- /' -e 's/heroku-sys\///g' || true ) | indent; then
 	:
@@ -462,6 +463,47 @@ else
 		For a list of supported runtimes & extensions on Heroku, please
 		refer to: https://devcenter.heroku.com/articles/php-support
 	EOF
+fi
+
+export -n providedextensionslog_file_path # export no longer needed
+if [[ -s "$providedextensionslog_file_path" ]]; then
+	notice_inline "detected userland polyfill packages for PHP extensions"
+	notice_inline "now attempting to install native extension packages"
+	current_install_log=$(mktemp -t "currentinstall.log.XXXXXX" -u) # for capturing the single "composer install" output
+	# the platform installer recorded userland packages that "provide" a PHP extension
+	# for each occurrence (source package providing other package(s)) in the list,
+	# we will now attempt to install the real native extension packages (rest of the line)
+	# this isolated install will not change anything else about the existing dependency graph
+	while read -r -u "$fd_num" line; do # $fd_num comes from the end of the loop
+		read -r -a provides <<< "$line" # read words of line into array
+		echo "Installing extensions provided by ${provides[0]}:" | indent # first "word" is userland package name
+		for extension in "${provides[@]:1}"; do # remaining words in line are native extensions it declares "provide"d
+			ext_package=$(cut -d":" -f1 <<< "$extension") # extract name from "ext-foo:1.2.3" string
+			ext_name=${ext_package#"heroku-sys/"} # no "heroku-sys/" prefix for human output
+			echo -n "- ${ext_name}... " | indent
+			mv $build_dir/.heroku/php/${COMPOSER}{,.bak} # back up composer.json
+			# add our requirement
+			cat $build_dir/.heroku/php/${COMPOSER}.bak | /app/.heroku/php-min/bin/php -r '
+				$json = json_decode(file_get_contents("php://stdin"));
+				$json->require->{$argv[1]} = $json->require->{$argv[1]} ?? "*";
+				echo json_encode($json, JSON_PRETTY_PRINT);
+			' -- "${ext_package}.native" > $build_dir/.heroku/php/$COMPOSER
+			# run a `composer update`, confined to the package we're attempting, allowing any version
+			# we're appending to install.log using tee, and using the same grep/sed filtering of packages as for regular installs
+			# we're letting sed begin the line with a \r character, so that the above `echo -n` gets overwritten
+			if composer update ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} -d "$build_dir/.heroku/php" "${ext_package}.native" 2>&1 | tee -a $build_dir/.heroku/php/install.log | ( grep --line-buffered -E '^  - (Instal|Enab)ling heroku-sys/' | sed -u -E -e 's/^  - (Instal|Enab)ling /- /' -e 's/heroku-sys\///g' || true ) | tee "$current_install_log" | indent "" $'\r       '; then
+				# package added successfully
+				rm $build_dir/.heroku/php/${COMPOSER}.bak # remove backup
+				[[ -s "$current_install_log" ]] || { echo -e "- ${ext_name} (already enabled)" | indent "" $'\r       '; } # if nothing was actually installed above, that means the dependency was already satisfied (i.e. extension is statically built into PHP); we need to echo something to that effect
+			else
+				# composer did not succeed; this means no package that matches all existing package's requirements was found
+				mv $build_dir/.heroku/php/${COMPOSER}{.bak,} # restore previous composer.json
+				echo -n -e "\r" # reset the line
+				notice_inline "no suitable native version of ${ext_name} available"
+			fi
+		done
+	done {fd_num}< "$providedextensionslog_file_path" # use bash 4.1+ automatic file descriptor allocation (better than hardcoding e.g. "3<"), otherwise this loop's stdin (the lines of the file) will be consumed by programs called inside the loop
+	rm "$current_install_log"
 fi
 
 # log number of installed platform packages

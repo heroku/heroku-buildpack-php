@@ -81,15 +81,20 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	{
 		return [PackageEvents::POST_PACKAGE_INSTALL => 'onPostPackageInstall'];
 	}
-
+	
 	public function onPostPackageInstall(PackageEvent $event)
 	{
-		if(!in_array($event->getOperation()->getPackage()->getType(), ['heroku-sys-php', 'heroku-sys-php-extension', 'heroku-sys-webserver', 'heroku-sys-library', 'heroku-sys-program'])) return;
-		
 		// first, load all platform requirements from all operations
 		// this is because if a package requires `ext-bcmath`, which is `replace`d by `php`, no install event is generated for `ext-bcmath`, but we still need to enable it
 		// we cannot do this via InstallerEvents::PRE_OPERATIONS_EXEC, as that fires before this plugin is even installed
 		$this->initAllPlatformRequirements($event->getOperations());
+		
+		if($event->getOperation()->getPackage()->getType() == "metapackage") {
+			// a package representing a userland package (might even be "composer.json/composer.lock") that triggered an install event; this may mean it contains a "provide" declaration we need to remember for later
+			$this->recordUserlandProvides($event->getOperation()->getPackage());
+		}
+		
+		if(!in_array($event->getOperation()->getPackage()->getType(), ['heroku-sys-php', 'heroku-sys-php-extension', 'heroku-sys-webserver', 'heroku-sys-library', 'heroku-sys-program'])) return;
 		
 		try {
 			// configure the package if needed (currently only applies to extensions)
@@ -110,7 +115,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	// this is for legacy packages/repos, targeting installer v1.5 or earlier, where PHP's own extensions were not written out as separate packages like it will (likely) be the case in v1.6
 	// since this is, realistically, only used by PHP (for its bundled shared extensions), we can probably remove this in the future; however, doing this without a BC break would require bumping the installer version to 2.0, which (even if we fully re-built our own repositories) would break third-party repositories
 	// the alternative will be to remove this in e.g. v1.7 or v1.8, and adding deprecation warnings beforehand, in order to warn the (few, if any) users that have custom repositories with their own builds of PHP
-	// TODO: potentially remove this in a future version
+	// TODO: potentially remove this in a future version, but recordUserlandProvides() now uses this as well to speed up ".native" extension variant installs (by skipping unnecessary attempts)
 	protected function initAllPlatformRequirements(array $operations)
 	{
 		if($this->allPlatformRequirements !== null) return;
@@ -127,6 +132,23 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 				}
 			}
 		}
+	}
+	
+	public function recordUserlandProvides(PackageInterface $package)
+	{
+		if(!($dest = getenv('providedextensionslog_file_path'))) return;
+		// for every heroku-sys/ext-… package this package declares as "provide"d, we record an entry in a job file
+		// once the install here succeeds, the buildpack will perform an install attempt for the ".native" variant of each of them
+		// a beneficial side-effect is that the installation attempts for these native exts will occur in the same order as the install here, meaning packages listed earlier, or depended upon by many others, will take precedence in the install order
+		$providedExtensions = [];
+		foreach($package->getProvides() as $provide) {
+			// but we only do that for extensions that any other package even requires!
+			// no need to attempt installs for extensions provided by polyfills if the extension isn't required anywhere
+			if(strpos($provide->getTarget(), "heroku-sys/ext-") === 0 && isset($this->allPlatformRequirements[$provide->getTarget()])) {
+				$providedExtensions[] = sprintf("%s:%s", $provide->getTarget(), $provide->getPrettyConstraint()); 
+			}
+		}
+		if($providedExtensions) file_put_contents($dest, sprintf("%s %s\n", $package->getPrettyName(), implode(" ", $providedExtensions)), FILE_APPEND);
 	}
 	
 	protected function configurePackage(PackageInterface $package)
