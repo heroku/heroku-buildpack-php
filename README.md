@@ -37,12 +37,5 @@ It uses Composer for dependency management, supports PHP or HHVM (experimental) 
     `git fetch upstream`
 3. Rewrite your master with latest tag version
     `git rebase upstream/main`
-4. Sync changes to retrieve the new data. Check if bin/snowflake.sh is in place. If PHP version changed, need to change the extension name dir to reflect the PHP API version. You may retrieve the PHP API version with the command `php -i | grep 'PHP API'`
-5. Add the followin code to `bin/compile` just above the row `status "Preparing runtime environment..."`
-    `# snowflake
-    source $bp_dir/bin/snowflake.sh`
-6. Add the following lines to `conf/php/php.ini`
-    `extension=pdo_snowflake.so
-    pdo_snowflake.cacert=cacert.pem`
-7. Update `conf/php/cacert.pem` with content from `https://github.com/gisle/mozilla-ca/blob/master/lib/Mozilla/CA/cacert.pem`
-8. Commit and push to main
+4. Sync changes to retrieve the new data. 
+5. Commit and push to main
