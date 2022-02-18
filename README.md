@@ -12,9 +12,6 @@ It uses Composer for dependency management, supports PHP or HHVM (experimental) 
 
 ## Update process
 
-
-### Updating Snowflake
-
 1. Add the original repo as "upstream":
     `git remote add upstream https://github.com/snowflakedb/pdo_snowflake.git`
 2. Fetch all branches of remote upstream
