@@ -8,6 +8,11 @@
 - PHP/8.0.16 [David Zuelke]
 - PHP/8.1.3 [David Zuelke]
 - ext-blackfire/1.74.1 [David Zuelke]
+- ext-redis/5.3.7 [David Zuelke]
+
+### CHG
+
+- blackfire/2.6.0 [David Zuelke]
 
 ## v210 (2021-02-11)
 
