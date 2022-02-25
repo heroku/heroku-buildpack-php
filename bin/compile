@@ -232,7 +232,7 @@ curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
-curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-2.2.6.tar.gz" || {
+curl_retry_on_18 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-2.2.7.tar.gz" || {
 	mcount "failures.bootstrap.download.composer"
 	error <<-EOF
 		Failed to download Composer for bootstrapping!
@@ -481,23 +481,14 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 			ext_package=$(cut -d":" -f1 <<< "$extension") # extract name from "ext-foo:1.2.3" string
 			ext_name=${ext_package#"heroku-sys/"} # no "heroku-sys/" prefix for human output
 			echo -n "- ${ext_name}... " | indent
-			mv $build_dir/.heroku/php/${COMPOSER}{,.bak} # back up composer.json
-			# add our requirement
-			cat $build_dir/.heroku/php/${COMPOSER}.bak | /app/.heroku/php-min/bin/php -r '
-				$json = json_decode(file_get_contents("php://stdin"));
-				$json->require->{$argv[1]} = $json->require->{$argv[1]} ?? "*";
-				echo json_encode($json, JSON_PRETTY_PRINT);
-			' -- "${ext_package}.native" > $build_dir/.heroku/php/$COMPOSER
-			# run a `composer update`, confined to the package we're attempting, allowing any version
+			# run a `composer require`, confined to the package we're attempting, allowing any version
 			# we're appending to install.log using tee, and using the same grep/sed filtering of packages as for regular installs
 			# we're letting sed begin the line with a \r character, so that the above `echo -n` gets overwritten
-			if composer update ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} -d "$build_dir/.heroku/php" "${ext_package}.native" 2>&1 | tee -a $build_dir/.heroku/php/install.log | ( grep --line-buffered -E '^  - (Instal|Enab)ling heroku-sys/' | sed -u -E -e 's/^  - (Instal|Enab)ling /- /' -e 's/heroku-sys\///g' || true ) | tee "$current_install_log" | indent "" $'\r       '; then
+			if composer require -d "$build_dir/.heroku/php" "${ext_package}.native:*" 2>&1 | tee -a $build_dir/.heroku/php/install.log | ( grep --line-buffered -E '^  - (Instal|Enab)ling heroku-sys/' | sed -u -E -e 's/^  - (Instal|Enab)ling /- /' -e 's/heroku-sys\///g' || true ) | tee "$current_install_log" | indent "" $'\r       '; then
 				# package added successfully
-				rm $build_dir/.heroku/php/${COMPOSER}.bak # remove backup
 				[[ -s "$current_install_log" ]] || { echo -e "- ${ext_name} (already enabled)" | indent "" $'\r       '; } # if nothing was actually installed above, that means the dependency was already satisfied (i.e. extension is statically built into PHP); we need to echo something to that effect
 			else
 				# composer did not succeed; this means no package that matches all existing package's requirements was found
-				mv $build_dir/.heroku/php/${COMPOSER}{.bak,} # restore previous composer.json
 				echo -n -e "\r" # reset the line
 				notice_inline "no suitable native version of ${ext_name} available"
 			fi
