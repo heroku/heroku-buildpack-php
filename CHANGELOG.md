@@ -15,6 +15,7 @@
 
 - Apache/2.4.53 [David Zuelke]
 - blackfire/2.7.0 [David Zuelke]
+- Composer/2.2.9 [David Zuelke]
 
 ## v212 (2021-02-25)
 
