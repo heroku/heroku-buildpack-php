@@ -9,6 +9,7 @@
 - ext-blackfire/1.75.0 [David Zuelke]
 - ext-mongodb/1.12.1 [David Zuelke]
 - ext-newrelic/9.20.0.310 [David Zuelke]
+- ext-rdkafka/6.0.1 [David Zuelke]
 
 ## v212 (2021-02-25)
 
