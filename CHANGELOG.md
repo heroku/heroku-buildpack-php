@@ -1,5 +1,22 @@
 # heroku-buildpack-php CHANGELOG
 
+## v213 (2021-03-17)
+
+### ADD
+
+- PHP/8.0.17 [David Zuelke]
+- PHP/8.1.4 [David Zuelke]
+- ext-blackfire/1.75.0 [David Zuelke]
+- ext-mongodb/1.12.1 [David Zuelke]
+- ext-newrelic/9.20.0.310 [David Zuelke]
+- ext-rdkafka/6.0.1 [David Zuelke]
+
+### CHG
+
+- Apache/2.4.53 [David Zuelke]
+- blackfire/2.7.0 [David Zuelke]
+- Composer/2.2.9 [David Zuelke]
+
 ## v212 (2021-02-25)
 
 ### CHG
