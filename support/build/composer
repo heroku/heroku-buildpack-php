@@ -78,10 +78,17 @@ export PATH="$HOME/.heroku/php/bin:$PATH"
 export PATH="$PATH:$(realpath "$(PHP_INI_SCAN_DIR= COMPOSER_AUTH= composer config --no-plugins bin-dir)")"
 EOF
 
+# Composer 2.3+ requires 7.2.5+
+if [[ $dep_version == 1.* || $dep_version == 2.[012].* ]]; then
+	phpreq=">=5.3.2"
+else
+	phpreq=">=7.2.5"
+fi
+
 # the || true (needs to be there, not before the <<-'HEREDOC') prevents 'set -e' induced termination from the 'read' encountering EOF
-read -r -d '' require <<-'EOF' || true
+read -r -d '' require <<-EOF || true
 {
-	"heroku-sys/php": ">=5.3.2",
+	"heroku-sys/php": "${phpreq}",
 	"heroku-sys/ext-filter": "*",
 	"heroku-sys/ext-hash": "*",
 	"heroku-sys/ext-iconv": "*",
