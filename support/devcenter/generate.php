@@ -9,6 +9,7 @@ require('vendor/autoload.php');
 $stacks = [
 	1 => '18', // the offset we start with here is relevant for the numbering of footnotes
 	'20',
+	'22',
 ];
 // these need updating from time to time to add new series and remove EOL ones
 $series = [

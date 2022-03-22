@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v218 (2022-05-27)
+
+### ADD
+
+- Support for heroku-22 stack [David Zuelke]
+
 ## v217 (2022-05-18)
 
 ### ADD

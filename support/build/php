@@ -41,17 +41,25 @@ curl -L ${dep_url} | tar xz
 pushd ${dep_dirname}
 
 # we need libgmp for GMP, libpam0g/libc-client for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP
-needed=( libgmp10 libpam0g libc-client2007e libsasl2-2 libkrb5-3 libldap-2.4-2 )
+needed=( libgmp10 libpam0g libc-client2007e libsasl2-2 libkrb5-3 )
 if [[ $STACK == "heroku-18" ]]; then
 	needed+=( libicu60 )
+	needed+=( libldap-2.4-2 )
 	needed+=( libonig4 )
 	needed+=( libsodium23 )
 	needed+=( libzip4 )
 else
-	needed+=( libicu66 )
 	needed+=( libonig5 )
 	needed+=( libsodium23 )
-	needed+=( libzip5 )
+	if [[ $STACK == "heroku-20" ]]; then
+		needed+=( libicu66 )
+		needed+=( libldap-2.4-2 )
+		needed+=( libzip5 )
+	else
+		needed+=( libicu70 )
+		needed+=( libldap-2.5-0 )
+		needed+=( libzip4 ) # went back from ABI v5 to v4 in 1.6 or 1.7
+	fi
 fi
 if [[ $dep_version == 7.1.* ]]; then
 	needed+=( libmcrypt4 )
@@ -163,7 +171,7 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	"${configureopts[@]}"
 make -s -j 9
 make install -s
-find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
+find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|(pie-)?executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 popd
 
 rm -rf ${OUT_PREFIX}/php/man ${OUT_PREFIX}/lib/php/extensions/*/*.a
