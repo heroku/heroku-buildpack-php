@@ -169,6 +169,13 @@ foreach($packages as $package) {
 				$insertExtension->bindValue(':enabled', !isset($package["extra"]["shared"][$rname]), SQLITE3_INTEGER);
 				$insertExtension->execute();
 			}
+		} elseif($package['type'] == 'heroku-sys-program' && $package['name'] == 'heroku-sys/composer') {
+			$serie = explode('.', $package['version']);
+			if($serie[0] == '2' && $serie[1] == '2') {
+				$serie = 'LTS 2.2'; // Composer 2.2 is LTS
+			} else {
+				$serie = $serie[0]; // 3, 4, 5 etc - semver major version
+			}
 		} else {
 			$serie = explode('.', $package['version'])[0]; // 3, 4, 5 etc - semver major version
 		}
