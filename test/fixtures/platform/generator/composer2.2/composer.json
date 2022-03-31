@@ -1,0 +1,13 @@
+{
+	"require": {
+		"php": "7.4.*",
+		"ext-gmp": "*",
+		"ext-intl": "*",
+		"ext-mbstring": "*",
+		"ext-redis": "*",
+		"ext-sqlite3": "*",
+		"ext-ldap": "*",
+		"ext-imap": "*",
+		"ext-blackfire": "*"
+	}
+}
