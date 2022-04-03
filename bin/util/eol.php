@@ -13,6 +13,8 @@ $eol = array(
 	"8.1" => array("2023-11-25", "2024-11-25"),
 );
 
+if(basename(__FILE__) != basename($_SERVER["PHP_SELF"])) return $eol; // we're being included, just return the data
+
 if(!isset($eol[PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION])) exit(0);
 
 list($secdate, $eoldate) = $eol[PHP_MAJOR_VERSION.".".PHP_MINOR_VERSION];
