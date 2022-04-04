@@ -9,11 +9,12 @@ use Composer\EventDispatcher\EventDispatcher;
 use Composer\Cache;
 use Composer\Util\ProcessExecutor;
 use Composer\Package\PackageInterface;
+use React\Promise\PromiseInterface;
 
 class Downloader extends TarDownloader
 {
 	// extract using workarounds for TarDownloader and ArchiveDownloader behavior
-	protected function extract(PackageInterface $package, $file, $path)
+	protected function extract(PackageInterface $package, string $file, string $path): PromiseInterface
 	{
 		// we must use cmdline tar, as PharData::extract() messes up symlinks
 		$command = 'tar -xzf ' . ProcessExecutor::escape($file) . ' -C ' . ProcessExecutor::escape($path);
@@ -35,12 +36,12 @@ class Downloader extends TarDownloader
 		throw new \RuntimeException("Failed to execute '$command'\n\n" . $this->process->getErrorOutput());
 	}
 	
-	protected function getInstallOperationAppendix(PackageInterface $package, $path)
+	protected function getInstallOperationAppendix(PackageInterface $package, string $path): string
 	{
 		return ''; # we do not want ArchiveDownloader's ": Extracting archive" suffix in our output
 	}
 	
-	public function install(PackageInterface $package, $path, $output = true)
+	public function install(PackageInterface $package, string $path, bool $output = true): PromiseInterface
 	{
 		// this "marker" file, preventing specific ArchiveDownloader behavior (see docs for extract()), will be placed into the temp extraction dir by extract(), from where it is moved to the destination install dir by ArchiveDownloader::install()'s copying logic
 		// extract() can't know the destination path name, so we have to put the path onto the cleanup() list instead
