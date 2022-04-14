@@ -2,6 +2,10 @@
 
 ## v216 (2021-04-14)
 
+### ADD
+
+- PHP/7.4.29 [David Zuelke]
+
 ### CHG
 
 - Composer/1.10.26 [David Zuelke]
