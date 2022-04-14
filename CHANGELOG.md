@@ -8,6 +8,7 @@
 - PHP/8.0.18 [David Zuelke]
 - PHP/8.1.5 [David Zuelke]
 - ext-blackfire/1.76.0 [David Zuelke]
+- ext-memcached/3.2.0 [David Zuelke]
 
 ### CHG
 
