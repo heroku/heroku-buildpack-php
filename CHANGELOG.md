@@ -9,6 +9,7 @@
 - PHP/8.1.5 [David Zuelke]
 - ext-blackfire/1.76.0 [David Zuelke]
 - ext-memcached/3.2.0 [David Zuelke]
+- ext-mongodb/1.13.0 [David Zuelke]
 
 ### CHG
 
