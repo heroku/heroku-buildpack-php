@@ -6,6 +6,7 @@
 
 - Composer/1.10.26 [David Zuelke]
 - Composer/2.2.12 [David Zuelke]
+- Composer/2.3.5 [David Zuelke]
 
 ## v215 (2021-04-08)
 
