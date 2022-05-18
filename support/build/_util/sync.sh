@@ -167,6 +167,7 @@ for filename in $common; do
 done
 
 cat >&2 <<-EOF
+
 	WARNING: POTENTIALLY DESTRUCTIVE ACTION!
 
 	The following packages will be IGNORED:
@@ -185,6 +186,7 @@ cat >&2 <<-EOF
 	The following packages will $($remove || echo -n "NOT ")be REMOVED
 	 from s3://${dst_bucket}/${dst_prefix}$($remove && echo -n ":")$($remove || echo -ne "\n because '--no-remove' was given:")
 	$(echo "${remove_manifests:-(none)}" | sed -e 's/^/  - /' -e 's/.composer.json$//')
+
 EOF
 
 # clear remove_manifests if --no-remove given
