@@ -1,6 +1,12 @@
 # heroku-buildpack-php CHANGELOG
 
-## v217 (2021-05-18)
+## v218 (2022-05-27)
+
+### ADD
+
+- Support for heroku-22 stack [David Zuelke]
+
+## v217 (2022-05-18)
 
 ### ADD
 
@@ -13,7 +19,7 @@
 
 - blackfire/2.9.0 [David Zuelke]
 
-## v216 (2021-04-14)
+## v216 (2022-04-14)
 
 ### ADD
 
@@ -31,13 +37,13 @@
 - Composer/2.3.5 [David Zuelke]
 - blackfire/2.7.1 [David Zuelke]
 
-## v215 (2021-04-08)
+## v215 (2022-04-08)
 
 ### CHG
 
 - Composer/2.3.4 [David Zuelke]
 
-## v214 (2021-04-04)
+## v214 (2022-04-04)
 
 ### ADD
 
@@ -47,7 +53,7 @@
 
 - Composer/2.2.11 [David Zuelke]
 
-## v213 (2021-03-17)
+## v213 (2022-03-17)
 
 ### ADD
 
@@ -64,13 +70,13 @@
 - blackfire/2.7.0 [David Zuelke]
 - Composer/2.2.9 [David Zuelke]
 
-## v212 (2021-02-25)
+## v212 (2022-02-25)
 
 ### CHG
 
 - Composer/2.2.7 [David Zuelke]
 
-## v211 (2021-02-22)
+## v211 (2022-02-22)
 
 ### ADD
 
@@ -85,29 +91,29 @@
 - blackfire/2.6.0 [David Zuelke]
 - Composer/2.2.6 [David Zuelke]
 
-## v210 (2021-02-11)
+## v210 (2022-02-11)
 
 ### CHG
 
 - For any PHP extension declared as `provide`d by a userland package ("polyfill"), attempt explicit installation after main platform install succeeded [David Zuelke]
 
-## v209 (2021-02-10)
+## v209 (2022-02-10)
 
 (no changes; release bump for rolling out v208 repository update)
 
-## v208 (2021-02-10)
+## v208 (2022-02-10)
 
 ### CHG
 
 - Treat shared PHP extensions the same as third-party extensions during installation e.g. if userland polyfills declare a `provide` for them [David Zuelke]
 
-## v207 (2021-02-07)
+## v207 (2022-02-07)
 
 ### CHG
 
 - Allow control of Composer repository priority for entries in `$HEROKU_PHP_PLATFORM_REPOSITORIES` [David Zuelke]
 
-## v206 (2021-02-01)
+## v206 (2022-02-01)
 
 ### ADD
 
@@ -131,13 +137,13 @@
 
 - Userland packages declaring PHP extensions as provided cause platform installation failure [David Zuelke]
 
-## v205 (2021-01-07)
+## v205 (2022-01-07)
 
 ### FIX
 
 - `symfony/polyfill-…` packages' `ext-…` `provide` declarations (added in v1.24) cause install failure (#528) [David Zuelke]
 
-## v204 (2021-01-03)
+## v204 (2022-01-03)
 
 ### CHG
 

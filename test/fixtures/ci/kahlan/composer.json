@@ -1,8 +1,8 @@
 {
     "require": {
-        "php": "^7.1.0"
+        "php": "*"
     },
     "require-dev": {
-        "kahlan/kahlan": "^4.6"
+        "kahlan/kahlan": "^5.0"
     }
 }

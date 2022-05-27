@@ -52,7 +52,7 @@ mkdir -p ${ext_dir}
 mkdir -p ${bin_dir}
 cp agent/x64/newrelic-${ZEND_MODULE_API_VERSION}.so ${ext_dir}/newrelic.so
 cp daemon/newrelic-daemon.x64 ${bin_dir}/newrelic-daemon
-find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
+find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|(pie-)?executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 popd
 
 mkdir -p ${OUT_PREFIX}/bin

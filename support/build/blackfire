@@ -28,7 +28,7 @@ mkdir -p ${bin_dir}
 chmod +x blackfire
 mv blackfire ${bin_dir}/
 
-find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
+find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|(pie-)?executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 
 # these env var defaults we want both during a build (used in the INI futher below) and at boot time
 tee ${OUT_PREFIX}/bin/export.blackfire.sh > ${OUT_PREFIX}/bin/profile.blackfire.sh <<'EOF'

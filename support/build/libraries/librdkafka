@@ -34,7 +34,7 @@ pushd ${dep_dirname}
 make -s -j9
 make install -s
 rm ${OUT_PREFIX}/lib/*.a
-find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
+find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|(pie-)?executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 popd
 
 ABI_VERSION=$(soname_version ${OUT_PREFIX}/lib/librdkafka.so)

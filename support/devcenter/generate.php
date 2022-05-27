@@ -9,6 +9,7 @@ require('vendor/autoload.php');
 $stacks = [
 	1 => '18', // the offset we start with here is relevant for the numbering of footnotes
 	'20',
+	'22',
 ];
 // these need updating from time to time to add new series and remove EOL ones
 $series = [
@@ -157,7 +158,7 @@ foreach($packages as $package) {
 		if($package['type'] == 'heroku-sys-php') {
 			$serie = implode('.', array_slice(explode('.', $package['version']), 0, 2)); // 7.3, 7.4, 8.0 etc
 			foreach($package["replace"] as $rname => $rversion) {
-				if(strpos($rname, "heroku-sys/ext-") !== 0) continue;
+				if(strpos($rname, "heroku-sys/ext-") !== 0 || strpos($rname, ".native")) continue;
 				$insertExtension->reset();
 				$insertExtension->bindValue(':name', str_replace("heroku-sys/", "", $rname), SQLITE3_TEXT);
 				$insertExtension->bindValue(':url', $getBuiltinExtensionUrl($rname), SQLITE3_TEXT);
