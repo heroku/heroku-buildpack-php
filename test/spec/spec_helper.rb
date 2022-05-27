@@ -63,7 +63,7 @@ def php_on_stack?(series)
 	case ENV["STACK"]
 		when "heroku-18"
 			available = ["7.1", "7.2", "7.3", "7.4", "8.0", "8.1"]
-    when "heroku-20"
+		when "heroku-20"
 			available = ["7.3", "7.4", "8.0", "8.1"]
 		else
 			available = ["8.1"]

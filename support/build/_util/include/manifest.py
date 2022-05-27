@@ -59,4 +59,3 @@ if manifest["type"] == "heroku-sys-php":
 	manifest.get("extra", {})["shared"] = extensions
 
 json.dump(manifest, sys.stdout, sort_keys=True)
-  
