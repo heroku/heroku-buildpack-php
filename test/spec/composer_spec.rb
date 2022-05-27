@@ -42,6 +42,14 @@ describe "A PHP application" do
 			end
 		end
 	end
+	context "with only an index.php" do
+		it "builds using Composer 2.2" do
+			new_app_with_stack_and_platrepo('test/fixtures/default').deploy do |app|
+				expect(app.output).to match(/- composer \(2\.2\./)
+				expect(app.output).to match(/Composer version 2\.2\./)
+			end
+		end
+	end
 	context "with a malformed COMPOSER_AUTH env var" do
 		['v1', 'v2'].each do |cv|
 			next unless cv == "v2" or ["heroku-18", "heroku-20"].include?(ENV['STACK'])

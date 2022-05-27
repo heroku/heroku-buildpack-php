@@ -192,6 +192,9 @@ if(file_exists($COMPOSER_LOCK)) {
 	
 	// add all meta-packages to one local package repo
 	if($metapaks) $repositories[] = ["type" => "package", "package" => $metapaks];
+} else {
+	// default to using Composer 2 if there is no lock file
+	$lock["plugin-api-version"] = "2.2.0";
 }
 
 // if no PHP is required anywhere, we need to add something
