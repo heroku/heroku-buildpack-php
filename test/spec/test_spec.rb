@@ -26,7 +26,7 @@ describe "A PHP application" do
     end
   end
 
-  it "have absolute buildpack paths" do
+  it "have absolute buildpack paths", :stack => ["heroku-18", "heroku-20"] do
     buildpacks = [
       :default,
       "https://github.com/sharpstone/force_absolute_paths_buildpack"
