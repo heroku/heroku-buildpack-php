@@ -35,9 +35,10 @@ RSpec.configure do |config|
 end
 
 def successful_body(app, options = {})
-	retry_limit = options[:retry_limit] || 100
+	retry_limit = options[:retry_limit] || 5
+	retry_interval = options[:retry_interval] || 2
 	path = options[:path] ? "/#{options[:path]}" : ''
-	Excon.get("http://#{app.name}.herokuapp.com#{path}", :idempotent => true, :expects => 200, :retry_limit => retry_limit).body
+	Excon.get("http://#{app.name}.herokuapp.com#{path}", :idempotent => true, :expects => 200, :retry_limit => retry_limit, :retry_interval => retry_interval).body
 end
 
 def expect_exit(expect: :to, operator: :eq, code: 0)
