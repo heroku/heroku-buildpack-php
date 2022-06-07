@@ -399,6 +399,7 @@ else
 			-e 's/heroku-sys\///g' \
 			-e 's/^Loading composer repositories with package information/Loading repositories with available runtimes and extensions/' \
 			-e 's/^Installing dependencies.*//' \
+			-e '/^No composer\.lock file present/d' \
 			-e '/^Potential causes:/,$d' \
 			-e "\#satisfiable by ${COMPOSER}/${COMPOSER_LOCK}#d" \
 			-e "s#(${COMPOSER}/${COMPOSER_LOCK}) dev-[0-9a-f]+#\1#" \
