@@ -7,6 +7,7 @@
 - PHP/7.4.30 [David Zuelke]
 - PHP/8.0.20 [David Zuelke]
 - PHP/8.1.7 [David Zuelke]
+- ext-event/3.0.8 [David Zuelke]
 
 ### CHG
 
