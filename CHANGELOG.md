@@ -8,6 +8,10 @@
 - PHP/8.0.20 [David Zuelke]
 - PHP/8.1.7 [David Zuelke]
 
+### CHG
+
+- Composer/2.2.14 [David Zuelke]
+
 ## v218 (2022-05-27)
 
 ### ADD
