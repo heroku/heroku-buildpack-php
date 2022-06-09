@@ -124,6 +124,7 @@ curl_retry_on_18() {
 	while (( ec == 18 && attempts++ < 3 )); do
 		curl "$@" # -C - would return code 33 if unsupported by server
 		ec=$?
+		sleep "$attempts" # naive backoff
 	done
 	return $ec
 }
