@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## Unreleased
+
+### CHG
+
+- Switch to the recommended regional S3 domain instead of the global one. [Ed Morley]
+
 ## v219 (2022-06-09)
 
 ### ADD

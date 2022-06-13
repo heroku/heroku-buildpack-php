@@ -41,10 +41,10 @@ if [[ $# -lt "2" || $# -gt "6" ]]; then
 	cat >&2 <<-EOF
 		Usage: $(basename $0) [--no-remove] DEST_BUCKET DEST_PREFIX [DEST_REGION [SOURCE_BUCKET SOURCE_PREFIX [SOURCE_REGION]]]
 		  DEST_BUCKET:   destination S3 bucket name.
-		  DEST_REGION:   destination bucket region, e.g. us-west-1; default: 's3'.
+		  DEST_REGION:   destination bucket region, e.g. us-west-1; default: 's3.us-east-1'.
 		  DEST_PREFIX:   destination prefix, e.g. '' or 'dist-stable/'.
 		  SOURCE_BUCKET: source S3 bucket name; default: '\$S3_BUCKET'.
-		  SOURCE_REGION: source bucket region; default: '\$S3_REGION' or 's3'.
+		  SOURCE_REGION: source bucket region; default: '\$S3_REGION' or 's3.us-east-1'.
 		  SOURCE_PREFIX: source prefix; default: '\${S3_PREFIX}'.
 		  --no-remove: no removal of destination packages that are not in source bucket.
 	EOF
@@ -57,7 +57,7 @@ if [[ $# -gt 2 ]]; then
 	# region name given
 	dst_region=$1; shift
 else
-	dst_region="s3"
+	dst_region="s3.us-east-1"
 fi
 
 src_bucket=${1:-$S3_BUCKET}; shift || true
@@ -66,7 +66,7 @@ if [[ $# == "1" ]]; then
 	# region name given
 	src_region=$1; shift
 else
-	src_region=${S3_REGION:-"s3"}
+	src_region=${S3_REGION:-"s3.us-east-1"}
 fi
 
 src_tmp=$(mktemp -d -t "src-repo.XXXXX")

@@ -103,7 +103,7 @@ for manifest in "${manifests[@]}"; do
 		else:
 		    print(url[2])
 		PYTHON
-	) $S3_BUCKET ${S3_REGION:-s3} ${S3_PREFIX})
+	) $S3_BUCKET ${S3_REGION:-s3.us-east-1} ${S3_PREFIX})
 	then
 		echo "  - queued '$filename' for removal." >&2
 		remove_files+=("$filename")

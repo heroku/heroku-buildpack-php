@@ -28,7 +28,7 @@ trap 'err_trap' ERR
 
 # stdlib
 # download to a file first, as the function restarts the entire download on code 18 connection reset (not all servers support -C)
-curl_retry_on_18 --retry-connrefused --retry 3 --fail --silent --location -o $bp_dir/bin/util/stdlib.sh https://lang-common.s3.amazonaws.com/buildpack-stdlib/v8/stdlib.sh || {
+curl_retry_on_18 --retry-connrefused --retry 3 --fail --silent --location -o $bp_dir/bin/util/stdlib.sh https://lang-common.s3.us-east-1.amazonaws.com/buildpack-stdlib/v8/stdlib.sh || {
 	error <<-EOF
 		Failed to download standard library for bootstrapping!
 		
@@ -200,7 +200,7 @@ mkdir -p $COMPOSER_HOME
 
 status "Bootstrapping..."
 
-s3_url="https://lang-php.s3.amazonaws.com/dist-${STACK}-stable/"
+s3_url="https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}-stable/"
 # prepend the default repo to the list configured by the user
 # list of repositories to use is in ascening order of precedence
 export_env_dir "$env_dir" '^HEROKU_PHP_PLATFORM_REPOSITORIES$'
