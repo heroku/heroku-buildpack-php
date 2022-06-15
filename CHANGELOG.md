@@ -1,5 +1,9 @@
 # heroku-buildpack-php CHANGELOG
 
+## main
+
+- Adjust curl connection timeout handling [Ed Morley]
+
 ## v220 (2022-06-15)
 
 ### CHG
