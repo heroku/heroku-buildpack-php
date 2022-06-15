@@ -45,7 +45,8 @@ if [[ $# == "1" ]]; then
 		  S3_BUCKET: S3 bucket name for packages.json upload; default: '\$S3_BUCKET'.
 		  S3_PREFIX: S3 prefix, e.g. '' or 'dist-stable/'; default: '\$S3_PREFIX'.
 		  
-		  The environment variable '\$S3_REGION' is used to determine the bucket region.
+		  The environment variable '\$S3_REGION' is used to determine the bucket region;
+		  it defaults to 's3' if not present. Use e.g. 's3.us-east-1' to set a region.
 		  
 		  If MANIFEST arguments are given, those are used to build the repo; otherwise,
 		  all manifests from given or default S3_BUCKET+S3_PREFIX are downloaded.
@@ -64,6 +65,8 @@ if [[ $# != "0" ]]; then
 	S3_BUCKET=$1; shift
 	S3_PREFIX=$1; shift
 fi
+
+S3_REGION=${S3_REGION:-s3}
 
 if [[ $# == "0" ]]; then
 	manifests_tmp=$(mktemp -d -t "dst-repo.XXXXX")
