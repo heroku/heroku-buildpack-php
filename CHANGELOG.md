@@ -1,6 +1,6 @@
 # heroku-buildpack-php CHANGELOG
 
-## Unreleased
+## v220 (2022-06-15)
 
 ### CHG
 
