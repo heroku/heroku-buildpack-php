@@ -43,10 +43,15 @@ if [[ $# == "1" ]]; then
 	cat >&2 <<-EOF
 		Usage: $(basename $0) [--upload] [S3_BUCKET S3_PREFIX [MANIFEST...]]
 		  S3_BUCKET: S3 bucket name for packages.json upload; default: '\$S3_BUCKET'.
-		  S3_PREFIX: S3 prefix, e.g. '' or 'dist-stable/'; default: '\${S3_PREFIX}'.
+		  S3_PREFIX: S3 prefix, e.g. '' or 'dist-stable/'; default: '\$S3_PREFIX'.
+		  
+		  The environment variable '\$S3_REGION' is used to determine the bucket region.
+		  
 		  If MANIFEST arguments are given, those are used to build the repo; otherwise,
 		  all manifests from given or default S3_BUCKET+S3_PREFIX are downloaded.
+		  
 		  A --upload flag triggers immediate upload, otherwise instructions are printed.
+		  
 		  If --upload, or if stdout is a terminal, packages.json will be written to cwd.
 		  If no --upload, and if stdout is a pipe, repo JSON will be echo'd to stdout.
 	EOF
@@ -66,7 +71,7 @@ if [[ $# == "0" ]]; then
 	echo -n "-----> Fetching manifests... " >&2
 	(
 		cd $manifests_tmp
-		s3cmd --ssl --progress get s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
+		s3cmd --host="${S3_REGION}.amazonaws.com" --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" --ssl --progress get s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
 		rm download.log
 	)
 	echo "" >&2
@@ -113,7 +118,7 @@ if $redir; then
 	exec 1>&3 3>&-
 fi
 
-cmd="s3cmd --ssl${AWS_ACCESS_KEY_ID+" --access_key=\$AWS_ACCESS_KEY_ID"}${AWS_SECRET_ACCESS_KEY+" --secret_key=\$AWS_SECRET_ACCESS_KEY"} --acl-public -m application/json put packages.json s3://${S3_BUCKET}/${S3_PREFIX}packages.json"
+cmd="s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket='%(bucket)s.${S3_REGION}.amazonaws.com' --ssl${AWS_ACCESS_KEY_ID+" --access_key=\$AWS_ACCESS_KEY_ID"}${AWS_SECRET_ACCESS_KEY+" --secret_key=\$AWS_SECRET_ACCESS_KEY"} --acl-public -m application/json put packages.json s3://${S3_BUCKET}/${S3_PREFIX}packages.json"
 if $upload; then
 	echo "-----> Uploading packages.json..." >&2
 	eval "$cmd 1>&2"
