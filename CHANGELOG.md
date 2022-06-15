@@ -4,7 +4,7 @@
 
 ### CHG
 
-- Switch to the recommended regional S3 domain instead of the global one. [Ed Morley]
+- Use recommended AWS regional S3 domain for interactions with platform repository buckets [Ed Morley, David Zuelke]
 
 ## v219 (2022-06-09)
 
