@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v220 (2022-06-15)
+
+### CHG
+
+- Use recommended AWS regional S3 domain for interactions with platform repository buckets [Ed Morley, David Zuelke]
+
 ## v219 (2022-06-09)
 
 ### ADD

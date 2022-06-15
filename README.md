@@ -31,7 +31,7 @@ The buildpack uses Composer repositories to resolve platform (`php`, `ext-someth
 
 To use a custom Composer repository with additional or different platform packages, add the URL to its `packages.json` to the `HEROKU_PHP_PLATFORM_REPOSITORIES` config var:
 
-    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://mybucket.s3.amazonaws.com/heroku-20/packages.json"
+    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://<your-bucket-name>.s3.<your-bucket-region>.amazonaws.com/heroku-20/packages.json"
 
 To allow the use of multiple custom repositories, the config var may hold a list of multiple repository URLs, separated by a space character, in ascending order of precedence (meaning the last repository listed is handled first by Composer for package lookups).
 

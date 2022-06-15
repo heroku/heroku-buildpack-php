@@ -30,7 +30,7 @@ describe "The PHP Platform Installer" do
 					rescue Errno::ENOENT
 					end
 					cmd << " #{bp_root}/support/installer "
-					cmd << " https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/packages.json " # our default repo
+					cmd << " https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/packages.json " # our default repo
 					cmd << args
 					
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")

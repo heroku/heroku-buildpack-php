@@ -56,7 +56,7 @@ jobs:
           steps:
             - run: 
                 name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …-develop (since we are not building main or a tag)
-                command: echo 'export HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-${STACK}-develop/"' >> $BASH_ENV
+                command: echo 'export HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}-develop/"' >> $BASH_ENV
       - run:
           name: Execute tests
           command: bundle exec parallel_rspec -n 16 --group-by runtime --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-process-command --combine-stderr --prefix-output-with-test-env-number test/spec/
