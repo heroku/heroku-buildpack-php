@@ -1,8 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
-## main
+## v221 (2022-07-01)
+
+### CHG
 
 - Adjust curl connection timeout handling [Ed Morley]
+- Composer/2.2.15 [David Zuelke]
 
 ## v220 (2022-06-15)
 
