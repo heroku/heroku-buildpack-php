@@ -6,6 +6,7 @@
 
 - Adjust curl connection timeout handling [Ed Morley]
 - Composer/2.2.15 [David Zuelke]
+- Composer/2.3.8 [David Zuelke]
 
 ## v220 (2022-06-15)
 
