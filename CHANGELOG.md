@@ -8,6 +8,7 @@
 - PHP/8.1.8 [David Zuelke]
 - ext-blackfire/1.79.0 [David Zuelke]
 - ext-newrelic/10.0.0.312 [David Zuelke]
+- ext-rdkafka/6.0.3 [David Zuelke]
 
 ## v221 (2022-07-01)
 
