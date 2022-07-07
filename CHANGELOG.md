@@ -16,6 +16,7 @@
 - Composer/2.3.9 [David Zuelke]
 - Apache/2.4.54 [David Zuelke]
 - Nginx/1.22.0 [David Zuelke]
+- librdkafka/1.9.1 [David Zuelke]
 
 ## v221 (2022-07-01)
 
