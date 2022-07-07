@@ -15,6 +15,7 @@
 - Composer/2.2.16 [David Zuelke]
 - Composer/2.3.9 [David Zuelke]
 - Apache/2.4.54 [David Zuelke]
+- Nginx/1.22.0 [David Zuelke]
 
 ## v221 (2022-07-01)
 
