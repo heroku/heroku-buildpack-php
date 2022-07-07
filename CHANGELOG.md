@@ -10,6 +10,10 @@
 - ext-newrelic/10.0.0.312 [David Zuelke]
 - ext-rdkafka/6.0.3 [David Zuelke]
 
+### CHG
+
+- Composer/2.2.16 [David Zuelke]
+
 ## v221 (2022-07-01)
 
 ### CHG
