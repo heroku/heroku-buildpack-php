@@ -12,7 +12,7 @@ namespace
 
 namespace tests\units
 {
-	use atoum;
+	use atoum\atoum;
 	
 	class Greetings extends atoum\test
 	{

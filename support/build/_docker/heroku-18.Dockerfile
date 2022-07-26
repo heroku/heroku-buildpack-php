@@ -1,11 +1,11 @@
-FROM heroku/heroku:18-build.v61
+FROM heroku/heroku:18-build.v72
 
 WORKDIR /app
 ENV WORKSPACE_DIR=/app/support/build
 ENV PATH=/app/support/build/_util:$PATH
 ENV S3_BUCKET=lang-php
 ENV S3_PREFIX=dist-heroku-18-develop/
-ENV S3_REGION=s3
+ENV S3_REGION=s3.us-east-1
 ENV STACK=heroku-18
 ENV DEBIAN_FRONTEND=noninteractive
 

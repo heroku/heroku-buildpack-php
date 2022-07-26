@@ -9,7 +9,7 @@ describe "A PHP application using ext-blackfire" do
 				context "#{mode}" do
 					before(:all) do
 						buildpacks = [:default]
-						buildpacks.unshift("https://github.com/dzuelke/integration-heroku.git#wait-on-startup") if agent == "blackfireio/integration-heroku"
+						buildpacks.unshift("https://github.com/blackfireio/integration-heroku") if agent == "blackfireio/integration-heroku"
 						credentials = {
 							"BLACKFIRE_CLIENT_ID" => ENV["BLACKFIRE_CLIENT_ID"],
 							"BLACKFIRE_CLIENT_TOKEN" => ENV["BLACKFIRE_CLIENT_TOKEN"],
@@ -96,11 +96,11 @@ describe "A PHP application using ext-blackfire" do
 							
 								out_before_fpm, out_after_fpm = out.unansi.split("Starting php-fpm", 2)
 							
-								expect(out_before_fpm).to match(/blackfire Reading agent configuration file/) # that is the very first thing the agent prints
+								expect(out_before_fpm).to match(/Reading agent configuration file/) # that is the very first thing the agent prints
 								if mode == "without BLACKFIRE_SERVER_TOKEN"
 									expect(out_before_fpm).to match(/The server ID parameter is not set/)
 								else
-									expect(out.unansi).to match(/blackfire Waiting for new connection/) # match on whole output in case it takes a bit longer to start <up></up>
+									expect(out.unansi).to match(/Waiting for new connection/) # match on whole output in case it takes a bit longer to start <up></up>
 								end
 								expect(out_before_fpm).not_to match(/\[Warning\] APM: Cannot start/) # extension does not attempt to start on `php-fpm -i` during boot
 								expect(out_before_fpm).to match(/\[Debug\] APM: disabled/) # blackfire reports itself disabled (by us) during the various boot prep PHP invocations

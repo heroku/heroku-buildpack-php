@@ -1,0 +1,63 @@
+{
+    "config": {
+        "allow-plugins": {
+            "heroku/installer-plugin": true
+        },
+        "cache-files-ttl": 0,
+        "discard-changes": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": false,
+    "provide": {
+        "heroku-sys\/heroku": "20.2021.08.03"
+    },
+    "replace": {},
+    "require": {
+        "composer.json\/composer.lock": "dev-fc385a27e5169a169062c230878645d1",
+        "heroku-sys\/composer": "*",
+        "heroku-sys\/composer-plugin-api": "~2.2.0",
+        "heroku-sys\/apache": "^2.4.10",
+        "heroku-sys\/nginx": "^1.8.0"
+    },
+    "require-dev": {},
+    "repositories": [
+        {
+            "packagist": false
+        },
+        {
+            "type": "path",
+            "url": "..\/..\/..\/..\/..\/support\/installer",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "composer",
+            "url": "https:\/\/lang-php.s3.us-east-1.amazonaws.com\/dist-heroku-20-stable\/packages.json"
+        },
+        {
+            "type": "package",
+            "package": [
+                {
+                    "type": "metapackage",
+                    "name": "composer.json\/composer.lock",
+                    "version": "dev-fc385a27e5169a169062c230878645d1",
+                    "require": {
+                        "heroku-sys\/php": "7.4.*",
+                        "heroku-sys\/ext-gmp": "*",
+                        "heroku-sys\/ext-intl": "*",
+                        "heroku-sys\/ext-mbstring": "*",
+                        "heroku-sys\/ext-redis": "*",
+                        "heroku-sys\/ext-sqlite3": "*",
+                        "heroku-sys\/ext-ldap": "*",
+                        "heroku-sys\/ext-imap": "*",
+                        "heroku-sys\/ext-blackfire": "*"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                }
+            ]
+        }
+    ]
+}

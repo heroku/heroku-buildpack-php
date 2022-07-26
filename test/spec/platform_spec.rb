@@ -1,3 +1,5 @@
+require_relative "spec_helper"
+
 require "ansi/core"
 require "json"
 require "open3"
@@ -28,7 +30,7 @@ describe "The PHP Platform Installer" do
 					rescue Errno::ENOENT
 					end
 					cmd << " #{bp_root}/support/installer "
-					cmd << " https://lang-php.s3.amazonaws.com/dist-heroku-20-stable/packages.json " # our default repo
+					cmd << " https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/packages.json " # our default repo
 					cmd << args
 					
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
@@ -68,7 +70,7 @@ describe "The PHP Platform Installer" do
 						end
 					end
 					
-					break unless ["base", "blackfire-cli", "complex", "defaultphp", "mongo-php-adapter", "provided-ext-bcmath", "symfony-polyfill"].include?(testcase)
+					break unless ["base", "blackfire-cli", "complex", "composer1", "composer2.0", "composer2.1", "composer2.2", "composer2.3", "defaultphp", "mongo-php-adapter", "provided-ext-bcmath", "symfony-polyfill"].include?(testcase)
 					
 					# and finally check if it's installable in a dry run
 					cmd = "COMPOSER=expected_platform_composer.json composer install --dry-run"
@@ -225,7 +227,7 @@ describe "The PHP Platform Installer" do
 	
 	describe "during a build" do
 		context "of a project that uses polyfills providing both bundled-with-PHP and third-party extensions" do
-			it "treats polyfills for bundled-with-PHP and third-party extensions the same" do
+			it "treats polyfills for bundled-with-PHP and third-party extensions the same", :requires_php_on_stack => "7.4" do
 				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills').deploy do |app|
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")
@@ -238,7 +240,7 @@ describe "The PHP Platform Installer" do
 					expect(out_after_polyfills).to include("- ext-xmlrpc (bundled with php)")
 				end
 			end
-			it "installs native bundled extensions for legacy PHP builds for installer < 1.6 even if they are provided by a polyfill" do
+			it "installs native bundled extensions for legacy PHP builds for installer < 1.6 even if they are provided by a polyfill", :requires_php_on_stack => "7.3" do
 				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-legacy').deploy do |app|
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")

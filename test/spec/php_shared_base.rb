@@ -44,9 +44,13 @@ shared_examples "A basic PHP application" do |series|
 			# 1x libonig for extensions/…/mbstring.so
 			# 1x libsqlite3.so for extensions/…/pdo_sqlite.so
 			# 1x libsqlite3.so for extensions/…/sqlite3.so
-			# 1x libsqlite3.so for bin/php
+			# 1x libsqlite3.so for bin/php (before heroku-22)
 			# 1x libzip.so for bin/php
-			expect(ldd_output).to match(/^6$/)
+			if ["heroku-18", "heroku-20"].include?(ENV['STACK'])
+				expect(ldd_output).to match(/^6$/)
+			else
+				expect(ldd_output).to match(/^5$/)
+			end
 		end
 	end
 end

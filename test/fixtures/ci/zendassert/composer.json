@@ -1,6 +1,6 @@
 {
     "require": {
-        "php": "^7.1.0"
+        "php": "*"
     },
     "scripts": {
         "test": "@php test.php"

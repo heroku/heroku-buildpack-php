@@ -4,40 +4,40 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "0ec656ca1216736dc1f66a511d774a2e",
+    "content-hash": "b5621725de529f5a691d7cc43e353a65",
     "packages": [],
     "packages-dev": [
         {
             "name": "kahlan/kahlan",
-            "version": "4.6.3",
+            "version": "5.2.0",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kahlan/kahlan.git",
-                "reference": "b0341a59cefd2697f6e104bbcf045ee36a189ea2"
+                "reference": "ff2449502f2ae9ee48d3555ce5d285505ab6375b"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kahlan/kahlan/zipball/b0341a59cefd2697f6e104bbcf045ee36a189ea2",
-                "reference": "b0341a59cefd2697f6e104bbcf045ee36a189ea2",
+                "url": "https://api.github.com/repos/kahlan/kahlan/zipball/ff2449502f2ae9ee48d3555ce5d285505ab6375b",
+                "reference": "ff2449502f2ae9ee48d3555ce5d285505ab6375b",
                 "shasum": ""
             },
             "require": {
-                "php": ">=5.5"
+                "php": ">=7.1"
             },
             "require-dev": {
-                "squizlabs/php_codesniffer": "^3.3"
+                "squizlabs/php_codesniffer": "^3.4"
             },
             "bin": [
                 "bin/kahlan"
             ],
             "type": "library",
             "autoload": {
-                "psr-4": {
-                    "Kahlan\\": "src/"
-                },
                 "files": [
                     "src/functions.php"
-                ]
+                ],
+                "psr-4": {
+                    "Kahlan\\": "src/"
+                }
             },
             "notification-url": "https://packagist.org/downloads/",
             "license": [
@@ -59,7 +59,11 @@
                 "testing",
                 "unit test"
             ],
-            "time": "2019-04-18T14:16:23+00:00"
+            "support": {
+                "issues": "https://github.com/kahlan/kahlan/issues",
+                "source": "https://github.com/kahlan/kahlan/tree/5.2.0"
+            },
+            "time": "2022-01-16T15:26:38+00:00"
         }
     ],
     "aliases": [],
@@ -68,7 +72,8 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "^7.1.0"
+        "php": "*"
     },
-    "platform-dev": []
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
 }

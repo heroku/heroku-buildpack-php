@@ -4,7 +4,7 @@ jobs:
     parameters:
       stack:
         type: enum
-        enum: ["heroku-18", "heroku-20"]
+        enum: ["heroku-18", "heroku-20", "heroku-22"]
     docker:
       - image: cimg/ruby:2.7
     working_directory: /mnt/ramdisk/project
@@ -35,7 +35,7 @@ jobs:
           command: |
             php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
             php -r "if (hash_file('sha384', 'composer-setup.php') === file_get_contents('https://composer.github.io/installer.sig')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
-            sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+            sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer --version=2.3.8
             rm composer-setup.php
       - checkout
       - run:
@@ -56,7 +56,7 @@ jobs:
           steps:
             - run: 
                 name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …-develop (since we are not building main or a tag)
-                command: echo 'export HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.amazonaws.com/dist-${STACK}-develop/"' >> $BASH_ENV
+                command: echo 'export HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}-develop/"' >> $BASH_ENV
       - run:
           name: Execute tests
           command: bundle exec parallel_rspec -n 16 --group-by runtime --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-process-command --combine-stderr --prefix-output-with-test-env-number test/spec/
@@ -75,7 +75,7 @@ workflows:
       - hatchet:
           matrix:
             parameters:
-              stack: ["heroku-18", "heroku-20"]
+              stack: ["heroku-18", "heroku-20", "heroku-22"]
           filters:
             tags:
               only: /^v\d+$/
