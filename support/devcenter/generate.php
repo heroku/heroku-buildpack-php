@@ -157,7 +157,7 @@ foreach($packages as $package) {
 		$insertPackage->bindValue(':stack', $stack, SQLITE3_TEXT);
 		if($package['type'] == 'heroku-sys-php') {
 			$serie = implode('.', array_slice(explode('.', $package['version']), 0, 2)); // 7.3, 7.4, 8.0 etc
-			foreach($package["replace"] as $rname => $rversion) {
+			foreach(array_merge($package['replace']??[], $package['extra']['shared']??[]) as $rname => $rversion) {
 				if(strpos($rname, "heroku-sys/ext-") !== 0 || strpos($rname, ".native")) continue;
 				$insertExtension->reset();
 				$insertExtension->bindValue(':name', str_replace("heroku-sys/", "", $rname), SQLITE3_TEXT);
