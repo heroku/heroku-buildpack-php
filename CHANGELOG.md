@@ -10,6 +10,10 @@
 - ext-mongodb/1.14.0 [David Zuelke]
 - ext-blackfire/1.80.0 [David Zuelke]
 
+### CHG
+
+- Composer/2.2.17 [David Zuelke]
+
 ## v222 (2022-07-07)
 
 ### ADD
