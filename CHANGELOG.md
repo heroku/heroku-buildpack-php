@@ -14,6 +14,7 @@
 
 - Composer/2.2.17 [David Zuelke]
 - Composer/2.3.10 [David Zuelke]
+- librdkafka/1.9.2 [David Zuelke]
 
 ## v222 (2022-07-07)
 
