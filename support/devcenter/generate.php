@@ -173,7 +173,7 @@ foreach($packages as $package) {
 		} elseif($package['type'] == 'heroku-sys-program' && $package['name'] == 'heroku-sys/composer') {
 			$serie = explode('.', $package['version']);
 			if($serie[0] == '2' && $serie[1] == '2') {
-				$serie = 'LTS 2.2'; // Composer 2.2 is LTS
+				$serie = '2 LTS'; // Composer 2.2 is LTS
 			} else {
 				$serie = $serie[0]; // 3, 4, 5 etc - semver major version
 			}
@@ -306,7 +306,7 @@ $results = $db->query(implode(" ", $composersQuery));
 $composers = [];
 while($row = $results->fetchArray(SQLITE3_ASSOC)) {
 	$row["name"] = ucfirst($row["name"]); // "Composer"
-	$row["series"] = $row["series"].".x"; // "2.x"
+	$row["series"] = $row["series"].(strpos($row["series"], "LTS")?"":".x"); // "2.x"
 	$composers[] = $row;
 }
 
