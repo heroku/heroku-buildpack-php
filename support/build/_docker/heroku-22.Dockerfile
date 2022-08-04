@@ -1,4 +1,4 @@
-FROM heroku/heroku:22-build.v78
+FROM heroku/heroku:22-build.v84
 
 WORKDIR /app
 ENV WORKSPACE_DIR=/app/support/build
