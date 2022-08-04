@@ -8,6 +8,7 @@
 - PHP/8.0.22 [David Zuelke]
 - PHP/8.1.9 [David Zuelke]
 - ext-mongodb/1.14.0 [David Zuelke]
+- ext-blackfire/1.80.0 [David Zuelke]
 
 ## v222 (2022-07-07)
 
