@@ -2,6 +2,10 @@
 
 ## v224 (2022-09-??)
 
+### ADD
+
+- ext-blackfire/1.81.0 [David Zuelke]
+
 ### CHG
 
 - Composer/2.4.1 [David Zuelke]
