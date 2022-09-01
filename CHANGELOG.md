@@ -5,6 +5,7 @@
 ### ADD
 
 - ext-blackfire/1.81.0 [David Zuelke]
+- ext-phalcon/5.0.0RC4 [David Zuelke]
 
 ### CHG
 
