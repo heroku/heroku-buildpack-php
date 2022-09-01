@@ -6,6 +6,7 @@
 
 - ext-blackfire/1.81.0 [David Zuelke]
 - ext-phalcon/5.0.0RC4 [David Zuelke]
+- PHP/8.0.23 [David Zuelke]
 
 ### CHG
 
