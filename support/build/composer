@@ -30,6 +30,9 @@ fi
 
 php composer-setup.php --version=${dep_version}
 
+# work around https://github.com/composer/composer/issues/11046
+echo '{}' > composer.json
+
 plugin_api_version=$(php composer.phar show --platform | grep 'composer-plugin-api' | awk '{print $2}')
 
 # php is in there, so clear it first
