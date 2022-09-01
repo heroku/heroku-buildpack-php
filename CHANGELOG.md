@@ -5,6 +5,7 @@
 ### CHG
 
 - Composer/2.4.1 [David Zuelke]
+- Composer/2.2.18 [David Zuelke]
 
 ## v223 (2022-08-04)
 
