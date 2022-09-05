@@ -13,7 +13,7 @@ function s3cmd_get_progress() {
 		fi
 		echo -n "$line"
 		len=${#line}
-	done < <(grep --line-buffered -o -E '\[[0-9]+ of [0-9]+\]') # filter only the "[1 of 99]" bits from 's3cmd get' output
+	done < <(grep --line-buffered -o -P '(?<=\[)[0-9]+ of [0-9]+(?=\])' | awk -W interactive '{print int($1/$3*100)"% ("$1"/"$3")"}') # filter only the "[1 of 99]" bits from 's3cmd get' output and divide using awk
 }
 
 remove=true
@@ -87,7 +87,8 @@ here=$(cd $(dirname $0); pwd)
 # clean up at the end
 trap 'rm -rf $src_tmp $dst_tmp;' EXIT
 
-echo -n "Fetching source's manifests from s3://${src_bucket}/${src_prefix}... " >&2
+echo -n "Fetching source's manifests
+  from s3://${src_bucket}/${src_prefix}... " >&2
 (
 	cd $src_tmp
 	out=$(s3cmd ${s3cmd_src_host_options} --ssl get s3://${src_bucket}/${src_prefix}packages.json 2>&1) || { echo -e "No packages.json in source repo:\n$out" >&2; exit 1; }
@@ -108,7 +109,8 @@ S3_REGION=$src_region $here/mkrepo.sh $src_bucket $src_prefix ${src_tmp}/*.compo
 	[[ ! $proceed =~ [nN]o* ]] && exit 1 # yes is the default so doing yes | sync.sh won't do something stupid
 }
 
-echo -n "Fetching destination's manifests from s3://${dst_bucket}/${dst_prefix}... " >&2
+echo -n "Fetching destination's manifests
+  from s3://${dst_bucket}/${dst_prefix}... " >&2
 (
 	cd $dst_tmp
 	s3cmd ${s3cmd_dst_host_options} --ssl --progress get s3://${dst_bucket}/${dst_prefix}*.composer.json 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
