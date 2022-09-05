@@ -125,8 +125,8 @@ foreach($repositories as $repository) {
 
 $db = new SQLite3(':memory:');
 $db->createCollation('VERSION_CMP', 'version_compare'); // for sorting/MAXing versions; we have to use it explicitly inside MAX(CASE…) statements in addition to setting it on the version column
-$db->exec("CREATE TABLE packages (name TEXT COLLATE NOCASE, version TEXT COLLATE VERSION_CMP, type TEXT, series TEXT, stack TEXT)");
-$db->exec("CREATE TABLE extensions (name TEXT COLLATE NOCASE, url TEXT, version TEXT COLLATE VERSION_CMP, runtime TEXT, series TEXT, stack TEXT, bundled INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)");
+$db->exec("CREATE TABLE packages (name TEXT COLLATE NOCASE, version TEXT COLLATE VERSION_CMP, type TEXT, series TEXT COLLATE VERSION_CMP, stack TEXT)");
+$db->exec("CREATE TABLE extensions (name TEXT COLLATE NOCASE, url TEXT, version TEXT COLLATE VERSION_CMP, runtime TEXT, series TEXT COLLATE VERSION_CMP, stack TEXT, bundled INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)");
 $insertPackage = $db->prepare("INSERT INTO packages (name, version, type, series, stack) VALUES(:name, :version, :type, :series, :stack)");
 $insertExtension = $db->prepare("INSERT INTO extensions (name, url, version, runtime, series, stack, bundled, enabled) VALUES(:name, :url, :version, :runtime, :series, :stack, :bundled, :enabled)");
 
@@ -173,7 +173,7 @@ foreach($packages as $package) {
 		} elseif($package['type'] == 'heroku-sys-program' && $package['name'] == 'heroku-sys/composer') {
 			$serie = explode('.', $package['version']);
 			if($serie[0] == '2' && $serie[1] == '2') {
-				$serie = 'LTS 2.2'; // Composer 2.2 is LTS
+				$serie = '2 LTS'; // Composer 2.2 is LTS
 			} else {
 				$serie = $serie[0]; // 3, 4, 5 etc - semver major version
 			}
@@ -191,7 +191,7 @@ $runtimesQuery = ["SELECT name, series"];
 foreach($stacks as $key => $stack) {
 	$runtimesQuery[] = ", MAX(CASE WHEN stack = '${stack}' THEN version END COLLATE VERSION_CMP) AS '${stack}'";
 }
-$runtimesQuery[] = "FROM packages WHERE name = 'php' GROUP BY name, series ORDER BY series ASC";
+$runtimesQuery[] = "FROM packages WHERE name = 'php' GROUP BY name, series ORDER BY series COLLATE VERSION_CMP ASC";
 $results = $db->query(implode(" ", $runtimesQuery));
 $runtimes = [];
 while($row = $results->fetchArray(SQLITE3_ASSOC)) {
@@ -243,7 +243,7 @@ foreach($series as $serie) {
 		$extensionsQuery[] = ", MAX(CASE WHEN extensions.series = '${serie}' AND extensions.stack = '${stack}' THEN extensions.version END COLLATE VERSION_CMP) AS 'version_${serie}_${stack}'";
 	}
 }
-$extensionsQuery[] = "FROM extensions WHERE extensions.bundled = 0 GROUP BY extensions.name, major_version ORDER BY extensions.name ASC, major_version ASC";
+$extensionsQuery[] = "FROM extensions WHERE extensions.bundled = 0 GROUP BY extensions.name, major_version ORDER BY extensions.name ASC, major_version COLLATE VERSION_CMP ASC";
 $result = $db->query(implode(" ", $extensionsQuery));
 $eExtensions = [];
 while($row = $result->fetchArray(SQLITE3_ASSOC)) {
@@ -301,12 +301,12 @@ $composersQuery = ["SELECT name, series"];
 foreach($stacks as $key => $stack) {
 	$composersQuery[] = ", MAX(CASE WHEN stack = '${stack}' THEN version END COLLATE VERSION_CMP) AS '${stack}'";
 }
-$composersQuery[] = "FROM packages WHERE name = 'composer' GROUP BY name, series ORDER BY series ASC";
+$composersQuery[] = "FROM packages WHERE name = 'composer' GROUP BY name, series ORDER BY series COLLATE VERSION_CMP ASC";
 $results = $db->query(implode(" ", $composersQuery));
 $composers = [];
 while($row = $results->fetchArray(SQLITE3_ASSOC)) {
 	$row["name"] = ucfirst($row["name"]); // "Composer"
-	$row["series"] = $row["series"].".x"; // "2.x"
+	$row["series"] = $row["series"].(strpos($row["series"], "LTS")?"":".x"); // "2.x"
 	$composers[] = $row;
 }
 
@@ -314,7 +314,7 @@ $webserversQuery = ["SELECT name, series"];
 foreach($stacks as $key => $stack) {
 	$webserversQuery[] = ", MAX(CASE WHEN stack = '${stack}' THEN version END COLLATE VERSION_CMP) AS '${stack}'";
 }
-$webserversQuery[] = "FROM packages WHERE type = 'heroku-sys-webserver' GROUP BY name, series ORDER BY name ASC, series ASC";
+$webserversQuery[] = "FROM packages WHERE type = 'heroku-sys-webserver' GROUP BY name, series ORDER BY name ASC, series COLLATE VERSION_CMP ASC";
 $results = $db->query(implode(" ", $webserversQuery));
 $webservers = [];
 while($row = $results->fetchArray(SQLITE3_ASSOC)) {
