@@ -1,11 +1,11 @@
-FROM heroku/heroku:22-build.v84
+FROM robuust/heroku:22-build
 
 WORKDIR /app
 ENV WORKSPACE_DIR=/app/support/build
 ENV PATH=/app/support/build/_util:$PATH
-ENV S3_BUCKET=lang-php
+ENV S3_BUCKET=robuust-heroku-php
 ENV S3_PREFIX=dist-heroku-22-develop/
-ENV S3_REGION=s3.us-east-1
+ENV S3_REGION=s3.eu-west-1
 ENV STACK=heroku-22
 ENV DEBIAN_FRONTEND=noninteractive
 
