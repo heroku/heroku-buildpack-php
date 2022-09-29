@@ -1,0 +1,65 @@
+name: heroku/heroku-buildpack-php/default-ci-workflow
+on:
+  push:
+env:
+  BLACKFIRE_CLIENT_ID: xxxxxxx
+  BLACKFIRE_CLIENT_TOKEN: xxxxxxx
+  BLACKFIRE_SERVER_ID: xxxxxxx
+  BLACKFIRE_SERVER_TOKEN: xxxxxxx
+  HEROKU_API_KEY: xxxxxxx
+  HEROKU_API_USER: xxxxxxx
+jobs:
+  hatchet:
+    defaults:
+      run:
+        working-directory: "/mnt/ramdisk/project"
+    runs-on: sfdc-hk-ubuntu-latest
+    container:
+      image: ruby:2.7
+    env:
+      STACK: xxxxxxx
+      HEROKU_DISABLE_AUTOUPDATE: xxxxxxx
+      HATCHET_RETRIES: xxxxxxx
+      IS_RUNNING_ON_CI: xxxxxxx
+      HATCHET_APP_LIMIT: xxxxxxx
+      HATCHET_EXPENSIVE_MODE: xxxxxxx
+      HATCHET_BUILDPACK_BASE: xxxxxxx
+      HATCHET_BUILDPACK_BRANCH: xxxxxxx
+    strategy:
+      matrix:
+        stack:
+        - heroku-18
+        - heroku-20
+        - heroku-22
+    steps:
+    - name: Install Bundler
+      run: gem install bundler --version="~> 1"
+    - name: Update apt
+      run: sudo apt-get update
+    - name: Install Python
+      run: sudo apt-get install python
+    - name: Install PHP
+      run: sudo apt-get install php-cli
+    - name: Install Composer
+      run: |-
+        php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"
+        php -r "if (hash_file('sha384', 'composer-setup.php') === file_get_contents('https://composer.github.io/installer.sig')) { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+        sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer --version=2.4.1
+        rm composer-setup.php
+    - uses: actions/checkout@v2
+    - name: Install Gems
+      run: bundle install
+    - name: Set up Hatchet (which will set up Heroku CLI)
+      run: bundle exec hatchet ci:setup
+    - name: Export HATCHET_APP_PREFIX
+      run: echo 'export HATCHET_APP_PREFIX="htcht-${CIRCLE_BUILD_NUM}-"' >> $BASH_ENV
+    - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …-develop (since we are not building main or a tag)
+      run: echo 'export HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}-develop/"' >> $BASH_ENV
+      if: "!'main' == ${{ github.ref }} || ${{ github.ref }}"
+    - name: Execute tests
+      run: bundle exec parallel_rspec -n 16 --group-by runtime --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-process-command --combine-stderr --prefix-output-with-test-env-number test/spec/
+    - name: Clean up test apps
+      run: bundle exec hatchet destroy --all
+      if: always()
+    - name: Print parallel_runtime_rspec.log
+      run: cat parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort
