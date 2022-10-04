@@ -6,6 +6,7 @@
 
 - PHP/7.4.32 [David Zuelke]
 - PHP/8.0.24 [David Zuelke]
+- PHP/8.1.11 [David Zuelke]
 
 ## v224 (2022-09-05)
 
