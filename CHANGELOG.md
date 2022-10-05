@@ -12,6 +12,10 @@
 - ext-newrelic/10.2.0.314 [David Zuelke]
 - ext-phalcon/5.0.2 [David Zuelke]
 
+### CHG
+
+- Composer/2.4.2 [David Zuelke]
+
 ## v224 (2022-09-05)
 
 ### ADD
