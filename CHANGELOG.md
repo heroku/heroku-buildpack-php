@@ -10,6 +10,7 @@
 - ext-blackfire/1.83.0 [David Zuelke]
 - ext-mongodb/1.14.1 [David Zuelke]
 - ext-newrelic/10.2.0.314 [David Zuelke]
+- ext-phalcon/5.0.2 [David Zuelke]
 
 ## v224 (2022-09-05)
 
