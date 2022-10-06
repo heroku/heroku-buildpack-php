@@ -25,4 +25,4 @@ jobs:
         run: echo "${{ secrets.CR_PAT }}" | docker login https://ghcr.io -u ${{ github.actor }} --password-stdin
 
       - name: Build & push image to GitHub Container Registry
-        run: docker buildx build --pull --tag heroku-php-build-heroku-22 --file $(pwd)/support/build/_docker/heroku-22.Dockerfile --push .
+        run: docker buildx build --pull --platform=linux/arm64,linux/amd64 --tag heroku-php-build-heroku-22 --file $(pwd)/support/build/_docker/heroku-22.Dockerfile --push .
