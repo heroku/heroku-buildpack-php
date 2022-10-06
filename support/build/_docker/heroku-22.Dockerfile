@@ -1,4 +1,4 @@
-FROM robuust/heroku:22-build
+FROM ghcr.io/robuust/heroku:22-build
 
 WORKDIR /app
 ENV WORKSPACE_DIR=/app/support/build
