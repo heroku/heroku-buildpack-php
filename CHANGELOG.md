@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v226 (2022-10-27)
+
+### ADD
+
+- PHP/8.0.25 [David Zuelke]
+
 ## v225 (2022-10-05)
 
 ### ADD
