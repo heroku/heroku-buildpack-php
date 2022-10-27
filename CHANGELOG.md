@@ -14,6 +14,7 @@
 
 - blackfire/2.13.0 [David Zuelke]
 - Composer/2.4.4 [David Zuelke]
+- Nginx/1.22.1 [David Zuelke]
 
 ## v225 (2022-10-05)
 
