@@ -6,6 +6,7 @@
 
 - PHP/8.0.25 [David Zuelke]
 - PHP/8.1.12 [David Zuelke]
+- ext-blackfire/1.84.0 [David Zuelke]
 
 ## v225 (2022-10-05)
 
