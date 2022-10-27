@@ -10,6 +10,10 @@
 - ext-mongodb/1.14.2 [David Zuelke]
 - ext-phalcon/5.0.5 [David Zuelke]
 
+### CHG
+
+- blackfire/2.13.0 [David Zuelke]
+
 ## v225 (2022-10-05)
 
 ### ADD
