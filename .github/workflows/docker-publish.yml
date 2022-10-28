@@ -9,7 +9,7 @@ jobs:
   # Push image to GitHub Packages.
   # See also https://docs.docker.com/docker-hub/builds/
   push:
-    runs-on: ubuntu-latest-4-cores
+    runs-on: ubuntu-latest
     if: github.event_name == 'push'
 
     steps:
@@ -31,7 +31,7 @@ jobs:
     # Ensure push job passes before pushing image.
     needs: push
 
-    runs-on: ubuntu-latest-4-cores
+    runs-on: ubuntu-latest
     if: github.event_name == 'push'
 
     steps:
