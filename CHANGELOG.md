@@ -6,6 +6,7 @@
 
 - PHP/7.4.33 [David Zuelke]
 - ext-newrelic/10.3.0.315 [David Zuelke]
+- ext-phalcon/5.1.0 [David Zuelke]
 
 ## v226 (2022-10-27)
 
