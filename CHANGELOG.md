@@ -8,6 +8,10 @@
 - ext-newrelic/10.3.0.315 [David Zuelke]
 - ext-phalcon/5.1.0 [David Zuelke]
 
+### CHG
+
+- Fail if platform packages dir is part of app source [David Zuelke]
+
 ## v226 (2022-10-27)
 
 ### ADD
