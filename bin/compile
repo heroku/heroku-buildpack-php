@@ -189,8 +189,48 @@ fi
 
 # PHP expects to be installed in /app/.heroku/php because of compiled paths, let's set that up!
 mkdir -p /app/.heroku
-# all system packages live in there
-mkdir -p $build_dir/.heroku/php
+# other buildpacks use this magic directory, too
+mkdir -p $build_dir/.heroku
+# all our system packages live in there
+mkdir $build_dir/.heroku/php || {
+	# looks like platform packages are already there
+	# this can happen if the buildpack is set twice, or if a user is trying to build an already built app
+	# (e.g. by downloading a slug from Heroku and checking it into Git)
+	mcount "failures.platform.slug_as_source"
+	error <<-EOF
+		Your app source code contains artifacts from a previous build!
+		
+		A '.heroku/php/' directory exists in your app source, but this
+		directory is created during a build of your app and should not
+		be in your source repository, as it contains binaries for PHP,
+		web servers, PHP extensions, and so forth.
+		
+		This situation can happen if you:
+		1) have accidentally set this buildpack on your app twice;
+		2) downloaded a built app ("slug") and used it as source code.
+		
+		To address situation 1, check the 'heroku buildpacks' command.
+		
+		To address situation 2, ensure the following directories are
+		not part of your source code in your version control system:
+		- .heroku/
+		- .profile.d/
+		- vendor/
+		
+		It is recommended you create a new Git repository that doesn't
+		have these directories in its commit history. If you only
+		perform a 'git rm', the binaries will remain part of your code
+		repository, and inflate its size by hundreds of megabytes. You
+		may also use common techniques for rewriting commit history to
+		retroactively remove the directories from the old commits that
+		introduced them.
+		
+		If you were using other buildpacks together with PHP, you may
+		want to ensure that those buildpacks' build artifacts, such as
+		a Node.js 'node_modules/' directory, are also not part of your
+		source code repository.
+	EOF
+}
 # set up Composer
 export COMPOSER_HOME=$cache_dir/.composer
 mkdir -p $COMPOSER_HOME

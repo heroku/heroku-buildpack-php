@@ -1,5 +1,17 @@
 # heroku-buildpack-php CHANGELOG
 
+## v227 (2022-11-03)
+
+### ADD
+
+- PHP/7.4.33 [David Zuelke]
+- ext-newrelic/10.3.0.315 [David Zuelke]
+- ext-phalcon/5.1.0 [David Zuelke]
+
+### CHG
+
+- Fail if platform packages dir is part of app source [David Zuelke]
+
 ## v226 (2022-10-27)
 
 ### ADD
