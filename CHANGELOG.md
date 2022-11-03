@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/7.4.33 [David Zuelke]
+- ext-newrelic/10.3.0.315 [David Zuelke]
 
 ## v226 (2022-10-27)
 
