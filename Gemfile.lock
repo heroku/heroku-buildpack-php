@@ -54,7 +54,7 @@ PLATFORMS
 DEPENDENCIES
   ansi
   heroku_hatchet!
-  parallel_tests
+  parallel_tests (>= 4.0.0)
   rake
   rspec-expectations
   rspec-retry
