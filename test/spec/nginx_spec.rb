@@ -15,6 +15,7 @@ describe "A PHP application" do
 				expect(nginx_v).to match(/--with-http_auth_request_module/)
 				expect(nginx_v).to match(/--with-http_realip_module/)
 				expect(nginx_v).to match(/--with-http_ssl_module/)
+				expect(nginx_v).to match(/--with-http_stub_status_module/)
 			end
 		end
 	end
