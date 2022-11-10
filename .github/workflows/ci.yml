@@ -1,0 +1,62 @@
+name: CI
+
+on:
+  push:
+    # Avoid duplicate builds on PRs.
+    branches:
+      - main
+    tags:
+      - v*
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        stack: ["heroku-18", "heroku-20", "heroku-22"]
+    env:
+      STACK: ${{ matrix.stack }}
+      HEROKU_DISABLE_AUTOUPDATE: 1
+      HATCHET_RETRIES: 3
+      IS_RUNNING_ON_CI: true
+      HATCHET_APP_LIMIT: 200
+      HATCHET_APP_PREFIX: ${{ format('htcht-{0}-', github.run_id) }}
+      HATCHET_EXPENSIVE_MODE: 1
+      HATCHET_BUILDPACK_BASE: https://github.com/heroku/heroku-buildpack-php
+      HATCHET_BUILDPACK_BRANCH: ${{ github.head_ref || github.ref_name }}
+      HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+      HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
+      BLACKFIRE_CLIENT_ID:  ${{ secrets.BLACKFIRE_CLIENT_ID }}
+      BLACKFIRE_CLIENT_TOKEN: ${{ secrets.BLACKFIRE_CLIENT_TOKEN }}
+      BLACKFIRE_SERVER_ID: ${{ secrets.BLACKFIRE_SERVER_ID }}
+      BLACKFIRE_SERVER_TOKEN: ${{ secrets.BLACKFIRE_SERVER_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install Ruby and Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          ruby-version: "2.7"
+      - name: Install PHP and Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.1"
+          tools: "composer:2.4"
+      - name: Hatchet setup
+        run: bundle exec hatchet ci:setup
+      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …-develop (since we are not building main or a tag)
+        if: github.ref_type != 'tag' && github.ref_name != 'main'
+        run: |
+          echo 'export HEROKU_PHP_PLATFORM_REPOSITORIES="- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}-develop/"' >> "$GITHUB_ENV"
+      - name: Execute tests
+        run: bundle exec parallel_rspec -n 16 --group-by runtime --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/
+      - name: Clean up test apps
+        if: always()
+        run: bundle exec hatchet destroy --all
+      - name: Print parallel_runtime_rspec.log
+        run: cat parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort

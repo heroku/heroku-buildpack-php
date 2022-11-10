@@ -1,4 +1,4 @@
-# Heroku buildpack: PHP [![Build Status](https://circleci.com/gh/heroku/heroku-buildpack-php.svg?style=svg)](https://circleci.com/gh/heroku/heroku-buildpack-php)
+# Heroku buildpack: PHP [![CI](https://github.com/heroku/heroku-buildpack-php/actions/workflows/ci.yml/badge.svg)](https://github.com/heroku/heroku-buildpack-php/actions/workflows/ci.yml)
 
 ![php](https://cloud.githubusercontent.com/assets/51578/8882982/73ea501a-3219-11e5-8f87-311e6b8a86fc.jpg)
 
