@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v228 (2022-11-??)
+
+### CHG
+
+- Build Nginx with `--with-http_auth_request_module` (#455) [David Zuelke]
+
 ## v227 (2022-11-03)
 
 ### ADD

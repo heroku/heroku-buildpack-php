@@ -45,6 +45,7 @@ VAR=${OUT_PREFIX}/var
 	--http-scgi-temp-path=${VAR}/run/nginx/scgi_temp \
 	--http-log-path=${VAR}/log/nginx/access.log \
 	--error-log-path=${VAR}/log/nginx/error.log \
+	--with-http_auth_request_module \
 	--with-http_realip_module \
 	--with-http_ssl_module
 make -s -j 9
