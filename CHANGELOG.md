@@ -2,6 +2,10 @@
 
 ## v228 (2022-11-??)
 
+### ADD
+
+- PHP/8.0.26 [David Zuelke]
+
 ### CHG
 
 - Build Nginx with `--with-http_auth_request_module` (#455) [David Zuelke]
