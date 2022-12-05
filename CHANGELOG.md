@@ -6,9 +6,9 @@
 
 - PHP/8.0.26 [David Zuelke]
 - PHP/8.1.13 [David Zuelke]
-- ext-blackfire/1.85.0 [David Zuelke]
 - ext-mongodb/1.15.0 [David Zuelke]
 - ext-phalcon/5.1.2 [David Zuelke]
+- ext-blackfire/1.86.0 [David Zuelke]
 
 ### CHG
 
