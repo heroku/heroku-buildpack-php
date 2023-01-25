@@ -16,6 +16,7 @@
 - Build Nginx with `--with-http_auth_request_module` (#455) [David Zuelke]
 - Build Nginx with `--with-http_stub_status_module` (#598) [David Zuelke]
 - blackfire/2.13.2 [David Zuelke]
+- Composer/2.5.1 [David Zuelke]
 
 ## v227 (2022-11-03)
 
