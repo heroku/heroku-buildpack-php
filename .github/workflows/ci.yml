@@ -2,12 +2,10 @@ name: CI
 
 on:
   push:
-    # Avoid duplicate builds on PRs.
     branches:
-      - main
+      - "**"
     tags:
       - v*
-  pull_request:
 
 permissions:
   contents: read
