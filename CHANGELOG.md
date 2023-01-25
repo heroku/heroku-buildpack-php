@@ -5,10 +5,10 @@
 ### ADD
 
 - ext-mongodb/1.15.0 [David Zuelke]
-- ext-blackfire/1.86.1 [David Zuelke]
 - PHP/8.0.27 [David Zuelke]
 - PHP/8.1.14 [David Zuelke]
 - ext-phalcon/5.1.4 [David Zuelke]
+- ext-blackfire/1.86.3 [David Zuelke]
 
 ### CHG
 
