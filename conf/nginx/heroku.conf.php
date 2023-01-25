@@ -60,8 +60,10 @@ http {
 
 		include "<?=getenv('HEROKU_PHP_NGINX_CONFIG_INCLUDE')?>";
 
-		# restrict access to hidden files, just in case
-		location ~ /\. {
+		# restrict access to hidden files, just in case, except for the
+		# visible content from within the `/.well-known/` hidden directory.
+		# https://tools.ietf.org/html/rfc5785
+		location ~* /\.(?!well-known\/) {
 			deny all;
 		}
 

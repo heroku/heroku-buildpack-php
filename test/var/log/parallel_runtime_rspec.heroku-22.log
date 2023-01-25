@@ -3,7 +3,7 @@ test/spec/bugs_spec.rb:30.021669688999992
 test/spec/ci_spec.rb:274.321140925
 test/spec/composer_spec.rb:90.616864848999995
 test/spec/newrelic_spec.rb:86.77255344099999
-test/spec/nginx_spec.rb:20.886132366
+test/spec/nginx_spec.rb:49.700997473
 test/spec/php_8.1-apache2_boot_spec.rb:160.79852702099998
 test/spec/php_8.1-apache2_concurrency_spec.rb:134.627796263
 test/spec/php_8.1_base_spec.rb:210.99503811600005
