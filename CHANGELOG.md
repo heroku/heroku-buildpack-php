@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v233 (2023-04-??)
+
+### CHG
+
+- Do not block access to /.well-known/ in Nginx config [Christophe Coevoet, David Zuelke]
+
 ## v232 (2023-03-27)
 
 ### ADD
