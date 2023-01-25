@@ -9,6 +9,11 @@ test/spec/php_8.1-apache2_concurrency_spec.rb:134.627796263
 test/spec/php_8.1_base_spec.rb:210.99503811600005
 test/spec/php_8.1-nginx_boot_spec.rb:137.466478774
 test/spec/php_8.1-nginx_concurrency_spec.rb:130.15884861399996
+test/spec/php_8.2-apache2_boot_spec.rb:160.79852702099998
+test/spec/php_8.2-apache2_concurrency_spec.rb:134.627796263
+test/spec/php_8.2_base_spec.rb:210.99503811600005
+test/spec/php_8.2-nginx_boot_spec.rb:137.466478774
+test/spec/php_8.2-nginx_concurrency_spec.rb:130.15884861399996
 test/spec/php_default_spec.rb:65.515156888
 test/spec/platform_spec.rb:50.8424652760033496
 test/spec/sigterm_spec.rb:56.08510167799997

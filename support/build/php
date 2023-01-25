@@ -28,6 +28,8 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
 		dep_url=https://downloads.php.net/~carusogabriel/${dep_archive_name}
 	elif [[ $dep_version == 8.1.* ]]; then
 		dep_url=https://downloads.php.net/~ramsey/${dep_archive_name}
+	elif [[ $dep_version == 8.2.* ]]; then
+		dep_url=https://downloads.php.net/~pierrick/${dep_archive_name}
 	fi
 else
 	dep_url=https://www.php.net/distributions/${dep_archive_name}
