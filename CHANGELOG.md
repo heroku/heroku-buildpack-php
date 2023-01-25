@@ -4,11 +4,11 @@
 
 ### ADD
 
-- PHP/8.1.13 [David Zuelke]
 - ext-mongodb/1.15.0 [David Zuelke]
 - ext-phalcon/5.1.2 [David Zuelke]
 - ext-blackfire/1.86.1 [David Zuelke]
 - PHP/8.0.27 [David Zuelke]
+- PHP/8.1.14 [David Zuelke]
 
 ### CHG
 
