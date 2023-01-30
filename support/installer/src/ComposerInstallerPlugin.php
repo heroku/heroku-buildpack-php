@@ -13,6 +13,7 @@ use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Installer\{InstallerEvent,InstallerEvents,PackageEvent,PackageEvents};
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
+use Composer\Util\ProcessExecutor;
 
 class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterface
 {
@@ -28,8 +29,12 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	
 	// profile.d/ and etc/php/conf.d/ files are written with incrementing numeric prefixes by us
 	// this ensures that the shell and PHP also load these files in the order we installed them
-	protected $profileCounter = 10;
 	protected $configCounter = 10;
+	protected $profileCounter = 10;
+	
+	// for CNBs, a "layer env" file is written by us, containing information on env vars to set for build and launch
+	// this data comes from each "install" script a package provides, and we write it out
+	protected $layerEnvData = [];
 	
 	protected $requestedPackages = [];
 	protected $allPlatformRequirements = null;
@@ -239,24 +244,34 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		// we cannot do this via InstallerEvents::PRE_OPERATIONS_EXEC, as that fires before this plugin is even installed
 		$this->initAllPlatformRequirements($event->getOperations());
 		
-		if($event->getOperation()->getPackage()->getType() == "metapackage") {
+		$package = $event->getOperation()->getPackage();
+		
+		if($package->getType() == "metapackage") {
 			// a package representing a userland package (might even be "composer.json/composer.lock") that triggered an install event; this may mean it contains a "provide" declaration we need to remember for later
-			$this->recordUserlandProvides($event->getOperation()->getPackage());
+			$this->recordUserlandProvides($package);
 		}
 		
-		if(!in_array($event->getOperation()->getPackage()->getType(), ['heroku-sys-php', 'heroku-sys-php-extension', 'heroku-sys-webserver', 'heroku-sys-library', 'heroku-sys-program'])) return;
+		if(!in_array($package->getType(), ['heroku-sys-php', 'heroku-sys-php-extension', 'heroku-sys-webserver', 'heroku-sys-library', 'heroku-sys-program'])) return;
 		
 		try {
 			// configure the package if needed (currently only applies to extensions)
-			$this->configurePackage($event->getOperation()->getPackage());
+			$this->configurePackage($package);
 			// enable any packages this package claims to "replace"
-			$this->enableReplaces($event->getOperation()->getPackage());
-			// write package's runtime init logic to a `profile.d/` script, sourced at dyno boot by the shell to e.g. put binaries on $PATH
-			$this->writeProfile($event->getOperation()->getPackage());
-			// append package's build-time init logic to `export` script, sourced by the build system before invoking following buildpacks to e.g. put binaries on $PATH
-			$this->writeExport($event->getOperation()->getPackage());
+			$this->enableReplaces($package);
+			if($this->hasInstallScript($package)) {
+				// this is a new-style package for CNBs with an install script that knows how to install itself
+				// it probably also returns env vars that we want to record
+				$this->appendLayerEnvData($this->runInstallScript($package));
+			} else {
+				$this->writeProfile($package);
+				// write package's runtime init logic to a `profile.d/` script, sourced at dyno boot by the shell to e.g. put binaries on $PATH
+				// append package's build-time init logic to `export` script, sourced by the build system before invoking following buildpacks to e.g. put binaries on $PATH
+				$this->writeExport($package);
+			}
+			// not particularly efficient to do this on each invocation, but we don't have a global shutdown hook
+			$this->flushLayerEnvData();
 		} catch(\Exception $e) {
-			$this->io->writeError(sprintf('<error>Failed to activate package %s</error>', $event->getOperation()->getPackage()->getName()));
+			$this->io->writeError(sprintf('<error>Failed to activate package %s</error>', $package->getName()));
 			$this->io->writeError('');
 			throw $e;
 		}
@@ -374,6 +389,79 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		} else {
 			throw new \RuntimeException('Package declares invalid or missing "config" in "extra"');
 		}
+	}
+	
+	protected function hasInstallScript(PackageInterface $package)
+	{
+		$extra = $package->getExtra();
+		return isset($extra['install']) && $extra['install'];
+	}
+	
+	protected function runInstallScript(PackageInterface $package)
+	{
+		$extra = $package->getExtra();
+		if(!isset($extra['install']) || !$extra['install']) return;
+		
+		$command = $extra['install'] . ' ' . ProcessExecutor::escape(getcwd());
+		
+		$process = $this->composer->getLoop()->getProcessExecutor();
+		
+		if (0 === $process->execute($command, $output)) {
+			return $output ? json_decode($output, true, 3, JSON_THROW_ON_ERROR) : null;
+		}
+		
+		throw new \RuntimeException("Failed to execute '$command'\n\n" . $this->process->getErrorOutput());
+	}
+	
+	protected function appendLayerEnvData(array $data = null)
+	{
+		if(!$data) return;
+		
+		$this->layerEnvData = array_merge($this->layerEnvData, $data);
+	}
+	
+	protected function flushLayerEnvData()
+	{
+		// destination file path is given via environment
+		if(!($fn = getenv('layer_env_file_path'))) return;
+		
+		$data = [];
+		// each entry in the list is a struct with variables from a package's install script
+		// we cannot simply return a list of them to the CNB, as the CNB spec only allows a single definition per environment variableper modification behavior on a layer, e.g. one single value to prepend to $PATH
+		// it is, however, likely that we will have more than one variable setting from our package installs (e.g. several packages adding entries to $PATH)
+		foreach($this->layerEnvData as $entry) {
+			if(!isset($entry['modification_behavior'])) $entry['modification_behavior'] = 'override';
+			if(!isset($entry['scope'])) $entry['scope'] = 'all';
+			$data[$entry['name'].'.'.$entry['scope'].'.'.$entry['modification_behavior']][] = $entry;
+		}
+		// overrides, defaults and delimiters first
+		foreach($data as $key => &$values) {
+			if(count($values) < 2) {
+				$values = (object)$values[0]; // no de-duplication necessary
+			} elseif(in_array($values[0]['modification_behavior'], ['override', 'delimiter'])) {
+				$values = (object)array_pop($values); // keep only the last item
+			} elseif($values[0]['modification_behavior'] == 'default') {
+				$values = (object)$values[0]; // keep only the first item
+			}
+		}
+		unset($values);
+		foreach($data as $key => &$values) {
+			if(!is_array($values) || !in_array($values[0]['modification_behavior'], ['append', 'prepend'])) {
+				// entry is already done
+				continue;
+			}
+			$delimiter = $data[$values[0]['name'].'.'.$values[0]['scope'].'.delimiter']->value ?? ''; // default delimiter is empty string
+			if($values[0]['modification_behavior'] == 'prepend') {
+				$values = array_reverse($values); // prepending means reverse order - last package's prepends come first in the assembled value
+			}
+			$values = [
+				'scope' => $values[0]['scope'],
+				'modification_behavior' => $values[0]['modification_behavior'],
+				'name' => $values[0]['name'],
+				'value' => implode($delimiter, array_column($values, 'value')), // all values, concatenated
+			];
+		}
+		file_put_contents($fn, json_encode(array_values($data)));
 	}
 	
 	protected function writeExport(PackageInterface $package)
