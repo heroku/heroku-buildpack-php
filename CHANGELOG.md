@@ -5,6 +5,7 @@
 ### CHG
 
 - Do not block access to /.well-known/ in Nginx config [Christophe Coevoet, David Zuelke]
+- Do not block access to /.well-known/ in Apache HTTPD config [Christophe Coevoet, David Zuelke]
 
 ## v232 (2023-03-27)
 
