@@ -297,6 +297,8 @@ logs+=( "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.php-fpm.www.$PORT.log" "/tm
 # a bunch of checks; don't load any INIs to prevent newrelic etc from loading, we don't need all that stuff
 php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This program requires PHP 5.5.11 or newer; check your 'php' command." >&2; exit 1; }
 { php-fpm -n -v | php -r 'exit((int)version_compare(preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin")), "5.5.11", "<"));'; } || { echo "This program requires PHP 5.5.11 or newer; check your 'php-fpm' command." >&2; exit 1; }
+# we need the "server root" for invocation
+server_root=$(dirname "$(dirname "$(which php)")")
 
 php_version="$(php-fpm -n -v | php -r 'echo preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin"));')"
 nginx_version="$(nginx -v 2>&1 | php -r 'echo preg_replace("#.*nginx/([\d\.]+)$#sm", "\\1", file_get_contents("php://stdin"));')"
@@ -348,7 +350,7 @@ fpm_config=$(php_passthrough "$fpm_config")
 
 # we explicitly use the INI file php-fpm would load if no INI is given
 # this is to ensure that e.g. our WEB_CONCURRENCY calculation doesn't pick up a php-cli.ini
-fpm_ini=$(php-fpm -i | awk -F' => ' '/^Loaded Configuration File/{print $2}')
+fpm_ini=$(php-fpm --prefix "$server_root" -i | awk -F' => ' '/^Loaded Configuration File/{print $2}')
 if [[ -n ${php_config:-} || ( "$fpm_ini" != "(none)" && ${php_config:=$fpm_ini} && $verbose ) ]]; then
 	echo "Using PHP configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 fi
@@ -384,8 +386,8 @@ echo -e "\n[global]\nlog_level = notice" >> "$fpm_config_tmp"
 
 # build command string arrays for PHP-FPM and Nginx
 # we're using an array, because we need to correctly preserve quoting, spaces, etc
-fpm_command=( php-fpm --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${php_config:+-c "$php_config"} )
-nginx_command=( nginx -c "$nginx_main" -g "pid $nginx_pidfile; include $nginx_config;" )
+fpm_command=( php-fpm --prefix "$server_root" --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${php_config:+-c "$php_config"} )
+nginx_command=( nginx -p "$server_root" -e "$server_root/var/log/nginx/error.log" -c "$nginx_main" -g "pid $nginx_pidfile; include $nginx_config;" )
 
 mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
 if [[ -f "$mlib" ]]; then
