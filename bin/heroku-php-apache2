@@ -20,6 +20,8 @@ fi
 
 # we very likely got called via a symlink, so we have to realpath $0 first to find the base buildpack directory
 bp_dir=$(cd $(dirname $(realpath $0)); cd ..; pwd)
+# we also need the "server root" for later
+server_root=$(dirname "$(dirname "$(which httpd)")")
 
 verbose=
 conftest=
@@ -298,7 +300,9 @@ logs+=( "/tmp/heroku.php-fpm.$PORT.log" "/tmp/heroku.php-fpm.www.$PORT.log" "/tm
 # a bunch of checks; don't load any INIs to prevent newrelic etc from loading, we don't need all that stuff
 php -r 'exit((int)version_compare(PHP_VERSION, "5.5.11", "<"));' || { echo "This program requires PHP 5.5.11 or newer; check your 'php' command." >&2; exit 1; }
 { php-fpm -n -v | php -r 'exit((int)version_compare(preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin")), "5.5.11", "<"));'; } || { echo "This program requires PHP 5.5.11 or newer; check your 'php-fpm' command." >&2; exit 1; }
-{ { httpd -v | php -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.10", "<"));'; } && { httpd -t -D DUMP_MODULES | grep 'proxy_fcgi_module' > /dev/null; }; } || { echo "This program requires Apache 2.4.10 or newer with mod_proxy and mod_proxy_fcgi enabled; check your 'httpd' command." >&2; exit 1; }
+# we need the "server root" for invocation
+server_root=$(dirname "$(dirname "$(which php)")")
+{ { httpd -v | php -r 'exit((int)version_compare(preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin")), "2.4.10", "<"));'; } && { httpd -d "$server_root" -t -D DUMP_MODULES | grep 'proxy_fcgi_module' > /dev/null; }; } || { echo "This program requires Apache 2.4.10 or newer with mod_proxy and mod_proxy_fcgi enabled; check your 'httpd' command." >&2; exit 1; }
 
 php_version="$(php-fpm -n -v | php -r 'echo preg_replace("#PHP (\S+) \(fpm-fcgi\).+$#sm", "\\1", file_get_contents("php://stdin"));')"
 httpd_version="$(httpd -v | php -r 'echo preg_replace("#^Server version: Apache/(\S+).+$#sm", "\\1", file_get_contents("php://stdin"));')"
@@ -350,7 +354,7 @@ fpm_config=$(php_passthrough "$fpm_config")
 
 # we explicitly use the INI file php-fpm would load if no INI is given
 # this is to ensure that e.g. our WEB_CONCURRENCY calculation doesn't pick up a php-cli.ini
-fpm_ini=$(php-fpm -i | awk -F' => ' '/^Loaded Configuration File/{print $2}')
+fpm_ini=$(php-fpm --prefix "$server_root" -i | awk -F' => ' '/^Loaded Configuration File/{print $2}')
 if [[ -n ${php_config:-} || ( "$fpm_ini" != "(none)" && ${php_config:=$fpm_ini} && $verbose ) ]]; then
 	echo "Using PHP configuration (php.ini) file '${php_config#$HEROKU_APP_DIR/}'" >&2
 fi
@@ -368,7 +372,7 @@ fi
 httpd_config=$(php_passthrough "$httpd_config")
 
 fpm_pidfile=$(mktemp -t "heroku.php-fpm.pid-$PORT.XXXXXX" -u)
-httpd_pidfile=$(httpd -t -D DUMP_RUN_CFG 2> /dev/null | sed -n -E 's/PidFile: "(.+)"/\1/p') # get PidFile location
+httpd_pidfile=$(httpd -d "$server_root" -t -D DUMP_RUN_CFG 2> /dev/null | sed -n -E 's/PidFile: "(.+)"/\1/p') # get PidFile location
 
 # we need to dump the FPM config to fetch possible values for memory_limit in php_value and php_admin_value pool declarations
 # parsing this by hand is cumbersome - there might be recursive includes in the config, glob patterns, etc
@@ -384,8 +388,8 @@ echo -e "\n[global]\nlog_level = notice" >> "$fpm_config_tmp"
 
 # build command string arrays for PHP-FPM and HTTPD
 # we're using an array, because we need to correctly preserve quoting, spaces, etc
-fpm_command=( php-fpm --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${php_config:+-c "$php_config"} )
-httpd_command=( httpd -D NO_DETACH -c "Include $httpd_config" )
+fpm_command=( php-fpm --prefix "$server_root" --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${php_config:+-c "$php_config"} )
+httpd_command=( httpd -d "$server_root" -D NO_DETACH -c "Include $httpd_config" )
 
 mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
 if [[ -f "$mlib" ]]; then
