@@ -27,7 +27,7 @@ jobs:
       - name: Build & push image to GitHub Container Registry
         run: docker buildx build --pull --platform=linux/arm64,linux/amd64 --tag ghcr.io/robuust/heroku-php-build-heroku-22 --file $(pwd)/support/build/_docker/heroku-22.Dockerfile --push .
 
-  deploy:
+  tools:
     # Ensure push job passes before pushing image.
     needs: push
 
@@ -52,7 +52,7 @@ jobs:
 
   php81:
     # Ensure push job passes before pushing image.
-    needs: push
+    needs: tools
 
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
@@ -75,7 +75,7 @@ jobs:
 
   php82:
     # Ensure push job passes before pushing image.
-    needs: push
+    needs: tools
 
     runs-on: ubuntu-latest
     if: github.event_name == 'push'
