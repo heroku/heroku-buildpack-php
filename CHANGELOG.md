@@ -2,6 +2,10 @@
 
 ## v230 (2023-02-??)
 
+### CHG
+
+- Use non-legacy structure for platform packages Composer repository [David Zuelke]
+
 ### FIX
 
 - `autotune.php` throws deprecation warning on PHP 8.2 (#615) [Simo Heinonen]

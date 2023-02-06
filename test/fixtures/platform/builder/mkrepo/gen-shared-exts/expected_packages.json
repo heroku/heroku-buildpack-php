@@ -1,6 +1,6 @@
 {
-  "packages": [
-    [
+  "packages": {
+    "heroku-sys/ext-bcmath": [
       {
         "conflict": {},
         "dist": {
@@ -19,7 +19,9 @@
         "time": "2022-01-26 20:49:45",
         "type": "heroku-sys-php-extension",
         "version": "8.1.1"
-      },
+      }
+    ],
+    "heroku-sys/php": [
       {
         "conflict": {},
         "dist": {
@@ -50,5 +52,5 @@
         "version": "8.1.1"
       }
     ]
-  ]
+  }
 }
