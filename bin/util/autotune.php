@@ -78,7 +78,7 @@ $max_ram = stringtobytes($max_ram_string); // last arg is the maximum RAM we're 
 
 if($ram > $max_ram) {
 	$ram = $max_ram;
-	file_put_contents("php://stderr", "Limiting to ${max_ram_string} Bytes of RAM usage\n");
+	file_put_contents("php://stderr", "Limiting to $max_ram_string Bytes of RAM usage\n");
 }
 
 // assume 64 MB base overhead for web server and FPM, and 1 MB overhead for each worker
