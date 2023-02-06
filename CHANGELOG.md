@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v230 (2023-02-??)
+
+### FIX
+
+- `autotune.php` throws deprecation warning on PHP 8.2 (#615) [Simo Heinonen]
+
 ## v229 (2023-01-25)
 
 ### ADD
