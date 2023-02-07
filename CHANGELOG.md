@@ -2,6 +2,10 @@
 
 ## v230 (2023-02-??)
 
+### ADD
+
+- PHP/8.1.15 [David Zuelke]
+
 ### CHG
 
 - Use non-legacy structure for platform packages Composer repository [David Zuelke]
