@@ -10,6 +10,7 @@
 ### CHG
 
 - Use non-legacy structure for platform packages Composer repository [David Zuelke]
+- Composer/2.2.19 [David Zuelke]
 
 ### FIX
 
