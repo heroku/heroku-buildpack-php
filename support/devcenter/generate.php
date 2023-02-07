@@ -41,7 +41,7 @@ $findseries = function(array $package) use($series) {
 };
 
 $stackname = function($version) {
-	return "heroku-${version}";
+	return "heroku-$version";
 };
 
 $filterStackVersions = function(array $row, string $serie, array $stacks, array $seriesByStack, callable $getValue) {
@@ -190,7 +190,7 @@ $latestRuntimesByStack = []; // remember these for the next step, where we fetch
 $runtimeSeriesByStack = [];
 $runtimesQuery = ["SELECT name, series"];
 foreach($stacks as $key => $stack) {
-	$runtimesQuery[] = ", MAX(CASE WHEN stack = '${stack}' THEN version END COLLATE VERSION_CMP) AS '${stack}'";
+	$runtimesQuery[] = ", MAX(CASE WHEN stack = '$stack' THEN version END COLLATE VERSION_CMP) AS '$stack'";
 }
 $runtimesQuery[] = "FROM packages WHERE name = 'php' GROUP BY name, series ORDER BY series COLLATE VERSION_CMP ASC";
 $results = $db->query(implode(" ", $runtimesQuery));
@@ -199,8 +199,8 @@ while($row = $results->fetchArray(SQLITE3_ASSOC)) {
 	$row["name"] = strtoupper($row["name"]); // "PHP"
 	$runtimes[] = $row;
 	foreach($stacks as $stack) {
-		if($row["${stack}"]) {
-			$latestRuntimesByStack[$stack][$row["series"]] = $row["${stack}"];
+		if($row[$stack]) {
+			$latestRuntimesByStack[$stack][$row["series"]] = $row[$stack];
 			$runtimeSeriesByStack[$stack][] = $row["series"];
 		}
 	}
@@ -215,7 +215,7 @@ $stacks = array_combine(range(1, count($stacks)), array_values($stacks)); // rei
 $extensionsQuery = ["SELECT extensions.name, extensions.url"];
 foreach($series as $serie) {
 	foreach($stacks as $stack) {
-		$extensionsQuery[] = ", MAX(CASE WHEN extensions.series = '${serie}' AND extensions.stack='${stack}' THEN extensions.enabled END) AS 'enabled_${serie}_${stack}'";
+		$extensionsQuery[] = ", MAX(CASE WHEN extensions.series = '$serie' AND extensions.stack='$stack' THEN extensions.enabled END) AS 'enabled_{$serie}_{$stack}'";
 	}
 }
 $extensionsQuery[] = "FROM extensions";
@@ -224,7 +224,7 @@ foreach($latestRuntimesByStack as $stack => $versions) {
 	foreach($versions as $serie => $version) {
 		// we intentionally don't use prepared statements here
 		// some bug with positional parameter binding...
-		$extensionsQuery[] = "OR (extensions.stack = '${stack}' AND extensions.version = '${version}')";
+		$extensionsQuery[] = "OR (extensions.stack = '$stack' AND extensions.version = '$version')";
 	}
 }
 $extensionsQuery[] = ") GROUP BY extensions.name ORDER BY extensions.name ASC";
@@ -233,7 +233,7 @@ $bExtensions = [];
 while($row = $result->fetchArray(SQLITE3_ASSOC)) {
 	$row['data'] = [];
 	foreach($series as $serie) {
-		$row['data'][$serie] = $filterStackVersions($row, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return isset($row["enabled_${serie}_${stack}"]) ? strtr($row["enabled_${serie}_${stack}"], ["0" => "&#x2731;", "1" => "&#x2714;"]) : null; });
+		$row['data'][$serie] = $filterStackVersions($row, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return isset($row["enabled_{$serie}_{$stack}"]) ? strtr($row["enabled_{$serie}_{$stack}"], ["0" => "&#x2731;", "1" => "&#x2714;"]) : null; });
 	}
 	$bExtensions[] = $row;
 }
@@ -241,7 +241,7 @@ while($row = $result->fetchArray(SQLITE3_ASSOC)) {
 $extensionsQuery = ["SELECT extensions.name, extensions.url, substr(extensions.version, 1, instr(extensions.version, '.')) AS major_version"];
 foreach($series as $serie) {
 	foreach($stacks as $stack) {
-		$extensionsQuery[] = ", MAX(CASE WHEN extensions.series = '${serie}' AND extensions.stack = '${stack}' THEN extensions.version END COLLATE VERSION_CMP) AS 'version_${serie}_${stack}'";
+		$extensionsQuery[] = ", MAX(CASE WHEN extensions.series = '$serie' AND extensions.stack = '$stack' THEN extensions.version END COLLATE VERSION_CMP) AS 'version_{$serie}_{$stack}'";
 	}
 }
 $extensionsQuery[] = "FROM extensions WHERE extensions.bundled = 0 GROUP BY extensions.name, major_version ORDER BY extensions.name ASC, major_version COLLATE VERSION_CMP ASC";
@@ -250,7 +250,7 @@ $eExtensions = [];
 while($row = $result->fetchArray(SQLITE3_ASSOC)) {
 	$row['data'] = [];
 	foreach($series as $serie) {
-		$row['data'][$serie] = $filterStackVersions($row, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return $row["version_${serie}_${stack}"] ?? null; });
+		$row['data'][$serie] = $filterStackVersions($row, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return $row["version_{$serie}_{$stack}"] ?? null; });
 	}
 	$eExtensions[] = $row;
 }
@@ -290,7 +290,7 @@ foreach($extCounts as $name => $count) {
 		$collapse = array_merge(...$collapse); // result is one row, and we unpack it
 		// recalculate data array
 		foreach($series as $serie) {
-			$collapse['data'][$serie] = $filterStackVersions($collapse, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return $row["version_${serie}_${stack}"] ?? null; });
+			$collapse['data'][$serie] = $filterStackVersions($collapse, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return $row["version_{$serie}_{$stack}"] ?? null; });
 		}
 		unset($collapse['major_version']);
 		// overwrite collapsible rows with our new single one
@@ -300,7 +300,7 @@ foreach($extCounts as $name => $count) {
 
 $composersQuery = ["SELECT name, series"];
 foreach($stacks as $key => $stack) {
-	$composersQuery[] = ", MAX(CASE WHEN stack = '${stack}' THEN version END COLLATE VERSION_CMP) AS '${stack}'";
+	$composersQuery[] = ", MAX(CASE WHEN stack = '$stack' THEN version END COLLATE VERSION_CMP) AS '$stack'";
 }
 $composersQuery[] = "FROM packages WHERE name = 'composer' GROUP BY name, series ORDER BY series COLLATE VERSION_CMP ASC";
 $results = $db->query(implode(" ", $composersQuery));
@@ -313,7 +313,7 @@ while($row = $results->fetchArray(SQLITE3_ASSOC)) {
 
 $webserversQuery = ["SELECT name, series"];
 foreach($stacks as $key => $stack) {
-	$webserversQuery[] = ", MAX(CASE WHEN stack = '${stack}' THEN version END COLLATE VERSION_CMP) AS '${stack}'";
+	$webserversQuery[] = ", MAX(CASE WHEN stack = '$stack' THEN version END COLLATE VERSION_CMP) AS '$stack'";
 }
 $webserversQuery[] = "FROM packages WHERE type = 'heroku-sys-webserver' GROUP BY name, series ORDER BY name ASC, series COLLATE VERSION_CMP ASC";
 $results = $db->query(implode(" ", $webserversQuery));

@@ -1,5 +1,22 @@
 # heroku-buildpack-php CHANGELOG
 
+## v230 (2023-02-07)
+
+### ADD
+
+- PHP/8.1.15 [David Zuelke]
+- PHP/8.2.2 [David Zuelke]
+
+### CHG
+
+- Use non-legacy structure for platform packages Composer repository [David Zuelke]
+- Composer/2.2.19 [David Zuelke]
+- Composer/2.5.2 [David Zuelke]
+
+### FIX
+
+- `autotune.php` throws deprecation warning on PHP 8.2 (#615) [Simo Heinonen]
+
 ## v229 (2023-01-25)
 
 ### ADD
