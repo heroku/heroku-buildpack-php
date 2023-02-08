@@ -98,6 +98,7 @@ fi
 # sort so that packages with the same name and version (e.g. ext-memcached 2.2.0) show up with their php requirement in descending order - otherwise a Composer limitation means that a simple "ext-memcached: * + php: ^7.0.0" request would install 7.0.latest and not 7.4.latest, as it finds the 7.0.* requirement extension first and sticks to that instead of 7.4. For packages with identical names and versions (but different e.g. requirements), Composer basically treats them as equal and picks as a winner whatever it finds first. The requirements have to be written like "x.y.*" for this to work of course (we replace "*", "<=" and so forth with "0", as that's fine for the purpose of just sorting - otherwise, a comparison of e.g. "^7.0.0" and "7.0.*" would cause "TypeError: '<' not supported between instances of 'str' and 'int'")
 python <(cat <<-'PYTHON' # beware of single quotes in body
 	import sys, re, json
+	import itertools
 	from distutils import version
 	manifests = [ json.load(open(item)) for item in sys.argv[1:] if json.load(open(item)).get("type", "") != "heroku-sys-package" ]
 	# for PHP, transform all manifests in extra.shared into their own packages
@@ -108,10 +109,12 @@ python <(cat <<-'PYTHON' # beware of single quotes in body
 	            continue # an older php package manifest that only has a list of shared extensions (name as key, true as value) rather than the versions as well, and lists even shared extensions in "replace"; this means we don't want to give it this treatment below
 	        manifests.append(shared[extname]); # add ext manifest to our repo list
 	        shared[extname] = False # make sure there still is a record of this extension in the PHP package (e.g. for tooling that generates version infos for Heroku Dev Center), but prevent e.g. the legacy Installer Plugin logic from handling this
+	# we sort by a tuple: name first (so the following dictionary grouping works), then "php" requirement (see initial comment block)
 	manifests.sort(
-	    key=lambda package: version.LooseVersion(re.sub("[<>=*~^]", "0", package.get("require", {}).get("heroku-sys/php", "0.0.0"))),
+	    key=lambda package: (package.get("name"), version.LooseVersion(re.sub("[<>=*~^]", "0", package.get("require", {}).get("heroku-sys/php", "0.0.0")))),
 	    reverse=True)
-	json.dump({"packages": [ manifests ] }, sys.stdout, sort_keys=True)
+	# convert the list to a dict with package names as keys and list of versions (sorted by "php" requirement by previous sort) as values
+	json.dump({"packages": dict((name, list(versions)) for name, versions in itertools.groupby(manifests, key=lambda package: package.get("name"))) }, sys.stdout, sort_keys=True)
 PYTHON
 ) $manifests
 
