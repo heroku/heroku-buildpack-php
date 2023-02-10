@@ -81,6 +81,51 @@ export PATH="$HOME/.heroku/php/bin:$PATH"
 export PATH="$PATH:$(realpath "$(PHP_INI_SCAN_DIR= COMPOSER_AUTH= composer config --no-plugins bin-dir)")"
 EOF
 
+# this is the post-install script for CNBs; it produces LayerEnv data
+cat > ${OUT_PREFIX}/bin/install.composer.sh <<'EOFX'
+#!/usr/bin/env bash
+set -eu
+
+package_root=$(cd $(dirname $0); cd ..; pwd)
+dest_root=$1
+
+cat <<-EOF
+[
+	{
+		"scope": "all",
+		"modification_behavior": "default",
+		"name": "COMPOSER_MIRROR_PATH_REPOS",
+		"value": "1"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "default",
+		"name": "COMPOSER_NO_INTERACTION",
+		"value": "1"
+	},
+	{
+		"scope": "launch",
+		"modification_behavior": "default",
+		"name": "COMPOSER_PROCESS_TIMEOUT",
+		"value": "0"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "prepend",
+		"name": "PATH",
+		"value": "${dest_root}/bin"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "delimiter",
+		"name": "PATH",
+		"value": ":"
+	}
+]
+EOF
+EOFX
+chmod a+x ${OUT_PREFIX}/bin/install.composer.sh
+
 # Composer 2.3+ requires 7.2.5+
 if [[ $dep_version == 1.* || $dep_version == 2.[012].* ]]; then
 	phpreq=">=5.3.2"
@@ -106,7 +151,7 @@ MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"$require"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{\"heroku-sys/composer-plugin-api\":\"${plugin_api_version}\",\"heroku-sys/composer-runtime-api\":\"${runtime_api_version}\"}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.composer.sh\",\"profile\":\"bin/profile.composer.sh\"}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.composer.sh\",\"install\":\"bin/install.composer.sh\",\"profile\":\"bin/profile.composer.sh\"}"}"
 
 python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-program" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 

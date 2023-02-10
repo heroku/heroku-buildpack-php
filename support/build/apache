@@ -60,7 +60,7 @@ MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.apache2.sh\",\"profile\":\"bin/profile.apache2.sh\"}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.apache2.sh\",\"install\":\"bin/install.apache2.sh\",\"profile\":\"bin/profile.apache2.sh\"}"}"
 
 mkdir -p ${OUT_PREFIX}/etc/apache2
 cp $(dirname $BASH_SOURCE)/_conf/apache2/httpd.conf ${OUT_PREFIX}/etc/apache2/httpd.conf
@@ -74,6 +74,42 @@ EOF
 cat > ${OUT_PREFIX}/bin/profile.apache2.sh <<'EOF'
 export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
 EOF
+
+# this is the post-install script for CNBs; it relocates the package and produces LayerEnv data
+cat > ${OUT_PREFIX}/bin/install.apache2.sh <<'EOFX'
+#!/usr/bin/env bash
+set -eu
+
+package_root=$(cd $(dirname $0); cd ..; pwd)
+dest_root=$1
+
+# TODO: more replacements needed in other places, for completeness
+sed -i "s#/app/.heroku/php/#${dest_root}#g" "${package_root}/etc/apache2/httpd.conf"
+
+cat <<-EOF
+[
+	{
+		"scope": "all",
+		"modification_behavior": "prepend",
+		"name": "PATH",
+		"value": "${dest_root}/sbin"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "prepend",
+		"name": "PATH",
+		"value": "${dest_root}/bin"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "delimiter",
+		"name": "PATH",
+		"value": ":"
+	}
+]
+EOF
+EOFX
+chmod a+x ${OUT_PREFIX}/bin/install.apache2.sh
 
 python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
