@@ -221,6 +221,64 @@ fi
 
 EOF
 
+# this is the post-install script for CNBs; it relocates the package and produces LayerEnv data
+cat > ${OUT_PREFIX}/bin/install.php.sh <<'EOFX'
+#!/usr/bin/env bash
+set -eu
+
+package_root=$(cd $(dirname $0); cd ..; pwd)
+dest_root=$1
+
+# get compile-time prefix
+configured_prefix=$("$package_root/bin/php-config" --prefix)
+# rewrite in php-config
+sed -i "s#${configured_prefix}#${dest_root}#g" "${package_root}/bin/php-config"
+# get rewritten ini path, scan dir, extension dir
+php_ini_path=$("$package_root/bin/php-config" --ini-path)
+php_ini_file="$php_ini_path/php.ini"
+php_ini_scan_dir=$("$package_root/bin/php-config" --ini-dir)
+php_extension_dir=$("$package_root/bin/php-config" --extension-dir)
+# write extension dir to main INI
+echo "" >> "$php_ini_file"
+echo "extension_dir = $php_extension_dir" >> "$php_ini_file"
+
+cat <<-EOF
+[
+	{
+		"scope": "all",
+		"modification_behavior": "prepend",
+		"name": "PATH",
+		"value": "${dest_root}/sbin"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "prepend",
+		"name": "PATH",
+		"value": "${dest_root}/bin"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "delimiter",
+		"name": "PATH",
+		"value": ":"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "override",
+		"name": "PHP_INI_SCAN_DIR",
+		"value": "${php_ini_scan_dir}"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "override",
+		"name": "PHPRC",
+		"value": "${php_ini_path}"
+	}
+]
+EOF
+EOFX
+chmod a+x ${OUT_PREFIX}/bin/install.php.sh
+
 # we need composer to extract all extensions with versions
 curl -sL https://getcomposer.org/installer > composer-setup.php
 if ! curl -sL https://composer.github.io/installer.sha384sum | sha384sum --quiet -c -; then
@@ -260,7 +318,7 @@ MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE=$(echo "$platform_default" | sed "s/ $dep_version\$/ self.version/" | python -c 'import sys, json; json.dump({item[0]:item[1] for item in [line.split() for line in sys.stdin]}, sys.stdout)')
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
-MANIFEST_EXTRA=$(echo "$exts_shared" | python -c 'import sys, json; json.dump({"shared": dict(item.split() for item in sys.stdin), "export": "bin/export.php.sh", "profile": "bin/profile.php.sh"}, sys.stdout)')
+MANIFEST_EXTRA=$(echo "$exts_shared" | python -c 'import sys, json; json.dump({"shared": dict(item.split() for item in sys.stdin), "export": "bin/export.php.sh", "install": "bin/install.php.sh", "profile": "bin/profile.php.sh"}, sys.stdout)')
 
 echo "-----> Generating manifest..."
 python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
