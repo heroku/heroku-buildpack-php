@@ -1,6 +1,6 @@
 # heroku-buildpack-php CHANGELOG
 
-## v231 (2023-02-??)
+## v231 (2023-02-14)
 
 ### ADD
 
