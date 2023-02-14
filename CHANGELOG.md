@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v231 (2023-02-??)
+
+### CHG
+
+- Composer/2.2.20 [David Zuelke]
+
 ## v230 (2023-02-07)
 
 ### ADD
