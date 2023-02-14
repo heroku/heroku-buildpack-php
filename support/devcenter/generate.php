@@ -121,7 +121,9 @@ $eol = array_filter(array_map(function($eolDates) {
 
 $packages = [];
 foreach($repositories as $repository) {
-	$packages = array_merge($packages, $repository['packages'][0]);
+	foreach($repository['packages'] as $packageName => $packageVersions) {
+		$packages = array_merge($packages, $packageVersions);
+	}
 }
 
 $db = new SQLite3(':memory:');
