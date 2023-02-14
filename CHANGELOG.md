@@ -2,6 +2,10 @@
 
 ## v231 (2023-02-??)
 
+### ADD
+
+- ext-newrelic/10.6.0.318 [David Zuelke]
+
 ### CHG
 
 - Composer/2.2.20 [David Zuelke]
