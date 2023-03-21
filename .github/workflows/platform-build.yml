@@ -78,7 +78,7 @@ jobs:
   deploys:
     needs: [formulae-list, docker-build]
     if: ${{ needs.formulae-list.outputs.formulae != '[]' && needs.formulae-list.outputs.formulae != '' }}
-    runs-on: ubuntu-22.04
+    runs-on: pub-hk-ubuntu-22.04-medium
     strategy:
       max-parallel: ${{ fromJSON(inputs.concurrency) }}
       matrix:
