@@ -97,13 +97,20 @@ for manifest in "${manifests[@]}"; do
 	if filename=$(cat $manifests_tmp/$(basename $manifest) | python <(cat <<-'PYTHON' # beware of single quotes in body
 		import sys, json, re;
 		manifest=json.load(sys.stdin)
-		url=manifest.get("dist",{}).get("url","").partition("https://"+sys.argv[1]+"."+sys.argv[2]+".amazonaws.com/"+sys.argv[3])
-		if url[0]:
-		    # dist URL does not match https://${dst_bucket}.${dst_region}.amazonaws.com/${dst_prefix}
-		    print(url[0])
-		    sys.exit(1)
+		# pattern for basically "https://lang-php.(s3.us-east-1|s3).amazonaws.com/dist-heroku-22-stable/"
+		# this ensures old packages are correctly handled even when they do not contain the region in the URL
+		s3_url_re=re.escape("https://{}.".format(sys.argv[1]))
+		s3_url_re+="(?:{}|s3)".format(re.escape(sys.argv[2]))
+		s3_url_re+=re.escape(".amazonaws.com/{}".format(sys.argv[3]))
+		s3_url_re+="(.+)"
+		url=manifest.get("dist",{}).get("url","")
+		r = re.match(s3_url_re, url)
+		if r:
+		    print(r.group(1))
 		else:
-		    print(url[2])
+		    # dist URL does not match https://${dst_bucket}.(${dst_region}|s3).amazonaws.com/${dst_prefix}
+		    print(url)
+		    sys.exit(1)
 		PYTHON
 	) $S3_BUCKET ${S3_REGION} ${S3_PREFIX})
 	then
