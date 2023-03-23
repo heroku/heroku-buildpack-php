@@ -29,15 +29,22 @@ shift $((OPTIND-1))
 if [[ $# -lt "1" ]]; then
 	cat >&2 <<-EOF
 		Usage: $(basename $0) [--no-publish] MANIFEST...
-		  MANIFEST: name of manifest file, e.g. 'ext-event-2.0.0_php-7.4.composer.json'
+		  MANIFEST: name of manifest, e.g. 'ext-event-2.0.0_php-7.4'
+		  
 		  If --no-publish is given, mkrepo.sh will NOT be invoked after removal to
 		  re-generate the repo.
+		  
 		  CAUTION: re-generating the repo will cause all manifests in the bucket
 		  to be included in the repo, including potentially currently unpublished ones.
 		  CAUTION: using --no-publish means the repo will point to non-existing packages
 		  until 'mkrepo.sh --upload' is run!
-		 Bucket name and prefix will be read from '\$S3_BUCKET' and '\$S3_PREFIX'.
-		 Bucket region (e.g. 's3.us-east-1') will be read from '\$S3_REGION'.
+		 
+		  Wildcard expansion for MANIFEST will be performed by s3cmd and can be combined
+		  with shell brace expansion to match many formulae, for example:
+		  $(basename $0) php-8.1.{8..16} ext-{redis-4,newrelic-9}.*_php-7.*
+		  
+		  Bucket name and prefix will be read from '\$S3_BUCKET' and '\$S3_PREFIX'.
+		  Bucket region (e.g. 's3.us-east-1') will be read from '\$S3_REGION'.
 	EOF
 	exit 2
 fi
@@ -62,12 +69,17 @@ echo "-----> Fetching manifests..." >&2
 	s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" --ssl get "${manifests[@]}" 1>&2
 )
 
+if ! ls "$manifests_tmp/"*".composer.json" 1> /dev/null 2>&1; then
+	echo "No matching manifests found, nothing to do. Aborting." >&2
+	exit
+fi
+
 cat >&2 <<-EOF
 	WARNING: POTENTIALLY DESTRUCTIVE ACTION!
 	
 	The following packages will be REMOVED
 	 from s3://${S3_BUCKET}/${S3_PREFIX}:
-	$(IFS=$'\n'; echo "${manifests[*]:-(none)}" | xargs -n1 basename | sed -e 's/^/  - /' -e 's/.composer.json$//')
+	$(IFS=$'\n'; ls "$manifests_tmp/"*".composer.json" | xargs -n1 basename | sed -e 's/^/  - /' -e 's/.composer.json$//')
 EOF
 
 if $publish; then
@@ -92,9 +104,9 @@ read -p "Are you sure you want to remove the packages $regenmsg? [yN] " proceed
 echo "" >&2
 
 remove_files=()
-for manifest in "${manifests[@]}"; do
-	echo "Removing $(basename $manifest ".composer.json"):" >&2
-	if filename=$(cat $manifests_tmp/$(basename $manifest) | python <(cat <<-'PYTHON' # beware of single quotes in body
+for manifest in "$manifests_tmp/"*".composer.json"; do
+	echo "Removing $(basename "$manifest" ".composer.json"):" >&2
+	if filename=$(cat "$manifest" | python <(cat <<-'PYTHON' # beware of single quotes in body
 		import sys, json, re;
 		manifest=json.load(sys.stdin)
 		# pattern for basically "https://lang-php.(s3.us-east-1|s3).amazonaws.com/dist-heroku-22-stable/"
@@ -120,9 +132,9 @@ for manifest in "${manifests[@]}"; do
 		# the dist URL points somewhere else, so we are not touching that
 		echo "  - WARNING: not removing '$filename' (in manifest 'dist.url')!" >&2
 	fi
-	echo -n "  - removing manifest file '$(basename $manifest)'... " >&2
-	out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" rm --ssl "$manifest" 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
-	rm $manifests_tmp/$(basename $manifest)
+	echo -n "  - removing manifest file '$(basename "$manifest")'... " >&2
+	out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" rm --ssl "s3://${S3_BUCKET}/${S3_PREFIX}$(basename "$manifest")" 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	rm $manifest
 	echo "done." >&2
 done
 
