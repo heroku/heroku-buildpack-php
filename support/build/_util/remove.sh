@@ -114,7 +114,7 @@ for manifest in "${manifests[@]}"; do
 		echo "  - WARNING: not removing '$filename' (in manifest 'dist.url')!" >&2
 	fi
 	echo -n "  - removing manifest file '$(basename $manifest)'... " >&2
-	out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl "$manifest" 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" rm --ssl "$manifest" 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	rm $manifests_tmp/$(basename $manifest)
 	echo "done." >&2
 done
@@ -135,7 +135,7 @@ if [[ "${#remove_files[@]}" != "0" ]]; then
 	echo "Removing files queued for deletion from bucket:" >&2
 	for filename in "${remove_files[@]}"; do
 		echo -n "  - removing '$filename'... " >&2
-		out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${S3_BUCKET}/${S3_PREFIX}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
+		out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" rm --ssl s3://${S3_BUCKET}/${S3_PREFIX}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
 	done
 	echo "" >&2
 fi
