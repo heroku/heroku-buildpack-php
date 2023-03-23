@@ -107,6 +107,7 @@ python <(cat <<-'PYTHON' # beware of single quotes in body
 	    for extname in shared.keys():
 	        if shared[extname] is True:
 	            continue # an older php package manifest that only has a list of shared extensions (name as key, true as value) rather than the versions as well, and lists even shared extensions in "replace"; this means we don't want to give it this treatment below
+	        shared[extname]["dist"]["url"] = "{}?extension={}".format(php.get("dist").get("url"), extname) # make sure "virtual" URL in the shared ext info has the right "base" (e.g. after a sync from another bucket)
 	        manifests.append(shared[extname]); # add ext manifest to our repo list
 	        shared[extname] = False # make sure there still is a record of this extension in the PHP package (e.g. for tooling that generates version infos for Heroku Dev Center), but prevent e.g. the legacy Installer Plugin logic from handling this
 	# we sort by a tuple: name first (so the following dictionary grouping works), then "php" requirement (see initial comment block)
