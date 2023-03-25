@@ -5,6 +5,19 @@ set -o pipefail
 # fail harder
 set -eu
 
+function s3cmd_get_progress() {
+	len=0
+	while read line; do
+		if [[ "$len" -gt 0 ]]; then
+			# repeat a backspace $len times
+			# need to use seq; {1..$len} doesn't work
+			printf '%0.s\b' $(seq 1 $len)
+		fi
+		echo -n "$line"
+		len=${#line}
+	done < <(grep --line-buffered -o -P '(?<=\[)[0-9]+ of [0-9]+(?=\])' | awk -W interactive '{print int($1/$3*100)"% ("$1"/"$3")"}') # filter only the "[1 of 99]" bits from 's3cmd get' output and divide using awk
+}
+
 publish=true
 
 # process flags
@@ -29,15 +42,22 @@ shift $((OPTIND-1))
 if [[ $# -lt "1" ]]; then
 	cat >&2 <<-EOF
 		Usage: $(basename $0) [--no-publish] MANIFEST...
-		  MANIFEST: name of manifest file, e.g. 'ext-event-2.0.0_php-7.4.composer.json'
+		  MANIFEST: name of manifest, e.g. 'ext-event-2.0.0_php-7.4'
+		  
 		  If --no-publish is given, mkrepo.sh will NOT be invoked after removal to
 		  re-generate the repo.
+		  
 		  CAUTION: re-generating the repo will cause all manifests in the bucket
 		  to be included in the repo, including potentially currently unpublished ones.
 		  CAUTION: using --no-publish means the repo will point to non-existing packages
 		  until 'mkrepo.sh --upload' is run!
-		 Bucket name and prefix will be read from '\$S3_BUCKET' and '\$S3_PREFIX'.
-		 Bucket region (e.g. 's3.us-east-1') will be read from '\$S3_REGION'.
+		 
+		  Wildcard expansion for MANIFEST will be performed by s3cmd and can be combined
+		  with shell brace expansion to match many formulae, for example:
+		  $(basename $0) php-8.1.{8..16} ext-{redis-4,newrelic-9}.*_php-7.*
+		  
+		  Bucket name and prefix will be read from '\$S3_BUCKET' and '\$S3_PREFIX'.
+		  Bucket region (e.g. 's3.us-east-1') will be read from '\$S3_REGION'.
 	EOF
 	exit 2
 fi
@@ -56,18 +76,25 @@ done
 
 manifests_tmp=$(mktemp -d -t "dst-repo.XXXXX")
 trap 'rm -rf $manifests_tmp;' EXIT
-echo "-----> Fetching manifests..." >&2
+echo -n "-----> Fetching manifests... " >&2
 (
 	cd $manifests_tmp
-	s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" --ssl get "${manifests[@]}" 1>&2
+	s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" --ssl --progress get "${manifests[@]}" 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
+	rm download.log
 )
+echo "" >&2
+
+if ! ls "$manifests_tmp/"*".composer.json" 1> /dev/null 2>&1; then
+	echo "No matching manifests found, nothing to do. Aborting." >&2
+	exit
+fi
 
 cat >&2 <<-EOF
 	WARNING: POTENTIALLY DESTRUCTIVE ACTION!
 	
 	The following packages will be REMOVED
 	 from s3://${S3_BUCKET}/${S3_PREFIX}:
-	$(IFS=$'\n'; echo "${manifests[*]:-(none)}" | xargs -n1 basename | sed -e 's/^/  - /' -e 's/.composer.json$//')
+	$(IFS=$'\n'; ls "$manifests_tmp/"*".composer.json" | xargs -n1 basename | sed -e 's/^/  - /' -e 's/.composer.json$//')
 EOF
 
 if $publish; then
@@ -92,18 +119,25 @@ read -p "Are you sure you want to remove the packages $regenmsg? [yN] " proceed
 echo "" >&2
 
 remove_files=()
-for manifest in "${manifests[@]}"; do
-	echo "Removing $(basename $manifest ".composer.json"):" >&2
-	if filename=$(cat $manifests_tmp/$(basename $manifest) | python <(cat <<-'PYTHON' # beware of single quotes in body
+for manifest in "$manifests_tmp/"*".composer.json"; do
+	echo "Removing $(basename "$manifest" ".composer.json"):" >&2
+	if filename=$(cat "$manifest" | python <(cat <<-'PYTHON' # beware of single quotes in body
 		import sys, json, re;
 		manifest=json.load(sys.stdin)
-		url=manifest.get("dist",{}).get("url","").partition("https://"+sys.argv[1]+"."+sys.argv[2]+".amazonaws.com/"+sys.argv[3])
-		if url[0]:
-		    # dist URL does not match https://${dst_bucket}.${dst_region}.amazonaws.com/${dst_prefix}
-		    print(url[0])
-		    sys.exit(1)
+		# pattern for basically "https://lang-php.(s3.us-east-1|s3).amazonaws.com/dist-heroku-22-stable/"
+		# this ensures old packages are correctly handled even when they do not contain the region in the URL
+		s3_url_re=re.escape("https://{}.".format(sys.argv[1]))
+		s3_url_re+="(?:{}|s3)".format(re.escape(sys.argv[2]))
+		s3_url_re+=re.escape(".amazonaws.com/{}".format(sys.argv[3]))
+		s3_url_re+="(.+)"
+		url=manifest.get("dist",{}).get("url","")
+		r = re.match(s3_url_re, url)
+		if r:
+		    print(r.group(1))
 		else:
-		    print(url[2])
+		    # dist URL does not match https://${dst_bucket}.(${dst_region}|s3).amazonaws.com/${dst_prefix}
+		    print(url)
+		    sys.exit(1)
 		PYTHON
 	) $S3_BUCKET ${S3_REGION} ${S3_PREFIX})
 	then
@@ -113,9 +147,9 @@ for manifest in "${manifests[@]}"; do
 		# the dist URL points somewhere else, so we are not touching that
 		echo "  - WARNING: not removing '$filename' (in manifest 'dist.url')!" >&2
 	fi
-	echo -n "  - removing manifest file '$(basename $manifest)'... " >&2
-	out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl "$manifest" 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
-	rm $manifests_tmp/$(basename $manifest)
+	echo -n "  - removing manifest file '$(basename "$manifest")'... " >&2
+	out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" rm --ssl "s3://${S3_BUCKET}/${S3_PREFIX}$(basename "$manifest")" 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	rm $manifest
 	echo "done." >&2
 done
 
@@ -135,7 +169,7 @@ if [[ "${#remove_files[@]}" != "0" ]]; then
 	echo "Removing files queued for deletion from bucket:" >&2
 	for filename in "${remove_files[@]}"; do
 		echo -n "  - removing '$filename'... " >&2
-		out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${S3_BUCKET}/${S3_PREFIX}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
+		out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" rm --ssl s3://${S3_BUCKET}/${S3_PREFIX}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
 	done
 	echo "" >&2
 fi
