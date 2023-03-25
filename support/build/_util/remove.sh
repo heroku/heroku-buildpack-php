@@ -5,6 +5,19 @@ set -o pipefail
 # fail harder
 set -eu
 
+function s3cmd_get_progress() {
+	len=0
+	while read line; do
+		if [[ "$len" -gt 0 ]]; then
+			# repeat a backspace $len times
+			# need to use seq; {1..$len} doesn't work
+			printf '%0.s\b' $(seq 1 $len)
+		fi
+		echo -n "$line"
+		len=${#line}
+	done < <(grep --line-buffered -o -P '(?<=\[)[0-9]+ of [0-9]+(?=\])' | awk -W interactive '{print int($1/$3*100)"% ("$1"/"$3")"}') # filter only the "[1 of 99]" bits from 's3cmd get' output and divide using awk
+}
+
 publish=true
 
 # process flags
@@ -63,11 +76,13 @@ done
 
 manifests_tmp=$(mktemp -d -t "dst-repo.XXXXX")
 trap 'rm -rf $manifests_tmp;' EXIT
-echo "-----> Fetching manifests..." >&2
+echo -n "-----> Fetching manifests... " >&2
 (
 	cd $manifests_tmp
-	s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" --ssl get "${manifests[@]}" 1>&2
+	s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" --ssl --progress get "${manifests[@]}" 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
+	rm download.log
 )
+echo "" >&2
 
 if ! ls "$manifests_tmp/"*".composer.json" 1> /dev/null 2>&1; then
 	echo "No matching manifests found, nothing to do. Aborting." >&2
