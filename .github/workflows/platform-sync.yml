@@ -1,0 +1,39 @@
+name: Sync platform packages from -develop/ to -stable/
+
+on:
+  workflow_dispatch:
+    inputs:
+      stack:
+        description: 'Stack to sync'
+        type: choice
+        options:
+        - heroku-18
+        - heroku-20
+        - heroku-22
+        required: true
+      dry-run:
+        description: 'Only list package changes, without syncing'
+        type: boolean
+        default: false
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  sync:
+    runs-on: ubuntu-22.04
+    env:
+      AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build Docker image
+        run: docker build --tag heroku-php-build-${{inputs.stack}}:${{github.sha}} --file support/build/_docker/${{inputs.stack}}.Dockerfile .
+      - name: Dry-run sync.sh to show package changes available for syncing to production bucket
+        if: ${{ inputs.dry-run == true }}
+        run: yes n 2>/dev/null | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/
+      - name: Sync changed packages to production bucket
+        if: ${{ inputs.dry-run == false }}
+        run: yes 2>/dev/null | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/
