@@ -63,18 +63,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Cache Docker build
+        id: cache-docker
+        uses: actions/cache@v3
+        with:
+          key: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
+          path: /tmp/docker-cache.tar.gz
       - name: Build Docker image
+        if: steps.cache-docker.outputs.cache-hit != 'true'
         run: docker build --tag heroku-php-build-${{inputs.stack}}:${{github.sha}} --file support/build/_docker/${{inputs.stack}}.Dockerfile .
       - name: Save built Docker image
-        run: |
-          mkdir -p /tmp/docker-cache
-          docker save -o /tmp/docker-cache/heroku-php-build-${{inputs.stack}}.${{github.sha}}.tar heroku-php-build-${{inputs.stack}}:${{github.sha}}
-      - name: Cache saved Docker image as Artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
-          path: /tmp/docker-cache
-          retention-days: 1
+        if: steps.cache-docker.outputs.cache-hit != 'true'
+        run: docker save heroku-php-build-${{inputs.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
   deploys:
     needs: [formulae-list, docker-build]
     if: ${{ needs.formulae-list.outputs.formulae != '[]' && needs.formulae-list.outputs.formulae != '' }}
@@ -89,13 +89,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Fetch cached Docker image
-        uses: actions/download-artifact@v3
+      - name: Restore cached Docker build
+        uses: actions/cache/restore@v3
         with:
-          name: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
-          path: /tmp/docker-cache
+          key: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
+          path: /tmp/docker-cache.tar.gz
       - name: Load cached Docker image
-        run: docker load -i /tmp/docker-cache/heroku-php-build-${{inputs.stack}}.${{github.sha}}.tar
+        run: docker load -i /tmp/docker-cache.tar.gz
       - name: Build formula without deploying
         if: ${{ inputs.dry-run == true }}
         run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} bob build ${{matrix.formula}}
@@ -115,13 +115,13 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
-      - name: Fetch cached Docker image
-        uses: actions/download-artifact@v3
+      - name: Restore cached Docker build
+        uses: actions/cache/restore@v3
         with:
-          name: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
-          path: /tmp/docker-cache
+          key: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
+          path: /tmp/docker-cache.tar.gz
       - name: Load cached Docker image
-        run: docker load -i /tmp/docker-cache/heroku-php-build-${{inputs.stack}}.${{github.sha}}.tar
+        run: docker load -i /tmp/docker-cache.tar.gz
       - name: Re-generate platform package repository
         run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} mkrepo.sh --upload
       - name: Dry-run sync.sh to show package changes available for syncing to production bucket
