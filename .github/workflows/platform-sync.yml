@@ -1,4 +1,4 @@
-name: Sync platform packages from -develop/ to -stable/
+name: Platform packages sync from -develop/ to -stable/
 
 on:
   workflow_dispatch:

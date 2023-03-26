@@ -1,4 +1,4 @@
-name: Build platform packages and deploy to -develop/
+name: Platform packages build and deploy to -develop/
 
 on:
   workflow_dispatch:

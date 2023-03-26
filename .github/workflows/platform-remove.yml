@@ -1,4 +1,4 @@
-name: Remove platform packages from -develop/
+name: Platform packages removal from -develop/
 
 on:
   workflow_dispatch:
