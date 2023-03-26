@@ -1,0 +1,43 @@
+name: Remove platform packages from -develop/
+
+on:
+  workflow_dispatch:
+    inputs:
+      manifests:
+        description: 'Shell word list of packages manifest names to remove; Bash brace expansion and S3 wildcard expansion is supported, e.g. "php-8.1.{8..16} ext-{redis-4,newrelic-9}.*_php-7.*"'
+        type: string
+        required: true
+      stack:
+        description: 'Stack to remove from'
+        type: choice
+        options:
+        - heroku-18
+        - heroku-20
+        - heroku-22
+        required: true
+      dry-run:
+        description: 'Only list package removals, without executing'
+        type: boolean
+        default: false
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  remove:
+    runs-on: ubuntu-22.04
+    env:
+      AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Build Docker image
+        run: docker build --tag heroku-php-build-${{inputs.stack}}:${{github.sha}} --file support/build/_docker/${{inputs.stack}}.Dockerfile .
+      - name: List packages for removal using given input list
+        if: ${{ inputs.dry-run == true }}
+        run: yes n 2>/dev/null | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh ${{inputs.manifests}}
+      - name: Remove packages from repository
+        if: ${{ inputs.dry-run == false }}
+        run: yes 2>/dev/null | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh ${{inputs.manifests}}
