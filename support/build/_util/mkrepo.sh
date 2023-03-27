@@ -125,7 +125,7 @@ if $redir; then
 	exec 1>&3 3>&-
 fi
 
-cmd="s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket='%(bucket)s.${S3_REGION}.amazonaws.com' --ssl --acl-public -m application/json put packages.json s3://${S3_BUCKET}/${S3_PREFIX}packages.json"
+cmd="s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket='%(bucket)s.${S3_REGION}.amazonaws.com' --ssl -m application/json put packages.json s3://${S3_BUCKET}/${S3_PREFIX}packages.json"
 if $upload; then
 	echo "-----> Uploading packages.json..." >&2
 	eval "$cmd 1>&2"
