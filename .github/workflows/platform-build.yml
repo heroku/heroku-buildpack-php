@@ -58,7 +58,7 @@ jobs:
           echo -n "matrix=" >> "$GITHUB_OUTPUT"
           set -o pipefail
           shopt -s nullglob
-          ls ${{inputs.formulae}} | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
+          ls -f ${{inputs.formulae}} | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
   docker-build:
     runs-on: ubuntu-22.04
     steps:
