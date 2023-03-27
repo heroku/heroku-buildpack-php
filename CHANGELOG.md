@@ -8,6 +8,7 @@
 - PHP/8.2.4 [David Zuelke]
 - ext-blackfire/1.86.5 [David Zuelke]
 - ext-mongodb/1.15.1 [David Zuelke]
+- ext-newrelic/10.8.0.323 [David Zuelke]
 
 ## v231 (2023-02-14)
 
