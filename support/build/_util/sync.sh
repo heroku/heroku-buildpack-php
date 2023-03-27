@@ -244,7 +244,7 @@ for manifest in $add_manifests ${update_manifests[@]:-}; do
 	then
 		# the dist URL in the source's manifest points to the source bucket, so we copy the file to the dest bucket
 		echo -n "  - copying '$filename'... " >&2
-		out=$(s3cmd ${s3cmd_cp_host_options} --ssl --acl-public cp s3://${src_bucket}/${src_prefix}${filename} s3://${dst_bucket}/${dst_prefix}${filename} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+		out=$(s3cmd ${s3cmd_cp_host_options} --ssl cp s3://${src_bucket}/${src_prefix}${filename} s3://${dst_bucket}/${dst_prefix}${filename} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 		copied_files+=("$filename")
 		echo "done." >&2
 	else
@@ -254,7 +254,7 @@ for manifest in $add_manifests ${update_manifests[@]:-}; do
 		cp ${src_tmp}/${manifest} ${dst_tmp}/${manifest}
 	fi
 	echo -n "  - copying manifest file '$manifest'... " >&2
-	out=$(s3cmd ${s3cmd_cp_host_options} --ssl --acl-public -m application/json put ${dst_tmp}/${manifest} s3://${dst_bucket}/${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd ${s3cmd_cp_host_options} --ssl -m application/json put ${dst_tmp}/${manifest} s3://${dst_bucket}/${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	echo "done." >&2
 done
 
@@ -294,7 +294,7 @@ for manifest in $remove_manifests; do
 		echo "  - WARNING: not removing '$filename' (in manifest 'dist.url')!" >&2
 	fi
 	echo -n "  - removing manifest file '$manifest'... " >&2
-	out=$(s3cmd ${s3cmd_dst_host_options} rm --ssl s3://${dst_bucket}/${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd ${s3cmd_dst_host_options} --ssl rm s3://${dst_bucket}/${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	rm ${dst_tmp}/${manifest}
 	echo "done." >&2
 done
@@ -311,7 +311,7 @@ if [[ "${#remove_files[@]}" != "0" ]]; then
 	echo "Removing files queued for deletion from destination:" >&2
 	for filename in "${remove_files[@]}"; do
 		echo -n "  - removing '$filename'... " >&2
-		out=$(s3cmd ${s3cmd_dst_host_options} rm --ssl s3://${dst_bucket}/${dst_prefix}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
+		out=$(s3cmd ${s3cmd_dst_host_options} --ssl rm s3://${dst_bucket}/${dst_prefix}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
 	done
 	echo "" >&2
 fi

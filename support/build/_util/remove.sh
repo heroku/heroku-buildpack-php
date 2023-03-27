@@ -148,7 +148,7 @@ for manifest in "$manifests_tmp/"*".composer.json"; do
 		echo "  - WARNING: not removing '$filename' (in manifest 'dist.url')!" >&2
 	fi
 	echo -n "  - removing manifest file '$(basename "$manifest")'... " >&2
-	out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" rm --ssl "s3://${S3_BUCKET}/${S3_PREFIX}$(basename "$manifest")" 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" --ssl rm "s3://${S3_BUCKET}/${S3_PREFIX}$(basename "$manifest")" 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	rm $manifest
 	echo "done." >&2
 done
@@ -169,7 +169,7 @@ if [[ "${#remove_files[@]}" != "0" ]]; then
 	echo "Removing files queued for deletion from bucket:" >&2
 	for filename in "${remove_files[@]}"; do
 		echo -n "  - removing '$filename'... " >&2
-		out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" rm --ssl s3://${S3_BUCKET}/${S3_PREFIX}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
+		out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" --ssl rm s3://${S3_BUCKET}/${S3_PREFIX}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
 	done
 	echo "" >&2
 fi
