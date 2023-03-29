@@ -46,6 +46,7 @@ jobs:
         if: steps.restore-docker.outputs.cache-hit != 'true'
         run: docker save heroku-php-build-${{inputs.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
       - name: Cache built Docker image
+        if: steps.restore-docker.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
           key: ${{ steps.restore-docker.outputs.cache-primary-key }}
