@@ -1,4 +1,5 @@
 name: Platform packages sync from -develop/ to -stable/
+run-name: Sync${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-${{inputs.stack}}-develop/ to dist-${{inputs.stack}}-stable/
 
 on:
   workflow_dispatch:
@@ -45,13 +46,25 @@ jobs:
         if: steps.restore-docker.outputs.cache-hit != 'true'
         run: docker save heroku-php-build-${{inputs.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
       - name: Cache built Docker image
+        if: steps.restore-docker.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
           key: ${{ steps.restore-docker.outputs.cache-primary-key }}
           path: /tmp/docker-cache.tar.gz
       - name: Dry-run sync.sh to show package changes available for syncing to production bucket
         if: ${{ inputs.dry-run == true }}
-        run: yes n 2>/dev/null | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/
+        run: |
+          set -o pipefail
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/ 2>&1 | tee sync.out
       - name: Sync changed packages to production bucket
         if: ${{ inputs.dry-run == false }}
-        run: yes 2>/dev/null | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/
+        run: |
+          set -o pipefail
+          (yes 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/ 2>&1 | tee sync.out
+      - name: Output job summary
+        run: |
+          echo '## Package changes ${{ inputs.dry-run == true && 'available for syncing' || 'synced' }} to production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '**This is output from a dry-run**, no changes have been synced to production:' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          sed -n '/The following packages will/,$p' sync.out >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

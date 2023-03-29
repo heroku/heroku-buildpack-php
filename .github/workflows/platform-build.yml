@@ -1,4 +1,5 @@
 name: Platform packages build and deploy to -develop/
+run-name: Build ${{ inputs.dry-run == true && 'w/o deploy' || '& deploy' }}${{ inputs.overwrite == true && '(+overwrite)' || '' }} to dist-${{inputs.stack}}-develop/ ${{ inputs.publish == false && 'w/o publishing packages into Composer platform repository' || '' }}
 
 on:
   workflow_dispatch:
@@ -55,9 +56,11 @@ jobs:
         name: Expand list of given formulae
         run: |
           cd support/build
+          echo '## Formulae input for building' >> "$GITHUB_STEP_SUMMARY"
           echo -n "matrix=" >> "$GITHUB_OUTPUT"
           set -o pipefail
           shopt -s nullglob
+          ls -f ${{inputs.formulae}} | xargs -n 1 echo - >> "$GITHUB_STEP_SUMMARY"
           ls -f ${{inputs.formulae}} | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
   docker-build:
     runs-on: ubuntu-22.04
@@ -126,4 +129,13 @@ jobs:
       - name: Re-generate platform package repository
         run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} mkrepo.sh --upload
       - name: Dry-run sync.sh to show package changes available for syncing to production bucket
-        run: yes n 2>/dev/null | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/
+        run: |
+          set -o pipefail
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/ 2>&1 | tee sync.out
+      - name: Output job summary
+        run: |
+          echo '## Package changes available for syncing to production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo '**This is output from a dry-run**, no changes have been synced to production:' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          sed -n '/The following packages will/,$p' sync.out >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

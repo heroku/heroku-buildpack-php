@@ -1,4 +1,5 @@
 name: Platform packages removal from -develop/
+run-name: Removal${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-${{inputs.stack}}-develop/
 
 on:
   workflow_dispatch:
@@ -33,6 +34,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Expand list of manifests to remove
+        run: |
+          echo '## Manifests input for removal' >> "$GITHUB_STEP_SUMMARY"
+          set -f
+          echo ${{inputs.manifests}} | xargs -n 1 echo - >> "$GITHUB_STEP_SUMMARY"
       - name: Restore cached Docker image
         id: restore-docker
         uses: actions/cache/restore@v3
@@ -49,13 +55,27 @@ jobs:
         if: steps.restore-docker.outputs.cache-hit != 'true'
         run: docker save heroku-php-build-${{inputs.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
       - name: Cache built Docker image
+        if: steps.restore-docker.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
           key: ${{ steps.restore-docker.outputs.cache-primary-key }}
           path: /tmp/docker-cache.tar.gz
       - name: List packages for removal using given input list
         if: ${{ inputs.dry-run == true }}
-        run: yes n 2>/dev/null | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh ${{inputs.manifests}}
+        run: |
+          set -f
+          set -o pipefail
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh ${{inputs.manifests}} 2>&1 | tee remove.out
       - name: Remove packages from repository
         if: ${{ inputs.dry-run == false }}
-        run: yes 2>/dev/null | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh ${{inputs.manifests}}
+        run: |
+          set -f
+          set -o pipefail
+          (yes 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh ${{inputs.manifests}} 2>&1 | tee remove.out
+      - name: Output job summary
+        run: |
+          echo '## Packages${{ inputs.dry-run == true && ' which would be' }} removed from production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '**This is output from a dry-run**, no packages have been removed:' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          sed -n '/The following packages will/,$p' remove.out >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
