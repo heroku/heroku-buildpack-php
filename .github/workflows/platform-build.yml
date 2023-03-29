@@ -55,9 +55,11 @@ jobs:
         name: Expand list of given formulae
         run: |
           cd support/build
+          echo '## Formulae input for building' >> "$GITHUB_STEP_SUMMARY"
           echo -n "matrix=" >> "$GITHUB_OUTPUT"
           set -o pipefail
           shopt -s nullglob
+          ls -f ${{inputs.formulae}} | xargs -n 1 echo - >> "$GITHUB_STEP_SUMMARY"
           ls -f ${{inputs.formulae}} | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
   docker-build:
     runs-on: ubuntu-22.04
