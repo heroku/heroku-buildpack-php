@@ -1,4 +1,5 @@
 name: Platform packages build and deploy to -develop/
+run-name: Build ${{ inputs.dry-run == true && 'w/o deploy' || '& deploy' }}${{ inputs.overwrite == true && '(+overwrite)' || '' }} to dist-${{inputs.stack}}-develop/ ${{ inputs.publish == false && 'w/o publishing packages into Composer platform repository' || '' }}
 
 on:
   workflow_dispatch:

@@ -1,4 +1,5 @@
 name: Platform packages removal from -develop/
+run-name: Removal${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-${{inputs.stack}}-develop/
 
 on:
   workflow_dispatch:

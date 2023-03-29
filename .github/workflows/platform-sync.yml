@@ -1,4 +1,5 @@
 name: Platform packages sync from -develop/ to -stable/
+run-name: Sync${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-${{inputs.stack}}-develop/ to dist-${{inputs.stack}}-stable/
 
 on:
   workflow_dispatch:
