@@ -220,24 +220,31 @@ copied_files=()
 for manifest in $add_manifests ${update_manifests[@]:-}; do
 	echo "Copying ${manifest%.composer.json}:" >&2
 	if filename=$(cat ${src_tmp}/${manifest} | python <(cat <<-'PYTHON' # beware of single quotes in body
-		import sys, json;
+		import sys, json, re;
 		manifest=json.load(sys.stdin)
-		url=manifest.get("dist",{}).get("url","").partition("https://"+sys.argv[1]+"."+sys.argv[2]+".amazonaws.com/"+sys.argv[3])
-		if url[0]:
-		    # dist URL does not match https://${src_bucket}.${src_region}.amazonaws.com/${src_prefix}
-		    print(url[0])
-		    sys.exit(1)
-		else:
+		# pattern for basically "https://lang-php.(s3.us-east-1|s3).amazonaws.com/dist-heroku-22-stable/"
+		# this ensures old packages are correctly handled even when they do not contain the region in the URL
+		s3_url_re=re.escape("https://{}.".format(sys.argv[1]))
+		s3_url_re+="(?:{}|s3)".format(re.escape(sys.argv[2]))
+		s3_url_re+=re.escape(".amazonaws.com/{}".format(sys.argv[3]))
+		s3_url_re+="(.+)"
+		url=manifest.get("dist",{}).get("url","")
+		r = re.match(s3_url_re, url)
+		if r:
 		    # rewrite dist URL in manifest to destination bucket
-		    manifest["dist"]["url"] = "https://"+sys.argv[4]+"."+sys.argv[5]+".amazonaws.com/"+sys.argv[6]+url[2]
+		    manifest["dist"]["url"] = "https://"+sys.argv[4]+"."+sys.argv[5]+".amazonaws.com/"+sys.argv[6]+r.group(1)
 		    json.dump(manifest, open(sys.argv[7], "w"), sort_keys=True)
-		    print(url[2])
+		    print(r.group(1))
+		else:
+		    # dist URL does not match https://${dst_bucket}.(${dst_region}|s3).amazonaws.com/${dst_prefix}
+		    print(url)
+		    sys.exit(1)
 		PYTHON
 	) $src_bucket $src_region $src_prefix $dst_bucket $dst_region $dst_prefix ${dst_tmp}/${manifest})
 	then
 		# the dist URL in the source's manifest points to the source bucket, so we copy the file to the dest bucket
 		echo -n "  - copying '$filename'... " >&2
-		out=$(s3cmd ${s3cmd_cp_host_options} ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public cp s3://${src_bucket}/${src_prefix}${filename} s3://${dst_bucket}/${dst_prefix}${filename} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+		out=$(s3cmd ${s3cmd_cp_host_options} --ssl cp s3://${src_bucket}/${src_prefix}${filename} s3://${dst_bucket}/${dst_prefix}${filename} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 		copied_files+=("$filename")
 		echo "done." >&2
 	else
@@ -247,7 +254,7 @@ for manifest in $add_manifests ${update_manifests[@]:-}; do
 		cp ${src_tmp}/${manifest} ${dst_tmp}/${manifest}
 	fi
 	echo -n "  - copying manifest file '$manifest'... " >&2
-	out=$(s3cmd ${s3cmd_cp_host_options} ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl --acl-public -m application/json put ${dst_tmp}/${manifest} s3://${dst_bucket}/${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd ${s3cmd_cp_host_options} --ssl -m application/json put ${dst_tmp}/${manifest} s3://${dst_bucket}/${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	echo "done." >&2
 done
 
@@ -255,15 +262,22 @@ remove_files=()
 for manifest in $remove_manifests; do
 	echo "Removing ${manifest%.composer.json}:" >&2
 	if filename=$(cat ${dst_tmp}/${manifest} | python <(cat <<-'PYTHON' # beware of single quotes in body
-		import sys, json;
+		import sys, json, re;
 		manifest=json.load(sys.stdin)
-		url=manifest.get("dist",{}).get("url","").partition("https://"+sys.argv[1]+"."+sys.argv[2]+".amazonaws.com/"+sys.argv[3])
-		if url[0]:
-		    # dist URL does not match https://${dst_bucket}.${dst_region}.amazonaws.com/${dst_prefix}
-		    print(url[0])
-		    sys.exit(1)
+		# pattern for basically "https://lang-php.(s3.us-east-1|s3).amazonaws.com/dist-heroku-22-stable/"
+		# this ensures old packages are correctly handled even when they do not contain the region in the URL
+		s3_url_re=re.escape("https://{}.".format(sys.argv[1]))
+		s3_url_re+="(?:{}|s3)".format(re.escape(sys.argv[2]))
+		s3_url_re+=re.escape(".amazonaws.com/{}".format(sys.argv[3]))
+		s3_url_re+="(.+)"
+		url=manifest.get("dist",{}).get("url","")
+		r = re.match(s3_url_re, url)
+		if r:
+		    print(r.group(1))
 		else:
-		    print(url[2])
+		    # dist URL does not match https://${dst_bucket}.(${dst_region}|s3).amazonaws.com/${dst_prefix}
+		    print(url)
+		    sys.exit(1)
 		PYTHON
 	) $dst_bucket $dst_region $dst_prefix)
 	then
@@ -280,7 +294,7 @@ for manifest in $remove_manifests; do
 		echo "  - WARNING: not removing '$filename' (in manifest 'dist.url')!" >&2
 	fi
 	echo -n "  - removing manifest file '$manifest'... " >&2
-	out=$(s3cmd ${s3cmd_dst_host_options} rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${dst_bucket}/${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd ${s3cmd_dst_host_options} --ssl rm s3://${dst_bucket}/${dst_prefix}${manifest} 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	rm ${dst_tmp}/${manifest}
 	echo "done." >&2
 done
@@ -297,7 +311,7 @@ if [[ "${#remove_files[@]}" != "0" ]]; then
 	echo "Removing files queued for deletion from destination:" >&2
 	for filename in "${remove_files[@]}"; do
 		echo -n "  - removing '$filename'... " >&2
-		out=$(s3cmd ${s3cmd_dst_host_options} rm ${AWS_ACCESS_KEY_ID+"--access_key=$AWS_ACCESS_KEY_ID"} ${AWS_SECRET_ACCESS_KEY+"--secret_key=$AWS_SECRET_ACCESS_KEY"} --ssl s3://${dst_bucket}/${dst_prefix}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
+		out=$(s3cmd ${s3cmd_dst_host_options} --ssl rm s3://${dst_bucket}/${dst_prefix}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
 	done
 	echo "" >&2
 fi

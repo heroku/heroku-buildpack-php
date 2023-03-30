@@ -3,9 +3,9 @@ name: CI
 on:
   push:
     branches:
-      - "**"
-    tags:
-      - v*
+      - "main"
+  pull_request:
+  workflow_dispatch:
 
 permissions:
   contents: read
