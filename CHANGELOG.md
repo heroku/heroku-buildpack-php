@@ -15,6 +15,7 @@
 - Do not block access to /.well-known/ in Apache HTTPD config [Christophe Coevoet, David Zuelke]
 - Apache/2.4.57 [David Zuelke]
 - Nginx/1.24.0 [David Zuelke]
+- blackfire/2.15.0 [David Zuelke]
 
 ## v232 (2023-03-27)
 
