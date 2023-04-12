@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/8.1.18 [David Zuelke]
+- PHP/8.2.5 [David Zuelke]
 
 ### CHG
 
