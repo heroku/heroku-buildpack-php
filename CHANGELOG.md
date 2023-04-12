@@ -2,6 +2,10 @@
 
 ## v233 (2023-04-??)
 
+### ADD
+
+- PHP/8.1.18 [David Zuelke]
+
 ### CHG
 
 - Do not block access to /.well-known/ in Nginx config [Christophe Coevoet, David Zuelke]
