@@ -44,24 +44,16 @@ pushd ${dep_dirname}
 
 # we need libgmp for GMP, libpam0g/libc-client for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP
 needed=( libgmp10 libpam0g libc-client2007e libsasl2-2 libkrb5-3 )
-if [[ $STACK == "heroku-18" ]]; then
-	needed+=( libicu60 )
+needed+=( libonig5 )
+needed+=( libsodium23 )
+if [[ $STACK == "heroku-20" ]]; then
+	needed+=( libicu66 )
 	needed+=( libldap-2.4-2 )
-	needed+=( libonig4 )
-	needed+=( libsodium23 )
-	needed+=( libzip4 )
+	needed+=( libzip5 )
 else
-	needed+=( libonig5 )
-	needed+=( libsodium23 )
-	if [[ $STACK == "heroku-20" ]]; then
-		needed+=( libicu66 )
-		needed+=( libldap-2.4-2 )
-		needed+=( libzip5 )
-	else
-		needed+=( libicu70 )
-		needed+=( libldap-2.5-0 )
-		needed+=( libzip4 ) # went back from ABI v5 to v4 in 1.6 or 1.7
-	fi
+	needed+=( libicu70 )
+	needed+=( libldap-2.5-0 )
+	needed+=( libzip4 ) # went back from ABI v5 to v4 in 1.6 or 1.7
 fi
 if [[ $dep_version == 7.1.* ]]; then
 	needed+=( libmcrypt4 )

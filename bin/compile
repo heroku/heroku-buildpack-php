@@ -9,7 +9,7 @@ set -eu
 # move hidden files too, just in case
 shopt -s dotglob
 
-STACK=${STACK:-heroku-18} # Anvil has none
+STACK=${STACK:-heroku-22} # Anvil has none
 build_dir=$1
 cache_dir=$2/php
 mkdir -p "$cache_dir"
@@ -376,10 +376,10 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 
 status "Preparing platform package installation..."
 
-if [[ $STACK == "heroku-18" ]]; then
-	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.1.0"
-else
+if [[ $STACK == "heroku-20" ]]; then
 	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.3.0 | ^8.0.0"
+else
+	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^8.0.0"
 fi
 export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # extract requirements from composer.lock

@@ -46,7 +46,7 @@ shared_examples "A basic PHP application" do |series|
 			# 1x libsqlite3.so for extensions/…/sqlite3.so
 			# 1x libsqlite3.so for bin/php (before heroku-22)
 			# 1x libzip.so for bin/php
-			if ["heroku-18", "heroku-20"].include?(ENV['STACK'])
+			if "heroku-20" == ENV['STACK']
 				expect(ldd_output).to match(/^6$/)
 			else
 				expect(ldd_output).to match(/^5$/)
