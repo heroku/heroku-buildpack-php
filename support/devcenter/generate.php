@@ -10,10 +10,8 @@ $stacks = [
 	1 => '20', // the offset we start with here is relevant for the numbering of footnotes
 	'22',
 ];
-// these need updating from time to time to add new series and remove EOL ones
+// these need updating from time to time to add new series and remove series no longer on any stack
 $series = [
-	'7.1',
-	'7.2',
 	'7.3',
 	'7.4',
 	'8.0',
