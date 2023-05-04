@@ -1,5 +1,12 @@
 # heroku-buildpack-php CHANGELOG
 
+## v234 (2023-05-??)
+
+### CHG
+
+- Drop support for the heroku-18 stack [David Zuelke]
+- Drop support for PHP 7.1 and PHP 7.2 [David Zuelke]
+
 ## v233 (2023-04-14)
 
 ### ADD

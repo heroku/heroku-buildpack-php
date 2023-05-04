@@ -20,12 +20,6 @@ dep_dirname=newrelic-php5-${dep_version}-linux
 dep_archive_name=${dep_dirname}.tar.gz
 dep_url=https://download.newrelic.com/php_agent/archive/${dep_version}/${dep_archive_name}
 case ${ZEND_MODULE_API_VERSION} in
-	20160303)
-		series=7.1
-		;;
-	20170718)
-		series=7.2
-		;;
 	20180731)
 		series=7.3
 		;;

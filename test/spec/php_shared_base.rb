@@ -32,13 +32,13 @@ shared_examples "A basic PHP application" do |series|
 			end
 		end
 		
-		it "uses all available RAM as PHP CLI memory_limit", :if => series.between?("7.2","8.2") do
+		it "uses all available RAM as PHP CLI memory_limit" do
 			retry_until retry: 3, sleep: 5 do
 				expect(@app.run("php -i | grep memory_limit")).to match "memory_limit => 536870912 => 536870912"
 			end
 		end
 		
-		it "is running a PHP build that links against libc-client, libonig, libsqlite3 and libzip from the stack", :if => series.between?("7.2","8.2") do
+		it "is running a PHP build that links against libc-client, libonig, libsqlite3 and libzip from the stack" do
 			ldd_output = @app.run("ldd .heroku/php/bin/php .heroku/php/lib/php/extensions/no-debug-non-zts-*/{imap,mbstring,pdo_sqlite,sqlite3}.so | grep -E ' => (/usr)?/lib/' | grep -e 'libc-client.so' -e 'libonig.so' -e 'libsqlite3.so' -e 'libzip.so' | wc -l")
 			# 1x libc-client.so for extensions/…/imap.so
 			# 1x libonig for extensions/…/mbstring.so
@@ -46,7 +46,7 @@ shared_examples "A basic PHP application" do |series|
 			# 1x libsqlite3.so for extensions/…/sqlite3.so
 			# 1x libsqlite3.so for bin/php (before heroku-22)
 			# 1x libzip.so for bin/php
-			if ["heroku-18", "heroku-20"].include?(ENV['STACK'])
+			if "heroku-20" == ENV['STACK']
 				expect(ldd_output).to match(/^6$/)
 			else
 				expect(ldd_output).to match(/^5$/)

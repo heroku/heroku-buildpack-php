@@ -157,13 +157,12 @@ The following environment variables are required:
 - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with credentials for the S3 bucket
 - `S3_BUCKET` with the name of the S3 bucket to use for builds
 - `S3_PREFIX` (just a slash, or a prefix directory name **with a trailing, but no leading, slash**)
-- `STACK` (currently, only "`heroku-18`", "`heroku-20`", or "`heroku-22`" make any sense)
+- `STACK` (currently, only "`heroku-20`" or "`heroku-22`" make any sense)
 
 The following environment variables are highly recommended (see section *Understanding Upstream Buckets*):
 
 - `UPSTREAM_S3_BUCKET` where dependencies are pulled from if they can't be found in `S3_BUCKET+S3_PREFIX`, should probably be set to "`lang-php`", the official Heroku bucket
 - `UPSTREAM_S3_PREFIX`, where dependencies are pulled from if they can't be found in `S3_BUCKET+S3_PREFIX` should probably be set to
-  - "`dist-heroku-18-stable/`", the official Heroku stable repository prefix for the [heroku-18 stack](https://devcenter.heroku.com/articles/stack).
   - "`dist-heroku-20-stable/`", the official Heroku stable repository prefix for the [heroku-20 stack](https://devcenter.heroku.com/articles/stack).
   - "`dist-heroku-22-stable/`", the official Heroku stable repository prefix for the [heroku-22 stack](https://devcenter.heroku.com/articles/stack).
 
@@ -358,7 +357,7 @@ The `require` key must contain dependencies on at least the following packages:
 
 If a package is built against a specific (or multiple) stacks, there must be a dependency on the following packages:
 
-- `heroku-sys/heroku`, version "18" for `heroku-18`, version "20" for `heroku-20`, or version "22" for `heroku-22` (use version selectors `^18.0.0` or `^20.0.0` or `^22.0.0`, or a valid Composer combination)
+- `heroku-sys/heroku`, version "20" for `heroku-20`, or version "22" for `heroku-22` (use version selectors `^20.0.0` or `^22.0.0`, or a valid Composer combination)
 
 *Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {require}'`*
 
@@ -474,13 +473,13 @@ The structure of a `packagist` type repository is a struct with a single key "`p
 
 ### Repositories and Stacks
 
-In principle, a single repository can contain multiple, stack-specific versions of the same package. Consider the following condensed example for two identical versions of `ext-pq`, but for two PHP runtimes, on the `heroku-18` stack:
+In principle, a single repository can contain multiple, stack-specific versions of the same package. Consider the following condensed example for two identical versions of `ext-pq`, but for two PHP runtimes, on the `heroku-22` stack:
 
     {
         "name": "heroku-sys/ext-pq",
         "version": "2.1.5",
         "require": {
-            "heroku-sys/heroku": "^18.0.0",
+            "heroku-sys/heroku": "^22.0.0",
             "heroku-sys/php": "7.3.*"
         }
     },
@@ -488,18 +487,18 @@ In principle, a single repository can contain multiple, stack-specific versions 
         "name": "heroku-sys/ext-pq",
         "version": "2.1.5",
         "require": {
-            "heroku-sys/heroku": "^18.0.0",
+            "heroku-sys/heroku": "^22.0.0",
             "heroku-sys/php": "7.2.*"
         }
     }
 
-There is no reason why there couldn't be two additional packages, but with a `heroku-sys/heroku` dependency of "`^16.0.0`", in the same repository, like so:
+There is no reason why there couldn't be two additional packages, but with a `heroku-sys/heroku` dependency of "`^20.0.0`", in the same repository, like so:
 
     {
         "name": "heroku-sys/ext-pq",
         "version": "2.1.5",
         "require": {
-            "heroku-sys/heroku": "^16.0.0",
+            "heroku-sys/heroku": "^20.0.0",
             "heroku-sys/php": "7.3.*"
         }
     },
@@ -507,7 +506,7 @@ There is no reason why there couldn't be two additional packages, but with a `he
         "name": "heroku-sys/ext-pq",
         "version": "2.1.5",
         "require": {
-            "heroku-sys/heroku": "^16.0.0",
+            "heroku-sys/heroku": "^20.0.0",
             "heroku-sys/php": "7.2.*"
         }
     },
@@ -515,7 +514,7 @@ There is no reason why there couldn't be two additional packages, but with a `he
         "name": "heroku-sys/ext-pq",
         "version": "2.1.5",
         "require": {
-            "heroku-sys/heroku": "^18.0.0",
+            "heroku-sys/heroku": "^22.0.0",
             "heroku-sys/php": "7.3.*"
         }
     },
@@ -523,7 +522,7 @@ There is no reason why there couldn't be two additional packages, but with a `he
         "name": "heroku-sys/ext-pq",
         "version": "2.1.5",
         "require": {
-            "heroku-sys/heroku": "^18.0.0",
+            "heroku-sys/heroku": "^22.0.0",
             "heroku-sys/php": "7.2.*"
         }
     }
@@ -611,7 +610,7 @@ Unless the `--no-publish` option is given, the repository will be re-generated i
 
 In this example, you will fork the buildpack and add your own formula to it. **The fork is only used for building the package and publishing the repository, it is not used to build and run applications.**
 
-The `heroku-18`, `heroku-20`, and `heroku-22` stack variants of the package will be hosted in the same repository.
+The `heroku-20` and `heroku-22` stack variants of the package will be hosted in the same repository.
 
 A development and a stable S3 bucket prefix are used for the repository, and helpers are used for synchronization between them.
 
@@ -652,7 +651,6 @@ Finally, build the containers for each stack:
 
     $ docker build --pull --tag heroku-php-build-heroku-22 --file $(pwd)/support/build/_docker/heroku-22.Dockerfile .
     $ docker build --pull --tag heroku-php-build-heroku-20 --file $(pwd)/support/build/_docker/heroku-20.Dockerfile .
-    $ docker build --pull --tag heroku-php-build-heroku-18 --file $(pwd)/support/build/_docker/heroku-18.Dockerfile .
 
 #### Building and Deploying
 
@@ -660,13 +658,11 @@ Verify that the build works:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-22 bob build nginx-1.15.4
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-20 bob build nginx-1.15.4
-    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-18 bob build nginx-1.15.4
 
 If all went well, deploy it using the helper script:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-22 deploy.sh nginx-1.15.4
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-20 deploy.sh nginx-1.15.4
-    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-18 deploy.sh nginx-1.15.4
 
 #### Repository Creation
 
@@ -696,7 +692,7 @@ You can then use that repository:
 
 The Heroku PHP buildpack will be pulled in as a Composer dependency. Its build `Dockerfile`s are built and tagged locally, and a custom `Dockerfile` for each targeted stack builds upon those tagged images.
 
-The `heroku-18`, `heroku-20`, and `heroku-22` stack variants of the package will be hosted in the same repository.
+The `heroku-20` and `heroku-22` stack variants of the package will be hosted in the same repository.
 
 The package in this example is the Xdebug extension. The extension formula can re-use an existing buildpack base formula for PECL extensions.
 
@@ -719,7 +715,6 @@ Build the base Docker images from the buildpack for all stacks:
     $ cd vendor/heroku/heroku-buildpack-php
     $ docker build --pull --tag php-heroku-22 --file $(pwd)/support/build/_docker/heroku-22.Dockerfile .
     $ docker build --pull --tag php-heroku-20 --file $(pwd)/support/build/_docker/heroku-20.Dockerfile .
-    $ docker build --pull --tag php-heroku-18 --file $(pwd)/support/build/_docker/heroku-18.Dockerfile .
     $ cd -
 
 #### Creating Custom Dockerfiles
@@ -738,14 +733,6 @@ Create a `heroku-20.Dockerfile` with the following contents:
     ENV WORKSPACE_DIR=/app
     ENV UPSTREAM_S3_BUCKET=lang-php
     ENV UPSTREAM_S3_PREFIX=dist-heroku-20-stable/
-    COPY . /app
-
-Create a `heroku-18.Dockerfile` with the following contents:
-
-    FROM php-heroku-18:latest
-    ENV WORKSPACE_DIR=/app
-    ENV UPSTREAM_S3_BUCKET=lang-php
-    ENV UPSTREAM_S3_PREFIX=dist-heroku-18-stable/
     COPY . /app
 
 Both set the correct upstream S3 bucket and prefix, so that formula dependencies like PHP are pulled from the official Heroku S3 locations.
@@ -779,7 +766,6 @@ Build one Docker image for each stack:
 
     $ docker build --tag xdebug-heroku-22 --file heroku-22.Dockerfile .
     $ docker build --tag xdebug-heroku-20 --file heroku-20.Dockerfile .
-    $ docker build --tag xdebug-heroku-18 --file heroku-18.Dockerfile .
 
 #### Building and Deploying
 
@@ -787,13 +773,11 @@ Verify that the build works by building a specific formula for a specific PHP ve
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-22 bob build php-7.3/xdebug-2.7.0
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-20 bob build php-7.3/xdebug-2.7.0
-    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-18 bob build php-7.3/xdebug-2.7.0
 
 If all went well, deploy it using the helper script:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-22 deploy.sh php-7.3/xdebug-2.7.0
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-20 deploy.sh php-7.3/xdebug-2.7.0
-    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-18 deploy.sh php-7.3/xdebug-2.7.0
 
 #### Repository Creation
 
