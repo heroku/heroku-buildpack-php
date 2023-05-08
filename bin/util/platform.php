@@ -3,7 +3,7 @@
 
 $COMPOSER = getenv("COMPOSER")?:"composer.json";
 $COMPOSER_LOCK = getenv("COMPOSER_LOCK")?:"composer.lock";
-$STACK = getenv("STACK")?:"heroku-18";
+$STACK = getenv("STACK")?:"heroku-22";
 
 // prefix keys with "heroku-sys/"
 function mkdep($require) { return array_combine(array_map(function($v) { return "heroku-sys/$v"; }, array_keys($require)), $require); }
@@ -27,8 +27,8 @@ function getflag($number) {
 }
 
 function mkmetas($package, array &$metapaks, &$have_runtime_req = false) {
-	// filter platform reqs
-	$platfilter = function($v) { return preg_match("#^(php(-64bit)?$|ext-)#", $v); };
+	// filter platform packages - only "php", "php-64bit", and "ext-foobar" (but not "ext-foobar.native")
+	$platfilter = function($v) { return preg_match("#^(php(-64bit)?$|ext-.+(?<!\.native)$)#", $v); };
 	
 	// extract only platform requires, replaces and provides
 	$preq = array_filter(isset($package["require"]) ? $package["require"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
@@ -36,15 +36,6 @@ function mkmetas($package, array &$metapaks, &$have_runtime_req = false) {
 	$ppro = array_filter(isset($package["provide"]) ? $package["provide"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
 	$pcon = array_filter(isset($package["conflict"]) ? $package["conflict"] : [], $platfilter, ARRAY_FILTER_USE_KEY);
 	if(!$preq && !$prep && !$ppro && !$pcon) return false;
-	// for known "polyfill" packages, rewrite any extensions they declare as "provide"d to "replace"
-	// using "provide" will otherwise cause the solver to get stuck on that package from the repository, if it exists, even if it conflicts with other rules (e.g. PHP versions) and could fall back onto that polyfill packge
-	// example: alcaeus/mongo-php-adapter provides "ext-mongo", but installing it together with a PHP 7 requirement will fail, as ext-mongo is only available for PHP 5, and the solver never uses "alcaeus/mongo-php-adapter" as the solution for "ext-mongo" unless it specifies "ext-mongo" in "replace", which it shouldn't, as it's a polyfill (that will quietly let the real extension take over if it's present, e.g. on PHP 5 environments), and not a replacement for the extension
-	// we do not want to do this for all packages that so declare their "provide"s, because many polyfills are just an incomplete or slower fallback (e.g. Symfony mbstring with only UTF-8 support, or intl which is slower than native C ICU bindings), and it's rare that extensions are only available for certain versions of a runtime
-	// see https://github.com/composer/composer/issues/6753
-	if(in_array($package["name"], ["alcaeus/mongo-php-adapter"])) {
-		$prep = $prep + array_filter($ppro, function($k) { return strpos($k, "ext-") === 0; }, ARRAY_FILTER_USE_KEY);
-		$ppro = array_diff_key($ppro, $prep);
-	}
 	$have_runtime_req |= hasreq($preq);
 	$metapaks[] = [
 		"type" => "metapackage",
@@ -59,15 +50,69 @@ function mkmetas($package, array &$metapaks, &$have_runtime_req = false) {
 	return true;
 }
 
-// remove first arg (0)
-array_shift($argv);
+// parse options/flags, then advance $argv pointer (to skip $0, too)
+$flags = getopt("", ["list-repositories"], $rest_index);
+$argv = array_slice($argv, $rest_index);
+
 // base repos we need - no packagist, and the installer plugin path (first arg)
 $repositories = [
 	["packagist" => false],
 	["type" => "path", "url" => array_shift($argv), "options" => ["symlink" => false]],
 ];
+// little helper for prefixing extension names filtered in repositories below with the correct "heroku-sys/"
+$prefixExtname = function($value) {
+	$value = trim($value);
+	return strpos($value, "/") === false ? "heroku-sys/$value" : $value;
+};
+if(!count($argv)) {
+	file_put_contents("php://stderr", "ERROR: no platform repositories given; aborting.\n");
+	exit(4);
+}
+if(isset($flags['list-repositories'])) {
+	file_put_contents("php://stderr", "\033[1;33mNOTICE:\033[0m Platform repositories used (in lookup order):\n");
+}
 // all other args are repo URLs; they get passed in ascending order of precedence, so we reverse
-foreach(array_reverse($argv) as $repo) $repositories[] = ["type" => "composer", "url" => $repo];
+foreach(array_reverse($argv) as $repo) {
+	$url = parse_url($repo);
+	if(!$url || !isset($url["scheme"]) || !isset($url["host"])) {
+		file_put_contents("php://stderr", "ERROR: could not parse platform repository URL '$repo'.\n");
+		exit(4);
+	}
+	if(isset($flags['list-repositories'])) {
+		file_put_contents(
+			"php://stderr",
+			sprintf(
+				"- %s://%s%s%s\n", # hide auth info and query args
+				$url["scheme"],
+				$url["host"],
+				isset($url["port"]) ? ":".$url["port"] : "",
+				$url["path"]??"/"
+			)
+		);
+	}
+	$repo = ["type" => "composer", "url" => $repo];
+	// allow control of https://getcomposer.org/doc/articles/repository-priorities.md via query args "composer-repository-canonical", "composer-repository-exclude" and "composer-repository-only"
+	if(isset($url["query"])) {
+		parse_str($url["query"], $query); // parse query string into array
+		if(isset($query["composer-repository-canonical"])) {
+			$repo["canonical"] = filter_var($query["composer-repository-canonical"], FILTER_VALIDATE_BOOLEAN);
+		}
+		if(isset($query["composer-repository-exclude"])) {
+			$repo["exclude"] = array_map(
+				$prefixExtname, // add "heroku-sys/" prefix to entries
+				is_array($query["composer-repository-exclude"]) ? $query["composer-repository-exclude"] : explode(",", $query["composer-repository-exclude"])
+			);
+		}
+		if(isset($query["composer-repository-only"])) {
+			$repo["only"] = array_map(
+				$prefixExtname, // add "heroku-sys/" prefix to entries
+				is_array($query['composer-repository-only']) ? $query["composer-repository-only"] : explode(",", $query["composer-repository-only"])
+			);
+		}
+	}
+	
+	$repositories[] = $repo;
+}
 
 $json = json_decode(file_get_contents($COMPOSER), true);
 if(!is_array($json)) exit(1);
@@ -147,6 +192,9 @@ if(file_exists($COMPOSER_LOCK)) {
 	
 	// add all meta-packages to one local package repo
 	if($metapaks) $repositories[] = ["type" => "package", "package" => $metapaks];
+} else {
+	// default to using Composer 2 if there is no lock file
+	$lock["plugin-api-version"] = "2.2.0";
 }
 
 // if no PHP is required anywhere, we need to add something
@@ -162,8 +210,29 @@ if(!$have_runtime_req) {
 	file_put_contents("php://stderr", "\033[1;33mNOTICE:\033[0m No runtime required in $COMPOSER; requirements\nfrom dependencies in $COMPOSER_LOCK will be used for selection\n");
 }
 
-$require["heroku-sys/composer"] = "*"; # we want the latest Composer...
-$require["heroku-sys/composer-plugin-api"] = isset($lock["plugin-api-version"]) ? "^{$lock['plugin-api-version']}" : "^1.0.0"; # ... that supports the plugin API version from the lock file
+// we want the latest Composer...
+$require["heroku-sys/composer"] = "*";
+// ... that supports the major plugin API version from the lock file (which corresponds to the Composer version series, so e.g. all 2.3.x releases have 2.3.0)
+// if the lock file says "2.99.0", we generally still want to select "^2", and not "^2.99.0"
+// this is so the currently available Composer version can install lock files generated by brand new or pre-release Composer versions, as this stuff is generally forward compatible
+// otherwise, builds would fail the moment e.g. 2.6.0 comes out and people try it, even though 2.5 could install the project just fine
+$pav = $lock["plugin-api-version"] ?? false;
+if($pav === false) {
+	file_put_contents("php://stderr", "\033[1;33mNOTICE:\033[0m No Composer platform-api-version recorded in $COMPOSER_LOCK; file must be very old. Will attempt to use Composer 1 for installation.\n");
+	$pav = "1.0.0";
+}
+if(in_array($pav, ["2.0.0", "2.1.0", "2.2.0"])) {
+	// no rule without an exception, of course:
+	// there are quite a lot of BC breaks for plugins in Composer 2.3
+	// if the lock file was generated with 2.0, 2.1 or 2.2, we play it safe and install 2.2.x (which is LTS)
+	// this is mostly to ensure any plugins that have an open enough version selector do not break with all the 2.3 changes
+	// also ensures plugins are compatible with other libraries Composer bundles (e.g. various Symfony components), as those got big version bumps in 2.3
+	$cpaRequire = "~2.2.0";
+} else {
+	$cpaRequire = "^".explode(".", $pav)[0]; // just "^2" or similar so we get the latest we have, see comment earlier
+}
+$require["heroku-sys/composer-plugin-api"] = $cpaRequire;
+
 $require["heroku-sys/apache"] = "^2.4.10";
 $require["heroku-sys/nginx"] = "^1.8.0";
 
@@ -182,7 +251,13 @@ if($have_blackfire === 0 && preg_match("/^Blackfire version (\d+\.\d+\.\d+)/", $
 }
 
 $json = [
-	"config" => ["cache-files-ttl" => 0, "discard-changes" => true],
+	"config" => [
+		"cache-files-ttl" => 0,
+		"discard-changes" => true,
+		"allow-plugins" => [
+			"heroku/installer-plugin" => true
+		],
+	],
 	"minimum-stability" => isset($lock["minimum-stability"]) ? $lock["minimum-stability"] : "stable",
 	"prefer-stable" => isset($lock["prefer-stable"]) ? $lock["prefer-stable"] : false,
 	"provide" => $provide,

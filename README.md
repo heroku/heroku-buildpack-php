@@ -1,4 +1,4 @@
-# Heroku buildpack: PHP [![Build Status](https://circleci.com/gh/heroku/heroku-buildpack-php.svg?style=svg)](https://circleci.com/gh/heroku/heroku-buildpack-php)
+# Heroku buildpack: PHP [![CI](https://github.com/heroku/heroku-buildpack-php/actions/workflows/ci.yml/badge.svg)](https://github.com/heroku/heroku-buildpack-php/actions/workflows/ci.yml)
 
 ![php](https://cloud.githubusercontent.com/assets/51578/8882982/73ea501a-3219-11e5-8f87-311e6b8a86fc.jpg)
 
@@ -31,15 +31,37 @@ The buildpack uses Composer repositories to resolve platform (`php`, `ext-someth
 
 To use a custom Composer repository with additional or different platform packages, add the URL to its `packages.json` to the `HEROKU_PHP_PLATFORM_REPOSITORIES` config var:
 
-    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://mybucket.s3.amazonaws.com/heroku-18/packages.json"
+    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://<your-bucket-name>.s3.<your-bucket-region>.amazonaws.com/heroku-20/packages.json"
 
-To allow the use of multiple custom repositories, the config var may hold a list of multiple repository URLs, separated by a space character, in ascending order of precedence.
-
-If the first entry in the list is "`-`" instead of a URL, the default platform repository is disabled entirely. This can be useful when testing development repositories, or to forcefully prevent the use of unwanted packages from the default platform repository.
-
-For instructions on how to build custom platform packages (and a repository to hold them), please refer to the instructions [further below](#custom-platform-packages-and-repositories).
+To allow the use of multiple custom repositories, the config var may hold a list of multiple repository URLs, separated by a space character, in ascending order of precedence (meaning the last repository listed is handled first by Composer for package lookups).
 
 **Please note that Heroku cannot provide support for issues related to custom platform repositories and packages.**
+
+### Disabling the Default Repository
+
+If the first entry in the list is "`-`" instead of a URL, the default platform repository is disabled entirely. This can be useful when testing development repositories, or to forcefully prevent the use of any packages from the default platform repository.
+
+### Repository Priorities
+
+It is possible to control [Composer Repository Priorities](https://getcomposer.org/doc/articles/repository-priorities.md) for custom platform repositories: whether Composer should
+
+- treat a given repository as canonical;
+- exclude specific packages from a repository;
+- only allow specific packages from a repository.
+
+These repository options (`canonical`, `exclude` and `only`) are controlled using the following query strings in the repository URL:
+
+- `composer-repository-canonical` (`true` or `false`; defaults to `true`)
+- `composer-repository-exclude` (comma-separated list of excluded package names)
+- `composer-repository-only` (comma-separated list of allowed package names)
+
+For example, the following config var will allow only packages `ext-igbinary` and `ext-redis` from `customrepo.com`; all other packages are looked up in the default repository:
+
+    $ heroku config:set HEROKU_PHP_PLATFORM_REPOSITORIES="https://customrepo.com/packages.json?composer-repository-only=ext-igbinary,ext-redis"
+
+### Building Custom Repositories
+
+For instructions on how to build custom platform packages (and a repository to hold them), please refer to the instructions [further below](#custom-platform-packages-and-repositories).
 
 ## Development
 

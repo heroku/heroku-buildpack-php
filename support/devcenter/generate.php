@@ -7,17 +7,16 @@ require('vendor/autoload.php');
 
 // these need updating from time to time to add new stacks and remove EOL ones
 $stacks = [
-	1 => '18', // the offset we start with here is relevant for the numbering of footnotes
-	'20',
+	1 => '20', // the offset we start with here is relevant for the numbering of footnotes
+	'22',
 ];
-// these need updating from time to time to add new series and remove EOL ones
+// these need updating from time to time to add new series and remove series no longer on any stack
 $series = [
-	'7.1',
-	'7.2',
 	'7.3',
 	'7.4',
 	'8.0',
 	'8.1',
+	'8.2',
 ];
 
 $findstacks = function(array $package) use($stacks) {
@@ -39,7 +38,7 @@ $findseries = function(array $package) use($series) {
 };
 
 $stackname = function($version) {
-	return "heroku-${version}";
+	return "heroku-$version";
 };
 
 $filterStackVersions = function(array $row, string $serie, array $stacks, array $seriesByStack, callable $getValue) {
@@ -107,30 +106,27 @@ $responses = GuzzleHttp\Pool::batch($client, (function() use($posArgs, $client) 
 	},
 ]);
 
-$responses = GuzzleHttp\Promise\unwrap([
-	'eol' => $client->getAsync("http://php.net/eol.php"),
-	'sv' => $client->getAsync("http://php.net/supported-versions.php"),
-]);
-
-if(!preg_match_all("#<td>\s*([1-9]+\.[0-9]+)\s*</td>#m", $responses['eol']->getBody(), $matches)) {
-	throw new Exception('Could not parse eol.php');
-}
-$eol = array_combine($matches[1], array_fill(0, count($matches[1]), "eol")); // list of all release series that are EOL
-
-if(!preg_match_all('#<tr class="security">\s*<td>\s*<a href="/downloads.php[^"]+">(\d+\.\d+)#m', $responses['sv']->getBody(), $matches)) {
-	throw new Exception('Could not parse supported-versions.php');
-}
-$eol = array_merge($eol, array_combine($matches[1], array_fill(0, count($matches[1]), "security"))); // add list of all release series that are security only
+// load EOL info from bin/util/eol.php
+$eol = array_filter(array_map(function($eolDates) {
+	if(strtotime($eolDates[1]) < time())
+		return "eol";
+	elseif(strtotime($eolDates[0]) < time())
+		return "security";
+	else
+		return null; // will be removed by array_filter
+}, include(__DIR__ . "/../../bin/util/eol.php")));
 
 $packages = [];
 foreach($repositories as $repository) {
-	$packages = array_merge($packages, $repository['packages'][0]);
+	foreach($repository['packages'] as $packageName => $packageVersions) {
+		$packages = array_merge($packages, $packageVersions);
+	}
 }
 
 $db = new SQLite3(':memory:');
 $db->createCollation('VERSION_CMP', 'version_compare'); // for sorting/MAXing versions; we have to use it explicitly inside MAX(CASE…) statements in addition to setting it on the version column
-$db->exec("CREATE TABLE packages (name TEXT COLLATE NOCASE, version TEXT COLLATE VERSION_CMP, type TEXT, series TEXT, stack TEXT)");
-$db->exec("CREATE TABLE extensions (name TEXT COLLATE NOCASE, url TEXT, version TEXT COLLATE VERSION_CMP, runtime TEXT, series TEXT, stack TEXT, bundled INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)");
+$db->exec("CREATE TABLE packages (name TEXT COLLATE NOCASE, version TEXT COLLATE VERSION_CMP, type TEXT, series TEXT COLLATE VERSION_CMP, stack TEXT)");
+$db->exec("CREATE TABLE extensions (name TEXT COLLATE NOCASE, url TEXT, version TEXT COLLATE VERSION_CMP, runtime TEXT, series TEXT COLLATE VERSION_CMP, stack TEXT, bundled INTEGER DEFAULT 0, enabled INTEGER DEFAULT 1)");
 $insertPackage = $db->prepare("INSERT INTO packages (name, version, type, series, stack) VALUES(:name, :version, :type, :series, :stack)");
 $insertExtension = $db->prepare("INSERT INTO extensions (name, url, version, runtime, series, stack, bundled, enabled) VALUES(:name, :url, :version, :runtime, :series, :stack, :bundled, :enabled)");
 
@@ -161,8 +157,8 @@ foreach($packages as $package) {
 		$insertPackage->bindValue(':stack', $stack, SQLITE3_TEXT);
 		if($package['type'] == 'heroku-sys-php') {
 			$serie = implode('.', array_slice(explode('.', $package['version']), 0, 2)); // 7.3, 7.4, 8.0 etc
-			foreach($package["replace"] as $rname => $rversion) {
-				if(strpos($rname, "heroku-sys/ext-") !== 0) continue;
+			foreach(array_merge($package['replace']??[], $package['extra']['shared']??[]) as $rname => $rversion) {
+				if(strpos($rname, "heroku-sys/ext-") !== 0 || strpos($rname, ".native")) continue;
 				$insertExtension->reset();
 				$insertExtension->bindValue(':name', str_replace("heroku-sys/", "", $rname), SQLITE3_TEXT);
 				$insertExtension->bindValue(':url', $getBuiltinExtensionUrl($rname), SQLITE3_TEXT);
@@ -171,8 +167,15 @@ foreach($packages as $package) {
 				$insertExtension->bindValue(':series', $serie, SQLITE3_TEXT);
 				$insertExtension->bindValue(':stack', $stack, SQLITE3_TEXT);
 				$insertExtension->bindValue(':bundled', 1, SQLITE3_INTEGER);
-				$insertExtension->bindValue(':enabled', !($package["extra"]["shared"][$rname]??false), SQLITE3_INTEGER);
+				$insertExtension->bindValue(':enabled', !isset($package["extra"]["shared"][$rname]), SQLITE3_INTEGER);
 				$insertExtension->execute();
+			}
+		} elseif($package['type'] == 'heroku-sys-program' && $package['name'] == 'heroku-sys/composer') {
+			$serie = explode('.', $package['version']);
+			if($serie[0] == '2' && $serie[1] == '2') {
+				$serie = '2 LTS'; // Composer 2.2 is LTS
+			} else {
+				$serie = $serie[0]; // 3, 4, 5 etc - semver major version
 			}
 		} else {
 			$serie = explode('.', $package['version'])[0]; // 3, 4, 5 etc - semver major version
@@ -186,17 +189,17 @@ $latestRuntimesByStack = []; // remember these for the next step, where we fetch
 $runtimeSeriesByStack = [];
 $runtimesQuery = ["SELECT name, series"];
 foreach($stacks as $key => $stack) {
-	$runtimesQuery[] = ", MAX(CASE WHEN stack = '${stack}' THEN version END COLLATE VERSION_CMP) AS '${stack}'";
+	$runtimesQuery[] = ", MAX(CASE WHEN stack = '$stack' THEN version END COLLATE VERSION_CMP) AS '$stack'";
 }
-$runtimesQuery[] = "FROM packages WHERE name = 'php' GROUP BY name, series ORDER BY series ASC";
+$runtimesQuery[] = "FROM packages WHERE name = 'php' GROUP BY name, series ORDER BY series COLLATE VERSION_CMP ASC";
 $results = $db->query(implode(" ", $runtimesQuery));
 $runtimes = [];
 while($row = $results->fetchArray(SQLITE3_ASSOC)) {
 	$row["name"] = strtoupper($row["name"]); // "PHP"
 	$runtimes[] = $row;
 	foreach($stacks as $stack) {
-		if($row["${stack}"]) {
-			$latestRuntimesByStack[$stack][$row["series"]] = $row["${stack}"];
+		if($row[$stack]) {
+			$latestRuntimesByStack[$stack][$row["series"]] = $row[$stack];
 			$runtimeSeriesByStack[$stack][] = $row["series"];
 		}
 	}
@@ -211,7 +214,7 @@ $stacks = array_combine(range(1, count($stacks)), array_values($stacks)); // rei
 $extensionsQuery = ["SELECT extensions.name, extensions.url"];
 foreach($series as $serie) {
 	foreach($stacks as $stack) {
-		$extensionsQuery[] = ", MAX(CASE WHEN extensions.series = '${serie}' AND extensions.stack='${stack}' THEN extensions.enabled END) AS 'enabled_${serie}_${stack}'";
+		$extensionsQuery[] = ", MAX(CASE WHEN extensions.series = '$serie' AND extensions.stack='$stack' THEN extensions.enabled END) AS 'enabled_{$serie}_{$stack}'";
 	}
 }
 $extensionsQuery[] = "FROM extensions";
@@ -220,7 +223,7 @@ foreach($latestRuntimesByStack as $stack => $versions) {
 	foreach($versions as $serie => $version) {
 		// we intentionally don't use prepared statements here
 		// some bug with positional parameter binding...
-		$extensionsQuery[] = "OR (extensions.stack = '${stack}' AND extensions.version = '${version}')";
+		$extensionsQuery[] = "OR (extensions.stack = '$stack' AND extensions.version = '$version')";
 	}
 }
 $extensionsQuery[] = ") GROUP BY extensions.name ORDER BY extensions.name ASC";
@@ -229,7 +232,7 @@ $bExtensions = [];
 while($row = $result->fetchArray(SQLITE3_ASSOC)) {
 	$row['data'] = [];
 	foreach($series as $serie) {
-		$row['data'][$serie] = $filterStackVersions($row, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return isset($row["enabled_${serie}_${stack}"]) ? strtr($row["enabled_${serie}_${stack}"], ["0" => "&#x2731;", "1" => "&#x2714;"]) : null; });
+		$row['data'][$serie] = $filterStackVersions($row, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return isset($row["enabled_{$serie}_{$stack}"]) ? strtr($row["enabled_{$serie}_{$stack}"], ["0" => "&#x2731;", "1" => "&#x2714;"]) : null; });
 	}
 	$bExtensions[] = $row;
 }
@@ -237,16 +240,16 @@ while($row = $result->fetchArray(SQLITE3_ASSOC)) {
 $extensionsQuery = ["SELECT extensions.name, extensions.url, substr(extensions.version, 1, instr(extensions.version, '.')) AS major_version"];
 foreach($series as $serie) {
 	foreach($stacks as $stack) {
-		$extensionsQuery[] = ", MAX(CASE WHEN extensions.series = '${serie}' AND extensions.stack = '${stack}' THEN extensions.version END COLLATE VERSION_CMP) AS 'version_${serie}_${stack}'";
+		$extensionsQuery[] = ", MAX(CASE WHEN extensions.series = '$serie' AND extensions.stack = '$stack' THEN extensions.version END COLLATE VERSION_CMP) AS 'version_{$serie}_{$stack}'";
 	}
 }
-$extensionsQuery[] = "FROM extensions WHERE extensions.bundled = 0 GROUP BY extensions.name, major_version ORDER BY extensions.name ASC, major_version ASC";
+$extensionsQuery[] = "FROM extensions WHERE extensions.bundled = 0 GROUP BY extensions.name, major_version ORDER BY extensions.name ASC, major_version COLLATE VERSION_CMP ASC";
 $result = $db->query(implode(" ", $extensionsQuery));
 $eExtensions = [];
 while($row = $result->fetchArray(SQLITE3_ASSOC)) {
 	$row['data'] = [];
 	foreach($series as $serie) {
-		$row['data'][$serie] = $filterStackVersions($row, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return $row["version_${serie}_${stack}"] ?? null; });
+		$row['data'][$serie] = $filterStackVersions($row, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return $row["version_{$serie}_{$stack}"] ?? null; });
 	}
 	$eExtensions[] = $row;
 }
@@ -286,7 +289,7 @@ foreach($extCounts as $name => $count) {
 		$collapse = array_merge(...$collapse); // result is one row, and we unpack it
 		// recalculate data array
 		foreach($series as $serie) {
-			$collapse['data'][$serie] = $filterStackVersions($collapse, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return $row["version_${serie}_${stack}"] ?? null; });
+			$collapse['data'][$serie] = $filterStackVersions($collapse, $serie, $stacks, $runtimeSeriesByStack, function($row, $serie, $stack) { return $row["version_{$serie}_{$stack}"] ?? null; });
 		}
 		unset($collapse['major_version']);
 		// overwrite collapsible rows with our new single one
@@ -296,22 +299,22 @@ foreach($extCounts as $name => $count) {
 
 $composersQuery = ["SELECT name, series"];
 foreach($stacks as $key => $stack) {
-	$composersQuery[] = ", MAX(CASE WHEN stack = '${stack}' THEN version END COLLATE VERSION_CMP) AS '${stack}'";
+	$composersQuery[] = ", MAX(CASE WHEN stack = '$stack' THEN version END COLLATE VERSION_CMP) AS '$stack'";
 }
-$composersQuery[] = "FROM packages WHERE name = 'composer' GROUP BY name, series ORDER BY series ASC";
+$composersQuery[] = "FROM packages WHERE name = 'composer' GROUP BY name, series ORDER BY series COLLATE VERSION_CMP ASC";
 $results = $db->query(implode(" ", $composersQuery));
 $composers = [];
 while($row = $results->fetchArray(SQLITE3_ASSOC)) {
 	$row["name"] = ucfirst($row["name"]); // "Composer"
-	$row["series"] = $row["series"].".x"; // "2.x"
+	$row["series"] = $row["series"].(strpos($row["series"], "LTS")?"":".x"); // "2.x"
 	$composers[] = $row;
 }
 
 $webserversQuery = ["SELECT name, series"];
 foreach($stacks as $key => $stack) {
-	$webserversQuery[] = ", MAX(CASE WHEN stack = '${stack}' THEN version END COLLATE VERSION_CMP) AS '${stack}'";
+	$webserversQuery[] = ", MAX(CASE WHEN stack = '$stack' THEN version END COLLATE VERSION_CMP) AS '$stack'";
 }
-$webserversQuery[] = "FROM packages WHERE type = 'heroku-sys-webserver' GROUP BY name, series ORDER BY name ASC, series ASC";
+$webserversQuery[] = "FROM packages WHERE type = 'heroku-sys-webserver' GROUP BY name, series ORDER BY name ASC, series COLLATE VERSION_CMP ASC";
 $results = $db->query(implode(" ", $webserversQuery));
 $webservers = [];
 while($row = $results->fetchArray(SQLITE3_ASSOC)) {

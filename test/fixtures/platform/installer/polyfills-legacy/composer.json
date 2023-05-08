@@ -1,0 +1,44 @@
+{
+	"repositories": [
+		{
+			"type": "package",
+			"package": {
+				"name": "dummypak/ext-xmlrpc-polyfill",
+				"version": "1.0.3",
+				"type": "metapackage",
+				"require": {
+					"php": "^7.0 | ^8.0"
+				},
+				"provide": {
+					"ext-xmlrpc": "8.1.0"
+				}
+			}
+		},
+		{
+			"type": "package",
+			"package": {
+				"name": "dummypak/ext-pq-polyfill",
+				"version": "1.1.7",
+				"type": "metapackage",
+				"require": {
+					"php": "^7.0 | ^8.0"
+				},
+				"provide": {
+					"ext-pq": "*"
+				}
+			}
+		}
+	],
+	"require": {
+		"php": "7.3.*",
+		"dummypak/ext-pq-polyfill": "^1.0",
+		"dummypak/ext-xmlrpc-polyfill": "^1.0",
+		"symfony/polyfill-ctype": "^1.24.0",
+		"symfony/polyfill-mbstring": "^1.24.0",
+		"symfony/polyfill-uuid": "^1.24.0",
+		"ext-ctype": "*",
+		"ext-pq": "*",
+		"ext-uuid": "*",
+		"ext-xmlrpc": "*"
+	}
+}

@@ -2,97 +2,52 @@
 
 namespace Heroku\Buildpack\PHP;
 
-use Composer\Downloader\ArchiveDownloader;
+use Composer\Downloader\TarDownloader;
 use Composer\IO\IOInterface;
 use Composer\Config;
 use Composer\EventDispatcher\EventDispatcher;
 use Composer\Cache;
 use Composer\Util\ProcessExecutor;
 use Composer\Package\PackageInterface;
+use React\Promise\PromiseInterface;
 
-class Downloader extends ArchiveDownloader
+class Downloader extends TarDownloader
 {
-	protected $process;
-
-	public function __construct(IOInterface $io, Config $config, EventDispatcher $eventDispatcher = null, Cache $cache = null, ProcessExecutor $process = null)
-	{
-		$this->process = $process ?: new ProcessExecutor($io);
-
-		parent::__construct($io, $config, $eventDispatcher, $cache);
-	}
-
-	// extract using cmdline tar, which merges with existing files and folders
-	protected function extract($file, $path)
+	// extract using workarounds for TarDownloader and ArchiveDownloader behavior
+	protected function extract(PackageInterface $package, string $file, string $path): PromiseInterface
 	{
 		// we must use cmdline tar, as PharData::extract() messes up symlinks
 		$command = 'tar -xzf ' . ProcessExecutor::escape($file) . ' -C ' . ProcessExecutor::escape($path);
-
+		
 		if (0 === $this->process->execute($command, $ignoredOutput)) {
-			return;
+			// ArchiveDownloader, when encountering a single extracted top level directory, will move contents from that directory up one level
+			// this is done for e.g. GitHub archive downloads, where the top level dir of a tarball is the name of the repo, and the contents are inside
+			// the trouble with that is that we have some packages (e.g. Composer) that only have a `bin/` dir with contents inside
+			// ArchiveDownloader::install() would unpack that subdir to the root dir
+			// the workaround, which saves us copy/pasting the whole install() routine, is to place a little marker file in the top level of the temp extraction dir, which prevents that behavior
+			// the marker file will be removed during cleanup, for which install() registers a location (we in this routine don't know the destination path; the $path argument above is the temporary extraction dir)
+			$fn = str_replace('/', '$', $package->getPrettyName());
+			$marker = "$path/$fn.extracted";
+			touch($marker);
+			
+			return \React\Promise\resolve();
 		}
-
+		
 		throw new \RuntimeException("Failed to execute '$command'\n\n" . $this->process->getErrorOutput());
 	}
-
-	// ArchiveDownloader unpacks to a temp dir, then replaces the destination
-	// we can't do that, since we need our contents to be merged into the probably existing folder structure
-	public function download(PackageInterface $package, $path, $output = true)
+	
+	protected function getInstallOperationAppendix(PackageInterface $package, string $path): string
 	{
-		$temporaryDir = $this->config->get('vendor-dir').'/composer/'.substr(md5(uniqid('', true)), 0, 8);
-		$this->filesystem->ensureDirectoryExists($temporaryDir);
-
-		// START: from FileDownloader::download()
-
-		if (!$package->getDistUrl()) {
-			throw new \InvalidArgumentException('The given package is missing url information');
-		}
-
-		$this->io->writeError("  - Installing <info>" . $package->getName() . "</info> (<comment>" . $package->getFullPrettyVersion() . "</comment>)");
-
-		$urls = $package->getDistUrls();
-		while ($url = array_shift($urls)) {
-			try {
-				$fileName = $this->doDownload($package, $temporaryDir, $url);
-			} catch (\Exception $e) {
-				if ($this->io->isDebug()) {
-					$this->io->writeError('');
-					$this->io->writeError('Failed: ['.get_class($e).'] '.$e->getCode().': '.$e->getMessage());
-				} elseif (count($urls)) {
-					$this->io->writeError('');
-					$this->io->writeError('    Failed, trying the next URL ('.$e->getCode().': '.$e->getMessage().')');
-				}
-
-				if (!count($urls)) {
-					throw $e;
-				}
-			}
-		}
-
-		// END: from FileDownloader::download()
-
-		// START: from ArchiveDownloader::download()
-
-		$this->io->writeError('    Extracting archive', true, IOInterface::VERBOSE);
-
-		try {
-			$this->extract($fileName, $path);
-		} catch (\Exception $e) {
-			// remove cache if the file was corrupted
-			parent::clearLastCacheWrite($package);
-			throw $e;
-		}
-
-		$this->filesystem->unlink($fileName);
-
-		if ($this->filesystem->isDirEmpty($this->config->get('vendor-dir').'/composer/')) {
-			$this->filesystem->removeDirectory($this->config->get('vendor-dir').'/composer/');
-		}
-		if ($this->filesystem->isDirEmpty($this->config->get('vendor-dir'))) {
-			$this->filesystem->removeDirectory($this->config->get('vendor-dir'));
-		}
-
-		$this->io->writeError('');
-
-		// END: from ArchiveDownloader::download()
+		return ''; # we do not want ArchiveDownloader's ": Extracting archive" suffix in our output
+	}
+	
+	public function install(PackageInterface $package, string $path, bool $output = true): PromiseInterface
+	{
+		// this "marker" file, preventing specific ArchiveDownloader behavior (see docs for extract()), will be placed into the temp extraction dir by extract(), from where it is moved to the destination install dir by ArchiveDownloader::install()'s copying logic
+		// extract() can't know the destination path name, so we have to put the path onto the cleanup() list instead
+		$fn = str_replace('/', '$', $package->getPrettyName());
+		$marker = "$path/$fn.extracted";
+		$this->addCleanupPath($package, $marker);
+		return parent::install($package, $path, $output);
 	}
 }

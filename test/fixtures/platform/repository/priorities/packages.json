@@ -1,0 +1,120 @@
+{
+  "packages": [
+    [
+      {
+        "conflict": {},
+        "dist": {
+          "type": "heroku-sys-tar",
+          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/redis-5.3.5.tar.gz"
+        },
+        "extra": {},
+        "name": "heroku-sys/ext-redis",
+        "provide": {},
+        "replace": {},
+        "require": {
+          "heroku-sys/heroku": "^20.0.0",
+          "heroku-sys/php": "8.0.*",
+          "heroku/installer-plugin": "^1.2.0"
+        },
+        "time": "2021-04-15 18:01:17",
+        "type": "heroku-sys-php-extension",
+        "version": "5.3.5"
+      },
+      {
+        "conflict": {},
+        "dist": {
+          "type": "heroku-sys-tar",
+          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.8.tar.gz"
+        },
+        "extra": {
+          "export": "bin/export.php.sh",
+          "profile": "bin/profile.php.sh",
+          "shared": {
+            "heroku-sys/ext-bcmath": true,
+            "heroku-sys/ext-calendar": true,
+            "heroku-sys/ext-exif": true,
+            "heroku-sys/ext-ftp": true,
+            "heroku-sys/ext-gd": true,
+            "heroku-sys/ext-gettext": true,
+            "heroku-sys/ext-gmp": true,
+            "heroku-sys/ext-imap": true,
+            "heroku-sys/ext-intl": true,
+            "heroku-sys/ext-ldap": true,
+            "heroku-sys/ext-mbstring": true,
+            "heroku-sys/ext-pcntl": true,
+            "heroku-sys/ext-pdo_sqlite": true,
+            "heroku-sys/ext-shmop": true,
+            "heroku-sys/ext-soap": true,
+            "heroku-sys/ext-sodium": true,
+            "heroku-sys/ext-sqlite3": true,
+            "heroku-sys/ext-xsl": true
+          }
+        },
+        "name": "heroku-sys/php",
+        "provide": {},
+        "replace": {
+          "heroku-sys/ext-bcmath": "self.version",
+          "heroku-sys/ext-bz2": "self.version",
+          "heroku-sys/ext-calendar": "self.version",
+          "heroku-sys/ext-ctype": "self.version",
+          "heroku-sys/ext-curl": "self.version",
+          "heroku-sys/ext-date": "self.version",
+          "heroku-sys/ext-dom": "20031129",
+          "heroku-sys/ext-exif": "self.version",
+          "heroku-sys/ext-fileinfo": "self.version",
+          "heroku-sys/ext-filter": "self.version",
+          "heroku-sys/ext-ftp": "self.version",
+          "heroku-sys/ext-gd": "self.version",
+          "heroku-sys/ext-gettext": "self.version",
+          "heroku-sys/ext-gmp": "self.version",
+          "heroku-sys/ext-hash": "self.version",
+          "heroku-sys/ext-iconv": "self.version",
+          "heroku-sys/ext-imap": "self.version",
+          "heroku-sys/ext-intl": "self.version",
+          "heroku-sys/ext-json": "self.version",
+          "heroku-sys/ext-ldap": "self.version",
+          "heroku-sys/ext-libxml": "self.version",
+          "heroku-sys/ext-mbstring": "self.version",
+          "heroku-sys/ext-mysqli": "self.version",
+          "heroku-sys/ext-mysqlnd": "0",
+          "heroku-sys/ext-openssl": "self.version",
+          "heroku-sys/ext-pcntl": "self.version",
+          "heroku-sys/ext-pcre": "self.version",
+          "heroku-sys/ext-pdo": "self.version",
+          "heroku-sys/ext-pdo_mysql": "self.version",
+          "heroku-sys/ext-pdo_pgsql": "self.version",
+          "heroku-sys/ext-pdo_sqlite": "self.version",
+          "heroku-sys/ext-pgsql": "self.version",
+          "heroku-sys/ext-phar": "self.version",
+          "heroku-sys/ext-posix": "self.version",
+          "heroku-sys/ext-readline": "self.version",
+          "heroku-sys/ext-reflection": "self.version",
+          "heroku-sys/ext-session": "self.version",
+          "heroku-sys/ext-shmop": "self.version",
+          "heroku-sys/ext-simplexml": "self.version",
+          "heroku-sys/ext-soap": "self.version",
+          "heroku-sys/ext-sockets": "self.version",
+          "heroku-sys/ext-sodium": "self.version",
+          "heroku-sys/ext-spl": "self.version",
+          "heroku-sys/ext-sqlite3": "self.version",
+          "heroku-sys/ext-tokenizer": "self.version",
+          "heroku-sys/ext-xml": "self.version",
+          "heroku-sys/ext-xmlreader": "self.version",
+          "heroku-sys/ext-xmlwriter": "self.version",
+          "heroku-sys/ext-xsl": "self.version",
+          "heroku-sys/ext-zend-opcache": "self.version",
+          "heroku-sys/ext-zip": "1.19.3",
+          "heroku-sys/ext-zlib": "self.version",
+          "heroku-sys/php-64bit": "self.version"
+        },
+        "require": {
+          "heroku-sys/heroku": "^20.0.0",
+          "heroku/installer-plugin": "^1.2.0"
+        },
+        "time": "2021-07-01 11:55:59",
+        "type": "heroku-sys-php",
+        "version": "8.0.8"
+      }
+    ]
+  ]
+}

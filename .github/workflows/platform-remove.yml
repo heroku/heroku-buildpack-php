@@ -1,0 +1,80 @@
+name: Platform packages removal from -develop/
+run-name: Removal${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-${{inputs.stack}}-develop/
+
+on:
+  workflow_dispatch:
+    inputs:
+      manifests:
+        description: 'Shell word list of packages manifest names to remove; Bash brace expansion and S3 wildcard expansion is supported, e.g. "php-8.1.{8..16} ext-{redis-4,newrelic-9}.*_php-7.*"'
+        type: string
+        required: true
+      stack:
+        description: 'Stack to remove from'
+        type: choice
+        options:
+        - heroku-20
+        - heroku-22
+        required: true
+      dry-run:
+        description: 'Only list package removals, without executing'
+        type: boolean
+        default: false
+        required: false
+
+permissions:
+  contents: read
+
+jobs:
+  remove:
+    runs-on: ubuntu-22.04
+    env:
+      AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Expand list of manifests to remove
+        run: |
+          echo '## Manifests input for removal' >> "$GITHUB_STEP_SUMMARY"
+          set -f
+          echo ${{inputs.manifests}} | xargs -n 1 echo - >> "$GITHUB_STEP_SUMMARY"
+      - name: Restore cached Docker image
+        id: restore-docker
+        uses: actions/cache/restore@v3
+        with:
+          key: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
+          path: /tmp/docker-cache.tar.gz
+      - name: Load cached Docker image
+        if: steps.restore-docker.outputs.cache-hit == 'true'
+        run: docker load -i /tmp/docker-cache.tar.gz
+      - name: Build Docker image
+        if: steps.restore-docker.outputs.cache-hit != 'true'
+        run: docker build --tag heroku-php-build-${{inputs.stack}}:${{github.sha}} --file support/build/_docker/${{inputs.stack}}.Dockerfile .
+      - name: Save built Docker image
+        if: steps.restore-docker.outputs.cache-hit != 'true'
+        run: docker save heroku-php-build-${{inputs.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
+      - name: Cache built Docker image
+        if: steps.restore-docker.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v3
+        with:
+          key: ${{ steps.restore-docker.outputs.cache-primary-key }}
+          path: /tmp/docker-cache.tar.gz
+      - name: List packages for removal using given input list
+        if: ${{ inputs.dry-run == true }}
+        run: |
+          set -f
+          set -o pipefail
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh ${{inputs.manifests}} 2>&1 | tee remove.out
+      - name: Remove packages from repository
+        if: ${{ inputs.dry-run == false }}
+        run: |
+          set -f
+          set -o pipefail
+          (yes 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh ${{inputs.manifests}} 2>&1 | tee remove.out
+      - name: Output job summary
+        run: |
+          echo '## Packages${{ inputs.dry-run == true && ' which would be' }} removed from production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '**This is output from a dry-run**, no packages have been removed:' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          sed -n '/The following packages will/,$p' remove.out >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

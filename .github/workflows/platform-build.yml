@@ -1,0 +1,140 @@
+name: Platform packages build and deploy to -develop/
+run-name: Build ${{ inputs.dry-run == true && 'w/o deploy' || '& deploy' }}${{ inputs.overwrite == true && '(+overwrite)' || '' }} to dist-${{inputs.stack}}-develop/ ${{ inputs.publish == false && 'w/o publishing packages into Composer platform repository' || '' }}
+
+on:
+  workflow_dispatch:
+    inputs:
+      formulae:
+        description: 'Shell word list of formulae to build; any Bash wildcards are allowed, e.g. "php-8.1.8 extensions/no-debug-non-zts-{2022,2021}*/newrelic-10*"'
+        type: string
+        required: true
+      stack:
+        description: 'Stack to build for'
+        type: choice
+        options:
+        - heroku-20
+        - heroku-22
+        required: true
+      dry-run:
+        description: 'Build packages without deploying to S3 (e.g. for testing a formula)'
+        type: boolean
+        default: false
+        required: false
+      overwrite:
+        description: 'Overwrite existing packages'
+        type: boolean
+        default: false
+        required: false
+      publish:
+        description: 'Publish updated Composer platform repository after all builds are complete'
+        type: boolean
+        default: true
+        required: false
+      concurrency:
+        description: 'GitHub Actions runner concurrency'
+        type: number
+        default: 3
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  formulae-list:
+    runs-on: ubuntu-22.04
+    outputs:
+      formulae: ${{ steps.expand-formulae.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Install jq tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install jq
+      - id: expand-formulae
+        name: Expand list of given formulae
+        run: |
+          cd support/build
+          echo '## Formulae input for building' >> "$GITHUB_STEP_SUMMARY"
+          echo -n "matrix=" >> "$GITHUB_OUTPUT"
+          set -o pipefail
+          shopt -s nullglob
+          ls -f ${{inputs.formulae}} | xargs -n 1 echo - >> "$GITHUB_STEP_SUMMARY"
+          ls -f ${{inputs.formulae}} | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
+  docker-build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Cache Docker build
+        id: cache-docker
+        uses: actions/cache@v3
+        with:
+          key: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
+          path: /tmp/docker-cache.tar.gz
+      - name: Build Docker image
+        if: steps.cache-docker.outputs.cache-hit != 'true'
+        run: docker build --tag heroku-php-build-${{inputs.stack}}:${{github.sha}} --file support/build/_docker/${{inputs.stack}}.Dockerfile .
+      - name: Save built Docker image
+        if: steps.cache-docker.outputs.cache-hit != 'true'
+        run: docker save heroku-php-build-${{inputs.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
+  deploys:
+    needs: [formulae-list, docker-build]
+    if: ${{ needs.formulae-list.outputs.formulae != '[]' && needs.formulae-list.outputs.formulae != '' }}
+    runs-on: pub-hk-ubuntu-22.04-medium
+    strategy:
+      max-parallel: ${{ fromJSON(inputs.concurrency) }}
+      matrix:
+        formula: ${{ fromJSON(needs.formulae-list.outputs.formulae) }}
+    env:
+      AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Restore cached Docker build
+        uses: actions/cache/restore@v3
+        with:
+          key: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
+          path: /tmp/docker-cache.tar.gz
+      - name: Load cached Docker image
+        run: docker load -i /tmp/docker-cache.tar.gz
+      - name: Build formula without deploying
+        if: ${{ inputs.dry-run == true }}
+        run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} bob build ${{matrix.formula}}
+      - name: Build and deploy formula
+        if: ${{ inputs.dry-run == false && inputs.overwrite == false }}
+        run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh ${{matrix.formula}}
+      - name: Build and deploy(+overwrite) formula
+        if: ${{ inputs.dry-run == false && inputs.overwrite == true }}
+        run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh --overwrite ${{matrix.formula}}
+  mkrepo:
+    needs: [deploys]
+    if: ${{ inputs.dry-run == false && inputs.publish == true }}
+    runs-on: ubuntu-22.04
+    env:
+      AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Restore cached Docker build
+        uses: actions/cache/restore@v3
+        with:
+          key: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
+          path: /tmp/docker-cache.tar.gz
+      - name: Load cached Docker image
+        run: docker load -i /tmp/docker-cache.tar.gz
+      - name: Re-generate platform package repository
+        run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} mkrepo.sh --upload
+      - name: Dry-run sync.sh to show package changes available for syncing to production bucket
+        run: |
+          set -o pipefail
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/ 2>&1 | tee sync.out
+      - name: Output job summary
+        run: |
+          echo '## Package changes available for syncing to production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo '**This is output from a dry-run**, no changes have been synced to production:' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          sed -n '/The following packages will/,$p' sync.out >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"

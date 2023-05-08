@@ -1,5 +1,8 @@
 {
     "config": {
+        "allow-plugins": {
+            "heroku/installer-plugin": true
+        },
         "cache-files-ttl": 0,
         "discard-changes": true
     },
@@ -15,7 +18,7 @@
         "mongodb\/mongodb": "1.9.0",
         "symfony\/polyfill-php80": "v1.23.1",
         "heroku-sys\/composer": "*",
-        "heroku-sys\/composer-plugin-api": "^1.1.0",
+        "heroku-sys\/composer-plugin-api": "^1",
         "heroku-sys\/apache": "^2.4.10",
         "heroku-sys\/nginx": "^1.8.0"
     },
@@ -33,7 +36,7 @@
         },
         {
             "type": "composer",
-            "url": "https:\/\/lang-php.s3.amazonaws.com\/dist-heroku-20-stable\/packages.json"
+            "url": "https:\/\/lang-php.s3.us-east-1.amazonaws.com\/dist-heroku-20-stable\/packages.json"
         },
         {
             "type": "package",
@@ -48,10 +51,10 @@
                         "heroku-sys\/ext-mongodb": "^1.2.0",
                         "heroku-sys\/php": "^5.6 || ^7.0 || ^8.0"
                     },
-                    "replace": {
+                    "replace": {},
+                    "provide": {
                         "heroku-sys\/ext-mongo": "1.6.14"
                     },
-                    "provide": {},
                     "conflict": {}
                 },
                 {

@@ -1,0 +1,130 @@
+#!/usr/bin/env bash
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
+source $(dirname $BASH_SOURCE)/../../_util/include/manifest.sh
+
+OUT_PREFIX=$1
+
+ZEND_MODULE_API_VERSION=$(basename $(dirname $0))
+ZEND_MODULE_API_VERSION=${ZEND_MODULE_API_VERSION#no-debug-non-zts-}
+
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=$(basename $BASH_SOURCE)
+dep_version=${dep_formula##*"/${dep_name}-"}
+dep_package=ext-${dep_name}-${dep_version}
+dep_dirname=newrelic-php5-${dep_version}-linux
+dep_archive_name=${dep_dirname}.tar.gz
+dep_url=https://download.newrelic.com/php_agent/archive/${dep_version}/${dep_archive_name}
+case ${ZEND_MODULE_API_VERSION} in
+	20180731)
+		series=7.3
+		;;
+	20190902)
+		series=7.4
+		;;
+	20200930)
+		series=8.0
+		;;
+	20210902)
+		series=8.1
+		;;
+	20220829)
+		series=8.2
+		;;
+	*)
+		echo "Unsupported PHP/Zend Module API version: ${ZEND_MODULE_API_VERSION}"
+		exit 1
+		;;
+esac
+dep_manifest=${dep_package}_php-$series.composer.json
+
+echo "-----> Packaging ${dep_package}..."
+
+curl -L ${dep_url} | tar xz
+
+pushd ${dep_dirname}
+ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-${ZEND_MODULE_API_VERSION}
+bin_dir=${OUT_PREFIX}/bin
+mkdir -p ${ext_dir}
+mkdir -p ${bin_dir}
+cp agent/x64/newrelic-${ZEND_MODULE_API_VERSION}.so ${ext_dir}/newrelic.so
+cp daemon/newrelic-daemon.x64 ${bin_dir}/newrelic-daemon
+find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|(pie-)?executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
+popd
+
+mkdir -p ${OUT_PREFIX}/bin
+
+# these env var defaults we want both during a build (used in the INI futher below) and at boot time
+tee ${OUT_PREFIX}/bin/export.newrelic.sh > ${OUT_PREFIX}/bin/profile.newrelic.sh <<'EOF'
+export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-${HEROKU_APP_NAME:-"PHP Application on Heroku"}}
+export NEW_RELIC_LOG_LEVEL=${NEW_RELIC_LOG_LEVEL:-"warning"}
+export NEW_RELIC_DAEMON_LOG_LEVEL="$NEW_RELIC_LOG_LEVEL"
+if [[ "$NEW_RELIC_DAEMON_LOG_LEVEL" == verbose* || "$NEW_RELIC_DAEMON_LOG_LEVEL" == *debug ]]; then
+	NEW_RELIC_DAEMON_LOG_LEVEL="debug"
+fi
+EOF
+
+# gets sourced on dyno boot
+cat >> ${OUT_PREFIX}/bin/profile.newrelic.sh <<'EOF'
+# The daemon is a started in foreground mode so it will not daemonize
+# (i.e. disassociate from the controlling TTY and disappear into the
+# background).
+# we use the pidfile to wait for it to be up
+newrelic_pidfile=/tmp/newrelic-daemon.pid
+
+# daemon start
+/app/.heroku/php/bin/newrelic-daemon --watchdog-foreground --port "@newrelic-daemon" --logfile "stderr" --loglevel "${NEW_RELIC_DAEMON_LOG_LEVEL}" --pidfile "$newrelic_pidfile" &
+newrelic_pid=$!
+
+# give it a moment to start up...
+while ! test -f "$newrelic_pidfile"; do
+	# ...unless it somehow crashes on start, then we have to bail to prevent an infite loop
+	if ! kill -0 $newrelic_pid 2> /dev/null; then # kill -0 checks if process exists
+		echo "Failed to start newrelic-daemon!" >&2
+		break;
+	fi
+	if [[ "$NEW_RELIC_DAEMON_LOG_LEVEL" == "info" || "$NEW_RELIC_DAEMON_LOG_LEVEL" == "debug" ]]; then
+		echo "Waiting for newrelic-daemon..." >&2
+	fi
+	sleep 0.1
+done
+EOF
+mkdir -p ${OUT_PREFIX}/etc/php/conf.d
+cat > ${OUT_PREFIX}/etc/php/conf.d/newrelic.ini-dist <<'EOF'
+extension = newrelic.so
+
+newrelic.loglevel = ${NEW_RELIC_LOG_LEVEL}
+
+newrelic.license = ${NEW_RELIC_LICENSE_KEY}
+newrelic.appname = ${NEW_RELIC_APP_NAME}
+newrelic.logfile = stderr ; the stdout default messes up boots as we capture output for crash detection
+
+; make sure the extension ("agent") does not start the daemon (we do that on dyno boot)
+newrelic.daemon.dont_start = 3
+; so we know where to connect to; @newrelic-daemon is an abstract socket
+newrelic.daemon.port = @newrelic-daemon
+
+; we start the daemon on dyno boot, but the values below are still in here for reference (they're passed via cmdline args to newrelic-daemon)
+
+newrelic.daemon.loglevel = ${NEW_RELIC_DAEMON_LOG_LEVEL}
+
+newrelic.daemon.logfile = stderr
+
+; or else:
+; 2015-05-18 13:00:43.144 (28 28) warning: unable to find suitable pidfile location, using none
+newrelic.daemon.pidfile = /tmp/newrelic-daemon.pid
+EOF
+
+MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
+MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
+MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{\"heroku-sys/ext-${dep_name}.native\":\"self.version\"}"}"
+MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/newrelic.ini-dist\",\"export\":\"bin/export.newrelic.sh\",\"profile\":\"bin/profile.newrelic.sh\"}"}"
+
+python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+
+print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

@@ -1,0 +1,1 @@
+This test case asserts that for each shared PHP extension name/version pair handed to `manifest.py` in the `shared` key of the `extra` argument, it will produce a full package manifest that `mkrepo.sh` will later turn into a separate package.

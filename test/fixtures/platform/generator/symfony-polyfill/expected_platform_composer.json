@@ -1,0 +1,57 @@
+{
+    "config": {
+        "allow-plugins": {
+            "heroku/installer-plugin": true
+        },
+        "cache-files-ttl": 0,
+        "discard-changes": true
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": false,
+    "provide": {
+        "heroku-sys\/heroku": "20.2022.01.07"
+    },
+    "replace": {},
+    "require": {
+        "symfony\/polyfill-ctype": "v1.24.0",
+        "heroku-sys\/composer": "*",
+        "heroku-sys\/composer-plugin-api": "^2",
+        "heroku-sys\/apache": "^2.4.10",
+        "heroku-sys\/nginx": "^1.8.0"
+    },
+    "require-dev": {},
+    "repositories": [
+        {
+            "packagist": false
+        },
+        {
+            "type": "path",
+            "url": "..\/..\/..\/..\/..\/support\/installer",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "composer",
+            "url": "https:\/\/lang-php.s3.us-east-1.amazonaws.com\/dist-heroku-20-stable\/packages.json"
+        },
+        {
+            "type": "package",
+            "package": [
+                {
+                    "type": "metapackage",
+                    "name": "symfony\/polyfill-ctype",
+                    "version": "v1.24.0",
+                    "require": {
+                        "heroku-sys\/php": ">=7.1"
+                    },
+                    "replace": {},
+                    "provide": {
+                        "heroku-sys/ext-ctype": "*"
+                    },
+                    "conflict": {}
+                }
+            ]
+        }
+    ]
+}

@@ -9,6 +9,7 @@ use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Installer\PackageEvent;
 use Composer\Installer\PackageEvents;
 use Composer\Package\PackageInterface;
+use Composer\Util\Filesystem;
 
 class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterface
 {
@@ -40,30 +41,60 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 			}
 		}
 		
+		$loop = $composer->getLoop();
+		$process = $loop->getProcessExecutor();
+		// our custom tar installer handles extraction into a shared base dir, and works around symlink troubles in PHAR
 		$composer->getDownloadManager()->setDownloader(
 			'heroku-sys-tar',
 			new Downloader(
 				$io,
 				$composer->getConfig(),
-				$composer->getEventDispatcher()
-				// no cache passed in as we explicitly don't want one; inside the slug it makes no sense, as slugs are immutable, and outside the slug (in the app's build cache), it makes little difference (packages are on S3, the cache is on S3) performance wise but would massively bloat the cache size and thus storage cost
+				$loop->getHttpDownloader(),
+				$composer->getEventDispatcher(),
+				null, // no cache passed in as we explicitly don't want one; inside the slug it makes no sense, as slugs are immutable, and outside the slug (in the app's build cache), it makes little difference (packages are on S3, the cache is on S3) performance wise but would massively bloat the cache size and thus storage cost
+				new Filesystem($process),
+				$process
+			)
+		);
+		// for packages that are bundled extensions of a "parent" PHP, the dist download points to PHP itself; we don't have to download anything, but just enable the extension via config using the same hooks as for "real" extension packages
+		$composer->getDownloadManager()->setDownloader(
+			'heroku-sys-php-bundled-extension',
+			new NoopDownloader(
+				$io,
+				function($package, $path) { return 'Enabling <info>'.$package->getPrettyName().'</info> (bundled with <comment>php</comment>)'; } // the suffix string we want after our bundled ext "install"
 			)
 		);
 		$composer->getInstallationManager()->addInstaller(new ComposerInstaller($io, $composer));
+	}
+	
+	public function deactivate(Composer $composer, IOInterface $io)
+	{
+		// nothing to do in our plugin case
+	}
+	
+	public function uninstall(Composer $composer, IOInterface $io)
+	{
+		// nothing to do in our plugin case
 	}
 	
 	public static function getSubscribedEvents()
 	{
 		return [PackageEvents::POST_PACKAGE_INSTALL => 'onPostPackageInstall'];
 	}
-
+	
 	public function onPostPackageInstall(PackageEvent $event)
 	{
-		if(!in_array($event->getOperation()->getPackage()->getType(), ['heroku-sys-php', 'heroku-sys-php-extension', 'heroku-sys-webserver', 'heroku-sys-library', 'heroku-sys-program'])) return;
-		
 		// first, load all platform requirements from all operations
 		// this is because if a package requires `ext-bcmath`, which is `replace`d by `php`, no install event is generated for `ext-bcmath`, but we still need to enable it
+		// we cannot do this via InstallerEvents::PRE_OPERATIONS_EXEC, as that fires before this plugin is even installed
 		$this->initAllPlatformRequirements($event->getOperations());
+		
+		if($event->getOperation()->getPackage()->getType() == "metapackage") {
+			// a package representing a userland package (might even be "composer.json/composer.lock") that triggered an install event; this may mean it contains a "provide" declaration we need to remember for later
+			$this->recordUserlandProvides($event->getOperation()->getPackage());
+		}
+		
+		if(!in_array($event->getOperation()->getPackage()->getType(), ['heroku-sys-php', 'heroku-sys-php-extension', 'heroku-sys-webserver', 'heroku-sys-library', 'heroku-sys-program'])) return;
 		
 		try {
 			// configure the package if needed (currently only applies to extensions)
@@ -81,12 +112,17 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		}
 	}
 	
+	// this is for legacy packages/repos, targeting installer v1.5 or earlier, where PHP's own extensions were not written out as separate packages like it will (likely) be the case in v1.6
+	// since this is, realistically, only used by PHP (for its bundled shared extensions), we can probably remove this in the future; however, doing this without a BC break would require bumping the installer version to 2.0, which (even if we fully re-built our own repositories) would break third-party repositories
+	// the alternative will be to remove this in e.g. v1.7 or v1.8, and adding deprecation warnings beforehand, in order to warn the (few, if any) users that have custom repositories with their own builds of PHP
+	// TODO: potentially remove this in a future version, but recordUserlandProvides() now uses this as well to speed up ".native" extension variant installs (by skipping unnecessary attempts)
 	protected function initAllPlatformRequirements(array $operations)
 	{
 		if($this->allPlatformRequirements !== null) return;
 		
 		// if a package requires `ext-bcmath`, which is `replace`d by `php`, no install event is generated for `ext-bcmath`, but we still need to enable it
 		// to do this, we first collect all requirements in a list, then later check a package's `replace` declarations against this list (in enableReplaces())
+		// PHP packages built for v1.6 or later of the installer no longer need this, as they cause generating of "dummy" extension packages in the repository; for those, enableExtension() below will not be called, because the shared extensions are no longer listed in the package's `replace` section.
 		
 		$this->allPlatformRequirements = [];
 		foreach($operations as $operation) {
@@ -98,6 +134,23 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		}
 	}
 	
+	public function recordUserlandProvides(PackageInterface $package)
+	{
+		if(!($dest = getenv('providedextensionslog_file_path'))) return;
+		// for every heroku-sys/ext-… package this package declares as "provide"d, we record an entry in a job file
+		// once the install here succeeds, the buildpack will perform an install attempt for the ".native" variant of each of them
+		// a beneficial side-effect is that the installation attempts for these native exts will occur in the same order as the install here, meaning packages listed earlier, or depended upon by many others, will take precedence in the install order
+		$providedExtensions = [];
+		foreach($package->getProvides() as $provide) {
+			// but we only do that for extensions that any other package even requires!
+			// no need to attempt installs for extensions provided by polyfills if the extension isn't required anywhere
+			if(strpos($provide->getTarget(), "heroku-sys/ext-") === 0 && isset($this->allPlatformRequirements[$provide->getTarget()])) {
+				$providedExtensions[] = sprintf("%s:%s", $provide->getTarget(), $provide->getPrettyConstraint()); 
+			}
+		}
+		if($providedExtensions) file_put_contents($dest, sprintf("%s %s\n", $package->getPrettyName(), implode(" ", $providedExtensions)), FILE_APPEND);
+	}
+	
 	protected function configurePackage(PackageInterface $package)
 	{
 		if($package->getType() == 'heroku-sys-php-extension') {
@@ -105,10 +158,13 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		}
 	}
 	
+	// this is part of the "shared extensions bundled with PHP" functionality described in the comments for initAllPlatformRequirements
+	// TODO: potentially remove this in a future version
 	protected function enableReplaces(PackageInterface $package)
 	{
 		// the current package may be "replace"ing any of the packages (e.g. ext-bcmath is bundled with PHP) that are required by another package
 		// we need to figure out which those are so enableExtension() can decide if they need enabling (because they're built shared)
+		// PHP packages built for installer v1.6 or later no longer list shared extensions in `replace`
 		$enable = array_intersect_key($package->getReplaces(), $this->allPlatformRequirements);
 		
 		foreach(array_keys($enable) as $extension) {
@@ -132,6 +188,8 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 			// we're enabling this current package itself (meaning it's an extension package)
 			$config = isset($extra['config']) ? $extra['config'] : true;
 		} else {
+			// this is part of the "shared extensions bundled with PHP" functionality described in the comments for initAllPlatformRequirements
+			// TODO: potentially remove this in a future version, as PHP packages for installer v1.6 and later no longer use this
 			// we're enabling another extension that this package `replace`s - e.g. we are PHP, and we bundle an extension another package has declared as a dependency
 			// in this case, a package lists all those `replace`d extensions that are built as a shared library (as opposed to compiled into PHP) in a hash named `shared` in the package metadata's `extra` section
 			// this way we can know whether an extension is compiled into PHP, or compiled as a shared library, in which case we need to write an "extension=extname.so" entry into an INI file

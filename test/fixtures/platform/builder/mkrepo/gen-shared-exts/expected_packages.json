@@ -1,0 +1,56 @@
+{
+  "packages": {
+    "heroku-sys/ext-bcmath": [
+      {
+        "conflict": {},
+        "dist": {
+          "type": "heroku-sys-php-bundled-extension",
+          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-develop/php-8.1.1.tar.gz?extension=heroku-sys/ext-bcmath"
+        },
+        "name": "heroku-sys/ext-bcmath",
+        "replace": {
+          "heroku-sys/ext-bcmath.native": "self.version"
+        },
+        "require": {
+          "heroku-sys/heroku": "^20.0.0",
+          "heroku-sys/php": "8.1.1",
+          "heroku/installer-plugin": "^1.6.0"
+        },
+        "time": "2022-01-26 20:49:45",
+        "type": "heroku-sys-php-extension",
+        "version": "8.1.1"
+      }
+    ],
+    "heroku-sys/php": [
+      {
+        "conflict": {},
+        "dist": {
+          "type": "heroku-sys-tar",
+          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-develop/php-8.1.1.tar.gz"
+        },
+        "extra": {
+          "export": "bin/export.php.sh",
+          "profile": "bin/profile.php.sh",
+          "shared": {
+            "heroku-sys/ext-bcmath": false
+          }
+        },
+        "name": "heroku-sys/php",
+        "provide": {},
+        "replace": {
+          "heroku-sys/ext-bz2": "self.version",
+          "heroku-sys/ext-bz2.native": "self.version",
+          "heroku-sys/php-64bit": "self.version",
+          "heroku-sys/php-ipv6": "self.version"
+        },
+        "require": {
+          "heroku-sys/heroku": "^20.0.0",
+          "heroku/installer-plugin": "^1.6.0"
+        },
+        "time": "2022-01-26 20:49:45",
+        "type": "heroku-sys-php",
+        "version": "8.1.1"
+      }
+    ]
+  }
+}

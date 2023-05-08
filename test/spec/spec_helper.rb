@@ -22,7 +22,7 @@ RSpec.configure do |config|
 	config.run_all_when_everything_filtered = true
 	config.alias_example_to :fit, focused: true
 	config.filter_run_excluding :requires_php_on_stack => lambda { |series| !php_on_stack?(series) }
-	config.filter_run_excluding :stack => lambda { |stack| ENV['STACK'] != stack }
+	config.filter_run_excluding :stack => lambda { |stack| !stack.include?(ENV['STACK']) }
 
 	config.verbose_retry       = true # show retry status in spec process
 	config.default_retry_count = 2 if ENV['IS_RUNNING_ON_CI'] # retry all tests that fail again...
@@ -35,9 +35,10 @@ RSpec.configure do |config|
 end
 
 def successful_body(app, options = {})
-	retry_limit = options[:retry_limit] || 100
+	retry_limit = options[:retry_limit] || 5
+	retry_interval = options[:retry_interval] || 2
 	path = options[:path] ? "/#{options[:path]}" : ''
-	Excon.get("http://#{app.name}.herokuapp.com#{path}", :idempotent => true, :expects => 200, :retry_limit => retry_limit).body
+	Excon.get("http://#{app.name}.herokuapp.com#{path}", :idempotent => true, :expects => 200, :retry_limit => retry_limit, :retry_interval => retry_interval).body
 end
 
 def expect_exit(expect: :to, operator: :eq, code: 0)
@@ -51,20 +52,15 @@ def expect_exit(expect: :to, operator: :eq, code: 0)
 end
 
 def expected_default_php(stack)
-	case stack
-		when "heroku-18"
-			"7.4"
-		else
-			"8.1"
-	end
+	"8.2"
 end
 
 def php_on_stack?(series)
 	case ENV["STACK"]
-		when "heroku-18"
-			available = ["7.1", "7.2", "7.3", "7.4", "8.0", "8.1"]
+		when "heroku-20"
+			available = ["7.3", "7.4", "8.0", "8.1", "8.2"]
 		else
-			available = ["7.3", "7.4", "8.0", "8.1"]
+			available = ["8.1", "8.2"]
 	end
 	available.include?(series)
 end
