@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+
+dep_name=$(basename $BASH_SOURCE)
+
+CONFIGURE_EXTRA="--enable-swoole-json --enable-swoole-curl --enable-http2 --enable-sockets --enable-mysqlnd --enable-openssl --with-postgres"
+
+source $(dirname $BASH_SOURCE)/../pecl
