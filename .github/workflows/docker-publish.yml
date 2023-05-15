@@ -3,7 +3,7 @@ name: Docker
 on:
   push:
     # Publish `robuust` branch to Container Registry
-    branches: 'robuust'
+    branches: 'openswoole'
 
 jobs:
   # Push image to GitHub Packages.
