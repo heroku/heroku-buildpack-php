@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/heroku/hatchet.git
-  revision: 661bcd6696b8d00f3c18f21d810ac02df5ab50a8
+  revision: a4635c048f87ecdb032c32f0fdf0fed9d8acf577
   branch: timeouts-etc
   specs:
     heroku_hatchet (7.4.0)
@@ -16,7 +16,7 @@ GEM
     ansi (1.5.0)
     diff-lcs (1.5.0)
     erubis (2.7.0)
-    excon (0.97.2)
+    excon (0.99.0)
     heroics (0.1.2)
       erubis (~> 2.0)
       excon
@@ -44,9 +44,9 @@ GEM
       rspec-core (> 3.3)
     rspec-support (3.12.0)
     sem_version (2.0.1)
-    thor (1.2.1)
+    thor (1.2.2)
     threaded (0.0.4)
-    webrick (1.7.0)
+    webrick (1.8.1)
 
 PLATFORMS
   ruby
