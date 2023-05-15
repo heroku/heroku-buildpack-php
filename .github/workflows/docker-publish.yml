@@ -74,7 +74,7 @@ jobs:
         run: docker run --platform=linux/arm64 --rm -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" ghcr.io/robuust/heroku-php-build-heroku-22 deploy.sh extensions/no-debug-non-zts-20210902/redis-5.3.7 --overwrite
 
       - name: Build & deploy ext-swoole for php 8.1
-        run: docker run --platform=linux/arm64 --rm -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" ghcr.io/robuust/heroku-php-build-heroku-22 deploy.sh extensions/no-debug-non-zts-20210902/openswoole-4.12.0 --overwrite
+        run: docker run --platform=linux/arm64 --rm -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" ghcr.io/robuust/heroku-php-build-heroku-22 deploy.sh extensions/no-debug-non-zts-20210902/openswoole-4.12.1 --overwrite
 
   php82:
     # Ensure push job passes before pushing image.
@@ -100,4 +100,4 @@ jobs:
         run: docker run --platform=linux/arm64 --rm -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" ghcr.io/robuust/heroku-php-build-heroku-22 deploy.sh extensions/no-debug-non-zts-20220829/redis-5.3.7 --overwrite
 
       - name: Build & deploy ext-swoole for php 8.2
-        run: docker run --platform=linux/arm64 --rm -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" ghcr.io/robuust/heroku-php-build-heroku-22 deploy.sh extensions/no-debug-non-zts-20220829/openswoole-4.12.0 --overwrite
+        run: docker run --platform=linux/arm64 --rm -e AWS_ACCESS_KEY_ID="${{ secrets.AWS_ACCESS_KEY_ID }}" -e AWS_SECRET_ACCESS_KEY="${{ secrets.AWS_SECRET_ACCESS_KEY }}" ghcr.io/robuust/heroku-php-build-heroku-22 deploy.sh extensions/no-debug-non-zts-20220829/openswoole-4.12.1 --overwrite
