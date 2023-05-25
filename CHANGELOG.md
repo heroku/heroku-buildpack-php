@@ -6,6 +6,7 @@
 
 - PHP/8.1.19 [David Zuelke]
 - PHP/8.2.6 [David Zuelke]
+- ext-blackfire/1.87.2 [David Zuelke]
 
 ### CHG
 
