@@ -13,6 +13,7 @@
 
 - Drop support for the heroku-18 stack [David Zuelke]
 - Drop support for PHP 7.1 and PHP 7.2 [David Zuelke]
+- blackfire/2.16.1 [David Zuelke]
 
 ## v233 (2023-04-14)
 
