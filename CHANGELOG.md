@@ -2,6 +2,10 @@
 
 ## v234 (2023-05-??)
 
+### ADD
+
+- PHP/8.1.19 [David Zuelke]
+
 ### CHG
 
 - Drop support for the heroku-18 stack [David Zuelke]
