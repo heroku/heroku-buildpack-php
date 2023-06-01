@@ -26,10 +26,10 @@ describe "A PHP application" do
     end
   end
 
-  it "have absolute buildpack paths", :stack => ["heroku-18", "heroku-20"] do
+  it "have absolute buildpack paths", :stack => "heroku-20" do
     buildpacks = [
       :default,
-      "https://github.com/sharpstone/force_absolute_paths_buildpack"
+      "https://github.com/sharpstone/force_absolute_paths_buildpack" # needs stack ruby, so heroku-20 only
     ]
     new_app_with_stack_and_platrepo("php-getting-started", buildpacks: buildpacks).deploy do |app|
       #deploy works

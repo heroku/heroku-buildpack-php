@@ -12,7 +12,6 @@ on:
         description: 'Stack to build for'
         type: choice
         options:
-        - heroku-18
         - heroku-20
         - heroku-22
         required: true
