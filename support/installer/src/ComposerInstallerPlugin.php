@@ -12,6 +12,7 @@ use Composer\Plugin\{PluginEvents,PluginInterface,PreFileDownloadEvent,PostFileD
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Installer\{InstallerEvent,InstallerEvents,PackageEvent,PackageEvents};
 use Composer\Package\PackageInterface;
+use Composer\Package\RootPackageInterface;
 use Composer\Util\Filesystem;
 use Composer\Util\ProcessExecutor;
 
@@ -242,7 +243,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		// first, load all platform requirements from all operations
 		// this is because if a package requires `ext-bcmath`, which is `replace`d by `php`, no install event is generated for `ext-bcmath`, but we still need to enable it
 		// we cannot do this via InstallerEvents::PRE_OPERATIONS_EXEC, as that fires before this plugin is even installed
-		$this->initAllPlatformRequirements($event->getOperations());
+		$this->initAllPlatformRequirements($event->getComposer()->getPackage(), $event->getOperations());
 		
 		$package = $event->getOperation()->getPackage();
 		
@@ -281,7 +282,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	// since this is, realistically, only used by PHP (for its bundled shared extensions), we can probably remove this in the future; however, doing this without a BC break would require bumping the installer version to 2.0, which (even if we fully re-built our own repositories) would break third-party repositories
 	// the alternative will be to remove this in e.g. v1.7 or v1.8, and adding deprecation warnings beforehand, in order to warn the (few, if any) users that have custom repositories with their own builds of PHP
 	// TODO: potentially remove this in a future version, but recordUserlandProvides() now uses this as well to speed up ".native" extension variant installs (by skipping unnecessary attempts)
-	protected function initAllPlatformRequirements(array $operations)
+	protected function initAllPlatformRequirements(RootPackageInterface $rootPackage, array $operations)
 	{
 		if($this->allPlatformRequirements !== null) return;
 		
@@ -295,6 +296,11 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 				if(strpos($require->getTarget(), 'heroku-sys/') === 0) {
 					$this->allPlatformRequirements[$require->getTarget()] = $require->getSource();
 				}
+			}
+		}
+		foreach($rootPackage->getRequires() as $require) {
+			if(strpos($require->getTarget(), 'heroku-sys/') === 0) {
+				$this->allPlatformRequirements[$require->getTarget()] = $require->getSource();
 			}
 		}
 	}
