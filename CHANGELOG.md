@@ -7,6 +7,7 @@
 - PHP/8.0.29 [David Zuelke]
 - PHP/8.1.20 [David Zuelke]
 - PHP/8.2.7 [David Zuelke]
+- ext-newrelic/10.10.0.1 [David Zuelke]
 
 ## v234 (2023-05-25)
 
