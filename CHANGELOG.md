@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v236 (2023-07-??)
+
+### FIX
+
+- PHP binary build formula uses outdated signature for Composer installer (#641) [David Zuelke]
+
 ## v235 (2023-06-09)
 
 ### ADD
