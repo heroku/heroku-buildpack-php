@@ -31,7 +31,8 @@ php composer-setup.php --version=${dep_version}
 # work around https://github.com/composer/composer/issues/11046
 echo '{}' > composer.json
 
-plugin_api_version=$(php composer.phar show --platform | grep 'composer-plugin-api' | awk '{print $2}')
+plugin_api_version=$(php composer.phar show --platform | grep '^composer-plugin-api' | awk '{print $2}')
+runtime_api_version=$(php composer.phar show --platform | grep '^composer-runtime-api' | awk '{print $2}')
 
 # php is in there, so clear it first
 rm -rf ${OUT_PREFIX}/*
@@ -103,7 +104,7 @@ EOF
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"$require"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
-MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{\"heroku-sys/composer-plugin-api\":\"${plugin_api_version}\"}"}"
+MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{\"heroku-sys/composer-plugin-api\":\"${plugin_api_version}\",\"heroku-sys/composer-runtime-api\":\"${runtime_api_version}\"}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.composer.sh\",\"profile\":\"bin/profile.composer.sh\"}"}"
 
 python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-program" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
