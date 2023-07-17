@@ -232,7 +232,7 @@ exts_shared=$(diff --new-line-format="%L" --old-line-format="" --unchanged-line-
 echo "-----> Preparing manifest contents..."
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
-MANIFEST_REPLACE=$(echo "$platform_default" | sed "s/ $dep_version\$/ self.version/" | python -c 'import sys, json; json.dump({item[0]+suffix:item[1] for item in [line.split() for line in sys.stdin] for suffix in ("", ".native")}, sys.stdout)')
+MANIFEST_REPLACE=$(echo "$platform_default" | sed "s/ $dep_version\$/ self.version/" | python -c 'import sys, json; json.dump({item[0]:item[1] for item in [line.split() for line in sys.stdin]}, sys.stdout)')
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA=$(echo "$exts_shared" | python -c 'import sys, json; json.dump({"shared": dict(item.split() for item in sys.stdin), "export": "bin/export.php.sh", "profile": "bin/profile.php.sh"}, sys.stdout)')
 

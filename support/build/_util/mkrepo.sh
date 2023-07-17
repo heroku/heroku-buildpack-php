@@ -110,6 +110,21 @@ python <(cat <<-'PYTHON' # beware of single quotes in body
 	        shared[extname]["dist"]["url"] = "{}?extension={}".format(php.get("dist").get("url"), extname) # make sure "virtual" URL in the shared ext info has the right "base" (e.g. after a sync from another bucket)
 	        manifests.append(shared[extname]); # add ext manifest to our repo list
 	        shared[extname] = False # make sure there still is a record of this extension in the PHP package (e.g. for tooling that generates version infos for Heroku Dev Center), but prevent e.g. the legacy Installer Plugin logic from handling this
+	# for each php or extension package, generate a "replace" entry for ".native", and require ".native" variants of any other exts it depends on
+	# this is used by the installer to ignore userland provides for internal dependencies (one ext requiring another), while allowing userland provides to optionally stand in for native extensions if they do not exist (but an installation attempt is made for them once main dependency resolution is finished)
+	# this way, extension package formulae do not have to know about this ".native" business in theif formulae
+	for ext in filter(lambda package: package.get("type", "") in ["heroku-sys-php", "heroku-sys-php-bundled-extension", "heroku-sys-php-extension"], manifests):
+	    # generate ".native" replace and require entry variants for each "heroku-sys/ext-…" in them
+	    # there may be extensions "replace"ing other extensions, e.g. "ext-apcu" replaces "ext-apc"
+	    # also, all non-shared extensions are listed as "replace"d by a PHP package
+	    replaces = ext.get("replace", {})
+	    requires = ext.get("require", {})
+	    # we only process requirements not ending with ".native" (in case an extension package already explicitly does this in its metadata)
+	    replaces.update({ "%s.native"%name: version for (name, version) in replaces.items() if name.startswith("heroku-sys/ext-") and not name.endswith(".native")})
+	    requires.update({ "%s.native"%name: version for (name, version) in requires.items() if name.startswith("heroku-sys/ext-") and not name.endswith(".native")})
+	    # finally, for this package itself, insert a replace entry of "heroku-sys/ext-thispackage.native" if it's an extension
+	    if ext.get("type") != "heroku-sys-php":
+	        ext.get("replace", {}).update({"%s.native"%ext.get("name", ""): "self.version"})
 	# we sort by a tuple: name first (so the following dictionary grouping works), then "php" requirement (see initial comment block)
 	manifests.sort(
 	    key=lambda package: (package.get("name"), version.LooseVersion(re.sub("[<>=*~^]", "0", package.get("require", {}).get("heroku-sys/php", "0.0.0")))),

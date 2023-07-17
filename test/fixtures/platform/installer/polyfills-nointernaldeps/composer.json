@@ -1,0 +1,23 @@
+{
+	"repositories": [
+		{
+			"type": "package",
+			"package": {
+				"name": "dummypak/ext-raphf-polyfill",
+				"version": "2.0.1",
+				"type": "metapackage",
+				"require": {
+					"php": "^7.0 | ^8.0"
+				},
+				"provide": {
+					"ext-raphf": "2.0.1"
+				}
+			}
+		}
+	],
+	"require": {
+		"php": "8.*",
+		"dummypak/ext-raphf-polyfill": "^2.0",
+		"ext-pq": "*"
+	}
+}

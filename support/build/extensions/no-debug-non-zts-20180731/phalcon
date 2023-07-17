@@ -68,7 +68,7 @@ case "$dep_version" in
 		;;
 esac
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
-MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{\"heroku-sys/ext-${dep_name}.native\":\"self.version\"}"}"
+MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{}"}"
 
