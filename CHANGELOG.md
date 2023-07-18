@@ -12,6 +12,11 @@
 - ext-phalcon/5.2.2 [David Zuelke]
 - ext-pq/2.2.2 [David Zuelke]
 
+### CHG
+
+- blackfire/2.17.0 [David Zuelke]
+- Composer/2.5.8 [David Zuelke]
+
 ### FIX
 
 - PHP binary build formula uses outdated signature for Composer installer (#641) [David Zuelke]
