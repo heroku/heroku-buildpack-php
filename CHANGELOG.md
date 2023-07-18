@@ -10,6 +10,7 @@
 - ext-mongodb/1.16.1 [David Zuelke]
 - ext-newrelic/10.11.0.3 [David Zuelke]
 - ext-phalcon/5.2.2 [David Zuelke]
+- ext-pq/2.2.2 [David Zuelke]
 
 ### FIX
 
