@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/8.1.21 [David Zuelke]
+- PHP/8.2.8 [David Zuelke]
 
 ### FIX
 
