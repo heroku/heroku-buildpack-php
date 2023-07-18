@@ -117,14 +117,14 @@ python <(cat <<-'PYTHON' # beware of single quotes in body
 	    # generate ".native" replace and require entry variants for each "heroku-sys/ext-…" in them
 	    # there may be extensions "replace"ing other extensions, e.g. "ext-apcu" replaces "ext-apc"
 	    # also, all non-shared extensions are listed as "replace"d by a PHP package
-	    replaces = ext.get("replace", {})
+	    replaces = ext.setdefault("replace", {}) # setdefault because we likely also need to insert a new item later
 	    requires = ext.get("require", {})
 	    # we only process requirements not ending with ".native" (in case an extension package already explicitly does this in its metadata)
 	    replaces.update({ "%s.native"%name: version for (name, version) in replaces.items() if name.startswith("heroku-sys/ext-") and not name.endswith(".native")})
 	    requires.update({ "%s.native"%name: version for (name, version) in requires.items() if name.startswith("heroku-sys/ext-") and not name.endswith(".native")})
 	    # finally, for this package itself, insert a replace entry of "heroku-sys/ext-thispackage.native" if it's an extension
 	    if ext.get("type") != "heroku-sys-php":
-	        ext.get("replace", {}).update({"%s.native"%ext.get("name", ""): "self.version"})
+	        replaces["%s.native"%ext.get("name", "")] = "self.version"
 	# we sort by a tuple: name first (so the following dictionary grouping works), then "php" requirement (see initial comment block)
 	manifests.sort(
 	    key=lambda package: (package.get("name"), version.LooseVersion(re.sub("[<>=*~^]", "0", package.get("require", {}).get("heroku-sys/php", "0.0.0")))),
