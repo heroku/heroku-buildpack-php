@@ -2,6 +2,10 @@
 
 ## v236 (2023-07-??)
 
+### ADD
+
+- PHP/8.1.21 [David Zuelke]
+
 ### FIX
 
 - PHP binary build formula uses outdated signature for Composer installer (#641) [David Zuelke]
