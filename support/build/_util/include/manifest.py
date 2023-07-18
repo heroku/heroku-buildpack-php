@@ -50,7 +50,6 @@ if manifest["type"] == "heroku-sys-php":
 			"conflict": phpconflict,
 			"dist": dist,
 			"name": extname,
-			"replace": { "%s.native"%extname: "self.version" }, # if a userland package has the ext in "provide", we can later try to forcefully install the ext by requiring this replace
 			"require": require,
 			"time": phptime,
 			"type": "heroku-sys-php-extension",

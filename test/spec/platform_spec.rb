@@ -266,6 +266,18 @@ describe "The PHP Platform Installer" do
 					expect(out_after_polyfills).to include("no suitable native version of ext-xmlrpc available")
 				end
 			end
+			it "ignores a polyfill for an extension that another extension depends upon" do
+				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-nointernaldeps').deploy do |app|
+					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
+					# ext-pq got installed...
+					expect(app.output).to include("- ext-pq (")
+					out_before_pq, out_after_pq = app.output.split("- ext-pq (", 2)
+					# ... which immediately had raphf.native as a dependency...
+					expect(out_before_pq).to include("- ext-raphf (")
+					# ... so the subsequent polyfill "override" attempt is a no-op
+					expect(out_after_pq).to include("- ext-raphf (already enabled)")
+				end
+			end
 		end
 	end
 end
