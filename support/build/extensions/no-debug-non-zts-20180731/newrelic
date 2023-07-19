@@ -121,7 +121,7 @@ EOF
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
-MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{\"heroku-sys/ext-${dep_name}.native\":\"self.version\"}"}"
+MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/newrelic.ini-dist\",\"export\":\"bin/export.newrelic.sh\",\"profile\":\"bin/profile.newrelic.sh\"}"}"
 

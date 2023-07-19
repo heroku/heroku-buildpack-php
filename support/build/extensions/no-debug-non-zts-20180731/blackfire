@@ -56,7 +56,7 @@ rm probe.tar.gz blackfire-${ZEND_MODULE_API_VERSION}.so blackfire-${ZEND_MODULE_
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\",\"heroku-sys/blackfire\":\">=2.0.0\"}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
-MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{\"heroku-sys/ext-${dep_name}.native\":\"self.version\"}"}"
+MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{}"}"
 

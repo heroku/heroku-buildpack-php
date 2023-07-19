@@ -9,9 +9,7 @@
   },
   "name": "heroku-sys/ext-apcu",
   "provide": {},
-  "replace": {
-    "heroku-sys/ext-apcu.native": "self.version"
-  },
+  "replace": {},
   "require": {
     "heroku-sys/heroku": "^20.0.0",
     "heroku-sys/php": "8.0.*",

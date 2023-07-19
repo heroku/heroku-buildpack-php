@@ -1,0 +1,24 @@
+{
+  "conflict": {},
+  "dist": {
+    "type": "heroku-sys-tar",
+    "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/pq-2.2.0.tar.gz"
+  },
+  "extra": {
+    "config": "etc/php/conf.d/pq.ini-dist"
+  },
+  "name": "heroku-sys/ext-pq",
+  "provide": {},
+  "replace": {},
+  "require": {
+    "heroku-sys/ext-json": "*",
+    "heroku-sys/ext-raphf": ">=2.0.0",
+    "heroku-sys/ext-spl": "*",
+    "heroku-sys/heroku": "^20.0.0",
+    "heroku-sys/php": "8.0.*",
+    "heroku/installer-plugin": "^1.6.0"
+  },
+  "time": "2021-06-07 14:51:08",
+  "type": "heroku-sys-php-extension",
+  "version": "2.2.0"
+}

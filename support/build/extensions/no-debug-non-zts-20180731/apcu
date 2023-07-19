@@ -60,7 +60,7 @@ if [[ $series == 7.* ]]; then
 	make INSTALL_ROOT=$tmpdest install -s
 	popd
 
-	MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{\"heroku-sys/ext-apc\":\"self.version\",\"heroku-sys/ext-apc.native\":\"self.version\",\"heroku-sys/ext-${dep_name}.native\":\"self.version\"}"}" # despite version 1.0.3 or whatever, apcu_bc identifies itself using the apcu version number
+	MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{\"heroku-sys/ext-apc\":\"self.version\"}"}" # despite version 1.0.3 or whatever, apcu_bc identifies itself using the apcu version number
 	
 	pushd ${dep_dirname}
 fi
@@ -88,7 +88,7 @@ strip --strip-unneeded ${OUT_PREFIX}/lib/php/extensions/*/*.so
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
-MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{\"heroku-sys/ext-${dep_name}.native\":\"self.version\"}"}"
+MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/apcu.ini-dist\"}"}"
 

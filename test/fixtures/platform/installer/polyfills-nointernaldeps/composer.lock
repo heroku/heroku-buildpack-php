@@ -1,0 +1,33 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "6533fbb373d313b96cfb6c9427ac6e58",
+    "packages": [
+        {
+            "name": "dummypak/ext-raphf-polyfill",
+            "version": "2.0.1",
+            "require": {
+                "php": "^7.0 | ^8.0"
+            },
+            "provide": {
+                "ext-raphf": "2.0.1"
+            },
+            "type": "metapackage"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": [],
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": "8.*",
+        "ext-pq": "*"
+    },
+    "platform-dev": [],
+    "plugin-api-version": "2.3.0"
+}
