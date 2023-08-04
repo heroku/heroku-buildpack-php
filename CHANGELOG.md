@@ -9,6 +9,10 @@
 - PHP/8.2.9 [David Zuelke]
 - ext-phalcon/5.2.3 [David Zuelke]
 
+### CHG
+
+- blackfire/2.19.0 [David Zuelke]
+
 ## v236 (2023-07-18)
 
 ### ADD
