@@ -17,4 +17,8 @@ esac
 
 CONFIGURE_EXTRA="--with-rdkafka=${OUT_PREFIX}"
 
+from_ext_to_lib=$(realpath --relative-to="$(php-config --extension-dir)" "${OUT_PREFIX}/lib")
+
+MAKE_EXTRA="LDFLAGS=${LDFLAGS:--Wl},-rpath='\$\$ORIGIN/${from_ext_to_lib}'"
+
 source $(dirname $BASH_SOURCE)/../pecl
