@@ -7,6 +7,7 @@
 - PHP/8.0.30 [David Zuelke]
 - PHP/8.1.22 [David Zuelke]
 - PHP/8.2.9 [David Zuelke]
+- ext-phalcon/5.2.3 [David Zuelke]
 
 ## v236 (2023-07-18)
 
