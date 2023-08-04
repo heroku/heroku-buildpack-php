@@ -29,7 +29,8 @@ phpize
 ./configure \
 	--prefix=${OUT_PREFIX} \
 	${CONFIGURE_EXTRA:-}
-make -s -j $(($(nproc)+1))
+make -s -j $(($(nproc)+1)) \
+	${MAKE_EXTRA:-}
 
 # php was a build dep, and it's in $OUT_PREFIX; we only want our build results in the final archive, and no build deps
 # the easiest way is to nuke $OUT_PREFIX and running "make install", but extensions built for PHP 8.1+ need PHP headers during linking
