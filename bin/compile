@@ -26,20 +26,6 @@ source $bp_dir/bin/util/common.sh
 # we do not 'set -o errtrace', because that would cause subshell failures to fire the trap twice, e.g. with someval=$(func_that_fails)
 trap 'err_trap' ERR
 
-# stdlib
-# download to a file first, as the function restarts the entire download on code 18 connection reset (not all servers support -C)
-curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 5 --fail --silent --location -o $bp_dir/bin/util/stdlib.sh https://lang-common.s3.us-east-1.amazonaws.com/buildpack-stdlib/v8/stdlib.sh || {
-	error <<-EOF
-		Failed to download standard library for bootstrapping!
-		
-		This is most likely a temporary internal error. If the problem
-		persists, make sure that you are not running a custom or forked
-		version of the Heroku PHP buildpack which may need updating.
-	EOF
-}
-source $bp_dir/bin/util/stdlib.sh
-rm $bp_dir/bin/util/stdlib.sh
-
 # failure counting
 source $bp_dir/bin/util/failures.sh
 
