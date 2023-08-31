@@ -2,6 +2,10 @@
 
 ## v238 (2023-08-??)
 
+### ADD
+
+- ext-phalcon/5.3.0 [David Zuelke]
+
 ### CHG
 
 - Import telemetry helper shell functions previously vendored from 'lang-common' S3 bucket [David Zuelke]
