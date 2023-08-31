@@ -5,6 +5,7 @@
 ### CHG
 
 - Import telemetry helper shell functions previously vendored from 'lang-common' S3 bucket [David Zuelke]
+- blackfire/2.21.0 [David Zuelke]
 
 ## v237 (2023-08-04)
 
