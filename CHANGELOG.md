@@ -1,10 +1,19 @@
 # heroku-buildpack-php CHANGELOG
 
-## v238 (2023-08-??)
+## v238 (2023-08-31)
+
+### ADD
+
+- ext-phalcon/5.3.0 [David Zuelke]
+- ext-mongodb/1.16.2 [David Zuelke]
+- ext-amqp/2.0.0 [David Zuelke]
+- PHP/8.1.23 [David Zuelke]
+- PHP/8.2.10 [David Zuelke]
 
 ### CHG
 
 - Import telemetry helper shell functions previously vendored from 'lang-common' S3 bucket [David Zuelke]
+- blackfire/2.21.0 [David Zuelke]
 
 ## v237 (2023-08-04)
 
