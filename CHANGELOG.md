@@ -9,6 +9,7 @@
 - ext-amqp/2.1.0 [David Zuelke]
 - ext-phalcon/5.3.1 [David Zuelke]
 - ext-newrelic/10.12.0.1 [David Zuelke]
+- ext-redis/6.0.1 (with lz4, lzf, zstd support enabled) [David Zuelke]
 
 ## v238 (2023-08-31)
 
