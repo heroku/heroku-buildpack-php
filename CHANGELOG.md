@@ -6,6 +6,7 @@
 
 - PHP/8.1.24 [David Zuelke]
 - PHP/8.2.11 [David Zuelke]
+- ext-amqp/2.1.0 [David Zuelke]
 
 ## v238 (2023-08-31)
 
