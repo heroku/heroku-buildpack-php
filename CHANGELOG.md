@@ -12,6 +12,10 @@
 - ext-redis/6.0.1 (with lz4, lzf, zstd support enabled) [David Zuelke]
 - ext-blackfire/1.90.0 [David Zuelke]
 
+### CHG
+
+- blackfire/2.22.0 [David Zuelke]
+
 ## v238 (2023-08-31)
 
 ### ADD
