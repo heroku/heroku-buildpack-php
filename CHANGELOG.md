@@ -13,6 +13,7 @@
 - ext-blackfire/1.90.0 [David Zuelke]
 - Composer/1.10.27 [David Zuelke]
 - Composer/2.2.22 [David Zuelke]
+- Composer/2.6.4 [David Zuelke]
 
 ### CHG
 
