@@ -3,11 +3,19 @@ updates:
   - package-ecosystem: "bundler"
     directory: "/"
     schedule:
-      interval: "weekly"
+      interval: "monthly"
+    groups:
+      test-dependencies:
+        patterns:
+        - "*"
   - package-ecosystem: "composer"
     directory: "/support/devcenter"
     schedule:
       interval: "monthly"
+    groups:
+      devcenter-generator-dependencies:
+        patterns: 
+        - "*"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:

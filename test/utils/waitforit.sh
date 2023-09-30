@@ -64,25 +64,34 @@ else
 	grepargs="-q"
 fi
 
-# this handler will fire if a program reading from us (to kick off e.g. a test) exits
-# in that event, we want the child process to terminate
-# trap 'trap - PIPE; echo "SIGPIPE received, shutting down..." >&2; cleanup TERM; kill -PIPE $$' PIPE
+# First, we spawn a subshell that executes the desired program, wrapped in timeout (as a hard limit to prevent hanging forever if the desired text does not match).
+# A trap is set up that fires on SIGPIPE (and SIGUSR1, see note below) and kills the program.
+# After the program is launched, we check if it's alive in a loop, and write a dot to the following pipeline
+# This writing acts as a check to see whether the following pipeline is still alive - if it is not, that's because it has terminated (see its explanation further below).
+# Once the pipeline is gone, our trap fires, and shuts down the program.
 
 # TODO: have option to suppress output to stderr
 (
-	# trap 'echo "finished" >&3;' EXIT
-
-	trap 'trap - PIPE; kill -TERM $pid 2> /dev/null || true; wait $pid; exit 0' PIPE
+	# we trap SIGPIPE, but also SIGUSR1
+	# there are cases where the invoking shell does not allow SIGPIPE traps to be installed
+	trap 'trap - PIPE USR1; kill -TERM $pid 2> /dev/null || true; wait $pid; exit 0' PIPE USR1
 
 	# we redirect stderr to stdout so it can be captured as well...
 	# ... and redirect stdout to a tee that also writes to stderr (so the output is visible) - this is done so that $! is still the pid of the timeout command
 	timeout $duration "$@" > >(tee >(cat 1>&2)) 2>&1 & pid=$!
 	
-	while kill -0 $pid 2>/dev/null; do echo "." 2>/dev/null; sleep 0.1; done;
+	# while the program is alive, write a dot to the following pipeline
+	# once the following pipeline has finished, the echo will cause a SIGPIPE, which our trap above will catch
+	# for cases where SIGPIPE handlers are not available, we manually issue a SIGUSR1 to ourselves if the echo fails with an error (due to broken pipe)
+	while kill -0 $pid 2>/dev/null; do echo "." 2>/dev/null || kill -USR1 $BASHPID; sleep 0.1; done;
 	
 	wait $pid || exit $?
 	
 	exec 1>&-;
-) | { grep --line-buffered $grepargs -E -e "$text" && while test $pipeout; do echo "." 2>/dev/null; sleep 0.1; done; exec 1>&-; }
+# The following pipeline blocks until grep has matched the desired text.
+# Once the match has succeeded, and we're in $pipeout mode, the pipeline that follows us (outside this script), with the user test, will start running (since it is something like `{ read; curl localhost:$PORT/test | grep foo; }`, and the `read` will unblock due to our grep having output something).
+# We then keep writing dots to that outer pipeline, which will start failing with SIGPIPE once the outer pipeline has finished executing.
+# Once that happens, we break out of the loop, and that will cause the pipeline above (that executed the program) to also hit a SIGPIPE, and shut down the program.
+) | { grep --line-buffered $grepargs -E -e "$text" && while test $pipeout; do echo "." 2>/dev/null || break; sleep 0.1; done; exec 1>&-; }
 
 exit ${PIPESTATUS[0]}
