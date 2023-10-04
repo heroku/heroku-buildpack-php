@@ -48,9 +48,7 @@ jobs:
           php-version: "8.1"
           tools: "composer:2.4"
       - name: Hatchet setup
-        run: |
-          bundle exec hatchet ci:setup
-          heroku update --version 8.1.9
+        run: bundle exec hatchet ci:setup
       - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …-develop (since we are not building main or a tag)
         if: github.ref_type != 'tag' && github.ref_name != 'main'
         run: |

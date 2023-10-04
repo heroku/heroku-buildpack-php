@@ -30,7 +30,7 @@ class Downloader extends TarDownloader
 			$marker = "$path/$fn.extracted";
 			touch($marker);
 			
-			return \React\Promise\resolve();
+			return \React\Promise\resolve(null);
 		}
 		
 		throw new \RuntimeException("Failed to execute '$command'\n\n" . $this->process->getErrorOutput());
