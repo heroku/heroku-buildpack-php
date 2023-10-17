@@ -6,6 +6,8 @@ name = "PHP"
 		".github/",
 		".gitignore",
 		".rspec_parallel",
+		"support/build/",
+		"support/devcenter/",
 		"test/",
 		"Gemfile",
 		"Gemfile.lock",
