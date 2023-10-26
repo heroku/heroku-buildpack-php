@@ -7,6 +7,7 @@
 - PHP/8.1.25 [David Zuelke]
 - PHP/8.2.12 [David Zuelke]
 - ext-newrelic/10.13.0.2 [David Zuelke]
+- ext-amqp/2.1.1 [David Zuelke]
 
 ### CHG
 
