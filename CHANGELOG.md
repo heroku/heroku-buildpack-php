@@ -14,6 +14,7 @@
 ### CHG
 
 - Exclude `support/{build,devcenter}/` from the packaged buildpack [Ed Morley]
+- Composer/2.6.5 [David Zuelke]
 
 ## v239 (2023-09-30)
 
