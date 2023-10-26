@@ -16,6 +16,7 @@
 - Exclude `support/{build,devcenter}/` from the packaged buildpack [Ed Morley]
 - Composer/2.6.5 [David Zuelke]
 - Apache/2.4.58 [David Zuelke]
+- blackfire/2.23.0 [David Zuelke]
 
 ## v239 (2023-09-30)
 
