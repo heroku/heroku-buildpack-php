@@ -9,6 +9,7 @@
 - ext-newrelic/10.13.0.2 [David Zuelke]
 - ext-amqp/2.1.1 [David Zuelke]
 - ext-redis/6.0.2 [David Zuelke]
+- ext-phalcon/5.4.0 [David Zuelke]
 
 ### CHG
 
