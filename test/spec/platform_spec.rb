@@ -142,17 +142,8 @@ describe "The PHP Platform Installer" do
 	end
 	
 	describe "Repository" do
-		after(:each) do
-			Process.kill("TERM", @pid)
-			Process.wait(@pid)
-		end
-		
 		it "can hold packages compatible with future versions of the buildpack the current version will ignore" do
 			Dir.chdir("test/fixtures/platform/repository/futurepaks") do |cwd|
-				# we spawn a web server that serves packages.json, like a real composer repository
-				# this is to ensure that Composer really uses ComposerRepository behavior for provide/replace declarations
-				@pid = spawn("php -S localhost:8080")
-				
 				cmd = "composer install --dry-run"
 				stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 				expect(status.exitstatus).to eq(0), "dry run install failed, stderr: #{stderr}, stdout: #{stdout}"
@@ -164,9 +155,6 @@ describe "The PHP Platform Installer" do
 		
 		it "combined with a custom repository installs packages from that repo according to the priority given" do
 			Dir.chdir("test/fixtures/platform/repository/priorities") do |cwd|
-				# we spawn a web server that serves packages*.json, like a real composer repository
-				# this is to ensure that Composer really uses ComposerRepository behavior for priorities etc
-				@pid = spawn("php -S localhost:8080")
 				Dir.glob("composer-*.json") do |testcase|
 					cmd = "COMPOSER=#{testcase} composer install --dry-run"
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
