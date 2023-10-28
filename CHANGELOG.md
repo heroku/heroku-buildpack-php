@@ -1,5 +1,23 @@
 # heroku-buildpack-php CHANGELOG
 
+## v240 (2023-10-27)
+
+### ADD
+
+- PHP/8.1.25 [David Zuelke]
+- PHP/8.2.12 [David Zuelke]
+- ext-newrelic/10.13.0.2 [David Zuelke]
+- ext-amqp/2.1.1 [David Zuelke]
+- ext-redis/6.0.2 [David Zuelke]
+- ext-phalcon/5.4.0 [David Zuelke]
+
+### CHG
+
+- Exclude `support/{build,devcenter}/` from the packaged buildpack [Ed Morley]
+- Composer/2.6.5 [David Zuelke]
+- Apache/2.4.58 [David Zuelke]
+- blackfire/2.23.0 [David Zuelke]
+
 ## v239 (2023-09-30)
 
 ### ADD
