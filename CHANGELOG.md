@@ -4,6 +4,7 @@
 
 - PHP/8.1.26 [David Zuelke]
 - PHP/8.2.13 [David Zuelke]
+- ext-apcu/5.1.23 [David Zuelke]
 
 ## v240 (2023-10-27)
 
