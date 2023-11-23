@@ -3,6 +3,7 @@
 ## v241 (2023-11-??)
 
 - PHP/8.1.26 [David Zuelke]
+- PHP/8.2.13 [David Zuelke]
 
 ## v240 (2023-10-27)
 
