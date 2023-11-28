@@ -7,6 +7,7 @@
 - ext-apcu/5.1.23 [David Zuelke]
 - ext-mongodb/1.17.0 [David Zuelke]
 - ext-newrelic/10.14.0.3 [David Zuelke]
+- ext-blackfire/1.92.1 [David Zuelke]
 
 ## v240 (2023-10-27)
 
