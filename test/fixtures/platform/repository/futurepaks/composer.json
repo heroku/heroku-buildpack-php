@@ -34,7 +34,7 @@
         },
         {
             "type": "composer",
-            "url": "http://localhost:8080/packages.json"
+            "url": "./packages.json"
         },
         {
             "type": "package",
