@@ -3,7 +3,7 @@
         "php": "*"
     },
     "require-dev": {
-        "codeception/codeception": "^4.1.9",
-        "codeception/module-asserts": "^2.0"
+        "codeception/codeception": "^5.0",
+        "codeception/module-asserts": "*"
     }
 }
