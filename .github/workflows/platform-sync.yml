@@ -1,6 +1,9 @@
 name: Platform packages sync from -develop/ to -stable/
 run-name: Sync${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-$STACK-develop/ to dist-$STACK-stable/
 
+env:
+  stacks_list_for_shell_expansion: "{heroku-20,heroku-22}"
+
 on:
   workflow_dispatch:
     inputs:
@@ -102,4 +105,48 @@ jobs:
           echo "${{ inputs.dry-run == true && '**This is output from a dry-run**, no changes have been synced to production:' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           sed -n '/The following packages will/,$p' sync.out >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+  devcenter-generate:
+    needs: sync
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install PHP and Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          tools: "composer:2.6"
+      - name: Install Dev Center generator dependencies
+        run: |
+          composer install -d support/devcenter/
+      - name: Generate Dev Center article tables
+        run: |
+          urls=( https://lang-php.s3.amazonaws.com/dist-${{ env.stacks_list_for_shell_expansion }}-${{ inputs.dry-run == true && 'develop' || 'stable' }}/packages.json )
+          for section in runtimes built-in-extensions third-party-extensions composers webservers; do
+            support/devcenter/generate.php --"$section" "${urls[@]}" > php-support-"$section".md
+          done
+      - name: Print Dev Center article tables
+        run: |
+          echo '## Generated ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support) tables' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '**This is based on the source bucket (due to dry-run mode)**, not the production bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '### [Runtimes](https://devcenter.heroku.com/articles/php-support#available-versions)' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat php-support-runtimes.md >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo '### [Built-in extensions](https://devcenter.heroku.com/articles/php-support#available-built-in-extensions)' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat php-support-built-in-extensions.md >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo '### [Third-party extensions](https://devcenter.heroku.com/articles/php-support#available-third-party-extensions)' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat php-support-third-party-extensions.md >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo '### [Composers](https://devcenter.heroku.com/articles/php-support#available-composer-versions)' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat php-support-composers.md >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo '### [Web Servers](https://devcenter.heroku.com/articles/php-support#web-servers)' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat php-support-webservers.md >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
