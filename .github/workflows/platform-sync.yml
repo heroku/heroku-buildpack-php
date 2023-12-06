@@ -112,6 +112,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Install dos2unix
+        run: |
+          sudo apt-get update
+          sudo apt-get install dos2unix
       - name: Install PHP and Composer
         uses: shivammathur/setup-php@v2
         with:
@@ -120,33 +124,101 @@ jobs:
       - name: Install Dev Center generator dependencies
         run: |
           composer install -d support/devcenter/
-      - name: Generate Dev Center article tables
+      - name: Generate Dev Center article sections
         run: |
+          set -o pipefail
           urls=( https://lang-php.s3.amazonaws.com/dist-${{ env.stacks_list_for_shell_expansion }}-${{ inputs.dry-run == true && 'develop' || 'stable' }}/packages.json )
-          for section in runtimes built-in-extensions third-party-extensions composers webservers; do
-            support/devcenter/generate.php --"$section" "${urls[@]}" > php-support-"$section".md
-          done
-      - name: Print Dev Center article tables
+          # generate.php can generate individual sections, but doing it in one go a) is faster and b) means this code does not need to know what those sections are
+          # Instead we split the generated contents into individual files, with the known delimiter as the split pattern.
+          support/devcenter/generate.php "${urls[@]}" | csplit -s -z -f 'section-' -b '%02d.md' - '/^<!-- BEGIN [A-Z_][A-Z0-9_-]\+ -->$/' '{*}'
+          # sanity check number of generated splits (e.g. in case the split ever changes)
+          shopt -s nullglob
+          splits=( section-*.md )
+          if (( ${#splits[@]} < 2 )); then
+            echo 'error::Expected more than one section from generator.'
+            exit 1
+          fi
+      - name: Download current Dev Center article markdown
         run: |
-          echo '## Generated ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support) tables' >> "$GITHUB_STEP_SUMMARY"
+          set -o pipefail
+          # jq -j, not -r, otherwise we get a stray trailing newline
+          curl -H "Accept: application/json" https://devcenter.heroku.com/api/v1/articles/2021 | jq -j '.content' > php-support.md
+          # Because the articles are edited in a web interface, they likely use CRLF line endings.
+          # We will be patching using the LF line ending section files generated in an earlier step.
+          # For this reason, we may have to convert to LF, so we check if the file would be converted by dos2unix using the --info option.
+          # The "c" info flag prints only file names that would trigger conversion; we first remember this output for the next step via tee -a.
+          # The "0" flag triggers zero-byte output for happy consumption by xargs
+          # Then, we finally run the conversion (if needed) by passing the file name to dos2unix again via xargs.
+          dos2unix --info=c0 php-support.md | tee have_crlf.txt | xargs -r0 dos2unix
+      - name: Find generated section start/end markers in Dev Center article markdown
+        id: find-section-markers
+        run: |
+          # init job file
+          echo -n > php-support.md.ed-unordered.txt
+          for f in section-*.md; do
+            # extract first and last lines of the section file (those are the start and end markers)
+            first=$(head -n1 "$f")
+            last=$(tail -n1 "$f")
+            # grep the line numbers (-n) as fixed (-F) full-line (-x) strings and extract them
+            start=$(set -o pipefail; grep -nFx "$first" php-support.md | cut -d':' -f1) || {
+              echo "::warning title=Failed to match section start marker::Start marker '$first' not found in input markdown; skipping section..."
+              continue
+            }
+            end=$(set -o pipefail; grep -nFx "$last" php-support.md | cut -d':' -f1) || {
+              echo "::warning title=Failed to match section end marker::End marker '$last' not found in input markdown; skipping section..."
+              continue
+            }
+            # write out a line with the start-end range and filename
+            echo "${start},${end} ${f}" >> php-support.md.ed-unordered.txt
+          done
+          num_sections=$(set -o pipefail; wc -l php-support.md.ed-unordered.txt | awk '{ print $1 }')
+          (( $num_sections > 0 )) || echo "::warning title=No sections matched in input markdown::None of the generated sections coud be matched against the input markdown. No updates will occur."
+          echo "num_sections=${num_sections}" >> "$GITHUB_OUTPUT"
+      - name: Patch Dev Center article markdown
+        if: steps.find-section-markers.outputs.num_sections > 0
+        run: |
+          # init our ed script (https://www.gnu.org/software/diffutils/manual/html_node/Detailed-ed.html) for patching
+          echo -n > php-support.md.ed
+          # we now have the target file line ranges and source file names
+          # for patch to handle the line numbers in the ed script correctly, they must be ordered with the last changes coming first
+          # (otherwise every applied change will shift the line numbers for following changes)
+          sort -r -n -k1 -t',' php-support.md.ed-unordered.txt | while read range f; do
+            # write out an ed command that says "from starting line to ending line, replace with what follows"
+            echo "${range}c" >> php-support.md.ed
+            # write out new contents for range in command above
+            cat "$f" >> php-support.md.ed
+            # mark end of content
+            echo "." >> php-support.md.ed
+          done
+          patch --backup --ed php-support.md php-support.md.ed
+      - name: Dump diff of markdown contents
+        id: diff
+        if: steps.find-section-markers.outputs.num_sections > 0
+        run: |
+          echo '## Diff of changes to ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
           echo "${{ inputs.dry-run == true && '**This is based on the source bucket (due to dry-run mode)**, not the production bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
-          echo '### [Runtimes](https://devcenter.heroku.com/articles/php-support#available-versions)' >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          cat php-support-runtimes.md >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo '### [Built-in extensions](https://devcenter.heroku.com/articles/php-support#available-built-in-extensions)' >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          cat php-support-built-in-extensions.md >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo '### [Third-party extensions](https://devcenter.heroku.com/articles/php-support#available-third-party-extensions)' >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          cat php-support-third-party-extensions.md >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo '### [Composers](https://devcenter.heroku.com/articles/php-support#available-composer-versions)' >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          cat php-support-composers.md >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          echo '### [Web Servers](https://devcenter.heroku.com/articles/php-support#web-servers)' >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
-          cat php-support-webservers.md >> "$GITHUB_STEP_SUMMARY"
-          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          echo '``````diff' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+          # diff exits 0 if there are no differences, 1 if there are, 2 if there was trouble
+          diff -u php-support.md.orig php-support.md >> "$GITHUB_STEP_SUMMARY" && {
+            echo "::warning title=No diff in markdown::There were no differences after applying the generated sections to the input markdown."
+            echo "diff_result=0" >> "$GITHUB_OUTPUT"
+          } || {
+            diff_result=$?
+            echo "diff_result=${diff_result}" >> "$GITHUB_OUTPUT"
+            (( diff_result != 1 )) && {
+              echo "::error title=Unexpected error during diffing::Exit status of 'diff' command was '${diff_result}'."
+              exit ${diff_result}
+            }
+          }
+          echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+      - name: Output complete Dev Center article markdown
+        if: steps.find-section-markers.outputs.num_sections > 0 && steps.diff.outputs.diff_result == 1
+        run: |
+          set -o pipefail
+          echo '## Updated markdown for ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '**This is based on the source bucket (due to dry-run mode)**, not the production bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '``````markdown' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+          # convert back to the original CRLF if dos2unix ran in an earlier step (have_crlf.txt will be empty if not, and xargs will not run due to -r)
+          cat have_crlf.txt | xargs -r0 unix2dos
+          cat php-support.md >> "$GITHUB_STEP_SUMMARY"
+          echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
