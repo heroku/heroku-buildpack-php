@@ -5,6 +5,8 @@ use Composer\Semver\Comparator;
 
 require('vendor/autoload.php');
 
+$strict = false;
+
 // these need updating from time to time to add new stacks and remove EOL ones
 $stacks = [
 	1 => '20', // the offset we start with here is relevant for the numbering of footnotes
@@ -30,7 +32,7 @@ $findstacks = function(array $package) use($stacks) {
 	return $stacks;
 };
 
-$findseries = function(array $package) use($series) {
+$findseries = function(array $package) use($series, $strict) {
 	if($package['require']) {
 		if(isset($package['require']['heroku-sys/php'])) {
 			return Composer\Semver\Semver::satisfiedBy($series, $package['require']['heroku-sys/php']);
@@ -38,6 +40,9 @@ $findseries = function(array $package) use($series) {
 	}
 	// if there are no requirements specified for heroku-sys/php, this will match all PHP series (good luck with that, but rules are rules)
 	fprintf(STDERR, "WARNING: package %s (version %s) has no 'require' entry for 'heroku-sys/php' and may get resolved for any PHP series!\n", $package['name'], $package['version']);
+	if($strict) {
+		exit(1);
+	}
 	return $series;
 };
 
@@ -84,7 +89,9 @@ $handlerStack->push(GuzzleHttp\Middleware::retry(function($times, $req, $res, $e
 }));
 $client = new GuzzleHttp\Client(['handler' => $handlerStack, "timeout" => "2.0"]);
 
-$sections = getopt('', ['runtimes', 'built-in-extensions', 'third-party-extensions', 'composers', 'webservers'], $restIndex);
+$sections = getopt('', ['strict', 'runtimes', 'built-in-extensions', 'third-party-extensions', 'composers', 'webservers'], $restIndex);
+$strict = isset($sections['strict']);
+unset($sections['strict']);
 $posArgs = array_slice($argv, $restIndex);
 
 $repositories = [];
@@ -235,6 +242,9 @@ $detectedSeries = array_unique(array_merge(...$runtimeSeriesByStack));
 if($ignoredSeries = array_diff($detectedSeries, $series)) {
 	// a warning is appropriate here: there are available packages that are not whitelisted and thus will not show up in documentation
 	fprintf(STDERR, "WARNING: runtime series ignored in input due to missing whitelist entries: %s\n", implode(', ', $ignoredSeries));
+	if($strict) {
+		exit(1);
+	}
 }
 // if they're whitelisted, but missing... well...
 if($missingSeries = array_diff($series, $detectedSeries)) {
