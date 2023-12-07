@@ -30,6 +30,11 @@ test/spec/php_8.2-apache2_concurrency_spec.rb:100
 test/spec/php_8.2_base_spec.rb:210
 test/spec/php_8.2-nginx_boot_spec.rb:100
 test/spec/php_8.2-nginx_concurrency_spec.rb:90
+test/spec/php_8.3-apache2_boot_spec.rb:110
+test/spec/php_8.3-apache2_concurrency_spec.rb:100
+test/spec/php_8.3_base_spec.rb:210
+test/spec/php_8.3-nginx_boot_spec.rb:100
+test/spec/php_8.3-nginx_concurrency_spec.rb:90
 test/spec/php_default_spec.rb:65
 test/spec/platform_spec.rb:50
 test/spec/sigterm_spec.rb:56

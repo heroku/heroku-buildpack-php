@@ -363,9 +363,9 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 status "Preparing platform package installation..."
 
 if [[ $STACK == "heroku-20" ]]; then
-	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.3.0 | ^8.0.0 <8.3"
+	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.3.0 | ^8.0.0 <8.4"
 else
-	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^8.0.0 <8.3"
+	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^8.0.0 <8.4"
 fi
 export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # extract requirements from composer.lock

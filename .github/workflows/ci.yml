@@ -45,7 +45,7 @@ jobs:
       - name: Install PHP and Composer
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.1"
+          php-version: "8.2"
           tools: "composer:2.6"
       - name: Hatchet setup
         run: bundle exec hatchet ci:setup
