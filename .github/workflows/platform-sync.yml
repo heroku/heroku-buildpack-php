@@ -130,7 +130,12 @@ jobs:
           urls=( https://lang-php.s3.amazonaws.com/dist-${{ env.stacks_list_for_shell_expansion }}-${{ inputs.dry-run == true && 'develop' || 'stable' }}/packages.json )
           # generate.php can generate individual sections, but doing it in one go a) is faster and b) means this code does not need to know what those sections are
           # Instead we split the generated contents into individual files, with the known delimiter as the split pattern.
-          support/devcenter/generate.php "${urls[@]}" | csplit -s -z -f 'section-' -b '%02d.md' - '/^<!-- BEGIN [A-Z_][A-Z0-9_-]\+ -->$/' '{*}'
+          # tee stderr to a file
+          support/devcenter/generate.php "${urls[@]}" 2> >(tee warnings.txt >&2) | csplit -s -z -f 'section-' -b '%02d.md' - '/^<!-- BEGIN [A-Z_][A-Z0-9_-]\+ -->$/' '{*}'
+          # if there were warnings or notices on stderr, output them for GitHub highlighting
+          # the \L, \E and \u extensions are case modifiers
+          # this turns "(WARNING|NOTICE): foobar" into "::(warning|notice) title=(Warning|Notice) emitted by generator.php::foobar"
+          sed -E -e 's/^(WARNING|NOTICE): /::\L\1\E title=\L\u\1\E emitted by generator.php::/g' warnings.txt
           # sanity check number of generated splits (e.g. in case the split ever changes)
           shopt -s nullglob
           splits=( section-*.md )
