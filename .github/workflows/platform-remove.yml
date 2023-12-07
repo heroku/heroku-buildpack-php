@@ -73,7 +73,7 @@ jobs:
           (yes 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh ${{inputs.manifests}} 2>&1 | tee remove.out
       - name: Output job summary
         run: |
-          echo '## Packages${{ inputs.dry-run == true && ' which would be' }} removed from production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Packages${{ inputs.dry-run == true && ' which would be' || '' }} removed from production bucket' >> "$GITHUB_STEP_SUMMARY"
           echo "${{ inputs.dry-run == true && '**This is output from a dry-run**, no packages have been removed:' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           sed -n '/The following packages will/,$p' remove.out >> "$GITHUB_STEP_SUMMARY"
