@@ -229,11 +229,26 @@ while($row = $results->fetchArray(SQLITE3_ASSOC)) {
 	}
 }
 
-// now show just the real series that are even available as runtimes; no need to show empty columns
-$series = array_unique(array_merge(...$runtimeSeriesByStack));
+// check which runtime series were actually found in the repo
+$detectedSeries = array_unique(array_merge(...$runtimeSeriesByStack));
+// if they're not whitelisted, we do not want to print them
+if($ignoredSeries = array_diff($detectedSeries, $series)) {
+	// a warning is appropriate here: there are available packages that are not whitelisted and thus will not show up in documentation
+	fprintf(STDERR, "WARNING: runtime series ignored in input due to missing whitelist entries: %s\n", implode(', ', $ignoredSeries));
+}
+// if they're whitelisted, but missing... well...
+if($missingSeries = array_diff($series, $detectedSeries)) {
+	// this is only a notice: version series are "whitelisted", not "expected", and the generated info will match reality
+	fprintf(STDERR, "NOTICE: whitelisted runtime series not found in input: %s\n", implode(', ', $missingSeries));
+}
+// finally, show just the real series that are even available as runtimes; no need to show empty columns
+$series = array_intersect($series, $detectedSeries);
 // and from these also get the stacks that are actually populated
 $stacks = array_keys(array_filter($runtimeSeriesByStack)); // filter with no args removes empty items
 $stacks = array_combine(range(1, count($stacks)), array_values($stacks)); // reindex from key 1, for our footnotes
+
+// clean up the list of runtimes by removing series not on whitelist
+$runtimes = array_filter($runtimes, function($runtime) use($series) { return in_array($runtime['series'], $series); });
 
 $extensionsQuery = ["SELECT extensions.name, extensions.url"];
 foreach($series as $serie) {
