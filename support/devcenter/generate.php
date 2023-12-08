@@ -5,6 +5,8 @@ use Composer\Semver\Comparator;
 
 require('vendor/autoload.php');
 
+$strict = false;
+
 // these need updating from time to time to add new stacks and remove EOL ones
 $stacks = [
 	1 => '20', // the offset we start with here is relevant for the numbering of footnotes
@@ -17,6 +19,7 @@ $series = [
 	'8.0',
 	'8.1',
 	'8.2',
+	'8.3',
 ];
 
 $findstacks = function(array $package) use($stacks) {
@@ -25,16 +28,23 @@ $findstacks = function(array $package) use($stacks) {
 			return Composer\Semver\Semver::satisfiedBy($stacks, $package['require']['heroku-sys/heroku']);
 		}
 	}
-	return [];
+	// if there are no requirements specified for heroku-sys/heroku, this will match all stacks
+	fprintf(STDERR, "NOTICE: package %s (version %s) has no 'require' entry for 'heroku-sys/heroku' and may get resolved for any stack.\n", $package['name'], $package['version']);
+	return $stacks;
 };
 
-$findseries = function(array $package) use($series) {
+$findseries = function(array $package) use($series, $strict) {
 	if($package['require']) {
 		if(isset($package['require']['heroku-sys/php'])) {
 			return Composer\Semver\Semver::satisfiedBy($series, $package['require']['heroku-sys/php']);
 		}
 	}
-	return [];
+	// if there are no requirements specified for heroku-sys/php, this will match all PHP series (good luck with that, but rules are rules)
+	fprintf(STDERR, "WARNING: package %s (version %s) has no 'require' entry for 'heroku-sys/php' and may get resolved for any PHP series!\n", $package['name'], $package['version']);
+	if($strict) {
+		exit(1);
+	}
+	return $series;
 };
 
 $stackname = function($version) {
@@ -80,7 +90,9 @@ $handlerStack->push(GuzzleHttp\Middleware::retry(function($times, $req, $res, $e
 }));
 $client = new GuzzleHttp\Client(['handler' => $handlerStack, "timeout" => "2.0"]);
 
-$sections = getopt('', ['runtimes', 'built-in-extensions', 'third-party-extensions', 'composers', 'webservers'], $restIndex);
+$sections = getopt('', ['strict', 'runtimes', 'built-in-extensions', 'third-party-extensions', 'composers', 'webservers'], $restIndex);
+$strict = isset($sections['strict']);
+unset($sections['strict']);
 $posArgs = array_slice($argv, $restIndex);
 
 $repositories = [];
@@ -132,22 +144,40 @@ $insertExtension = $db->prepare("INSERT INTO extensions (name, url, version, run
 
 foreach($packages as $package) {
 	if($package['type'] == 'heroku-sys-php-extension') {
+		// for extensions, we want to find the stack(s) and PHP version series (always just one due to extension API version) that match the "require" entries in the extension package's metadata, and then generate an entry for each permutation
+		// example: an extension is for heroku-sys/php:8.3.* and for heroku-sys/heroku:*, then we want two entires, both for series 8.3, but one for heroku-20 and one for heroku-22 (or whatever stacks are current)
 		foreach($findstacks($package) as $stack) {
-			foreach($findseries($package) as $serie) {
+			// check whether it's a regular extension, or one bundled with PHP but not compiled in (those have that special dist type)
+			// bundled and compiled in extensions do not get separate package entries, but are only declared in the "replace" list of their PHP release entry
+			$isBundled = isset($package['dist']['type']) && $package['dist']['type'] == 'heroku-sys-php-bundled-extension';
+			if($isBundled) {
+				// bundled extensions have the exact same version as the PHP version they are bundled with; no wildcards
+				// no need to match anything in this case (and we couldn't, anyway, since only a "x.y.0" version would match an "x.y" series entry)
+				// instead, we grab the series straight from the version number
+				$matchingSeries = [ implode('.', array_slice(explode('.', $package['version']), 0, 2)) ]; // 7.3, 7.4, 8.0 etc
+			} else {
+				$matchingSeries = $findseries($package);
+			}
+			foreach($matchingSeries as $serie) {
 				$insertExtension->reset();
 				$insertExtension->bindValue(':name', str_replace("heroku-sys/", "", $package['name']), SQLITE3_TEXT);
-				$insertExtension->bindValue(':url', $package['homepage'] ?? null, SQLITE3_TEXT);
+				if($isBundled) {
+					$insertExtension->bindValue(':url', $getBuiltinExtensionUrl($package['name']), SQLITE3_TEXT);
+				} else {
+					$insertExtension->bindValue(':url', $package['homepage'] ?? null, SQLITE3_TEXT);
+				}
 				$insertExtension->bindValue(':version', $package['version'], SQLITE3_TEXT);
 				$insertExtension->bindValue(':runtime', 'php', SQLITE3_TEXT);
 				$insertExtension->bindValue(':series', $serie, SQLITE3_TEXT);
 				$insertExtension->bindValue(':stack', $stack, SQLITE3_TEXT);
-				$insertExtension->bindValue(':bundled', 0, SQLITE3_INTEGER);
-				$insertExtension->bindValue(':enabled', 0, SQLITE3_INTEGER);
+				$insertExtension->bindValue(':bundled', $isBundled, SQLITE3_INTEGER);
+				$insertExtension->bindValue(':enabled', 0, SQLITE3_INTEGER); // not enabled by default
 				$insertExtension->execute();
 			}
 		}
 		continue;
 	}
+	// for all other packages, we also want the ability for packages to target multiple stacks, so we match our known ones against the require entry and loop
 	foreach($findstacks($package) as $stack) {
 		$insertPackage->reset();
 		$insertPackage->bindValue(':name', str_replace("heroku-sys/", "", $package['name']), SQLITE3_TEXT);
@@ -156,8 +186,10 @@ foreach($packages as $package) {
 		$insertPackage->bindValue(':type', $package['type'], SQLITE3_TEXT);
 		$insertPackage->bindValue(':stack', $stack, SQLITE3_TEXT);
 		if($package['type'] == 'heroku-sys-php') {
+			// PHP bundles extensions that are shared objects (with their own package metadata, handled further above), and extensions that are compiled in (handled here)
 			$serie = implode('.', array_slice(explode('.', $package['version']), 0, 2)); // 7.3, 7.4, 8.0 etc
-			foreach(array_merge($package['replace']??[], $package['extra']['shared']??[]) as $rname => $rversion) {
+			// 'replace' contains entries for all compiled-in extensions, so we make an entry for each of them, copying over the PHP package's version number
+			foreach($package['replace']??[] as $rname => $rversion) {
 				if(strpos($rname, "heroku-sys/ext-") !== 0 || strpos($rname, ".native")) continue;
 				$insertExtension->reset();
 				$insertExtension->bindValue(':name', str_replace("heroku-sys/", "", $rname), SQLITE3_TEXT);
@@ -167,7 +199,7 @@ foreach($packages as $package) {
 				$insertExtension->bindValue(':series', $serie, SQLITE3_TEXT);
 				$insertExtension->bindValue(':stack', $stack, SQLITE3_TEXT);
 				$insertExtension->bindValue(':bundled', 1, SQLITE3_INTEGER);
-				$insertExtension->bindValue(':enabled', !isset($package["extra"]["shared"][$rname]), SQLITE3_INTEGER);
+				$insertExtension->bindValue(':enabled', 1, SQLITE3_INTEGER); // enabled by default, because compiled in
 				$insertExtension->execute();
 			}
 		} elseif($package['type'] == 'heroku-sys-program' && $package['name'] == 'heroku-sys/composer') {
@@ -205,11 +237,29 @@ while($row = $results->fetchArray(SQLITE3_ASSOC)) {
 	}
 }
 
-// now show just the real series that are even available as runtimes; no need to show empty columns
-$series = array_unique(array_merge(...$runtimeSeriesByStack));
+// check which runtime series were actually found in the repo
+$detectedSeries = array_unique(array_merge(...$runtimeSeriesByStack));
+// if they're not whitelisted, we do not want to print them
+if($ignoredSeries = array_diff($detectedSeries, $series)) {
+	// a warning is appropriate here: there are available packages that are not whitelisted and thus will not show up in documentation
+	fprintf(STDERR, "WARNING: runtime series ignored in input due to missing whitelist entries: %s\n", implode(', ', $ignoredSeries));
+	if($strict) {
+		exit(1);
+	}
+}
+// if they're whitelisted, but missing... well...
+if($missingSeries = array_diff($series, $detectedSeries)) {
+	// this is only a notice: version series are "whitelisted", not "expected", and the generated info will match reality
+	fprintf(STDERR, "NOTICE: whitelisted runtime series not found in input: %s\n", implode(', ', $missingSeries));
+}
+// finally, show just the real series that are even available as runtimes; no need to show empty columns
+$series = array_intersect($series, $detectedSeries);
 // and from these also get the stacks that are actually populated
 $stacks = array_keys(array_filter($runtimeSeriesByStack)); // filter with no args removes empty items
 $stacks = array_combine(range(1, count($stacks)), array_values($stacks)); // reindex from key 1, for our footnotes
+
+// clean up the list of runtimes by removing series not on whitelist
+$runtimes = array_filter($runtimes, function($runtime) use($series) { return in_array($runtime['series'], $series); });
 
 $extensionsQuery = ["SELECT extensions.name, extensions.url"];
 foreach($series as $serie) {

@@ -1,16 +1,22 @@
 name: Platform packages sync from -develop/ to -stable/
-run-name: Sync${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-${{inputs.stack}}-develop/ to dist-${{inputs.stack}}-stable/
+run-name: Sync${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-$STACK-develop/ to dist-$STACK-stable/
+
+env:
+  stacks_list_for_shell_expansion: "{heroku-20,heroku-22}"
 
 on:
   workflow_dispatch:
     inputs:
-      stack:
-        description: 'Stack to sync'
-        type: choice
-        options:
-        - heroku-20
-        - heroku-22
-        required: true
+      stack-heroku-20:
+        description: 'Sync heroku-20 packages'
+        type: boolean
+        default: true
+        required: false
+      stack-heroku-22:
+        description: 'Sync heroku-22 packages'
+        type: boolean
+        default: true
+        required: false
       dry-run:
         description: 'Only list package changes, without syncing'
         type: boolean
@@ -21,11 +27,27 @@ permissions:
   contents: read
 
 jobs:
-  sync:
+  stack-list:
     runs-on: ubuntu-22.04
-    env:
-      AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
-      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    outputs:
+      stacks: ${{ steps.list-stacks.outputs.matrix }}
+    steps:
+      - id: list-stacks
+        name: Generate list of stacks to sync based on input checkboxes
+        run: |
+          echo '## Stacks to sync' >> "$GITHUB_STEP_SUMMARY"
+          set -o pipefail
+          stacks=(${{ inputs.stack-heroku-20 == true && 'heroku-20' || ''}} ${{ inputs.stack-heroku-22 == true && 'heroku-22' || ''}})
+          printf "%s\n" "${stacks[@]}" | xargs -n1 echo -  >> "$GITHUB_STEP_SUMMARY"
+          echo -n "matrix=" >> "$GITHUB_OUTPUT"
+          printf "%s\n" "${stacks[@]}" | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
+  docker-build:
+    needs: stack-list
+    if: ${{ needs.stack-list.outputs.stacks != '[]' && needs.stack-list.outputs.stacks != '' }}
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,37 +55,175 @@ jobs:
         id: restore-docker
         uses: actions/cache/restore@v3
         with:
-          key: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
+          key: docker-cache-heroku-php-build-${{matrix.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
       - name: Load cached Docker image
         if: steps.restore-docker.outputs.cache-hit == 'true'
         run: docker load -i /tmp/docker-cache.tar.gz
       - name: Build Docker image
         if: steps.restore-docker.outputs.cache-hit != 'true'
-        run: docker build --tag heroku-php-build-${{inputs.stack}}:${{github.sha}} --file support/build/_docker/${{inputs.stack}}.Dockerfile .
+        run: docker build --tag heroku-php-build-${{matrix.stack}}:${{github.sha}} --file support/build/_docker/${{matrix.stack}}.Dockerfile .
       - name: Save built Docker image
         if: steps.restore-docker.outputs.cache-hit != 'true'
-        run: docker save heroku-php-build-${{inputs.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
+        run: docker save heroku-php-build-${{matrix.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
       - name: Cache built Docker image
         if: steps.restore-docker.outputs.cache-hit != 'true'
         uses: actions/cache/save@v3
         with:
           key: ${{ steps.restore-docker.outputs.cache-primary-key }}
           path: /tmp/docker-cache.tar.gz
-      - name: Dry-run sync.sh to show package changes available for syncing to production bucket
-        if: ${{ inputs.dry-run == true }}
+  sync:
+    needs: [stack-list, docker-build]
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
+    env:
+      AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Restore cached Docker build
+        uses: actions/cache/restore@v3
+        with:
+          key: docker-cache-heroku-php-build-${{matrix.stack}}.${{github.sha}}
+          path: /tmp/docker-cache.tar.gz
+      - name: Load cached Docker image
+        run: docker load -i /tmp/docker-cache.tar.gz
+      - name: ${{ inputs.dry-run == true && 'Dry-run sync of' || 'Sync' }} changed packages to production bucket
         run: |
+          # we want to fail if 'docker run' fails; without this, 'tee' would "eat" the failure status
           set -o pipefail
-          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/ 2>&1 | tee sync.out
-      - name: Sync changed packages to production bucket
-        if: ${{ inputs.dry-run == false }}
-        run: |
-          set -o pipefail
-          (yes 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/ 2>&1 | tee sync.out
+          # yes gets "n" to print for dry-runs so the sync aborts
+          # errors are redirected to /dev/null, and we || true, to suppress SIGPIPE errors from 'docker run' exiting eventually
+          # we need -i for Docker to accept input on stdin, but must not use -t for the pipeline to work
+          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh lang-php dist-${{matrix.stack}}-stable/ 2>&1 | tee sync.out
       - name: Output job summary
         run: |
-          echo '## Package changes ${{ inputs.dry-run == true && 'available for syncing' || 'synced' }} to production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Package changes ${{ inputs.dry-run == true && 'available for syncing' || 'synced' }} to ${{matrix.stack}} production bucket' >> "$GITHUB_STEP_SUMMARY"
           echo "${{ inputs.dry-run == true && '**This is output from a dry-run**, no changes have been synced to production:' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           sed -n '/The following packages will/,$p' sync.out >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
+  devcenter-generate:
+    needs: sync
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dos2unix
+        run: |
+          sudo apt-get update
+          sudo apt-get install dos2unix
+      - name: Install PHP and Composer
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.2"
+          tools: "composer:2.6"
+      - name: Install Dev Center generator dependencies
+        run: |
+          composer install -d support/devcenter/
+      - name: Generate Dev Center article sections
+        run: |
+          set -o pipefail
+          urls=( https://lang-php.s3.amazonaws.com/dist-${{ env.stacks_list_for_shell_expansion }}-${{ inputs.dry-run == true && 'develop' || 'stable' }}/packages.json )
+          # generate.php can generate individual sections, but doing it in one go a) is faster and b) means this code does not need to know what those sections are
+          # Instead we split the generated contents into individual files, with the known delimiter as the split pattern.
+          # tee stderr to a file
+          support/devcenter/generate.php "${urls[@]}" 2> >(tee warnings.txt >&2) | csplit -s -z -f 'section-' -b '%02d.md' - '/^<!-- BEGIN [A-Z_][A-Z0-9_-]\+ -->$/' '{*}'
+          # if there were warnings or notices on stderr, output them for GitHub highlighting
+          # the \L, \E and \u extensions are case modifiers
+          # this turns "(WARNING|NOTICE): foobar" into "::(warning|notice) title=(Warning|Notice) emitted by generator.php::foobar"
+          sed -E -e 's/^(WARNING|NOTICE): /::\L\1\E title=\L\u\1\E emitted by generator.php::/g' warnings.txt
+          # sanity check number of generated splits (e.g. in case the split ever changes)
+          shopt -s nullglob
+          splits=( section-*.md )
+          if (( ${#splits[@]} < 2 )); then
+            echo 'error::Expected more than one section from generator.'
+            exit 1
+          fi
+      - name: Download current Dev Center article markdown
+        run: |
+          set -o pipefail
+          # jq -j, not -r, otherwise we get a stray trailing newline
+          curl -H "Accept: application/json" https://devcenter.heroku.com/api/v1/articles/2021 | jq -j '.content' > php-support.md
+          # Because the articles are edited in a web interface, they likely use CRLF line endings.
+          # We will be patching using the LF line ending section files generated in an earlier step.
+          # For this reason, we may have to convert to LF, so we check if the file would be converted by dos2unix using the --info option.
+          # The "c" info flag prints only file names that would trigger conversion; we first remember this output for the next step via tee -a.
+          # The "0" flag triggers zero-byte output for happy consumption by xargs
+          # Then, we finally run the conversion (if needed) by passing the file name to dos2unix again via xargs.
+          dos2unix --info=c0 php-support.md | tee have_crlf.txt | xargs -r0 dos2unix
+      - name: Find generated section start/end markers in Dev Center article markdown
+        id: find-section-markers
+        run: |
+          # init job file
+          echo -n > php-support.md.ed-unordered.txt
+          for f in section-*.md; do
+            # extract first and last lines of the section file (those are the start and end markers)
+            first=$(head -n1 "$f")
+            last=$(tail -n1 "$f")
+            # grep the line numbers (-n) as fixed (-F) full-line (-x) strings and extract them
+            start=$(set -o pipefail; grep -nFx "$first" php-support.md | cut -d':' -f1) || {
+              echo "::warning title=Failed to match section start marker::Start marker '$first' not found in input markdown; skipping section..."
+              continue
+            }
+            end=$(set -o pipefail; grep -nFx "$last" php-support.md | cut -d':' -f1) || {
+              echo "::warning title=Failed to match section end marker::End marker '$last' not found in input markdown; skipping section..."
+              continue
+            }
+            # write out a line with the start-end range and filename
+            echo "${start},${end} ${f}" >> php-support.md.ed-unordered.txt
+          done
+          num_sections=$(set -o pipefail; wc -l php-support.md.ed-unordered.txt | awk '{ print $1 }')
+          (( $num_sections > 0 )) || echo "::warning title=No sections matched in input markdown::None of the generated sections coud be matched against the input markdown. No updates will occur."
+          echo "num_sections=${num_sections}" >> "$GITHUB_OUTPUT"
+      - name: Patch Dev Center article markdown
+        if: steps.find-section-markers.outputs.num_sections > 0
+        run: |
+          # init our ed script (https://www.gnu.org/software/diffutils/manual/html_node/Detailed-ed.html) for patching
+          echo -n > php-support.md.ed
+          # we now have the target file line ranges and source file names
+          # for patch to handle the line numbers in the ed script correctly, they must be ordered with the last changes coming first
+          # (otherwise every applied change will shift the line numbers for following changes)
+          sort -r -n -k1 -t',' php-support.md.ed-unordered.txt | while read range f; do
+            # write out an ed command that says "from starting line to ending line, replace with what follows"
+            echo "${range}c" >> php-support.md.ed
+            # write out new contents for range in command above
+            cat "$f" >> php-support.md.ed
+            # mark end of content
+            echo "." >> php-support.md.ed
+          done
+          patch --backup --ed php-support.md php-support.md.ed
+      - name: Dump diff of markdown contents
+        id: diff
+        if: steps.find-section-markers.outputs.num_sections > 0
+        run: |
+          echo '## Diff of changes to ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '**This is based on the source bucket (due to dry-run mode)**, not the production bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '``````diff' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+          # diff exits 0 if there are no differences, 1 if there are, 2 if there was trouble
+          diff -u php-support.md.orig php-support.md >> "$GITHUB_STEP_SUMMARY" && {
+            echo "::warning title=No diff in markdown::There were no differences after applying the generated sections to the input markdown."
+            echo "diff_result=0" >> "$GITHUB_OUTPUT"
+          } || {
+            diff_result=$?
+            echo "diff_result=${diff_result}" >> "$GITHUB_OUTPUT"
+            (( diff_result != 1 )) && {
+              echo "::error title=Unexpected error during diffing::Exit status of 'diff' command was '${diff_result}'."
+              exit ${diff_result}
+            }
+          }
+          echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+      - name: Output complete Dev Center article markdown
+        if: steps.find-section-markers.outputs.num_sections > 0 && steps.diff.outputs.diff_result == 1
+        run: |
+          set -o pipefail
+          echo '## Updated markdown for ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '**This is based on the source bucket (due to dry-run mode)**, not the production bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '``````markdown' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+          # convert back to the original CRLF if dos2unix ran in an earlier step (have_crlf.txt will be empty if not, and xargs will not run due to -r)
+          cat have_crlf.txt | xargs -r0 unix2dos
+          cat php-support.md >> "$GITHUB_STEP_SUMMARY"
+          echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks

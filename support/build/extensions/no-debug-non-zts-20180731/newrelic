@@ -35,6 +35,9 @@ case ${ZEND_MODULE_API_VERSION} in
 	20220829)
 		series=8.2
 		;;
+	20230831)
+		series=8.3
+		;;
 	*)
 		echo "Unsupported PHP/Zend Module API version: ${ZEND_MODULE_API_VERSION}"
 		exit 1
