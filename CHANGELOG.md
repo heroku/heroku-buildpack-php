@@ -11,6 +11,10 @@
 - ext-mongodb/1.17.2 [David Zuelke]
 - ext-newrelic/10.15.0.4 [David Zuelke]
 
+### CHG
+
+- Composer/2.6.6 [David Zuelke]
+
 ## v242 (2023-12-07)
 
 ### ADD
