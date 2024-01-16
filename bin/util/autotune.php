@@ -53,7 +53,22 @@ function get_fpm_memory_limit($fpmconf, $startsection = "global") {
 	return $retval;
 }
 
-$opts = getopt("y:t:");
+$opts = getopt("y:t:", array(), $rest_index);
+$argv = array_slice($argv, $rest_index);
+$argc = count($argv);
+if($argc < 1 || $argc > 2) {
+	fprintf(STDERR,
+		"Usage:\n".
+		"  %s [options] <RAM_AVAILABLE> [<RAM_LIMIT>]\n\n",
+		basename(__FILE__)
+	);
+	fputs(STDERR,
+		"Options:\n".
+		"  -y <php_fpm.conf>  PHP-FPM config file to read 'memory_limit' settings from\n".
+		"  -t <DOCUMENT_ROOT> Dir to read '.user.ini' with 'memory_limit' settings from\n\n"
+	);
+	exit(2);
+}
 
 $limits = array();
 if(isset($opts["y"])) {
@@ -79,13 +94,16 @@ if(isset($limits['php_admin_value'])) {
 }
 
 $limit = ini_get('memory_limit');
-$ram = stringtobytes($argv[$argc-2]); // second to last arg is the available memory
-$max_ram_string = $argv[$argc-1];
-$max_ram = stringtobytes($max_ram_string); // last arg is the maximum RAM we're allowed
+$ram = stringtobytes($argv[0]); // first arg is the available memory
 
-if($ram > $max_ram) {
-	$ram = $max_ram;
-	file_put_contents("php://stderr", "Limiting to $max_ram_string Bytes of RAM usage\n");
+if(isset($argv[1])) { // optional second arg is the maximum RAM we're allowed
+	$max_ram_string = $argv[1];
+	$max_ram = stringtobytes($max_ram_string);
+
+	if($ram > $max_ram) {
+		$ram = $max_ram;
+		file_put_contents("php://stderr", "Limiting to $max_ram_string Bytes of RAM usage\n");
+	}
 }
 
 // assume 64 MB base overhead for web server and FPM, and 1 MB overhead for each worker
