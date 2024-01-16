@@ -3,13 +3,16 @@
 
 function stringtobytes($amount) {
 	// convert "256M" etc to bytes
-	switch(strtolower(substr($amount, -1))) {
+	switch($suffix = strtolower(substr($amount, -1))) {
 		case 'g':
 			$amount = (int)$amount * 1024;
 		case 'm':
 			$amount = (int)$amount * 1024;
 		case 'k':
 			$amount = (int)$amount * 1024;
+			break;
+		case !is_numeric($suffix):
+			fprintf(STDERR, "WARNING: ignoring invalid suffix '%s' in 'memory_limit' value '%s'\n", $suffix, $amount);
 		default:
 			$amount = (int)$amount;
 	}
