@@ -23,6 +23,7 @@ function stringtobytes($amount) {
 // (it may have been set in the FPM config or config include)
 function get_fpm_memory_limit($fpmconf, $startsection = "global") {
 	if(!is_readable($fpmconf)) {
+		// an include may point to a file that does not exist, that's fine
 		return array();
 	}
 	$fpm = parse_ini_string("[$startsection]\n".file_get_contents($fpmconf), true); // prepend section from parent so stuff is parsed correctly in includes that lack a leading section marker
@@ -54,7 +55,10 @@ function get_fpm_memory_limit($fpmconf, $startsection = "global") {
 
 $opts = getopt("y:t:");
 
-$limits = get_fpm_memory_limit(isset($opts["y"]) ? $opts["y"] : null);
+$limits = array();
+if(isset($opts["y"])) {
+	$limits = get_fpm_memory_limit($opts["y"]);
+}
 
 if(
 	!$limits /* .user.ini memory limit is ignored if one is set via FPM */ &&
