@@ -25,8 +25,8 @@ GEM
       webrick
     moneta (1.0.0)
     multi_json (1.15.0)
-    parallel (1.23.0)
-    parallel_tests (4.3.0)
+    parallel (1.24.0)
+    parallel_tests (4.4.0)
       parallel
     platform-api (3.5.0)
       heroics (~> 0.1.1)
