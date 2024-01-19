@@ -13,6 +13,7 @@
 ### FIX
 
 - PHP `memory_limit` in `.user.ini` does not override PHP-FPM `php_value` for `$WEB_CONCURRENCY` calculation [David Zuelke]
+- PHP-FPM `request_terminate_timeout` may have no effect [David Zuelke]
 
 ## [v244] - 2024-01-24
 

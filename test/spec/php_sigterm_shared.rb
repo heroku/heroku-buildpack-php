@@ -22,7 +22,7 @@ shared_examples "A PHP application with long-running requests" do |series, serve
 			cmd = "heroku-php-#{server} & pid=$! ; sleep 5; curl \"localhost:$PORT/index.php?wait=5\" & sleep 2; kill $pid; wait $pid"
 			retry_until retry: 3, sleep: 5 do
 				output = @app.run(cmd)
-				expect(output).to match(/^hello world after 5 second\(s\)$/)
+				expect(output).to match(/^hello world after 5\d{9} us \(expected 5 s\)$/)
 				expect(output).to match(/^request complete$/) # ensure a late log line is captured, meaning the logs tail process stays alive until the end
 			end
 		end
@@ -37,23 +37,35 @@ shared_examples "A PHP application with long-running requests" do |series, serve
 			cmd = "heroku-php-#{server} & pid=$! ; sleep 5; curl \"localhost:$PORT/index.php?wait=5\" & curlpid=$!; sleep 2; kill $(pgrep -U $UID | grep -vw -e $$ -e $curlpid) 2>/dev/null; wait $pid"
 			retry_until retry: 3, sleep: 5 do
 				output = @app.run(cmd)
-				expect(output).to match(/^hello world after 5 second\(s\)$/)
+				expect(output).to match(/^hello world after 5\d{9} us \(expected 5 s\)$/)
 				expect(output).to match(/^request complete$/) # ensure a late log line is captured, meaning the logs tail process stays alive until the end
 			end
 		end
 		
 		it "logs slowness, prints a trace, and terminates the process after configured timeouts" do
+			wait_script = "index.php"
+			wait_line = 17
+			wait_secs = 5
+			timeout_secs = 3
 			# launch web server wrapped in a 10 second timeout
 			# once web server is ready, `read` unblocks and we curl the sleep() script which will take a few seconds to run
 			# after `curl` completes, `waitforit.sh` will shut down
-			cmd = "./waitforit.sh 10 'ready for connections' heroku-php-#{server} -F fpm.request_slowlog_timeout.conf --verbose | { read && curl \"localhost:$PORT/index.php?wait=5\"; }"
+			cmd = "./waitforit.sh 10 'ready for connections' heroku-php-#{server} -F fpm.request_slowlog_timeout.conf --verbose | { read && curl \"localhost:$PORT/#{wait_script}?wait=#{wait_secs}\"; }"
 			retry_until retry: 3, sleep: 5 do
 				output = @app.run(cmd)
 				# ensure slowlog info and trace is there
 				expect(output).to include("executing too slow")
-				expect(output).to include("sleep() /app/index.php:5")
-				# ensure termination info is there
-				expect(output).to match(/execution timed out/)
+				expect(output).to include("wait() /app/#{wait_script}:#{wait_line}")
+				# FPM only logs the timeout once, because it successfully terminates the process
+				expect(output.scan(/execution timed out/).size).to eq(1)
+				# fetch child PID that it wanted to terminate
+				child = output.match(/WARNING: \[pool www\] child (?<cpid>\d+), script '\/app\/#{Regexp.escape(wait_script)}' \(request: "GET \/#{Regexp.escape(wait_script)}\?wait=#{wait_secs}"\) execution timed out \(#{timeout_secs}\.\d+ sec\), terminating$/)
+				expect(child).not_to be_nil
+				# check that this child was, indeed, terminated
+				expect(/WARNING: \[pool www\] child (?<cpid>\d+) exited on signal 2 \(SIGINT\) after #{timeout_secs}\.\d+ seconds from start/).to match(output).with_captures(:cpid => child[:cpid])
+				# ensure the child did not complete
+				expect(output).not_to include("hello world")
+				expect(output).not_to include("request complete")
 			end
 		end
 		
