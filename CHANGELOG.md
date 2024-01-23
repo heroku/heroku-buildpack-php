@@ -9,6 +9,7 @@
 - ext-event/3.1.1 [David Zuelke]
 - ext-phalcon/5.6.0 [David Zuelke]
 - ext-blackfire/1.92.8 [David Zuelke]
+- ext-amqp/2.1.2 [David Zuelke]
 
 ## v243 (2023-12-21)
 
