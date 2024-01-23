@@ -6,6 +6,7 @@
 
 - PHP/8.3.2 [David Zuelke]
 - PHP/8.2.15 [David Zuelke]
+- ext-event/3.1.1 [David Zuelke]
 
 ## v243 (2023-12-21)
 
