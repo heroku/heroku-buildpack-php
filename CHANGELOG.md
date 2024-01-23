@@ -8,6 +8,7 @@
 - PHP/8.2.15 [David Zuelke]
 - ext-event/3.1.1 [David Zuelke]
 - ext-phalcon/5.6.0 [David Zuelke]
+- ext-blackfire/1.92.8 [David Zuelke]
 
 ## v243 (2023-12-21)
 
