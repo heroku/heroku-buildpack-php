@@ -1,6 +1,14 @@
 require_relative "spec_helper"
 
 describe "A PHP application" do
+	context "like the Heroku Getting Started guide example for PHP" do
+		it "deploys and works" do
+			new_app_with_stack_and_platrepo("php-getting-started").deploy do |app|
+				expect(successful_body(app))
+			end
+		end
+	end
+
 	context "with just an index.php" do
 		let(:app) {
 			new_app_with_stack_and_platrepo('test/fixtures/default')

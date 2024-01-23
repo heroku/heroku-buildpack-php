@@ -214,6 +214,21 @@ describe "The PHP Platform Installer" do
 	end
 	
 	describe "during a build" do
+		context "of a project that has invalid platform dependencies" do
+			let(:app) {
+				new_app_with_stack_and_platrepo('test/fixtures/default',
+					before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '99.*'") or raise "Failed to require PHP version" },
+					run_multi: true,
+					allow_failure: true
+				)
+			}
+			it "fails the build" do
+				app.deploy do |app|
+					expect(app.output).to include("ERROR: Failed to install system packages!")
+				end
+			end
+		end
+		
 		context "of a project that uses polyfills providing both bundled-with-PHP and third-party extensions" do
 			it "treats polyfills for bundled-with-PHP and third-party extensions the same", :requires_php_on_stack => "7.4" do
 				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills').deploy do |app|
