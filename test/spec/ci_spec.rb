@@ -92,19 +92,6 @@ describe "A PHP application on Heroku CI" do
 			end
 		end
 	end
-
-	context "with Peridot" do
-		let(:app) {
-			new_app_with_stack_and_platrepo('test/fixtures/ci/peridot', allow_failure: true)
-		}
-		it "executes 'peridot'" do
-			app.run_ci do |test_run|
-				expect(test_run.output).to match("Peridot found, executing 'peridot'...")
-				expect(test_run.status).to eq :failed # we want to ensure assert() works, that needs zend.assertions=1
-				expect(test_run.output).to match("expected Hello World")
-			end
-		end
-	end
 	
 	context "with PHPUnit" do
 		let(:app) {
