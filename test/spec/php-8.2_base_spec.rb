@@ -13,32 +13,20 @@ describe "A basic PHP 8.2 application", :requires_php_on_stack => "8.2" do
 				}
 				
 				# FIXME: move to php_shared.rb once all PHPs are rebuilt with that tracing capability
-				it "logs slowness after configured time and sees a trace" do
+				it "logs slowness after about 3 seconds, prints a trace, and terminates the process after about 30 seconds" do
 					app.deploy do |app|
-						# launch web server wrapped in a 20 second timeout
+						# launch web server wrapped in a 40 second timeout
 						# once web server is ready, `read` unblocks and we curl the sleep() script which will take a few seconds to run
-						# after `curl` completes, `wait-for.it.sh` will shut down
-						# ensure slowlog info and trace is there
-						cmd = "./waitforit.sh 20 'ready for connections' heroku-php-#{server} --verbose -F fpm.request_slowlog_timeout.conf | { read && curl \"localhost:$PORT/index.php?wait=5\"; }"
+						# after `curl` completes, `waitforit.sh` will shut down
+						cmd = "./waitforit.sh 40 'ready for connections' heroku-php-#{server} --verbose | { read && curl \"localhost:$PORT/index.php?wait=35\"; }"
 						retry_until retry: 3, sleep: 5 do
 							output = app.run(cmd)
+							# ensure slowlog info and trace is there
 							expect(output).to include("executing too slow")
 							expect(output).to include("sleep() /app/index.php:5")
-						end
-					end
-				end
-				
-				it "logs slowness after about 3 seconds and terminates the process after about 30 seconds" do
-					app.deploy do |app|
-						# launch web server wrapped in a 50 second timeout
-						# once web server is ready, `read` unblocks and we curl the sleep() script with a very long timeout
-						# after `curl` completes, `wait-for.it.sh` will shut down
-						# ensure slowlog and terminate output is there
-						cmd = "./waitforit.sh 50 'ready for connections' heroku-php-#{server} --verbose | { read && curl \"localhost:$PORT/index.php?wait=35\"; }"
-						retry_until retry: 3, sleep: 5 do
-							output = app.run(cmd)
-							expect(output).to match(/executing too slow/)
+							# ensure termination info is there
 							expect(output).to match(/execution timed out/)
+							expect(output).to match(/exited on signal/)
 						end
 					end
 				end
