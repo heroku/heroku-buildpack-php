@@ -44,11 +44,11 @@ shared_examples "A PHP application with long-running requests" do |series|
 					end
 				end
 				
-				it "logs slowness after about 3 seconds, prints a trace, and terminates the process after about 30 seconds" do
-					# launch web server wrapped in a 40 second timeout
+				it "logs slowness, prints a trace, and terminates the process after configured timeouts" do
+					# launch web server wrapped in a 10 second timeout
 					# once web server is ready, `read` unblocks and we curl the sleep() script which will take a few seconds to run
 					# after `curl` completes, `waitforit.sh` will shut down
-					cmd = "./waitforit.sh 40 'ready for connections' heroku-php-#{server} --verbose | { read && curl \"localhost:$PORT/index.php?wait=35\"; }"
+					cmd = "./waitforit.sh 10 'ready for connections' heroku-php-#{server} -F fpm.request_slowlog_timeout.conf --verbose | { read && curl \"localhost:$PORT/index.php?wait=5\"; }"
 					retry_until retry: 3, sleep: 5 do
 						output = @app.run(cmd)
 						# ensure slowlog info and trace is there
@@ -56,6 +56,17 @@ shared_examples "A PHP application with long-running requests" do |series|
 						expect(output).to include("sleep() /app/index.php:5")
 						# ensure termination info is there
 						expect(output).to match(/execution timed out/)
+					end
+				end
+				
+				it "is configured to log slow requests after 3 seconds and terminate them after 30 seconds" do
+					# we can parse this from the config test output (-tt tests config and dumps PHP-FPM config)
+					cmd = "heroku-php-#{server} -tt"
+					retry_until retry: 3, sleep: 5 do
+						output = @app.run(cmd)
+						# ensure slowlog info and trace is there
+						expect(output).to include("request_slowlog_timeout = 3s")
+						expect(output).to include("request_terminate_timeout = 30s")
 					end
 				end
 			end
