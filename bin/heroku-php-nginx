@@ -22,6 +22,7 @@ fi
 bp_dir=$(cd $(dirname $(realpath $0)); cd ..; pwd)
 
 verbose=
+timeout=25
 
 php_passthrough() {
 	local dir=$(dirname "$1")
@@ -71,12 +72,12 @@ findconfig() {
 
 wait_pidfile() {
 	i=0
-	while ! test -f "$1" && (( i < 25 )); do
+	while ! test -f "$1" && (( i < $timeout )); do
 		[[ $verbose && ${2:-} ]] && echo "$2" >&2
 		sleep 0.1
 		((++i)) # don't do i++, that is a post increment operation, and will return status 1, since the expression evaluates to 0...
 	done
-	if (( i == 25 )); then
+	if (( i == $timeout )); then
 		# we timed out
 		return 1;
 	fi
@@ -84,7 +85,7 @@ wait_pidfile() {
 
 wait_pid_and_pidfile() {
 	i=0
-	while ! test -f "$2" && (( i < 25 )); do
+	while ! test -f "$2" && (( i < $timeout )); do
 		if ! kill -0 "$1" 2> /dev/null; then # kill -0 checks if process exists
 			break;
 		fi
@@ -92,7 +93,7 @@ wait_pid_and_pidfile() {
 		sleep 0.1
 		((++i)) # don't do i++, that is a post increment operation, and will return status 1, since the expression evaluates to 0...
 	done
-	if (( i == 25 )); then
+	if (( i == $timeout )); then
 		# we timed out
 		return 1;
 	fi
@@ -143,6 +144,7 @@ print_help() {
 		                          is not given, then the port number to use is read from
 		                          the \$PORT environment variable, or a random port is
 		                          chosen if that variable does not exist.
+		  -t <retries>            Set start timeout
 		  -v, --verbose           Be more verbose during startup.
 		
 		The <BPDIR> placeholder above represents the base directory of this buildpack:
@@ -192,7 +194,7 @@ export PHP_INI_SCAN_DIR="${PHP_INI_SCAN_DIR}${bp_dir}/conf/php/apm-nostart-overr
 # init logs array here as empty before parsing options; -l could append to it, but the default list gets added later since we use $PORT in there and that can be set using -p
 declare -a logs
 
-optstring=":-:C:c:F:f:i:l:p:vh"
+optstring=":-:C:c:F:f:i:l:p:t:vh"
 
 # process flags first
 while getopts "$optstring" opt; do
@@ -258,6 +260,9 @@ while getopts "$optstring" opt; do
 			;;
 		p)
 			PORT="$OPTARG"
+			;;
+		t)
+			timeout=$OPTARG
 			;;
 		\?)
 			echo "Invalid option: -$OPTARG" >&2
