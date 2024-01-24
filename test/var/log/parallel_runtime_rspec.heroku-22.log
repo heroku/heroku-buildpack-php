@@ -1,4 +1,5 @@
-test/spec/blackfire_spec.rb:195
+test/spec/blackfire-buildpackagent_spec.rb:105
+test/spec/blackfire-herokuagent_spec.rb:130
 test/spec/bugs_spec.rb:30
 test/spec/ci_frameworks_spec.rb:190
 test/spec/ci_spec.rb:130
