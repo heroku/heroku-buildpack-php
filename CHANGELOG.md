@@ -1,5 +1,11 @@
 # heroku-buildpack-php CHANGELOG
 
+## v245 (2024-01-??)
+
+### ADD
+
+- Boot scripts now have a `--test`/`-t` option to test PHP-FPM and web server configs and then exit. Can be repeated to dump configs for either or both, see `--help` for details. [David Zuelke]
+
 ## v244 (2024-01-24)
 
 ### ADD
