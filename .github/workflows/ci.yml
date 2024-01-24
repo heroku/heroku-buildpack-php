@@ -53,8 +53,10 @@ jobs:
         if: github.ref_type != 'tag' && github.ref_name != 'main'
         run: |
           echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}-develop/" >> "$GITHUB_ENV"
+      - name: Calculate number of parallel_rspec processes (half of num of lines in runtime log)
+        run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat test/var/log/parallel_runtime_rspec.${STACK}.log | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"
       - name: Execute tests
-        run: bundle exec parallel_rspec -n 16 --group-by runtime --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/
+        run: bundle exec parallel_rspec --group-by runtime --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/
       - name: Print parallel_runtime_rspec.log
         run: cat parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort
   post-integration-test:
