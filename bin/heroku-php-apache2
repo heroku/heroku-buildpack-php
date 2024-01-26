@@ -389,10 +389,9 @@ httpd_command=( httpd -D NO_DETACH -c "Include $httpd_config" )
 mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
 if [[ -f "$mlib" ]]; then
 	ram="$(cat "$mlib")"
-	echo "Detected ${ram} Bytes of RAM" >&2
 else
 	ram="512M"
-	echo "Assuming ${ram}B of RAM" >&2
+	echo "Assuming RAM to be ${ram} Bytes" >&2
 fi
 if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 	max_ram="16G" # blanket upper limit for how much RAM we will use for PHP, unless the machine has less anyway
@@ -420,12 +419,9 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 	# determine number of FPM processes to run
 	# we feed it the PHP config we found much earlier (it must be the one FPM loads, not the CLI one!), docroot (for .user.ini), detected RAM, and RAM cap
 	# on STDIN, we also pass it any php_value or php_admin_value lines from the FPM config dump that may have a memory_limit (via a herestring, easier than echo)
-	# the output is then passed into read via a herestring; read creates our variables (we cannot pipe into read, since pipelines are a subshell, and then variables would be gone straight after)
-	read WEB_CONCURRENCY php_memory_limit <<<$(php ${php_config:+-c "$php_config"} "$bp_dir/bin/util/autotune.php" -t "$DOCUMENT_ROOT" "$ram" "$max_ram" <<<"$fpm_limits")
+	WEB_CONCURRENCY=$(php ${php_config:+-c "$php_config"} "$bp_dir/bin/util/autotune.php" -t "$DOCUMENT_ROOT" "$ram" "$max_ram" <<<"$fpm_limits")
 	[[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
 	export WEB_CONCURRENCY
-
-	echo "PHP memory_limit is ${php_memory_limit} Bytes" >&2
 else
 	echo '$WEB_CONCURRENCY env var is set, skipping automatic calculation' >&2
 fi

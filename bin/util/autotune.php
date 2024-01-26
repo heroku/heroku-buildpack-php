@@ -78,8 +78,9 @@ if(isset($limits['php_admin_value']['memory_limit'])) {
 	ini_set('memory_limit', $limits['php_value']['memory_limit']);
 }
 
-$limit = ini_get('memory_limit');
 $ram = stringtobytes($argv[0]); // first arg is the available memory
+
+fprintf(STDERR, "Available RAM is %s Bytes\n", bytestostring($ram));
 
 if(isset($argv[1])) { // optional second arg is the maximum RAM we're allowed
 	$max_ram_string = $argv[1];
@@ -87,10 +88,11 @@ if(isset($argv[1])) { // optional second arg is the maximum RAM we're allowed
 
 	if($ram > $max_ram) {
 		$ram = $max_ram;
-		fprintf(STDERR, "Limiting to %s Bytes of RAM usage\n", bytestostring($ram));
+		fprintf(STDERR, "Limiting RAM usage to %s Bytes\n", bytestostring($ram));
 	}
 }
 
-// assume 64 MB base overhead for web server and FPM, and 1 MB overhead for each worker
-// echo floor(($ram-stringtobytes('64M'))/(stringtobytes($limit)+stringtobytes('1M'))) . " " . $limit;
-echo floor($ram / (stringtobytes($limit)?:-1)) . " " . $limit;
+$limit = ini_get('memory_limit');
+fprintf(STDERR, "PHP memory_limit is %s Bytes\n", $limit); // we output the original value here, since it's user supplied
+
+echo floor($ram / (stringtobytes($limit)?:-1));

@@ -98,8 +98,8 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 			it "restricts the app to 6 GB of RAM", :if => series < "7.4" do
 				retry_until retry: 3, sleep: 5 do
 					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt", :return_obj => true, :heroku => {:size => "Performance-L"}) }.output)
-						 .to match("Detected 15032385536 Bytes of RAM")
-						.and match("Limiting to 6G Bytes of RAM usage")
+						 .to match("Available RAM is 14G Bytes")
+						.and match("Limiting RAM usage to 6G Bytes")
 						.and match("pm.max_children = 48")
 				end
 			end
@@ -107,7 +107,7 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 			it "uses all available RAM for PHP-FPM workers", :unless => series < "7.4" do
 				retry_until retry: 3, sleep: 5 do
 					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt", :return_obj => true, :heroku => {:size => "Performance-L"}) }.output)
-						 .to match("Detected 15032385536 Bytes of RAM")
+						 .to match("Available RAM is 14G Bytes")
 						.and match("pm.max_children = 112")
 				end
 			end
