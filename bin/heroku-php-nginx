@@ -366,6 +366,26 @@ nginx_config=$(php_passthrough "$nginx_config")
 
 nginx_main=$(findconfig "$nginx_version" "$bp_dir/conf/nginx/main.conf")
 
+fpm_pidfile=$(mktemp -t "heroku.php-fpm.pid-$PORT.XXXXXX" -u)
+nginx_pidfile=$(mktemp -t "heroku.nginx.pid-$PORT.XXXXXX" -u)
+
+# we need to dump the FPM config to fetch possible values for memory_limit in php_value and php_admin_value pool declarations
+# parsing this by hand is cumbersome - there might be recursive includes in the config, glob patterns, etc
+# also, the FPM behavior isn't quite correct (https://github.com/php/php-src/issues/13249), but might be fixed at some point
+# so we use php-fpm -tt to dump the config, and extract the values from there
+# we need to ensure the log level is NOTICE, since FPM uses its logging for dumping - but we default to WARNING
+# that's why we're making a temporary config with the log level overridden
+# (the same temporary file is also used for our own -tt and -tttt config test modes)
+fpm_config_tmp=$(mktemp "$fpm_config.XXXXX")
+cp "$fpm_config" "$fpm_config_tmp"
+trap 'trap - EXIT; rm -f "$fpm_config_tmp"' EXIT
+echo -e "\n[global]\nlog_level = notice" >> "$fpm_config_tmp"
+
+# build command string arrays for PHP-FPM and Nginx
+# we're using an array, because we need to correctly preserve quoting, spaces, etc
+fpm_command=( php-fpm --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${php_config:+-c "$php_config"} )
+nginx_command=( nginx -c "$nginx_main" -g "pid $nginx_pidfile; include $nginx_config;" )
+
 mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
 if [[ -f "$mlib" ]]; then
 	ram="$(cat "$mlib")"
@@ -392,51 +412,36 @@ else
 	echo '$WEB_CONCURRENCY env var is set, skipping automatic calculation' >&2
 fi
 
-fpm_conftest=
-nginx_conftest=
-fpm_config_tmp=$fpm_config
-case $conftest in
-	[24])
-		# to dump the FPM config, we need to ensure the log level is NOTICE
-		fpm_config_tmp=$(mktemp "$fpm_config.XXXXX")
-		cp "$fpm_config" "$fpm_config_tmp"
-		trap 'trap - EXIT; rm "$fpm_config_tmp"' EXIT
-		echo -e "\n[global]\nlog_level = notice" >> "$fpm_config_tmp"
-		;;& # resume
-	1)
-		fpm_conftest="-t"
-		nginx_conftest="-t"
-		;;
-	2)
-		fpm_conftest="-tt"
-		nginx_conftest="-t"
-		;;
-	3)
-		fpm_conftest="-t"
-		nginx_conftest="-T"
-		;;
-	4)
-		fpm_conftest="-tt"
-		nginx_conftest="-T"
-		;;
-esac
-
-fpm_pidfile=$(mktemp -t "heroku.php-fpm.pid-$PORT.XXXXXX" -u)
-nginx_pidfile=$(mktemp -t "heroku.nginx.pid-$PORT.XXXXXX" -u)
-
-# build command string arrays for PHP-FPM and Nginx
-# we're using an array, because we need to correctly preserve quoting, spaces, etc
-fpm_command=( php-fpm ${fpm_conftest} --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${php_config:+-c "$php_config"} )
-nginx_command=( nginx ${nginx_conftest} -c "$nginx_main" -g "pid $nginx_pidfile; include $nginx_config;" )
-
 if [[ $conftest ]]; then
-	echo -e "\n$(basename "$0"): Config testing php-fpm using ${fpm_command[@]}:" >&2
-	"${fpm_command[@]}"
-	echo -e "\n$(basename "$0"): Config testing nginx using ${nginx_command[@]}:" >&2
-	"${nginx_command[@]}"
+	case $conftest in
+		1)
+			fpm_conftest="-t"
+			nginx_conftest="-t"
+			;;
+		2)
+			fpm_conftest="-tt"
+			nginx_conftest="-t"
+			;;
+		3)
+			fpm_conftest="-t"
+			nginx_conftest="-T"
+			;;
+		*)
+			fpm_conftest="-tt"
+			nginx_conftest="-T"
+			;;
+	esac
+
+	echo -e "\n$(basename "$0"): Config testing php-fpm using ${fpm_command[@]} ${fpm_conftest}:" >&2
+	"${fpm_command[@]}" ${fpm_conftest}
+	echo -e "\n$(basename "$0"): Config testing nginx using ${nginx_command[@]} ${nginx_conftest}:" >&2
+	"${nginx_command[@]}" ${nginx_conftest}
 	echo -e "\n$(basename "$0"): All configs okay." >&2
 	exit 0
 fi
+
+# we're done dumping stuff; restore original FPM config
+cp "$fpm_config" "$fpm_config_tmp"
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
 # this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).
