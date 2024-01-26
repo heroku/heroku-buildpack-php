@@ -388,8 +388,10 @@ nginx_command=( nginx -c "$nginx_main" -g "pid $nginx_pidfile; include $nginx_co
 
 mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
 if [[ -f "$mlib" ]]; then
+	[[ $verbose ]] && echo "Reading available RAM from '$mlib'" >&2
 	ram="$(cat "$mlib")"
 else
+	[[ $verbose ]] && echo "No '$mlib' with RAM info found" >&2
 	ram="512M"
 	echo "Assuming RAM to be ${ram} Bytes" >&2
 fi
@@ -400,6 +402,8 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 		# this is to ensure that apps previously running on PX dynos (6 GB RAM) do not get a sudden jump in the number of worker processes
 		max_ram="6G"
 	fi
+
+	[[ $verbose ]] && echo "Calculating WEB_CONCURRENCY..." >&2
 
 	# dump the FPM config and parse out memory_limit declarations
 	# for that to work, we need the WEB_CONCURRENCY env var set, as the FPM config references it
@@ -419,8 +423,9 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 	# determine number of FPM processes to run
 	# we feed it the PHP config we found much earlier (it must be the one FPM loads, not the CLI one!), docroot (for .user.ini), detected RAM, and RAM cap
 	# on STDIN, we also pass it any php_value or php_admin_value lines from the FPM config dump that may have a memory_limit (via a herestring, easier than echo)
-	WEB_CONCURRENCY=$(php ${php_config:+-c "$php_config"} "$bp_dir/bin/util/autotune.php" -t "$DOCUMENT_ROOT" "$ram" "$max_ram" <<<"$fpm_limits")
-	[[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
+	WEB_CONCURRENCY=$(php ${php_config:+-c "$php_config"} -f "$bp_dir/bin/util/autotune.php" -- ${verbose:+-v} -t "$DOCUMENT_ROOT" "$ram" "$max_ram" <<<"$fpm_limits")
+	[[ $verbose ]] && echo "WEB_CONCURRENCY=${WEB_CONCURRENCY} (RAM / memory_limit)" >&2
+	[[ $WEB_CONCURRENCY -lt 1 ]] && { WEB_CONCURRENCY=1; [[ $verbose ]] && echo "WEB_CONCURRENCY=1 (was below mininum)" >&2; }
 	export WEB_CONCURRENCY
 else
 	echo '$WEB_CONCURRENCY env var is set, skipping automatic calculation' >&2
