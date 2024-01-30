@@ -29,20 +29,34 @@ function bytestostring($amount) {
 	return sprintf("%d%s", $amount, $suffix);
 }
 
-$opts = getopt("vt:", array(), $rest_index);
+$opts = getopt("b:t:v", array(), $rest_index);
 $argv = array_slice($argv, $rest_index);
 $argc = count($argv);
 if($argc < 1 || $argc > 2) {
 	fprintf(STDERR,
 		"Usage:\n".
-		"  %s [options] <RAM_AVAILABLE> [<RAM_LIMIT>]\n\n",
+		"  %s [options] <RAM_AVAIL> [<NUM_CORES=1>]\n\n",
 		basename(__FILE__)
 	);
 	fputs(STDERR,
+		"Determines the number of PHP-FPM worker processes for given RAM and CPU cores\n\n".
+		"The initial calculation works as follows:\n".
+		'ceil(log_2(RAM_AVAIL / CALC_BASE)) * NUM_CORES * 2 * (CALC_BASE / memory_limit)'."\n\n".
+		'This result is then capped to at most (RAM_AVAIL / memory_limit) processes'."\n\n".
+		"The purpose of this formula is to ensure that:\n".
+		"1) the number of processes does not grow too rapidly as RAM increases;\n".
+		"2) the number of CPU cores is taken into account;\n".
+		"3) adjusting PHP memory_limit has a linear influence on the number of processes\n".
+		'4) the number of processes never exceeds available RAM for given memory_limit'."\n"
+	);
+	fputs(STDERR,
 		"Options:\n".
-		"  -v                 Verbose mode\n".
-		"  -t <DOCUMENT_ROOT> Dir to read '.user.ini' with 'memory_limit' settings from\n\n".
-		"php_value or php_admin_value lines from a PHP-FPM config can be fed via STDIN.\n\n"
+		"  -b <CALC_BASE>     The PHP memory_limit on which the calculation of the\n".
+		"                     scaling factors should be based. Defaults to '128M'\n".
+		"  -t <DOCUMENT_ROOT> Dir to read '.user.ini' with memory_limit settings from\n".
+		"  -v                 Verbose mode\n\n".
+		"php_value or php_admin_value lines containing memory_limit INI directives from\n".
+		"a PHP-FPM configuration file or dump (php-fpm -tt) can be fed via STDIN.\n\n"
 	);
 	exit(2);
 }
@@ -51,14 +65,22 @@ $ram = stringtobytes($argv[0]); // first arg is the available memory
 
 fprintf(STDERR, "Available RAM is %s Bytes\n", bytestostring($ram));
 
-if(isset($argv[1])) { // optional second arg is the maximum RAM we're allowed
-	$max_ram_string = $argv[1];
-	$max_ram = stringtobytes($max_ram_string);
+if(isset($argv[1])) { // optional second arg is the number of CPU cores
+	$cores = $argv[1];
+	fprintf(STDERR, "Number of CPU cores is %d\n", $cores);
+} else {
+	$cores = 1;
+	fprintf(STDERR, "Assuming number of CPU cores to be %d\n", $cores);
+}
 
-	if($ram > $max_ram) {
-		$ram = $max_ram;
-		fprintf(STDERR, "Limiting RAM usage to %s Bytes\n", bytestostring($ram));
-	}
+$calc_base = $opts['b'] ?? "128M";
+if(isset($opts['v'])) {
+	fprintf(STDERR, "Determining scaling factor based on a memory_limit of %s\n", $calc_base);
+}
+$calc_base = stringtobytes($calc_base);
+$factor = ceil(log($ram/$calc_base, 2));
+if(isset($opts['v'])) {
+	fprintf(STDERR, "Scaling factor is %d\n", $factor);
 }
 
 // parse potential php_value and php_admin_value data from STDIN
@@ -108,5 +130,20 @@ if(isset($limits['php_admin_value']['memory_limit'])) {
 
 $limit = ini_get('memory_limit');
 fprintf(STDERR, "PHP memory_limit is %s Bytes\n", $limit); // we output the original value here, since it's user supplied
+$limit = stringtobytes($limit);
 
-echo floor($ram / (stringtobytes($limit)?:-1));
+$result = $factor * $cores * 2 * ($calc_base / $limit);
+
+if(isset($opts['v'])) {
+	fprintf(STDERR, "Calculated number of workers is %d\n", $result);
+}
+
+$max_workers = floor($ram/$limit);
+if($max_workers < $result) {
+	$result = $max_workers;
+	if(isset($opts['v'])) {
+		fprintf(STDERR, "Limiting number of workers to %d\n", $result);
+	}
+}
+
+echo $result;

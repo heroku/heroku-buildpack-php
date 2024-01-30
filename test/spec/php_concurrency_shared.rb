@@ -98,7 +98,7 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 			it "restricts the app to 6 GB of RAM", :if => series < "7.4" do
 				retry_until retry: 3, sleep: 5 do
 					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt", :return_obj => true, :heroku => {:size => "Performance-L"}) }.output)
-						 .to match("Available RAM is 14G Bytes")
+						 .to match("Available RAM is 6G Bytes")
 						.and match("Limiting RAM usage to 6G Bytes")
 						.and match("pm.max_children = 48")
 				end
