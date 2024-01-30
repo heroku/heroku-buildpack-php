@@ -19,6 +19,16 @@ function stringtobytes($amount) {
 	return $amount;
 }
 
+function bytestostring($amount) {
+	$suffixes = array('K', 'M', 'G', 'T', 'P', 'E');
+	$suffix = '';
+	while($suffixes && $amount % 1024 == 0) {
+		$amount /= 1024;
+		$suffix = array_shift($suffixes);
+	}
+	return sprintf("%d%s", $amount, $suffix);
+}
+
 // if given, parse FPM configs as well to figure out the memory limit
 // (it may have been set in the FPM config or config include)
 function get_fpm_memory_limit($fpmconf, $startsection = "global") {
@@ -102,7 +112,7 @@ if(isset($argv[1])) { // optional second arg is the maximum RAM we're allowed
 
 	if($ram > $max_ram) {
 		$ram = $max_ram;
-		file_put_contents("php://stderr", "Limiting to $max_ram_string Bytes of RAM usage\n");
+		fprintf(STDERR, "Limiting to %s Bytes of RAM usage\n", bytestostring($ram));
 	}
 }
 
