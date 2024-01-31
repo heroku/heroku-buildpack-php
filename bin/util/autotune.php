@@ -32,10 +32,10 @@ function bytestostring($amount) {
 $opts = getopt("b:t:v", array(), $rest_index);
 $argv = array_slice($argv, $rest_index);
 $argc = count($argv);
-if($argc < 1 || $argc > 2) {
+if($argc != 2) {
 	fprintf(STDERR,
 		"Usage:\n".
-		"  %s [options] <RAM_AVAIL> [<NUM_CORES=1>]\n\n",
+		"  %s [options] <RAM_AVAIL> <NUM_CORES>\n\n",
 		basename(__FILE__)
 	);
 	fputs(STDERR,
@@ -62,16 +62,10 @@ if($argc < 1 || $argc > 2) {
 }
 
 $ram = stringtobytes($argv[0]); // first arg is the available memory
-
 fprintf(STDERR, "Available RAM is %s Bytes\n", bytestostring($ram));
 
-if(isset($argv[1])) { // optional second arg is the number of CPU cores
-	$cores = $argv[1];
-	fprintf(STDERR, "Number of CPU cores is %d\n", $cores);
-} else {
-	$cores = 1;
-	fprintf(STDERR, "Assuming number of CPU cores to be %d\n", $cores);
-}
+$cores = $argv[1];
+fprintf(STDERR, "Number of CPU cores is %d\n", (int)$cores);
 
 $calc_base = $opts['b'] ?? "128M";
 if(isset($opts['v'])) {

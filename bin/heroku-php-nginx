@@ -398,7 +398,8 @@ fi
 # read number of available processor cores in a portable (Linux, macOS, BSDs) fashion (leading underscore is not always there)
 cores=$(getconf -a | grep -E '_?NPROCESSORS_ONLN' | head -n1 | tr -s ' ' | cut -d" " -f2) || {
 	echo "WARNING: failed to determine _NPROCESSORS_ONLN via getconf" >&2
-	cores=
+	cores=1
+	echo "Assuming number of CPU cores to be $cores" >&2
 }
 if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 	if [[ -n ${DYNO:-} && $(ulimit -u) == "32768" && ( "$php_version" == 5.* || "$php_version" == 7.[0-3].* ) ]]; then
@@ -428,7 +429,7 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 	# determine number of FPM processes to run
 	# we feed it the PHP config we found much earlier (it must be the one FPM loads, not the CLI one!), docroot (for .user.ini), detected RAM, and RAM cap
 	# on STDIN, we also pass it any php_value or php_admin_value lines from the FPM config dump that may have a memory_limit (via a herestring, easier than echo)
-	WEB_CONCURRENCY=$(php ${php_config:+-c "$php_config"} -f "$bp_dir/bin/util/autotune.php" -- ${verbose:+-v} -t "$DOCUMENT_ROOT" "$ram" $cores <<<"$fpm_limits")
+	WEB_CONCURRENCY=$(php ${php_config:+-c "$php_config"} -f "$bp_dir/bin/util/autotune.php" -- ${verbose:+-v} -t "$DOCUMENT_ROOT" "$ram" "$cores" <<<"$fpm_limits")
 	[[ $verbose ]] && echo "WEB_CONCURRENCY=${WEB_CONCURRENCY}" >&2
 	[[ $WEB_CONCURRENCY -lt 1 ]] && { WEB_CONCURRENCY=1; [[ $verbose ]] && echo "WEB_CONCURRENCY=1 (was below mininum)" >&2; }
 	export WEB_CONCURRENCY
