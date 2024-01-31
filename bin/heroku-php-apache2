@@ -366,13 +366,34 @@ if [[ -n ${httpd_config:-} || ( ${httpd_config:=$(findconfig "$httpd_version" "$
 fi
 httpd_config=$(php_passthrough "$httpd_config")
 
+fpm_pidfile=$(mktemp -t "heroku.php-fpm.pid-$PORT.XXXXXX" -u)
+httpd_pidfile=$(httpd -t -D DUMP_RUN_CFG 2> /dev/null | sed -n -E 's/PidFile: "(.+)"/\1/p') # get PidFile location
+
+# we need to dump the FPM config to fetch possible values for memory_limit in php_value and php_admin_value pool declarations
+# parsing this by hand is cumbersome - there might be recursive includes in the config, glob patterns, etc
+# also, the FPM behavior isn't quite correct (https://github.com/php/php-src/issues/13249), but might be fixed at some point
+# so we use php-fpm -tt to dump the config, and extract the values from there
+# we need to ensure the log level is NOTICE, since FPM uses its logging for dumping - but we default to WARNING
+# that's why we're making a temporary config with the log level overridden
+# (the same temporary file is also used for our own -tt and -tttt config test modes)
+fpm_config_tmp=$(mktemp "$fpm_config.XXXXX")
+cp "$fpm_config" "$fpm_config_tmp"
+trap 'trap - EXIT; rm -f "$fpm_config_tmp"' EXIT
+echo -e "\n[global]\nlog_level = notice" >> "$fpm_config_tmp"
+
+# build command string arrays for PHP-FPM and HTTPD
+# we're using an array, because we need to correctly preserve quoting, spaces, etc
+fpm_command=( php-fpm --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${php_config:+-c "$php_config"} )
+httpd_command=( httpd -D NO_DETACH -c "Include $httpd_config" )
+
 mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
 if [[ -f "$mlib" ]]; then
+	[[ $verbose ]] && echo "Reading available RAM from '$mlib'" >&2
 	ram="$(cat "$mlib")"
-	echo "Detected ${ram} Bytes of RAM" >&2
 else
+	[[ $verbose ]] && echo "No '$mlib' with RAM info found" >&2
 	ram="512M"
-	echo "Assuming ${ram}B of RAM" >&2
+	echo "Assuming RAM to be ${ram} Bytes" >&2
 fi
 if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 	max_ram="16G" # blanket upper limit for how much RAM we will use for PHP, unless the machine has less anyway
@@ -382,61 +403,64 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 		max_ram="6G"
 	fi
 
-	# determine number of FPM processes to run
-	read WEB_CONCURRENCY php_memory_limit <<<$(php ${php_config:+-c "$php_config"} "$bp_dir/bin/util/autotune.php" -y "$fpm_config" -t "$DOCUMENT_ROOT" "$ram" "$max_ram")
-	[[ $WEB_CONCURRENCY -lt 1 ]] && WEB_CONCURRENCY=1
-	export WEB_CONCURRENCY
+	[[ $verbose ]] && echo "Calculating WEB_CONCURRENCY..." >&2
 
-	echo "PHP memory_limit is ${php_memory_limit} Bytes" >&2
+	# dump the FPM config and parse out memory_limit declarations
+	# for that to work, we need the WEB_CONCURRENCY env var set, as the FPM config references it
+	export WEB_CONCURRENCY=1
+	# inside this subshell, we want pipefail on to ensure that a failing FPM command causes an exit
+	# grep might not match anything, so if it doesn't (status 1), we carry on, since that's fine (but other exit statuses will bubble up)
+	fpm_limits=$(set -o pipefail; "${fpm_command[@]}" -tt 2>&1 | { grep -E $'NOTICE: \tphp(_admin)?_value\[memory_limit\]' || test $? = 1; } | cut -f2) || {
+		# on failure, we should output something meaningful
+		echo "PHP-FPM config test failed with status $?:" >&2
+		# restore the original config to avoid any potential for confusion
+		cp "$fpm_config" "$fpm_config_tmp"
+		# single -t is enough this time
+		"${fpm_command[@]}" -t
+		exit 1
+	}
+
+	# determine number of FPM processes to run
+	# we feed it the PHP config we found much earlier (it must be the one FPM loads, not the CLI one!), docroot (for .user.ini), detected RAM, and RAM cap
+	# on STDIN, we also pass it any php_value or php_admin_value lines from the FPM config dump that may have a memory_limit (via a herestring, easier than echo)
+	WEB_CONCURRENCY=$(php ${php_config:+-c "$php_config"} -f "$bp_dir/bin/util/autotune.php" -- ${verbose:+-v} -t "$DOCUMENT_ROOT" "$ram" "$max_ram" <<<"$fpm_limits")
+	[[ $verbose ]] && echo "WEB_CONCURRENCY=${WEB_CONCURRENCY} (RAM / memory_limit)" >&2
+	[[ $WEB_CONCURRENCY -lt 1 ]] && { WEB_CONCURRENCY=1; [[ $verbose ]] && echo "WEB_CONCURRENCY=1 (was below mininum)" >&2; }
+	export WEB_CONCURRENCY
 else
 	echo '$WEB_CONCURRENCY env var is set, skipping automatic calculation' >&2
 fi
 
-fpm_conftest=
-httpd_conftest=
-fpm_config_tmp=$fpm_config
-case $conftest in
-	[24])
-		# to dump the FPM config, we need to ensure the log level is NOTICE
-		fpm_config_tmp=$(mktemp "$fpm_config.XXXXX")
-		cp "$fpm_config" "$fpm_config_tmp"
-		trap 'trap - EXIT; rm "$fpm_config_tmp"' EXIT
-		echo -e "\n[global]\nlog_level = notice" >> "$fpm_config_tmp"
-		;;& # resume
-	1)
-		fpm_conftest="-t"
-		httpd_conftest="-t"
-		;;
-	2)
-		fpm_conftest="-tt"
-		httpd_conftest="-t"
-		;;
-	3)
-		fpm_conftest="-t"
-		httpd_conftest="-S"
-		;;
-	4)
-		fpm_conftest="-tt"
-		httpd_conftest="-S"
-		;;
-esac
-
-fpm_pidfile=$(mktemp -t "heroku.php-fpm.pid-$PORT.XXXXXX" -u)
-httpd_pidfile=$(httpd -t -D DUMP_RUN_CFG 2> /dev/null | sed -n -E 's/PidFile: "(.+)"/\1/p') # get PidFile location
-
-# build command string arrays for PHP-FPM and HTTPD
-# we're using an array, because we need to correctly preserve quoting, spaces, etc
-fpm_command=( php-fpm ${fpm_conftest} --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${php_config:+-c "$php_config"} )
-httpd_command=( httpd ${httpd_conftest} -D NO_DETACH -c "Include $httpd_config" )
-
 if [[ $conftest ]]; then
-	echo -e "\n$(basename "$0"): Config testing php-fpm using ${fpm_command[@]}:" >&2
-	"${fpm_command[@]}"
-	echo -e "\n$(basename "$0"): Config testing httpd using ${httpd_command[@]}:" >&2
-	"${httpd_command[@]}"
+	case $conftest in
+		1)
+			fpm_conftest="-t"
+			httpd_conftest="-t"
+			;;
+		2)
+			fpm_conftest="-tt"
+			httpd_conftest="-t"
+			;;
+		3)
+			fpm_conftest="-t"
+			httpd_conftest="-S"
+			;;
+		*)
+			fpm_conftest="-tt"
+			httpd_conftest="-S"
+			;;
+	esac
+
+	echo -e "\n$(basename "$0"): Config testing php-fpm using ${fpm_command[@]} ${fpm_conftest}:" >&2
+	"${fpm_command[@]}" ${fpm_conftest}
+	echo -e "\n$(basename "$0"): Config testing httpd using ${httpd_command[@]} ${httpd_conftest}:" >&2
+	"${httpd_command[@]}" ${httpd_conftest}
 	echo -e "\n$(basename "$0"): All configs okay." >&2
 	exit 0
 fi
+
+# we're done dumping stuff; restore original FPM config
+cp "$fpm_config" "$fpm_config_tmp"
 
 # make a shared pipe; we'll write the name of the process that exits to it once that happens, and wait for that event below
 # this particular call works on Linux and Mac OS (will create a literal ".XXXXXX" on Mac, but that doesn't matter).

@@ -1,1 +1,1 @@
-foobar = 0
+listen = 256.256.256.256:${PORT}

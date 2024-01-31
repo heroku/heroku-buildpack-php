@@ -6,6 +6,10 @@
 
 - Boot scripts now have a `--test`/`-t` option to test PHP-FPM and web server configs and then exit. Can be repeated to dump configs for either or both, see `--help` for details. [David Zuelke]
 
+### FIX
+
+- PHP `memory_limit` in `.user.ini` does not override PHP-FPM `php_value` for `$WEB_CONCURRENCY` calculation [David Zuelke]
+
 ## v244 (2024-01-24)
 
 ### ADD

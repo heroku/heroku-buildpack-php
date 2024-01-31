@@ -71,7 +71,7 @@ describe "A PHP application" do
 					['heroku-php-apache2', 'heroku-php-nginx'].each do |script|
 						retry_until retry: 3, sleep: 5 do
 							out = app.run("#{script} -F composer.lock", :heroku => {:env => "COMPOSER_AUTH=malformed"}) # prevent FPM from starting up using an invalid config, that way we don't have to wrap the server start in a `timeout` call
-							expect(out).to match(/Starting php-fpm/) # we got far enough (until FPM spits out an error)
+							expect(out).to match(/FPM initialization failed/) # we got far enough (until FPM spits out an error)
 						end
 					end
 				end

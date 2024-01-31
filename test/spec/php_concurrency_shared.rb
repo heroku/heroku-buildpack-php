@@ -30,6 +30,13 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 						.and match("pm.max_children = 1")
 				end
 			end
+			it "takes precedence over a PHP-FPM memory_limit" do
+				retry_until retry: 3, sleep: 5 do
+					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt -F conf/fpm.include.conf docroot/", :return_obj => true) }.output)
+						 .to match("PHP memory_limit is 32M Bytes")
+						.and match("pm.max_children = 16")
+				end
+			end
 			it "is only done for a .user.ini directly in the document root" do
 				retry_until retry: 3, sleep: 5 do
 					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt", :return_obj => true) }.output)
@@ -43,8 +50,8 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 			it "calculates concurrency correctly" do
 				retry_until retry: 3, sleep: 5 do
 					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt -F conf/fpm.include.conf", :return_obj => true) }.output)
-						 .to match("PHP memory_limit is 32M Bytes")
-						.and match("pm.max_children = 16")
+						 .to match("PHP memory_limit is 16M Bytes")
+						.and match("pm.max_children = 32")
 				end
 			end
 			it "always launches at least one worker" do
@@ -54,11 +61,11 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 						.and match("pm.max_children = 1")
 				end
 			end
-			it "takes precedence over a .user.ini memory_limit" do
+			it "takes precedence over a .user.ini memory_limit if it's a php_admin_value" do
 				retry_until retry: 3, sleep: 5 do
-					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt -F conf/fpm.include.conf docroot/onegig/", :return_obj => true) }.output)
-						 .to match("PHP memory_limit is 32M Bytes")
-						.and match("pm.max_children = 16")
+					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt -F conf/fpm.admin.conf docroot/onegig/", :return_obj => true) }.output)
+						 .to match("PHP memory_limit is 24M Bytes")
+						.and match("pm.max_children = 21")
 				end
 			end
 		end
@@ -91,8 +98,8 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 			it "restricts the app to 6 GB of RAM", :if => series < "7.4" do
 				retry_until retry: 3, sleep: 5 do
 					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt", :return_obj => true, :heroku => {:size => "Performance-L"}) }.output)
-						 .to match("Detected 15032385536 Bytes of RAM")
-						.and match("Limiting to 6G Bytes of RAM usage")
+						 .to match("Available RAM is 14G Bytes")
+						.and match("Limiting RAM usage to 6G Bytes")
 						.and match("pm.max_children = 48")
 				end
 			end
@@ -100,7 +107,7 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 			it "uses all available RAM for PHP-FPM workers", :unless => series < "7.4" do
 				retry_until retry: 3, sleep: 5 do
 					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt", :return_obj => true, :heroku => {:size => "Performance-L"}) }.output)
-						 .to match("Detected 15032385536 Bytes of RAM")
+						 .to match("Available RAM is 14G Bytes")
 						.and match("pm.max_children = 112")
 				end
 			end
