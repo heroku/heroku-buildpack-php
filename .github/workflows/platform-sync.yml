@@ -53,7 +53,7 @@ jobs:
         uses: actions/checkout@v4
       - name: Restore cached Docker image
         id: restore-docker
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           key: docker-cache-heroku-php-build-${{matrix.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
@@ -68,7 +68,7 @@ jobs:
         run: docker save heroku-php-build-${{matrix.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
       - name: Cache built Docker image
         if: steps.restore-docker.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v3
+        uses: actions/cache/save@v4
         with:
           key: ${{ steps.restore-docker.outputs.cache-primary-key }}
           path: /tmp/docker-cache.tar.gz
@@ -85,7 +85,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
       - name: Restore cached Docker build
-        uses: actions/cache/restore@v3
+        uses: actions/cache/restore@v4
         with:
           key: docker-cache-heroku-php-build-${{matrix.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
