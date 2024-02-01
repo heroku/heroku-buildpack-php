@@ -98,7 +98,7 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 			it "restricts the app to 6 GB of RAM", :if => series < "7.4" do
 				retry_until retry: 3, sleep: 5 do
 					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt", :return_obj => true, :heroku => {:size => "Performance-L"}) }.output)
-						 .to match("Available RAM is 14G Bytes")
+						 .to match("Available RAM is 6G Bytes")
 						.and match("Limiting RAM usage to 6G Bytes")
 						.and match("pm.max_children = 48")
 				end
@@ -109,6 +109,28 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt", :return_obj => true, :heroku => {:size => "Performance-L"}) }.output)
 						 .to match("Available RAM is 14G Bytes")
 						.and match("pm.max_children = 112")
+				end
+			end
+		end
+		
+		# for these, we fake the CPU core count by "overriding" getconf
+		context "running on a machine with unusual core-to-RAM ratios" do
+			it "calculates a worker count that does not vastly exceed CPU core capacity" do
+				retry_until retry: 3, sleep: 5 do
+					expect(expect_exit(code: 0) { @app.run("getconf() { echo '_NPROCESSORS_ONLN                  1'; }; export -f getconf; heroku-php-#{server} -v -tt", :return_obj => true, :heroku => {:size => "Performance-M"}) }.output)
+						 .to match("Available RAM is 2560M Bytes")
+						.and match("Number of CPU cores is 1")
+						.and match("pm.max_children = 10")
+				end
+			end
+			it "calculates a worker count whose cumulative memory_limit will not exceed available RAM" do
+				retry_until retry: 3, sleep: 5 do
+					expect(expect_exit(code: 0) { @app.run("getconf() { echo '_NPROCESSORS_ONLN                  16'; }; export -f getconf; heroku-php-#{server} -v -tt", :return_obj => true, :heroku => {:size => "Standard-1X"}) }.output)
+						 .to match("Available RAM is 512M Bytes")
+						.and match("Number of CPU cores is 16")
+						.and match("Calculated number of workers is 64")
+						.and match("Limiting number of workers to 4")
+						.and match("pm.max_children = 4")
 				end
 			end
 		end

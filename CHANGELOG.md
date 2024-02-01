@@ -6,6 +6,10 @@
 
 - Boot scripts now have a `--test`/`-t` option to test PHP-FPM and web server configs and then exit. Can be repeated to dump configs for either or both, see `--help` for details. [David Zuelke]
 
+### CHG
+
+- New formula for determining number of PHP-FPM worker processes: `min(floor(RAM_AVAIL / memory_limit), ceil(log_2(RAM_AVAIL / CALC_BASE)) * NUM_CORES * 2 * (CALC_BASE / memory_limit)` [`CALC_BASE` is currently `128M`] - same results for current Heroku dyno types, but "softer" scaling of worker count on containers with a lot of RAM [David Zuelke]
+
 ### FIX
 
 - PHP `memory_limit` in `.user.ini` does not override PHP-FPM `php_value` for `$WEB_CONCURRENCY` calculation [David Zuelke]
