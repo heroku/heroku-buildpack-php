@@ -7,3 +7,4 @@ CHANGELOG.md @dzuelke
 composer.json @dzuelke
 composer.lock @dzuelke
 Gemfile.lock @dzuelke
+requirements.txt @dzuelke
