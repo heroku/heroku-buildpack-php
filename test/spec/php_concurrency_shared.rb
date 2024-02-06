@@ -134,6 +134,17 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 						.and match("pm.max_children = 4")
 				end
 			end
+			it "calculates a correct worker count for memory_limits that divide available RAM with a remainder" do
+				retry_until retry: 3, sleep: 5 do
+					expect(expect_exit(code: 0) { @app.run("getconf() { echo '_NPROCESSORS_ONLN                  1'; }; export -f getconf; heroku-php-#{server} -v -tt -F conf/fpm.admin.conf", :return_obj => true, :heroku => {:size => "Performance-M"}) }.output)
+						 .to match("Available RAM is 2560M Bytes")
+						.and match("Number of CPU cores is 1")
+						.and match(/Calculated number of workers is 53$/)
+						.and match(/Maximum number of workers that fit available RAM at memory_limit is 106$/)
+						.and match(/Limiting number of workers to 53$/)
+						.and match(/pm.max_children = 53$/)
+				end
+			end
 		end
 	end
 end

@@ -135,7 +135,7 @@ $limit = ini_get('memory_limit');
 fprintf(STDERR, "PHP memory_limit is %s Bytes\n", $limit); // we output the original value here, since it's user supplied
 $limit = stringtobytes($limit);
 
-$result = $factor * $cores * 2 * ($calc_base / $limit);
+$result = floor($factor * $cores * 2 * $calc_base / $limit);
 
 if($verbose >= 2) {
 	fprintf(STDERR, "Calculated number of workers is %d\n", $result);
@@ -151,4 +151,4 @@ if($max_workers < $result) {
 	fprintf(STDERR, "Limiting number of workers to %d\n", $result);
 }
 
-echo $result;
+printf("%d", $result);
