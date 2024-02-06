@@ -29,10 +29,15 @@ function bytestostring($amount) {
 	return sprintf("%d%s", $amount, $suffix);
 }
 
-$opts = getopt("b:ht:v", array("help"), $rest_index);
+$opts = getopt("b:ht:v", array("help", "verbose"), $rest_index);
 $argv = array_slice($argv, $rest_index);
 $argc = count($argv);
 $print_help = isset($opts['h']) || isset($opts['help']);
+if(isset($opts['verbose'])) {
+	$verbose = 2;
+} else {
+	$verbose = count((array)($opts['v']??null)); // -v can be repeated to increase the level
+}
 if($argc != 2 || $print_help) {
 	fprintf($print_help ? STDOUT : STDERR,
 		"Usage:\n".
@@ -54,7 +59,8 @@ if($argc != 2 || $print_help) {
 		"                     scaling factors should be based. Defaults to '128M'.\n".
 		"  -h, --help         Display this help screen and exit.\n".
 		"  -t <DOCUMENT_ROOT> Dir to read '.user.ini' with memory_limit settings from.\n".
-		"  -v                 Be more verbose when printing information.\n\n".
+		"  -v                 Be a little more verbose when printing information.\n".
+		"  -vv, --verbose     Be more verbose when printing information.\n\n".
 		"Lines containing php_value or php_admin_value memory_limit INI directives from\n".
 		"a PHP-FPM configuration file or `php-fpm -tt' dump can be fed via STDIN. These\n".
 		"will then be taken into account when determining the effective memory_limit.\n\n"
@@ -66,17 +72,17 @@ $ram = stringtobytes($argv[0]); // first arg is the available memory
 fprintf(STDERR, "Available RAM is %s Bytes\n", bytestostring($ram));
 
 $cores = $argv[1];
-if(isset($opts['v'])) {
+if($verbose) {
 	fprintf(STDERR, "Number of CPU cores is %d\n", (int)$cores);
 }
 
 $calc_base = $opts['b'] ?? "128M";
-if(isset($opts['v'])) {
+if($verbose >= 2) {
 	fprintf(STDERR, "Determining scaling factor based on a memory_limit of %s\n", $calc_base);
 }
 $calc_base = stringtobytes($calc_base);
 $factor = ceil(log($ram/$calc_base, 2));
-if(isset($opts['v'])) {
+if($verbose >= 2) {
 	fprintf(STDERR, "Scaling factor is %d\n", $factor);
 }
 
@@ -90,7 +96,7 @@ if($limits === false) {
 	exit(1);
 }
 
-if(isset($opts['v'])) {
+if($verbose >= 2) {
 	if(isset($limits['php_value'])) {
 		fputs(STDERR, "memory_limit changed by php_value in PHP-FPM configuration\n");
 	}
@@ -107,7 +113,7 @@ if(
 		exit(1);
 	}
 	if(isset($userini['memory_limit'])) {
-		if(isset($opts['v'])) {
+		if($verbose >= 2) {
 			fprintf(STDERR, "memory_limit changed by %s\n", $userini_path);
 		}
 		// if .user.ini has a limit set, it will overwrite an FPM config php_value, but not a php_admin_value
@@ -117,7 +123,7 @@ if(
 
 if(isset($limits['php_admin_value']['memory_limit'])) {
 	// these take precedence and cannot be overridden later
-	if(isset($opts['v'])) {
+	if($verbose >= 2) {
 		fputs(STDERR, "memory_limit overridden by php_admin_value in PHP-FPM configuration\n");
 	}
 	ini_set('memory_limit', $limits['php_admin_value']['memory_limit']);
@@ -131,14 +137,14 @@ $limit = stringtobytes($limit);
 
 $result = $factor * $cores * 2 * ($calc_base / $limit);
 
-if(isset($opts['v'])) {
+if($verbose >= 2) {
 	fprintf(STDERR, "Calculated number of workers is %d\n", $result);
 }
 
 $max_workers = floor($ram/$limit);
 if($max_workers < $result) {
 	$result = $max_workers;
-	if(isset($opts['v'])) {
+	if($verbose) {
 		fprintf(STDERR, "Limiting number of workers to %d\n", $result);
 	}
 } elseif($max_workers > $result) {
