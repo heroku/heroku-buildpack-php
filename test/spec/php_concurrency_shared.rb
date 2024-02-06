@@ -68,6 +68,13 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 						.and match("pm.max_children = 21")
 				end
 			end
+			it "handles a negative (unlimited) memory_limit" do
+				retry_until retry: 3, sleep: 5 do
+					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt -F conf/fpm.unlimited.conf", :return_obj => true) }.output)
+						 .to match("PHP memory_limit is unlimited")
+						.and match("pm.max_children = 1")
+				end
+			end
 		end
 		
 		context "setting WEB_CONCURRENCY explicitly" do
@@ -90,6 +97,14 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt -F conf/fpm.onegig.conf", :return_obj => true, :heroku => {:env => "WEB_CONCURRENCY=22"}) }.output)
 						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("pm.max_children = 22")
+				end
+			end
+			it "ignores an illegal value" do
+				retry_until retry: 3, sleep: 5 do
+					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt -F conf/fpm.onegig.conf", :return_obj => true, :heroku => {:env => "WEB_CONCURRENCY=zomg"}) }.output)
+						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						.and include("Setting WEB_CONCURRENCY=1 (was outside allowed range)")
+						.and match("pm.max_children = 1")
 				end
 			end
 		end

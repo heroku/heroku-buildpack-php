@@ -121,19 +121,31 @@ if(
 	}
 }
 
+$ini_set_result = null;
 if(isset($limits['php_admin_value']['memory_limit'])) {
 	// these take precedence and cannot be overridden later
 	if($verbose >= 2) {
 		fputs(STDERR, "memory_limit overridden by php_admin_value in PHP-FPM configuration\n");
 	}
-	ini_set('memory_limit', $limits['php_admin_value']['memory_limit']);
+	$ini_set_result = ini_set('memory_limit', $limits['php_admin_value']['memory_limit']);
 } elseif(isset($limits['php_value']['memory_limit'])) {
-	ini_set('memory_limit', $limits['php_value']['memory_limit']);
+	$ini_set_result = ini_set('memory_limit', $limits['php_value']['memory_limit']);
 }
 
-$limit = ini_get('memory_limit');
-fprintf(STDERR, "PHP memory_limit is %s Bytes\n", $limit); // we output the original value here, since it's user supplied
-$limit = stringtobytes($limit);
+if($ini_set_result === false) {
+	fputs(STDERR, "ERROR: Illegal value for memory_limit configuration directive.\n");
+	exit(1);
+}
+
+$limit_str = ini_get('memory_limit');
+$limit = stringtobytes($limit_str);
+
+if($limit < 1) { // yes, including 0, to hedge against division by zero (although ini_set("memory_limit", 0) should never succeed)
+	$limit = $ram;
+	fputs(STDERR, "PHP memory_limit is unlimited\n");
+} else {
+	fprintf(STDERR, "PHP memory_limit is %s Bytes\n", $limit_str); // we output the original value here, since it's user supplied
+}
 
 $result = floor($factor * $cores * 2 * $calc_base / $limit);
 
