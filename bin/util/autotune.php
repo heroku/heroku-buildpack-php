@@ -53,12 +53,13 @@ if($argc != 2 || $print_help) {
 	fputs(STDERR,
 		"Options:\n".
 		"  -b <CALC_BASE>     The PHP memory_limit on which the calculation of the\n".
-		"                     scaling factors should be based. Defaults to '128M'\n".
+		"                     scaling factors should be based. Defaults to '128M'.\n".
 		"  -h, --help         Display this help screen and exit.\n".
-		"  -t <DOCUMENT_ROOT> Dir to read '.user.ini' with memory_limit settings from\n".
-		"  -v                 Verbose mode\n\n".
-		"php_value or php_admin_value lines containing memory_limit INI directives from\n".
-		"a PHP-FPM configuration file or dump (php-fpm -tt) can be fed via STDIN.\n\n"
+		"  -t <DOCUMENT_ROOT> Dir to read '.user.ini' with memory_limit settings from.\n".
+		"  -v                 Be more verbose when printing information.\n\n".
+		"Lines containing php_value or php_admin_value memory_limit INI directives from\n".
+		"a PHP-FPM configuration file or `php-fpm -tt' dump can be fed via STDIN. These\n".
+		"will then be taken into account when determining the effective memory_limit.\n\n"
 	);
 	exit($print_help ? 0 : 2);
 }
