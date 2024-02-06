@@ -137,17 +137,24 @@ $limit = stringtobytes($limit);
 
 $result = floor($factor * $cores * 2 * $calc_base / $limit);
 
-if($verbose >= 2) {
-	fprintf(STDERR, "Calculated number of workers is %d\n", $result);
+$max_workers_for_ram = floor($ram/$limit);
+
+if($verbose) {
+	fprintf(STDERR, "Calculated number of workers based on RAM and CPU cores is %d\n", $result);
 }
 
-$max_workers = floor($ram/$limit);
-if($max_workers < $result) {
-	$result = $max_workers;
+$print_limit_notice = false;
+if($max_workers_for_ram < $result) {
+	$result = $max_workers_for_ram;
 	if($verbose) {
-		fprintf(STDERR, "Limiting number of workers to %d\n", $result);
+		$print_limit_notice = true;
 	}
-} elseif($max_workers > $result) {
+} elseif($max_workers_for_ram > $result) {
+	$print_limit_notice = true;
+}
+
+if($print_limit_notice) {
+	fprintf(STDERR, "Maximum number of workers that fit available RAM at memory_limit is %d\n", $max_workers_for_ram);
 	fprintf(STDERR, "Limiting number of workers to %d\n", $result);
 }
 

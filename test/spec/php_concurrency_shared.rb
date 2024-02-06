@@ -120,6 +120,8 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 					expect(expect_exit(code: 0) { @app.run("getconf() { echo '_NPROCESSORS_ONLN                  1'; }; export -f getconf; heroku-php-#{server} -v -tt", :return_obj => true, :heroku => {:size => "Performance-M"}) }.output)
 						 .to match("Available RAM is 2560M Bytes")
 						.and match("Number of CPU cores is 1")
+						.and match("Calculated number of workers based on RAM and CPU cores is 10")
+						.and match("Maximum number of workers that fit available RAM at memory_limit is 20")
 						.and match("Limiting number of workers to 10")
 						.and match("pm.max_children = 10")
 				end
@@ -129,7 +131,8 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 					expect(expect_exit(code: 0) { @app.run("getconf() { echo '_NPROCESSORS_ONLN                  16'; }; export -f getconf; heroku-php-#{server} -v -tt", :return_obj => true, :heroku => {:size => "Standard-1X"}) }.output)
 						 .to match("Available RAM is 512M Bytes")
 						.and match("Number of CPU cores is 16")
-						.and match("Calculated number of workers is 64")
+						.and match("Calculated number of workers based on RAM and CPU cores is 64")
+						.and match("Maximum number of workers that fit available RAM at memory_limit is 4")
 						.and match("Limiting number of workers to 4")
 						.and match("pm.max_children = 4")
 				end
@@ -139,7 +142,7 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 					expect(expect_exit(code: 0) { @app.run("getconf() { echo '_NPROCESSORS_ONLN                  1'; }; export -f getconf; heroku-php-#{server} -v -tt -F conf/fpm.admin.conf", :return_obj => true, :heroku => {:size => "Performance-M"}) }.output)
 						 .to match("Available RAM is 2560M Bytes")
 						.and match("Number of CPU cores is 1")
-						.and match(/Calculated number of workers is 53$/)
+						.and match(/Calculated number of workers based on RAM and CPU cores is 53$/)
 						.and match(/Maximum number of workers that fit available RAM at memory_limit is 106$/)
 						.and match(/Limiting number of workers to 53$/)
 						.and match(/pm.max_children = 53$/)
