@@ -120,6 +120,7 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 					expect(expect_exit(code: 0) { @app.run("getconf() { echo '_NPROCESSORS_ONLN                  1'; }; export -f getconf; heroku-php-#{server} -v -tt", :return_obj => true, :heroku => {:size => "Performance-M"}) }.output)
 						 .to match("Available RAM is 2560M Bytes")
 						.and match("Number of CPU cores is 1")
+						.and match("Limiting number of workers to 10")
 						.and match("pm.max_children = 10")
 				end
 			end

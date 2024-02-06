@@ -40,17 +40,15 @@ if($argc != 2 || $print_help) {
 		basename(__FILE__)
 	);
 	fputs($print_help ? STDOUT : STDERR,
-		"Determines the number of PHP-FPM worker processes for given RAM and CPU cores\n\n".
-		"The initial calculation works as follows:\n".
-		'ceil(log_2(RAM_AVAIL / CALC_BASE)) * NUM_CORES * 2 * (CALC_BASE / memory_limit)'."\n\n".
-		'This result is then capped to at most (RAM_AVAIL / memory_limit) processes'."\n\n".
-		"The purpose of this formula is to ensure that:\n".
-		"1) the number of processes does not grow too rapidly as RAM increases;\n".
-		"2) the number of CPU cores is taken into account;\n".
-		"3) adjusting PHP memory_limit has a linear influence on the number of processes\n".
-		'4) the number of processes never exceeds available RAM for given memory_limit'."\n"
-	);
-	fputs(STDERR,
+		"Determines the number of PHP-FPM worker processes for given RAM and CPU cores.\n\n".
+		"The result will always be limited to at most (RAM_AVAIL / memory_limit) workers.\n\n".
+		"A second limit, factoring in the number of CPU cores, is calculated as follows:\n".
+		"ceil(log_2(RAM_AVAIL / CALC_BASE)) * NUM_CORES * 2 * (CALC_BASE / memory_limit)\n\n".
+		"The purpose of applying both of these limits is to ensure that:\n".
+		"1) the number of workers does not grow too rapidly as available RAM increases;\n".
+		"2) the number of workers per CPU core remains reasonable;\n".
+		"3) the number of workers never exceeds available RAM for given memory_limit;\n".
+		"4) adjusting PHP memory_limit has a linear influence on the number of workers.\n\n".
 		"Options:\n".
 		"  -b <CALC_BASE>     The PHP memory_limit on which the calculation of the\n".
 		"                     scaling factors should be based. Defaults to '128M'.\n".
@@ -68,7 +66,9 @@ $ram = stringtobytes($argv[0]); // first arg is the available memory
 fprintf(STDERR, "Available RAM is %s Bytes\n", bytestostring($ram));
 
 $cores = $argv[1];
-fprintf(STDERR, "Number of CPU cores is %d\n", (int)$cores);
+if(isset($opts['v'])) {
+	fprintf(STDERR, "Number of CPU cores is %d\n", (int)$cores);
+}
 
 $calc_base = $opts['b'] ?? "128M";
 if(isset($opts['v'])) {
@@ -141,6 +141,8 @@ if($max_workers < $result) {
 	if(isset($opts['v'])) {
 		fprintf(STDERR, "Limiting number of workers to %d\n", $result);
 	}
+} elseif($max_workers > $result) {
+	fprintf(STDERR, "Limiting number of workers to %d\n", $result);
 }
 
 echo $result;
