@@ -29,16 +29,17 @@ function bytestostring($amount) {
 	return sprintf("%d%s", $amount, $suffix);
 }
 
-$opts = getopt("b:t:v", array(), $rest_index);
+$opts = getopt("b:ht:v", array("help"), $rest_index);
 $argv = array_slice($argv, $rest_index);
 $argc = count($argv);
-if($argc != 2) {
-	fprintf(STDERR,
+$print_help = isset($opts['h']) || isset($opts['help']);
+if($argc != 2 || $print_help) {
+	fprintf($print_help ? STDOUT : STDERR,
 		"Usage:\n".
 		"  %s [options] <RAM_AVAIL> <NUM_CORES>\n\n",
 		basename(__FILE__)
 	);
-	fputs(STDERR,
+	fputs($print_help ? STDOUT : STDERR,
 		"Determines the number of PHP-FPM worker processes for given RAM and CPU cores\n\n".
 		"The initial calculation works as follows:\n".
 		'ceil(log_2(RAM_AVAIL / CALC_BASE)) * NUM_CORES * 2 * (CALC_BASE / memory_limit)'."\n\n".
@@ -53,12 +54,13 @@ if($argc != 2) {
 		"Options:\n".
 		"  -b <CALC_BASE>     The PHP memory_limit on which the calculation of the\n".
 		"                     scaling factors should be based. Defaults to '128M'\n".
+		"  -h, --help         Display this help screen and exit.\n".
 		"  -t <DOCUMENT_ROOT> Dir to read '.user.ini' with memory_limit settings from\n".
 		"  -v                 Verbose mode\n\n".
 		"php_value or php_admin_value lines containing memory_limit INI directives from\n".
 		"a PHP-FPM configuration file or dump (php-fpm -tt) can be fed via STDIN.\n\n"
 	);
-	exit(2);
+	exit($print_help ? 0 : 2);
 }
 
 $ram = stringtobytes($argv[0]); // first arg is the available memory
