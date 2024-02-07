@@ -386,7 +386,7 @@ echo -e "\n[global]\nlog_level = notice" >> "$fpm_config_tmp"
 fpm_command=( php-fpm --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${php_config:+-c "$php_config"} )
 nginx_command=( nginx -c "$nginx_main" -g "pid $nginx_pidfile; include $nginx_config;" )
 
-m# Cgroups v1 path
+# Cgroups v1 path
 mlib_v1="/sys/fs/cgroup/memory/memory.limit_in_bytes"
 # [Cgroups v2 path](https://facebookmicrosites.github.io/cgroup2/docs/memory-controller.html)
 mlib_v2="/sys/fs/cgroup/memory.max"
