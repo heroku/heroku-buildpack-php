@@ -429,12 +429,21 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 	# determine number of FPM processes to run
 	# we feed it the PHP config we found much earlier (it must be the one FPM loads, not the CLI one!), docroot (for .user.ini), detected RAM, and RAM cap
 	# on STDIN, we also pass it any php_value or php_admin_value lines from the FPM config dump that may have a memory_limit (via a herestring, easier than echo)
-	WEB_CONCURRENCY=$(php ${php_config:+-c "$php_config"} -f "$bp_dir/bin/util/autotune.php" -- ${verbose:+-v} -t "$DOCUMENT_ROOT" "$ram" "$cores" <<<"$fpm_limits")
-	[[ $verbose ]] && echo "WEB_CONCURRENCY=${WEB_CONCURRENCY}" >&2
-	[[ $WEB_CONCURRENCY -lt 1 ]] && { WEB_CONCURRENCY=1; [[ $verbose ]] && echo "WEB_CONCURRENCY=1 (was below mininum)" >&2; }
+	autotune_verbose=
+	if [[ $verbose ]]; then
+		autotune_verbose="--verbose" # like -vv
+	elif [[ -z ${DYNO:-} ]]; then
+		autotune_verbose="-v" # only print a little more info on non-dynos
+	fi
+	WEB_CONCURRENCY=$(php ${php_config:+-c "$php_config"} -f "$bp_dir/bin/util/autotune.php" -- ${autotune_verbose} -t "$DOCUMENT_ROOT" "$ram" "$cores" <<<"$fpm_limits")
 	export WEB_CONCURRENCY
 else
 	echo '$WEB_CONCURRENCY env var is set, skipping automatic calculation' >&2
+fi
+
+if ! [[ "$WEB_CONCURRENCY" =~ ^[1-9][0-9]*$ ]] || (( WEB_CONCURRENCY < 1 )); then
+	WEB_CONCURRENCY=1
+	echo "Setting WEB_CONCURRENCY=1 (was outside allowed range)" >&2;
 fi
 
 if [[ $conftest ]]; then
