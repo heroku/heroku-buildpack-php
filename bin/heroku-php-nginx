@@ -386,15 +386,30 @@ echo -e "\n[global]\nlog_level = notice" >> "$fpm_config_tmp"
 fpm_command=( php-fpm --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${php_config:+-c "$php_config"} )
 nginx_command=( nginx -c "$nginx_main" -g "pid $nginx_pidfile; include $nginx_config;" )
 
-mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
-if [[ -f "$mlib" ]]; then
-	[[ $verbose ]] && echo "Reading available RAM from '$mlib'" >&2
-	ram="$(cat "$mlib")"
+m# Cgroups v1 path
+mlib_v1="/sys/fs/cgroup/memory/memory.limit_in_bytes"
+# [Cgroups v2 path](https://facebookmicrosites.github.io/cgroup2/docs/memory-controller.html)
+mlib_v2="/sys/fs/cgroup/memory.max"
+
+if [[ -f "$mlib_v1" ]]; then
+    [[ $verbose ]] && echo "Reading available RAM from '$mlib_v1'" >&2
+    ram="$(cat "$mlib_v1")"
+elif [[ -f "$mlib_v2" ]]; then
+    [[ $verbose ]] && echo "Reading available RAM from '$mlib_v2'" >&2
+    # For cgroups v2, memory.max may contain "max" indicating no limit
+    ram_raw="$(cat "$mlib_v2")"
+    if [[ "$ram_raw" == "max" ]]; then
+        [[ $verbose ]] && echo "No memory limit is set in cgroups v2" >&2
+        ram="No limit"
+    else
+        ram="$ram_raw"
+    fi
 else
-	[[ $verbose ]] && echo "No '$mlib' with RAM info found" >&2
-	ram="512M"
-	echo "Assuming RAM to be ${ram} Bytes" >&2
+    [[ $verbose ]] && echo "No memory limit file found in either cgroups v1 or v2 locations" >&2
+    ram="512M"
+    echo "Assuming RAM to be ${ram} Bytes" >&2
 fi
+
 # read number of available processor cores in a portable (Linux, macOS, BSDs) fashion (leading underscore is not always there)
 cores=$(getconf -a | grep -E '_?NPROCESSORS_ONLN' | head -n1 | tr -s ' ' | cut -d" " -f2) || {
 	echo "WARNING: failed to determine _NPROCESSORS_ONLN via getconf" >&2
