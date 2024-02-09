@@ -69,7 +69,7 @@ fi
 
 # freetype-config is gone on 20.04, but 7.3 doesn't use pkg-config yet
 if [[ $STACK == "heroku-20" && $dep_version == 7.3.* ]]; then
-	patch -p1 < "$(dirname "$BASH_SOURCE")/patches/php-freetype-pkgconfig.patch"
+	patch -p1 < "$(dirname "$BASH_SOURCE")/patches/php/7/3/freetype-pkgconfig.patch"
 	# we changed config.m4 for GD, re-generate configure
 	./buildconf --force
 fi
@@ -81,7 +81,13 @@ fi
 # see the AC_DEFUN([AC_FPM_TRACE] bits in sapi/fpm/config.m4
 sed -i 's/have_ptrace=yes/have_ptrace=no/' configure
 
-patch -p1 < $(dirname $BASH_SOURCE)/patches/php-ignoresigterm.patch
+if [[ $dep_version == 7.4.* ]]; then
+	patch -p1 < "$(dirname $BASH_SOURCE)/patches/php/7/4/ignoresigterm.patch"
+elif [[ $dep_version == 7.* ]]; then
+	patch -p1 < "$(dirname $BASH_SOURCE)/patches/php/7/ignoresigterm.patch"
+else
+	patch -p1 < "$(dirname $BASH_SOURCE)/patches/php/ignoresigterm.patch"
+fi
 
 configureopts=()
 if [[ $dep_version == 7.3.* ]]; then

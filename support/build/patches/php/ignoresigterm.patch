@@ -1,0 +1,120 @@
+diff --git a/sapi/fpm/fpm/fpm_process_ctl.c b/sapi/fpm/fpm/fpm_process_ctl.c
+index 7a55d98b04..ba43ed5bfb 100644
+--- a/sapi/fpm/fpm/fpm_process_ctl.c
++++ b/sapi/fpm/fpm/fpm_process_ctl.c
+@@ -145,6 +145,12 @@ int fpm_pctl_kill(pid_t pid, int how) /* {{{ */
+ 		default :
+ 			break;
+ 	}
++
++	if (s == SIGTERM && fpm_signals_have_ignore_sigterm()) {
++		zlog(ZLOG_DEBUG, "Re-mapping SIGTERM to SIGINT due to HEROKU_PHP_GRACEFUL_SIGTERM");
++		s = SIGINT;
++	}
++
+ 	return kill(pid, s);
+ }
+ /* }}} */
+@@ -200,6 +206,11 @@ static void fpm_pctl_action_next(void)
+ 		timeout = 1;
+ 	}
+ 
++	if (sig == SIGTERM && fpm_signals_have_ignore_sigterm()) {
++		zlog(ZLOG_DEBUG, "Re-mapping SIGTERM to SIGINT due to HEROKU_PHP_GRACEFUL_SIGTERM");
++		sig = SIGINT;
++	}
++
+ 	fpm_pctl_kill_all(sig);
+ 	fpm_signal_sent = sig;
+ 	fpm_pctl_timeout_set(timeout);
+diff --git a/sapi/fpm/fpm/fpm_signals.c b/sapi/fpm/fpm/fpm_signals.c
+index aca7c9ed58..d81014a08a 100644
+--- a/sapi/fpm/fpm/fpm_signals.c
++++ b/sapi/fpm/fpm/fpm_signals.c
+@@ -21,6 +21,7 @@
+ static int sp[2];
+ static sigset_t block_sigset;
+ static sigset_t child_block_sigset;
++static int ignore_sigterm = 0;
+ 
+ const char *fpm_signal_names[NSIG + 1] = {
+ #ifdef SIGHUP
+@@ -182,9 +183,17 @@ static void sig_handler(int signo) /* {{{ */
+ }
+ /* }}} */
+ 
++int fpm_signals_have_ignore_sigterm(void)
++{
++	return ignore_sigterm;
++}
++
+ int fpm_signals_init_main(void)
+ {
+-	struct sigaction act;
++	struct sigaction act, act_ign;
++
++	char* heroku_php_graceful_sigterm = getenv("HEROKU_PHP_GRACEFUL_SIGTERM");
++	ignore_sigterm = heroku_php_graceful_sigterm && atoi(heroku_php_graceful_sigterm);
+ 
+ 	if (0 > socketpair(AF_UNIX, SOCK_STREAM, 0, sp)) {
+ 		zlog(ZLOG_SYSERROR, "failed to init signals: socketpair()");
+@@ -205,7 +214,11 @@ int fpm_signals_init_main(void)
+ 	act.sa_handler = sig_handler;
+ 	sigfillset(&act.sa_mask);
+ 
+-	if (0 > sigaction(SIGTERM,  &act, 0) ||
++	memset(&act_ign, 0, sizeof(act_ign));
++	act_ign.sa_handler = SIG_IGN;
++
++	zlog(ZLOG_DEBUG, "HEROKU_PHP_GRACEFUL_SIGTERM is %d", fpm_signals_have_ignore_sigterm());
++	if (0 > sigaction(SIGTERM,  fpm_signals_have_ignore_sigterm() ? &act_ign : &act, 0) ||
+ 	    0 > sigaction(SIGINT,   &act, 0) ||
+ 	    0 > sigaction(SIGUSR1,  &act, 0) ||
+ 	    0 > sigaction(SIGUSR2,  &act, 0) ||
+@@ -225,20 +238,24 @@ int fpm_signals_init_main(void)
+ 
+ int fpm_signals_init_child(void)
+ {
+-	struct sigaction act, act_dfl;
++	struct sigaction act, act_dfl, act_ign;
+ 
+ 	memset(&act, 0, sizeof(act));
+ 	memset(&act_dfl, 0, sizeof(act_dfl));
++	memset(&act_ign, 0, sizeof(act_ign));
+ 
+ 	act.sa_handler = &sig_soft_quit;
+ 	act.sa_flags |= SA_RESTART;
+ 
+ 	act_dfl.sa_handler = SIG_DFL;
+ 
++	act_ign.sa_handler = SIG_IGN;
++
+ 	close(sp[0]);
+ 	close(sp[1]);
+ 
+-	if (0 > sigaction(SIGTERM,  &act_dfl,  0) ||
++	zlog(ZLOG_DEBUG, "HEROKU_PHP_GRACEFUL_SIGTERM is %d", fpm_signals_have_ignore_sigterm());
++	if (0 > sigaction(SIGTERM,  fpm_signals_have_ignore_sigterm() ? &act_ign : &act_dfl,  0) ||
+ 	    0 > sigaction(SIGINT,   &act_dfl,  0) ||
+ 	    0 > sigaction(SIGUSR1,  &act_dfl,  0) ||
+ 	    0 > sigaction(SIGUSR2,  &act_dfl,  0) ||
+@@ -289,6 +306,7 @@ int fpm_signals_init_mask(void)
+ 		}
+ 	}
+ 	if (0 > sigaddset(&child_block_sigset, SIGTERM) ||
++	    0 > sigaddset(&child_block_sigset, SIGINT) ||
+ 	    0 > sigaddset(&child_block_sigset, SIGQUIT)) {
+ 		zlog(ZLOG_SYSERROR, "failed to prepare child signal block mask: sigaddset()");
+ 		return -1;
+diff --git a/sapi/fpm/fpm/fpm_signals.h b/sapi/fpm/fpm/fpm_signals.h
+index 67c12efdf4..808263102c 100644
+--- a/sapi/fpm/fpm/fpm_signals.h
++++ b/sapi/fpm/fpm/fpm_signals.h
+@@ -5,6 +5,7 @@
+ 
+ #include <signal.h>
+ 
++int fpm_signals_have_ignore_sigterm(void);
+ int fpm_signals_init_main(void);
+ int fpm_signals_init_child(void);
+ int fpm_signals_get_fd(void);
