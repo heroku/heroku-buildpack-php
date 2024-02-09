@@ -419,10 +419,11 @@ if [[ -z "$ram" ]]; then
 fi
 
 # read number of available processor cores in a portable (Linux, macOS, BSDs) fashion (leading underscore is not always there)
-cores=$(getconf -a | grep -E '_?NPROCESSORS_ONLN' | head -n1 | tr -s ' ' | cut -d" " -f2) || {
+# we prefer 'nproc', because that applies cgroup limits for us (e.g. when using 'docker run --cpuset-cpus=1-2'), but it's from GNU coreutils
+cores=$(set -o pipefail; nproc 2>/dev/null || getconf -a | grep -E '_?NPROCESSORS_ONLN' | head -n1 | tr -s ' ' | cut -d" " -f2) || {
 	echo "WARNING: failed to determine _NPROCESSORS_ONLN via getconf" >&2
 	cores=1
-	echo "Assuming number of CPU cores to be $cores" >&2
+	echo "Assuming number of CPU cores to be ${cores}" >&2
 }
 
 if [[ -z ${WEB_CONCURRENCY:-} ]]; then
