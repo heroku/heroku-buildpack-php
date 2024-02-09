@@ -11,9 +11,10 @@ function stringtobytes($amount) {
 		case 'k':
 			$amount = (int)$amount * 1024;
 			break;
-		case !is_numeric($suffix):
-			fprintf(STDERR, "WARNING: ignoring invalid suffix '%s' in 'memory_limit' value '%s'\n", $suffix, $amount);
 		default:
+			if(!is_numeric($suffix)) {
+				fprintf(STDERR, "WARNING: ignoring invalid suffix '%s' in 'memory_limit' value '%s'\n", $suffix, $amount);
+			}
 			$amount = (int)$amount;
 	}
 	return $amount;

@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### FIX
+
+- `WEB_CONCURRENCY` auto-tuning may warn about an invalid suffix for certain available memory values [David Zuelke]
 
 ## [v245] - 2024-02-09
 
