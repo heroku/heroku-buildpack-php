@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v246] - 2024-02-09
+
 ### FIX
 
 - `WEB_CONCURRENCY` auto-tuning may warn about an invalid suffix for certain available memory values [David Zuelke]
@@ -2584,7 +2587,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v245...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v246...main
+[v246]: https://github.com/heroku/heroku-buildpack-php/compare/v245...v246
 [v245]: https://github.com/heroku/heroku-buildpack-php/compare/v244...v245
 [v244]: https://github.com/heroku/heroku-buildpack-php/compare/v243...v244
 [v243]: https://github.com/heroku/heroku-buildpack-php/compare/v242...v243
