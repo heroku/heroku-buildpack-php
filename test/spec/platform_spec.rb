@@ -230,8 +230,10 @@ describe "The PHP Platform Installer" do
 		end
 		
 		context "of a project that uses polyfills providing both bundled-with-PHP and third-party extensions" do
+			# we set an invalid COMPOSER_AUTH on all of these to stop and fail the build on userland dependency install
+			# we only need to check what happened during the platform install step, so that speeds things up
 			it "treats polyfills for bundled-with-PHP and third-party extensions the same", :requires_php_on_stack => "7.4" do
-				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills').deploy do |app|
+				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills', config: { "COMPOSER_AUTH" => "broken" }, allow_failure: true).deploy do |app|
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")
 					out_before_polyfills, out_after_polyfills = app.output.split("detected userland polyfill packages for PHP extensions", 2)
@@ -244,7 +246,7 @@ describe "The PHP Platform Installer" do
 				end
 			end
 			it "installs native bundled extensions for legacy PHP builds for installer < 1.6 even if they are provided by a polyfill", :requires_php_on_stack => "7.3" do
-				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-legacy').deploy do |app|
+				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-legacy', config: { "COMPOSER_AUTH" => "broken" }, allow_failure: true).deploy do |app|
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")
 					out_before_polyfills, out_after_polyfills = app.output.split("detected userland polyfill packages for PHP extensions", 2)
@@ -256,7 +258,7 @@ describe "The PHP Platform Installer" do
 				end
 			end
 			it "solves using the polyfills first and does not downgrade installed packages in the later native install step" do
-				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-nodowngrade').deploy do |app|
+				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-nodowngrade', config: { "COMPOSER_AUTH" => "broken" }, allow_failure: true).deploy do |app|
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")
 					out_before_polyfills, out_after_polyfills = app.output.split("detected userland polyfill packages for PHP extensions", 2)
@@ -270,7 +272,7 @@ describe "The PHP Platform Installer" do
 				end
 			end
 			it "ignores a polyfill for an extension that another extension depends upon" do
-				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-nointernaldeps').deploy do |app|
+				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-nointernaldeps', config: { "COMPOSER_AUTH" => "broken" }, allow_failure: true).deploy do |app|
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					# ext-pq got installed...
 					expect(app.output).to include("- ext-pq (")
