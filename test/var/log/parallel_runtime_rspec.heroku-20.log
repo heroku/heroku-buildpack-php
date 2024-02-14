@@ -1,7 +1,8 @@
 test/spec/blackfire-buildpackagent_spec.rb:100
 test/spec/blackfire-herokuagent_spec.rb:120
 test/spec/bugs_spec.rb:30
-test/spec/ci_frameworks_spec.rb:190
+test/spec/ci_frameworks-a_spec.rb:120
+test/spec/ci_frameworks-k_spec.rb:120
 test/spec/ci_spec.rb:125
 test/spec/composer-1_spec.rb:50
 test/spec/composer-2_spec.rb:90
