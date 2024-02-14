@@ -6,7 +6,7 @@ test/spec/ci_spec.rb:130
 test/spec/composer_spec.rb:135
 test/spec/devcenter_spec.rb:5
 test/spec/httpd_spec.rb:18
-test/spec/newrelic_spec.rb:110
+test/spec/newrelic_spec.rb:115
 test/spec/nginx_spec.rb:49
 test/spec/php-7.3_base_spec.rb:30
 test/spec/php-7.3_boot-apache2_spec.rb:65
