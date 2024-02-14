@@ -3,7 +3,7 @@ test/spec/blackfire-herokuagent_spec.rb:120
 test/spec/bugs_spec.rb:30
 test/spec/ci_frameworks_spec.rb:190
 test/spec/ci_spec.rb:130
-test/spec/composer_spec.rb:120
+test/spec/composer_spec.rb:100
 test/spec/devcenter_spec.rb:5
 test/spec/httpd_spec.rb:18
 test/spec/newrelic_spec.rb:115
@@ -29,5 +29,5 @@ test/spec/php-8.3_concurrency-apache2_spec.rb:70
 test/spec/php-8.3_concurrency-nginx_spec.rb:65
 test/spec/php-8.3_sigterm-apache2_spec.rb:55
 test/spec/php-8.3_sigterm-nginx_spec.rb:55
-test/spec/php_default_spec.rb:55
+test/spec/php_default_spec.rb:60
 test/spec/platform_spec.rb:60
