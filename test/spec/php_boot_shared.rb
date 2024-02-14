@@ -137,9 +137,16 @@ shared_examples "A PHP application for testing boot options" do |series, server|
 				examples.each_with_index do |example, index|
 					it example[:title] do
 						output, _, code = @run[index].rstrip.rpartition("\n")
+						# in case this one has failed, print what the previous runs have done - maybe something unexpected (but still with correct exit code) happened that can aid debugging
+						previous = @run.slice(0, index).map.with_index { |run, idx| out, _, status = run.rstrip.rpartition("\n"); "Output for '#{examples[idx][:cmd]}' (exited #{status}):\n#{out}" }
+						if previous.empty?
+							previous = ""
+						else
+							previous = "\n\nFor reference, here is the output from the previous commands in this run:\n\n#{previous.join("\n\n")}"
+						end
 						expect(code).method(example[:expect]).call(
 							method(example[:operator]).call(example[:code].to_s),
-							"Expected exit code #{code} #{example[:expect]} be #{example[:operator]} to #{example[:code]}; output:\n#{output}"
+							"Expected exit code #{code} #{example[:expect]} be #{example[:operator]} to #{example[:code]}; output for '#{example[:cmd]}':\n#{output}#{previous}"
 						)
 					end
 				end
