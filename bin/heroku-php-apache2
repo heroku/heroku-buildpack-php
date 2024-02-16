@@ -598,7 +598,7 @@ fi
 	if [[ $graceful_sigterm ]]; then
 		trap '' TERM
 	else
-		trap 'trap "" TERM; trap - EXIT; [[ $verbose ]] && echo "Stopping log redirection..." >&2; kill -TERM "${logs_procs[@]}" 2> /dev/null || true; exec 2> /dev/null; wait "${logs_procs[@]}" 2> /dev/null || true; trap - TERM; kill -TERM $$' TERM
+		trap 'trap "" TERM; [[ $verbose ]] && echo "Stopping log redirection..." >&2; kill -TERM "${logs_procs[@]}" 2> /dev/null || true; exec 2> /dev/null; wait "${logs_procs[@]}" 2> /dev/null || true; trap - TERM; kill -TERM $$' TERM
 	fi
 
 	wait 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
@@ -630,7 +630,7 @@ fi
 	if [[ $graceful_sigterm ]]; then
 		trap '' TERM
 	else
-		trap 'trap "" TERM; trap - EXIT; echo "Stopping php-fpm..." >&2; wait_pid_and_pidfile $pid "$fpm_pidfile"; kill -TERM $pid 2> /dev/null || true; wait $pid 2> /dev/null || true; trap - TERM; kill -TERM $$' TERM
+		trap 'trap "" TERM; echo "Stopping php-fpm..." >&2; wait_pid_and_pidfile $pid "$fpm_pidfile"; kill -TERM $pid 2> /dev/null || true; wait $pid 2> /dev/null || true; trap - TERM; kill -TERM $$' TERM
 	fi
 
 	wait $pid 2> /dev/null || true # redirect stderr to prevent possible trap race condition warnings
@@ -659,7 +659,7 @@ fi
 	if [[ $graceful_sigterm ]]; then
 		trap '' TERM
 	else
-		trap 'trap "" TERM; trap - EXIT; echo "Stopping httpd..." >&2; wait_pid_and_pidfile $pid "$httpd_pidfile"; kill -TERM $pid 2> /dev/null || true; wait $pid 2> /dev/null || true; trap - TERM; kill -TERM $$' TERM
+		trap 'trap "" TERM; echo "Stopping httpd..." >&2; wait_pid_and_pidfile $pid "$httpd_pidfile"; kill -TERM $pid 2> /dev/null || true; wait $pid 2> /dev/null || true; trap - TERM; kill -TERM $$' TERM
 	fi
 
 	# first, we wait for the pid file to be written, so that we can emit a ready message
