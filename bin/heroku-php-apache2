@@ -559,7 +559,7 @@ fi
 	# 4a) gracefully, by redirecting STDERR to /dev/null - one of the children may already be gone
 	# 5) the sed with the Darwin/GNU sed arg case used to be a function, but that was even worse with an extra wrapping subshell for sed
 	# FIXME: when that sed is killed or crashes, it'll take until the next log line, when tail fails to write to sed, to error and bring everything down
-	trap 'echo "log redirection" >&3;' EXIT
+	trap 'echo "log redirection" >&3; wait 2> /dev/null' EXIT
 	trap '' INT;
 
 	[[ $verbose ]] && echo "Starting log redirection..." >&2
@@ -608,7 +608,7 @@ fi
 ) & pids+=($!)
 
 (
-	trap 'echo "php-fpm" >&3;' EXIT
+	trap 'echo "php-fpm" >&3; wait 2> /dev/null' EXIT
 	trap '' INT;
 
 	echo "Starting php-fpm with ${WEB_CONCURRENCY} workers..." >&2
@@ -640,7 +640,7 @@ fi
 ) & pids+=($!)
 
 (
-	trap 'echo "httpd" >&3;' EXIT
+	trap 'echo "nginx" >&3; wait 2> /dev/null' EXIT
 	trap '' INT;
 
 	# wait for FPM to write its PID file, which it does after initialization
