@@ -17,11 +17,15 @@ shared_examples "A PHP application with long-running requests" do |series, serve
 		it "gracefully shuts down when the leader process receives a SIGTERM" do
 			# first, launch in the background and get the pid
 			# then sleep five seconds to allow boot (semicolon before ! needs a space, Bash...)
-			# curl the sleep() script, kill it after two seconds
+			# curl the sleep() script (and remember the curl pid)
+			# pgrep all our user's PIDs, then inverse-grep away $$ (that's our shell) and the curl PID
+			# we issue two SIGTERMs to ensure that the leader process handles the arrival of multiple signals correctly
 			# wait for $pid so that we can be certain to get all the output
-			cmd = "heroku-php-#{server} & pid=$! ; sleep 5; curl \"localhost:$PORT/index.php?wait=5\" & sleep 2; kill $pid; wait $pid"
+			# finally, with a kill -0, check if any of the processes we wanted to terminate are still alive - nothing should be!
+			cmd = "heroku-php-#{server} & pid=$! ; sleep 5; curl \"localhost:$PORT/index.php?wait=5\" & curlpid=$!; sleep 2; pidlist=$(pgrep -U $UID | grep -vw -e $$ -e $curlpid); kill $pid & kill $pid; sleep 0.1; kill $pid 2>/dev/null; wait $pid; kill -0 $pidlist 2>/dev/null && { echo 'Oh no, processes left behind:'; ps afx o user,pgid,pid,comm; }"
 			retry_until retry: 3, sleep: 5 do
-				output = @app.run(cmd)
+				# exit status should be 1 - the last 'kill -0' should not have found any of the given PIDs
+				output = expect_exit(expect: :to, code: 1) { @app.run(cmd, :return_obj => true) }.output
 				expect(output).to match(/^hello world after 5\d{9} us \(expected 5 s\)$/)
 				expect(output).to match(/^request complete$/) # ensure a late log line is captured, meaning the logs tail process stays alive until the end
 			end
@@ -33,10 +37,13 @@ shared_examples "A PHP application with long-running requests" do |series, serve
 			# curl the sleep() script (and remember the curl pid)
 			# pgrep all our user's PIDs, then inverse-grep away $$ (that's our shell) and the curl PID
 			# hand all those PIDs to kill
+			# we issue two SIGTERMs to ensure that the leader process handles the arrival of multiple signals correctly
 			# wait for $pid so that we can be certain to get all the output
-			cmd = "heroku-php-#{server} & pid=$! ; sleep 5; curl \"localhost:$PORT/index.php?wait=5\" & curlpid=$!; sleep 2; kill $(pgrep -U $UID | grep -vw -e $$ -e $curlpid) 2>/dev/null; wait $pid"
+			# finally, with a kill -0, check if any of the processes we wanted to terminate are still alive - nothing should be!
+			cmd = "heroku-php-#{server} & pid=$! ; sleep 5; curl \"localhost:$PORT/index.php?wait=5\" & curlpid=$!; sleep 2; pidlist=$(pgrep -U $UID | grep -vw -e $$ -e $curlpid); kill $pidlist 2>/dev/null & kill $pidlist 2>/dev/null; sleep 0.1; kill $pidlist 2>/dev/null; wait $pid; kill -0 $pidlist 2>/dev/null && { echo 'Oh no, processes left behind:'; ps afx o user,pgid,pid,comm; }"
 			retry_until retry: 3, sleep: 5 do
-				output = @app.run(cmd)
+				# exit status should be 1 - the last 'kill -0' should not have found any of the given PIDs
+				output = expect_exit(expect: :to, code: 1) { @app.run(cmd, :return_obj => true) }.output
 				expect(output).to match(/^hello world after 5\d{9} us \(expected 5 s\)$/)
 				expect(output).to match(/^request complete$/) # ensure a late log line is captured, meaning the logs tail process stays alive until the end
 			end
