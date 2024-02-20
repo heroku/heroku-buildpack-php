@@ -5,6 +5,7 @@
 ### CHG
 
 - Improve handling of concurrent or unknown signals in boot scripts [David Zuelke]
+- Raise curl connection timeout threshold from 5 to 10 seconds [David Zuelke]
 
 ## [v246] - 2024-02-09
 
