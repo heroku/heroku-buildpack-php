@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ADD
+
+- Read memory limits from cgroups (v1 or v2) in boot scripts (#699) [David Zuelke]
+
 ### FIX
 
 - Packages with build metadata in version strings (e.g. `php-8.5.3+heroku1`) have incorrectly encoded dist URLs in manifest [David Zuelke]
