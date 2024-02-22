@@ -21,6 +21,8 @@ fi
 # we very likely got called via a symlink, so we have to realpath $0 first to find the base buildpack directory
 bp_dir=$(cd $(dirname $(realpath $0)); cd ..; pwd)
 
+source "${bp_dir}/bin/util/cgroups.sh"
+
 verbose=
 conftest=
 
@@ -387,21 +389,42 @@ echo -e "\n[global]\nlog_level = notice" >> "$fpm_config_tmp"
 fpm_command=( php-fpm --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${php_config:+-c "$php_config"} )
 nginx_command=( nginx -c "$nginx_main" -g "pid $nginx_pidfile; include $nginx_config;" )
 
-mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
-if [[ -f "$mlib" ]]; then
-	[[ $verbose ]] && echo "Reading available RAM from '$mlib'" >&2
-	ram="$(cat "$mlib")"
-else
-	[[ $verbose ]] && echo "No '$mlib' with RAM info found" >&2
-	ram="512M"
-	echo "Assuming RAM to be ${ram} Bytes" >&2
+ram=
+# a hard maximum we never want to exceed, e.g. in case of silly values
+memory_maximum=$(( 8*1024*1024*1024*1024 ))
+# attempt to read a "correct" limit from cgroupfs
+# this will handle cgroups v1 and v2, and, for v2, prefer memory.high over memory.max over memory.low
+if [[ -d "/proc" ]]; then # check for /proc, just in case someone is running this on e.g. macOS
+	[[ $verbose ]] && echo "Checking cgroupfs for memory limits..." >&2
+	ram=$(cgroup_util_read_cgroup_memory_limit ${verbose:+"-v"} -m "$memory_maximum") || {
+		# 99 means the limit was exceeded; in verbose mode, a message was then already printed
+		if (( $? == 99)); then
+			ram="512M"
+			echo "Assuming RAM to be ${ram} Bytes" >&2
+		elif [[ $verbose ]]; then
+			echo "No cgroup memory limits found" >&2
+		fi
+	}
 fi
+if [[ -z "$ram" ]]; then
+	# for maximum backward compatibility, use a hard-coded path's value as the default if it exists
+	mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
+	if [[ -f "$mlib" ]]; then
+		[[ $verbose ]] && echo "Reading available RAM from '$mlib'" >&2
+		ram=$(cat "$mlib")
+	else
+		ram="512M"
+		echo "Assuming RAM to be ${ram} Bytes" >&2
+	fi
+fi
+
 # read number of available processor cores in a portable (Linux, macOS, BSDs) fashion (leading underscore is not always there)
 cores=$(getconf -a | grep -E '_?NPROCESSORS_ONLN' | head -n1 | tr -s ' ' | cut -d" " -f2) || {
 	echo "WARNING: failed to determine _NPROCESSORS_ONLN via getconf" >&2
 	cores=1
 	echo "Assuming number of CPU cores to be $cores" >&2
 }
+
 if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 	if [[ -n ${DYNO:-} && $(ulimit -u) == "32768" && ( "$php_version" == 5.* || "$php_version" == 7.[0-3].* ) ]]; then
 		# on a Performance-L dyno, limit to 6 GB of RAM for backwards compatibility for PHP versions before 7.4
