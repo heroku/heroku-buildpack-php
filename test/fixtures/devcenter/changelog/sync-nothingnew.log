@@ -1,0 +1,61 @@
+The following packages will be IGNORED:
+  - (none)
+
+The following packages will be ADDED
+ from s3://lang-php/dist-heroku-20-develop/
+   to s3://lang-php/dist-heroku-20-stable/:
+  - (none)
+
+The following packages will be UPDATED (source manifest is newer)
+ from s3://lang-php/dist-heroku-20-develop/
+   to s3://lang-php/dist-heroku-20-stable/:
+  - php-8.2.15
+  - php-8.3.2
+
+The following packages will be REMOVED
+ from s3://lang-php/dist-heroku-20-stable/:
+  - (none)
+
+
+Copying php-8.2.15:
+  - copying 'php-8.2.15.tar.gz'... done.
+  - copying manifest file 'php-8.2.15.composer.json'... done.
+Copying php-8.3.2:
+  - copying 'php-8.3.2.tar.gz'... done.
+  - copying manifest file 'php-8.3.2.composer.json'... done.
+
+Generating and uploading packages.json... done!
+
+
+Sync complete.
+
+The following packages will be IGNORED:
+  - (none)
+
+The following packages will be ADDED
+ from s3://lang-php/dist-heroku-20-develop/
+   to s3://lang-php/dist-heroku-20-stable/:
+  - (none)
+
+The following packages will be UPDATED (source manifest is newer)
+ from s3://lang-php/dist-heroku-20-develop/
+   to s3://lang-php/dist-heroku-20-stable/:
+  - php-8.2.15
+  - php-8.3.2
+
+The following packages will be REMOVED
+ from s3://lang-php/dist-heroku-20-stable/:
+  - (none)
+
+
+Copying php-8.2.15:
+  - copying 'php-8.2.15.tar.gz'... done.
+  - copying manifest file 'php-8.2.15.composer.json'... done.
+Copying php-8.3.2:
+  - copying 'php-8.3.2.tar.gz'... done.
+  - copying manifest file 'php-8.3.2.composer.json'... done.
+
+Generating and uploading packages.json... done!
+
+
+Sync complete.

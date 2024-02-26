@@ -4,6 +4,7 @@ test/spec/bugs_spec.rb:30
 test/spec/ci_frameworks_spec.rb:190
 test/spec/ci_spec.rb:130
 test/spec/composer_spec.rb:135
+test/spec/devcenter_spec.rb:5
 test/spec/httpd_spec.rb:18
 test/spec/newrelic_spec.rb:110
 test/spec/nginx_spec.rb:49
