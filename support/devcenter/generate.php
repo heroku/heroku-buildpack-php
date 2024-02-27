@@ -346,6 +346,7 @@ foreach($extCounts as $name => $count) {
 		array_splice($eExtensions, $position, $length, [$collapse]);
 	}
 }
+unset($row); // unlink &$row reference from above, we're re-using that variable below
 
 $composersQuery = ["SELECT name, series"];
 foreach($stacks as $key => $stack) {
