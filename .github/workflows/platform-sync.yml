@@ -218,12 +218,14 @@ jobs:
         id: diff
         if: steps.find-section-markers.outputs.num_sections > 0
         run: |
-          echo '## Diff of changes to ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ inputs.dry-run == true && '**This is based on the source bucket (due to dry-run mode)**, not the production bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
-          echo '``````diff' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
           # diff exits 0 if there are no differences, 1 if there are, 2 if there was trouble
-          diff -u php-support.md.orig php-support.md >> "$GITHUB_STEP_SUMMARY" && {
-            echo "::warning title=No diff in markdown::There were no differences after applying the generated sections to the input markdown."
+          # our patch --ed earlier added a newline at the end of the file
+          # the downloaded markdown, however, may not have a newline at the end of the file
+          # as a result, `diff` may produce a difference for that, but we want to ignore it
+          # we run through a sed that matches on end of file ($), then appends (a) nothing (after backslash)
+          # GNU sed will then add a newline at the end if there isn't one
+          diff -u <(sed -e '$a\' php-support.md.orig) <(sed -e '$a\' php-support.md) > php-support.diff && {
+            echo "::notice title=No diff in markdown::There were no differences after applying the generated sections to the input markdown."
             echo "diff_result=0" >> "$GITHUB_OUTPUT"
           } || {
             diff_result=$?
@@ -232,8 +234,12 @@ jobs:
               echo "::error title=Unexpected error during diffing::Exit status of 'diff' command was '${diff_result}'."
               exit ${diff_result}
             }
+            echo '## Diff of changes to ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
+            echo "${{ inputs.dry-run == true && '**This is based on the source bucket (due to dry-run mode)**, not the production bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+            echo '``````diff' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+            cat php-support.diff >> "$GITHUB_STEP_SUMMARY"
+            echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
           }
-          echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
       - name: Output complete Dev Center article markdown
         if: steps.find-section-markers.outputs.num_sections > 0 && steps.diff.outputs.diff_result == 1
         run: |
