@@ -5,22 +5,45 @@ use Composer\Semver\Comparator;
 
 require('vendor/autoload.php');
 
-$strict = false;
+// sections to generate, but also some other stuff, can be passed via options
+$sections = getopt('d:s:p:', ['strict', 'runtimes', 'built-in-extensions', 'third-party-extensions', 'composers', 'webservers'], $restIndex);
+$posArgs = array_slice($argv, $restIndex);
 
-// these need updating from time to time to add new stacks and remove EOL ones
-$stacks = [
-	1 => '20', // the offset we start with here is relevant for the numbering of footnotes
-	'22',
-];
-// these need updating from time to time to add new series and remove series no longer on any stack
-$series = [
-	'7.3',
-	'7.4',
-	'8.0',
-	'8.1',
-	'8.2',
-	'8.3',
-];
+$strict = isset($sections['strict']);
+unset($sections['strict']);
+
+// allow overriding of current date for EOL computation, useful for testing
+$currentUnixTimestamp = strtotime($sections['d'] ?? 'now');
+unset($sections['d']);
+
+// allow overriding of stacks, useful for testing
+if(isset($sections['s'])) {
+	$stacks = explode(',', $sections['s']);
+	unset($sections['s']);
+	$stacks = array_combine(range(1, count($stacks)), $stacks); // re-index to start at 1, relevant for the numbering of footnotes
+} else {
+	// these need updating from time to time to add new stacks and remove EOL ones
+	$stacks = [
+		1 => '20', // the offset we start with here is relevant for the numbering of footnotes
+		'22',
+	];
+}
+
+// allow overriding of PHP series, useful for testing
+if(isset($sections['p'])) {
+	$series = explode(',', $sections['p']);
+	unset($sections['p']);
+} else {
+	// these need updating from time to time to add new series and remove series no longer on any stack
+	$series = [
+		'7.3',
+		'7.4',
+		'8.0',
+		'8.1',
+		'8.2',
+		'8.3',
+	];
+}
 
 $findstacks = function(array $package) use($stacks) {
 	if($package['require']) {
@@ -42,6 +65,7 @@ $findseries = function(array $package) use($series, $strict) {
 	// if there are no requirements specified for heroku-sys/php, this will match all PHP series (good luck with that, but rules are rules)
 	fprintf(STDERR, "WARNING: package %s (version %s) has no 'require' entry for 'heroku-sys/php' and may get resolved for any PHP series!\n", $package['name'], $package['version']);
 	if($strict) {
+		fputs(STDERR, "ERROR: now aborting due to strict mode\n");
 		exit(1);
 	}
 	return $series;
@@ -90,11 +114,6 @@ $handlerStack->push(GuzzleHttp\Middleware::retry(function($times, $req, $res, $e
 }));
 $client = new GuzzleHttp\Client(['handler' => $handlerStack, "timeout" => "2.0"]);
 
-$sections = getopt('', ['strict', 'runtimes', 'built-in-extensions', 'third-party-extensions', 'composers', 'webservers'], $restIndex);
-$strict = isset($sections['strict']);
-unset($sections['strict']);
-$posArgs = array_slice($argv, $restIndex);
-
 $repositories = [];
 $responses = GuzzleHttp\Pool::batch($client, (function() use($posArgs, $client) {
 	foreach($posArgs as $arg) {
@@ -119,10 +138,10 @@ $responses = GuzzleHttp\Pool::batch($client, (function() use($posArgs, $client) 
 ]);
 
 // load EOL info from bin/util/eol.php
-$eol = array_filter(array_map(function($eolDates) {
-	if(strtotime($eolDates[1]) < time())
+$eol = array_filter(array_map(function($eolDates) use($currentUnixTimestamp) {
+	if(strtotime($eolDates[1]) < $currentUnixTimestamp)
 		return "eol";
-	elseif(strtotime($eolDates[0]) < time())
+	elseif(strtotime($eolDates[0]) < $currentUnixTimestamp)
 		return "security";
 	else
 		return null; // will be removed by array_filter
@@ -244,6 +263,7 @@ if($ignoredSeries = array_diff($detectedSeries, $series)) {
 	// a warning is appropriate here: there are available packages that are not whitelisted and thus will not show up in documentation
 	fprintf(STDERR, "WARNING: runtime series ignored in input due to missing whitelist entries: %s\n", implode(', ', $ignoredSeries));
 	if($strict) {
+		fputs(STDERR, "ERROR: now aborting due to strict mode\n");
 		exit(1);
 	}
 }
