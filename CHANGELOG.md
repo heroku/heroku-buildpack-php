@@ -8,6 +8,7 @@
 - PHP/8.3.3 [David Zuelke]
 - ext-event/3.1.3 [David Zuelke]
 - ext-pq/2.2.3 [David Zuelke]
+- ext-phalcon/5.6.1 [David Zuelke]
 
 ### CHG
 
