@@ -9,6 +9,7 @@
 - ext-event/3.1.3 [David Zuelke]
 - ext-pq/2.2.3 [David Zuelke]
 - ext-phalcon/5.6.1 [David Zuelke]
+- ext-blackfire/1.92.10 [David Zuelke]
 
 ### CHG
 
