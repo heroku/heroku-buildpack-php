@@ -18,6 +18,7 @@
 - Raise curl connection timeout threshold from 5 to 10 seconds [David Zuelke]
 - Blackfire/2.25.0 [David Zuelke]
 - Composer/2.2.23 [David Zuelke]
+- Composer/2.7.1 [David Zuelke]
 
 ## [v246] - 2024-02-09
 
