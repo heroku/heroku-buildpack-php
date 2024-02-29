@@ -1,0 +1,47 @@
+{{"now"|date("F Y", "UTC")}} PHP Updates
+----
+{% if phps %}
+The following new [PHP runtime versions](https://devcenter.heroku.com/articles/php-support#available-versions) are now available:
+
+{% for php in phps %}
+- [PHP {{php.version}}](https://www.php.net/ChangeLog-{{php.series}}.php#{{php.version}})
+{% endfor %}
+
+{% endif -%}
+
+{% if extensions %}
+The following [PHP extensions](https://devcenter.heroku.com/articles/php-support#extensions) have been added or updated:
+
+{% for extension in extensions %}
+- `{{extension.name}}` {{extension.version}}
+{% endfor %}
+
+{% endif -%}
+
+{% if composers %}
+The following new [Composer versions](https://devcenter.heroku.com/articles/php-support#available-composer-versions) are now available [for use during builds](https://devcenter.heroku.com/articles/php-support#installation-of-dependencies):
+
+{% for composer in composers %}
+- [Composer {{composer.version}}](https://getcomposer.org/changelog/{{composer.version}})
+{% endfor %}
+
+{% endif -%}
+
+{% if apache %}
+The Apache HTTPD [web server](https://devcenter.heroku.com/articles/php-support#web-servers) has been updated to version [{{apache.version}}](https://downloads.apache.org/httpd/CHANGES_{{apache.version}}).
+
+{% endif -%}
+
+{% if nginx %}
+The Nginx [web server](https://devcenter.heroku.com/articles/php-support#web-servers) has been updated to version [{{nginx.version}}](https://nginx.org/en/CHANGES-{{nginx.series}}).
+
+{% endif -%}
+
+{% if blackfire %}
+The `blackfire` CLI agent program used by `ext-blackfire` has been updated to version {{blackfire.version}}.
+
+{% endif -%}
+
+{% for library in libraries %}
+The `{{library.name}}` library has been updated to version {{library.version}}.
+{% endfor %}
