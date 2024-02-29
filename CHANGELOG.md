@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.2.16 [David Zuelke]
+
 ### CHG
 
 - Improve handling of concurrent or unknown signals in boot scripts [David Zuelke]
