@@ -10,6 +10,7 @@
 - ext-pq/2.2.3 [David Zuelke]
 - ext-phalcon/5.6.1 [David Zuelke]
 - ext-blackfire/1.92.10 [David Zuelke]
+- ext-newrelic/10.17.0.7 [David Zuelke]
 
 ### CHG
 
