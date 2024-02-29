@@ -2,10 +2,23 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.2.16 [David Zuelke]
+- PHP/8.3.3 [David Zuelke]
+- ext-event/3.1.3 [David Zuelke]
+- ext-pq/2.2.3 [David Zuelke]
+- ext-phalcon/5.6.1 [David Zuelke]
+- ext-blackfire/1.92.10 [David Zuelke]
+- ext-newrelic/10.17.0.7 [David Zuelke]
+
 ### CHG
 
 - Improve handling of concurrent or unknown signals in boot scripts [David Zuelke]
 - Raise curl connection timeout threshold from 5 to 10 seconds [David Zuelke]
+- Blackfire/2.25.0 [David Zuelke]
+- Composer/2.2.23 [David Zuelke]
+- Composer/2.7.1 [David Zuelke]
 
 ## [v246] - 2024-02-09
 
