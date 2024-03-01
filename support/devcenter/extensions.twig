@@ -57,6 +57,9 @@
 			<td colspan="{{ series|length + 1 }}">
 			{%~ for index, stack in stacks %}
 				<small id="footnote-{{ type }}-ext-not-{{ stack }}">[{{ index }}]: This extension is not available on the <a href="/articles/heroku-{{ stack }}-stack"><code>heroku-{{ stack }}</code> stack</a>.</small>
+				{%- if not loop.last -%}
+				<br />
+				{%- endif ~%}
 			{%~ endfor %}
 			</td>
 		</tr>

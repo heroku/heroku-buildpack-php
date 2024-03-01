@@ -628,7 +628,7 @@
 	<tfoot>
 		<tr>
 			<td colspan="5">
-				<small id="footnote-third-party-ext-not-20">[1]: This extension is not available on the <a href="/articles/heroku-20-stack"><code>heroku-20</code> stack</a>.</small>
+				<small id="footnote-third-party-ext-not-20">[1]: This extension is not available on the <a href="/articles/heroku-20-stack"><code>heroku-20</code> stack</a>.</small><br />
 				<small id="footnote-third-party-ext-not-22">[2]: This extension is not available on the <a href="/articles/heroku-22-stack"><code>heroku-22</code> stack</a>.</small>
 			</td>
 		</tr>
