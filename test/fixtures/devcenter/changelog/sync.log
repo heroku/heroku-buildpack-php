@@ -1,0 +1,206 @@
+The following packages will be IGNORED:
+  - (none)
+
+The following packages will be ADDED
+ from s3://lang-php/dist-heroku-20-develop/
+   to s3://lang-php/dist-heroku-20-stable/:
+  - blackfire-2.24.4
+  - ext-amqp-1.9.99_php-8.0
+  - ext-amqp-2.1.2_php-8.0
+  - ext-amqp-2.1.2_php-8.1
+  - ext-amqp-2.1.2_php-8.2
+  - ext-amqp-2.1.2_php-8.3
+  - ext-blackfire-1.92.8_php-7.3
+  - ext-blackfire-1.92.8_php-7.4
+  - ext-blackfire-1.92.8_php-8.0
+  - ext-blackfire-1.92.8_php-8.1
+  - ext-blackfire-1.92.8_php-8.2
+  - ext-blackfire-1.92.8_php-8.3
+  - ext-event-3.1.1_php-7.3
+  - ext-event-3.1.1_php-7.4
+  - ext-event-3.1.1_php-8.0
+  - ext-event-3.1.1_php-8.1
+  - ext-event-3.1.1_php-8.2
+  - ext-event-3.1.1_php-8.3
+  - ext-phalcon-5.6.0_php-8.0
+  - ext-phalcon-5.6.0_php-8.1
+  - ext-phalcon-5.6.0_php-8.2
+  - ext-phalcon-5.6.0_php-8.3
+  - php-8.2.15
+  - php-8.3.2
+  - pkg-php-min-8.1.27
+  - libcassandra-1.2.3
+
+The following packages will be UPDATED (source manifest is newer)
+ from s3://lang-php/dist-heroku-20-develop/
+   to s3://lang-php/dist-heroku-20-stable/:
+  - (none)
+
+The following packages will be REMOVED
+ from s3://lang-php/dist-heroku-20-stable/:
+  - (none)
+
+
+Copying blackfire-2.24.4:
+  - copying 'blackfire-2.24.4.tar.gz'... done.
+  - copying manifest file 'blackfire-2.24.4.composer.json'... done.
+Copying ext-amqp-2.1.2_php-8.0:
+  - copying 'extensions/no-debug-non-zts-20200930/amqp-2.1.2.tar.gz'... done.
+  - copying manifest file 'ext-amqp-2.1.2_php-8.0.composer.json'... done.
+Copying ext-amqp-2.1.2_php-8.1:
+  - copying 'extensions/no-debug-non-zts-20210902/amqp-2.1.2.tar.gz'... done.
+  - copying manifest file 'ext-amqp-2.1.2_php-8.1.composer.json'... done.
+Copying ext-amqp-2.1.2_php-8.2:
+  - copying 'extensions/no-debug-non-zts-20220829/amqp-2.1.2.tar.gz'... done.
+  - copying manifest file 'ext-amqp-2.1.2_php-8.2.composer.json'... done.
+Copying ext-amqp-2.1.2_php-8.3:
+  - copying 'extensions/no-debug-non-zts-20230831/amqp-2.1.2.tar.gz'... done.
+  - copying manifest file 'ext-amqp-2.1.2_php-8.3.composer.json'... done.
+Copying ext-blackfire-1.92.8_php-7.3:
+  - copying 'extensions/no-debug-non-zts-20180731/blackfire-1.92.8.tar.gz'... done.
+  - copying manifest file 'ext-blackfire-1.92.8_php-7.3.composer.json'... done.
+Copying ext-blackfire-1.92.8_php-7.4:
+  - copying 'extensions/no-debug-non-zts-20190902/blackfire-1.92.8.tar.gz'... done.
+  - copying manifest file 'ext-blackfire-1.92.8_php-7.4.composer.json'... done.
+Copying ext-blackfire-1.92.8_php-8.0:
+  - copying 'extensions/no-debug-non-zts-20200930/blackfire-1.92.8.tar.gz'... done.
+  - copying manifest file 'ext-blackfire-1.92.8_php-8.0.composer.json'... done.
+Copying ext-blackfire-1.92.8_php-8.1:
+  - copying 'extensions/no-debug-non-zts-20210902/blackfire-1.92.8.tar.gz'... done.
+  - copying manifest file 'ext-blackfire-1.92.8_php-8.1.composer.json'... done.
+Copying ext-blackfire-1.92.8_php-8.2:
+  - copying 'extensions/no-debug-non-zts-20220829/blackfire-1.92.8.tar.gz'... done.
+  - copying manifest file 'ext-blackfire-1.92.8_php-8.2.composer.json'... done.
+Copying ext-blackfire-1.92.8_php-8.3:
+  - copying 'extensions/no-debug-non-zts-20230831/blackfire-1.92.8.tar.gz'... done.
+  - copying manifest file 'ext-blackfire-1.92.8_php-8.3.composer.json'... done.
+Copying ext-event-3.1.1_php-7.3:
+  - copying 'extensions/no-debug-non-zts-20180731/event-3.1.1.tar.gz'... done.
+  - copying manifest file 'ext-event-3.1.1_php-7.3.composer.json'... done.
+Copying ext-event-3.1.1_php-7.4:
+  - copying 'extensions/no-debug-non-zts-20190902/event-3.1.1.tar.gz'... done.
+  - copying manifest file 'ext-event-3.1.1_php-7.4.composer.json'... done.
+Copying ext-event-3.1.1_php-8.0:
+  - copying 'extensions/no-debug-non-zts-20200930/event-3.1.1.tar.gz'... done.
+  - copying manifest file 'ext-event-3.1.1_php-8.0.composer.json'... done.
+Copying ext-event-3.1.1_php-8.1:
+  - copying 'extensions/no-debug-non-zts-20210902/event-3.1.1.tar.gz'... done.
+  - copying manifest file 'ext-event-3.1.1_php-8.1.composer.json'... done.
+Copying ext-event-3.1.1_php-8.2:
+  - copying 'extensions/no-debug-non-zts-20220829/event-3.1.1.tar.gz'... done.
+  - copying manifest file 'ext-event-3.1.1_php-8.2.composer.json'... done.
+Copying ext-event-3.1.1_php-8.3:
+  - copying 'extensions/no-debug-non-zts-20230831/event-3.1.1.tar.gz'... done.
+  - copying manifest file 'ext-event-3.1.1_php-8.3.composer.json'... done.
+Copying ext-phalcon-5.6.0_php-8.0:
+  - copying 'extensions/no-debug-non-zts-20200930/phalcon-5.6.0.tar.gz'... done.
+  - copying manifest file 'ext-phalcon-5.6.0_php-8.0.composer.json'... done.
+Copying ext-phalcon-5.6.0_php-8.1:
+  - copying 'extensions/no-debug-non-zts-20210902/phalcon-5.6.0.tar.gz'... done.
+  - copying manifest file 'ext-phalcon-5.6.0_php-8.1.composer.json'... done.
+Copying ext-phalcon-5.6.0_php-8.2:
+  - copying 'extensions/no-debug-non-zts-20220829/phalcon-5.6.0.tar.gz'... done.
+  - copying manifest file 'ext-phalcon-5.6.0_php-8.2.composer.json'... done.
+Copying ext-phalcon-5.6.0_php-8.3:
+  - copying 'extensions/no-debug-non-zts-20230831/phalcon-5.6.0.tar.gz'... done.
+  - copying manifest file 'ext-phalcon-5.6.0_php-8.3.composer.json'... done.
+Copying php-8.2.15:
+  - copying 'php-8.2.15.tar.gz'... done.
+  - copying manifest file 'php-8.2.15.composer.json'... done.
+Copying php-8.3.2:
+  - copying 'php-8.3.2.tar.gz'... done.
+  - copying manifest file 'php-8.3.2.composer.json'... done.
+
+Generating and uploading packages.json... done!
+
+
+Sync complete.
+
+The following packages will be IGNORED:
+  - (none)
+
+The following packages will be ADDED
+ from s3://lang-php/dist-heroku-22-develop/
+   to s3://lang-php/dist-heroku-22-stable/:
+  - blackfire-2.24.4
+  - ext-amqp-2.1.2_php-8.1
+  - ext-amqp-2.1.2_php-8.2
+  - ext-amqp-2.1.2_php-8.3
+  - ext-blackfire-1.92.8_php-8.1
+  - ext-blackfire-1.92.8_php-8.2
+  - ext-blackfire-1.92.8_php-8.3
+  - ext-event-3.1.1_php-8.1
+  - ext-event-3.1.1_php-8.2
+  - ext-event-3.1.1_php-8.3
+  - ext-phalcon-5.6.0_php-8.1
+  - ext-phalcon-5.6.0_php-8.2
+  - ext-phalcon-5.6.0_php-8.3
+  - php-8.2.15
+  - php-8.3.2
+  - pkg-php-min-8.1.27
+  - composer-2.8.0
+  - composer-2.8.0RC2
+  - librdkafka-1.9.1
+  - nginx-2.9.0
+  - apache-2.4.4
+
+The following packages will be UPDATED (source manifest is newer)
+ from s3://lang-php/dist-heroku-22-develop/
+   to s3://lang-php/dist-heroku-22-stable/:
+  - (none)
+
+The following packages will be REMOVED
+ from s3://lang-php/dist-heroku-22-stable/:
+  - (none)
+
+
+Copying blackfire-2.24.4:
+  - copying 'blackfire-2.24.4.tar.gz'... done.
+  - copying manifest file 'blackfire-2.24.4.composer.json'... done.
+Copying ext-amqp-2.1.2_php-8.1:
+  - copying 'extensions/no-debug-non-zts-20210902/amqp-2.1.2.tar.gz'... done.
+  - copying manifest file 'ext-amqp-2.1.2_php-8.1.composer.json'... done.
+Copying ext-amqp-2.1.2_php-8.2:
+  - copying 'extensions/no-debug-non-zts-20220829/amqp-2.1.2.tar.gz'... done.
+  - copying manifest file 'ext-amqp-2.1.2_php-8.2.composer.json'... done.
+Copying ext-amqp-2.1.2_php-8.3:
+  - copying 'extensions/no-debug-non-zts-20230831/amqp-2.1.2.tar.gz'... done.
+  - copying manifest file 'ext-amqp-2.1.2_php-8.3.composer.json'... done.
+Copying ext-blackfire-1.92.8_php-8.1:
+  - copying 'extensions/no-debug-non-zts-20210902/blackfire-1.92.8.tar.gz'... done.
+  - copying manifest file 'ext-blackfire-1.92.8_php-8.1.composer.json'... done.
+Copying ext-blackfire-1.92.8_php-8.2:
+  - copying 'extensions/no-debug-non-zts-20220829/blackfire-1.92.8.tar.gz'... done.
+  - copying manifest file 'ext-blackfire-1.92.8_php-8.2.composer.json'... done.
+Copying ext-blackfire-1.92.8_php-8.3:
+  - copying 'extensions/no-debug-non-zts-20230831/blackfire-1.92.8.tar.gz'... done.
+  - copying manifest file 'ext-blackfire-1.92.8_php-8.3.composer.json'... done.
+Copying ext-event-3.1.1_php-8.1:
+  - copying 'extensions/no-debug-non-zts-20210902/event-3.1.1.tar.gz'... done.
+  - copying manifest file 'ext-event-3.1.1_php-8.1.composer.json'... done.
+Copying ext-event-3.1.1_php-8.2:
+  - copying 'extensions/no-debug-non-zts-20220829/event-3.1.1.tar.gz'... done.
+  - copying manifest file 'ext-event-3.1.1_php-8.2.composer.json'... done.
+Copying ext-event-3.1.1_php-8.3:
+  - copying 'extensions/no-debug-non-zts-20230831/event-3.1.1.tar.gz'... done.
+  - copying manifest file 'ext-event-3.1.1_php-8.3.composer.json'... done.
+Copying ext-phalcon-5.6.0_php-8.1:
+  - copying 'extensions/no-debug-non-zts-20210902/phalcon-5.6.0.tar.gz'... done.
+  - copying manifest file 'ext-phalcon-5.6.0_php-8.1.composer.json'... done.
+Copying ext-phalcon-5.6.0_php-8.2:
+  - copying 'extensions/no-debug-non-zts-20220829/phalcon-5.6.0.tar.gz'... done.
+  - copying manifest file 'ext-phalcon-5.6.0_php-8.2.composer.json'... done.
+Copying ext-phalcon-5.6.0_php-8.3:
+  - copying 'extensions/no-debug-non-zts-20230831/phalcon-5.6.0.tar.gz'... done.
+  - copying manifest file 'ext-phalcon-5.6.0_php-8.3.composer.json'... done.
+Copying php-8.2.15:
+  - copying 'php-8.2.15.tar.gz'... done.
+  - copying manifest file 'php-8.2.15.composer.json'... done.
+Copying php-8.3.2:
+  - copying 'php-8.3.2.tar.gz'... done.
+  - copying manifest file 'php-8.3.2.composer.json'... done.
+
+Generating and uploading packages.json... done!
+
+
+Sync complete.
