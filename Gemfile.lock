@@ -1,9 +1,9 @@
 GIT
   remote: https://github.com/heroku/hatchet.git
-  revision: a4635c048f87ecdb032c32f0fdf0fed9d8acf577
+  revision: 0de04fcc3c2125efb07060445e058b643de99d49
   branch: timeouts-etc
   specs:
-    heroku_hatchet (7.4.0)
+    heroku_hatchet (8.0.2)
       excon (~> 0)
       platform-api (~> 3)
       rrrretry (~> 1)
@@ -16,7 +16,7 @@ GEM
     ansi (1.5.0)
     diff-lcs (1.5.1)
     erubis (2.7.0)
-    excon (0.104.0)
+    excon (0.109.0)
     heroics (0.1.2)
       erubis (~> 2.0)
       excon
@@ -28,7 +28,7 @@ GEM
     parallel (1.24.0)
     parallel_tests (4.5.1)
       parallel
-    platform-api (3.5.0)
+    platform-api (3.6.0)
       heroics (~> 0.1.1)
       moneta (~> 1.0.0)
       rate_throttle_client (~> 0.1.0)
@@ -44,7 +44,7 @@ GEM
       rspec-core (> 3.3)
     rspec-support (3.13.1)
     sem_version (2.0.1)
-    thor (1.2.2)
+    thor (1.3.1)
     threaded (0.0.4)
     webrick (1.8.1)
 
@@ -60,5 +60,8 @@ DEPENDENCIES
   rspec-retry
   sem_version
 
+RUBY VERSION
+   ruby 3.2.3p157
+
 BUNDLED WITH
-   1.17.3
+   2.4.19

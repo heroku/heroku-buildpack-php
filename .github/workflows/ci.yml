@@ -41,7 +41,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-          ruby-version: "2.7"
+          ruby-version: "3.2"
       - name: Install PHP and Composer
         uses: shivammathur/setup-php@v2
         with:
@@ -59,19 +59,3 @@ jobs:
         run: bundle exec parallel_rspec --group-by runtime --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/
       - name: Print parallel_runtime_rspec.log
         run: cat parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort
-  post-integration-test:
-    if: always()
-    needs: [integration-test]
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install Ruby and Bundler
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-          ruby-version: "2.7"
-      - name: Hatchet setup
-        run: bundle exec hatchet ci:setup
-      - name: Clean up test apps
-        run: bundle exec hatchet destroy --all
