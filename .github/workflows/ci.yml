@@ -60,4 +60,4 @@ jobs:
       - name: Print list of executed examples
         run: cat test/var/log/group.*.json | jq -r --slurp '[.[].examples[]] | sort_by(.id) | flatten[] | .full_description'
       - name: Print parallel_runtime_rspec.log
-        run: cat parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort
+        run: cat test/var/log/parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort
