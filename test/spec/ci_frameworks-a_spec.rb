@@ -2,12 +2,9 @@ require_relative "spec_helper"
 
 describe "A PHP application on Heroku CI" do
 	{
-		"Codeception": "codecept run",
-		"Behat":       "behat",
-		"PHPSpec":     "phpspec run",
 		"atoum":       "atoum",
-		"Kahlan":      "kahlan",
-		"PHPUnit":     "phpunit",
+		"Behat":       "behat",
+		"Codeception": "codecept run",
 	}.each do |name, command|
 		context "using the #{name} CI framework" do
 			let(:app) {
