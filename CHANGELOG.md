@@ -11,6 +11,10 @@
 - ext-mongodb/1.18.0 [David Zuelke]
 - ext-blackfire/1.92.13 [David Zuelke]
 
+### CHG
+
+- Blackfire/2.26.1 [David Zuelke]
+
 ## [v247] - 2024-02-29
 
 ### ADD
