@@ -2,6 +2,19 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.2.17 [David Zuelke]
+- PHP/8.3.4 [David Zuelke]
+- ext-phalcon/5.6.2 [David Zuelke]
+- ext-newrelic/10.19.0.9 [David Zuelke]
+- ext-mongodb/1.18.0 [David Zuelke]
+- ext-blackfire/1.92.13 [David Zuelke]
+
+### CHG
+
+- Blackfire/2.26.1 [David Zuelke]
+- Composer/2.7.2 [David Zuelke]
 
 ## [v247] - 2024-02-29
 
