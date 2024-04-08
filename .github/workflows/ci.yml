@@ -41,7 +41,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-          ruby-version: "2.7"
+          ruby-version: "3.2"
       - name: Install PHP and Composer
         uses: shivammathur/setup-php@v2
         with:
@@ -56,22 +56,8 @@ jobs:
       - name: Calculate number of parallel_rspec processes (half of num of lines in runtime log)
         run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat test/var/log/parallel_runtime_rspec.${STACK}.log | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"
       - name: Execute tests
-        run: bundle exec parallel_rspec --group-by runtime --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/
+        run: bundle exec parallel_rspec --group-by runtime --first-is-1 --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/
+      - name: Print list of executed examples
+        run: cat test/var/log/group.*.json | jq -r --slurp '[.[].examples[]] | sort_by(.id) | flatten[] | .full_description'
       - name: Print parallel_runtime_rspec.log
-        run: cat parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort
-  post-integration-test:
-    if: always()
-    needs: [integration-test]
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install Ruby and Bundler
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-          ruby-version: "2.7"
-      - name: Hatchet setup
-        run: bundle exec hatchet ci:setup
-      - name: Clean up test apps
-        run: bundle exec hatchet destroy --all
+        run: cat test/var/log/parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort

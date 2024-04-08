@@ -11,11 +11,11 @@ describe "A PHP application on Heroku CI" do
 		end
 	end
 	
-	it "has zend.assertions enabled" do
-		app = new_app_with_stack_and_platrepo('test/fixtures/ci/zendassert', allow_failure: true)
+	it "has zend.assertions enabled and auto-runs a composer.json 'test' script entry" do
+		app = new_app_with_stack_and_platrepo('test/fixtures/ci/zendassert')
 		app.run_ci do |test_run|
-			expect(test_run.status).to eq :failed
-			expect(test_run.output).to match("AssertionError")
+			expect(test_run.output).to match("Script 'composer test' found, executing...")
+			expect(test_run.output).to match("Caught expected AssertionError")
 		end
 	end
 	
@@ -24,17 +24,6 @@ describe "A PHP application on Heroku CI" do
 		app.run_ci do |test_run|
 			expect(test_run.status).to eq :failed
 			expect(test_run.output).to match("No tests found.")
-		end
-	end
-	
-	context "specifying a composer.json 'test' script entry" do
-		let(:app) {
-			new_app_with_stack_and_platrepo('test/fixtures/ci/composertest')
-		}
-		it "executes 'composer test'" do
-			app.run_ci do |test_run|
-				expect(test_run.output).to match("Script 'composer test' found, executing...")
-			end
 		end
 	end
 end
