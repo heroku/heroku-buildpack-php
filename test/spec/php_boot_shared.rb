@@ -1,4 +1,5 @@
 require_relative "spec_helper"
+require "securerandom"
 
 shared_examples "A PHP application for testing boot options" do |series, server|
 	# the matrix of options and arguments to test
@@ -101,39 +102,53 @@ shared_examples "A PHP application for testing boot options" do |series, server|
 		combinations = interesting.map {|v| genmatrix(matrix, v)}.flatten(1).uniq
 		# # a few more "manual" cases
 		combinations << {0 => "heroku-php-#{server}", "--verbose" => true, "-C" => "conf/#{server}.server.include.conf", "-F" => "conf/fpm.include.conf"}
-		combinations.each do | combination |
+		
+		commands = Array.new
+		combinations.each do |combination|
 			cmd = gencmd(combination)
-			context "launching using `#{cmd}'" do
-				if combination.value?(false) or cmd.match("broken")
-					it "does not boot" do
-						retry_until retry: 3, sleep: 5 do
-								# check if "timeout" exited with a status other than 124, which means the process exited (due to the expected error) before "timeout" stepped in after the given duration (five seconds) and terminated it
-							expect_exit(expect: :not_to, code: 124) { @app.run("timeout 15 #{cmd}", :return_obj => true) }
-						end
-					end
-				else
-					it "boots" do
-						retry_until retry: 3, sleep: 5 do
-							# check if "waitforit" exited with status 0, which means the process successfully output the expected message
-							expect_exit(expect: :to, code: 0) { @app.run("./waitforit.sh 15 'ready for connections' #{cmd}", :return_obj => true) }
-						end
-					end
-				end
+			if combination.value?(false) or cmd.match("broken")
+				commands << {group: "does not boot", title: "using command #{cmd}", cmd: "timeout 10 #{cmd}", expect: :not_to, operator: :eq, code: 124}
+			else
+				commands << {group: "boots", title: "using command #{cmd}", cmd: "./waitforit.sh 10 'ready for connections' #{cmd}", expect: :to, operator: :eq, code: 0}
 			end
 		end
 		
-		context "launching using too many arguments" do
-			it "fails to boot" do
-				retry_until retry: 3, sleep: 5 do
-					expect_exit(expect: :to, code: 2) { @app.run("timeout 10 heroku-php-#{server} docroot/ anotherarg", :return_obj => true) }
-				end
-			end
-		end
+		# some more simple arg cases
+		commands << {group: "does not boot", title: "using too many arguments", cmd: "timeout 10 heroku-php-#{server} docroot/ anotherarg", expect: :to, operator: :eq, code: 2}
+		commands << {group: "does not boot", title: "using unknown options", cmd: "timeout 10 heroku-php-#{server} --what -u erp", expect: :to, operator: :eq, code: 2}
 		
-		context "launching using unknown options" do
-			it "fails to boot" do
-				retry_until retry: 3, sleep: 5 do
-					expect_exit(expect: :to, code: 2) { @app.run("timeout 10 heroku-php-#{server} --what -u erp", :return_obj => true) }
+		commands.group_by { |command| command[:group] }.each do |group, examples|
+			
+			context group do
+				before(:all) do
+					delimiter = SecureRandom.uuid
+					# run the command, then print a newline and the exit status (which we also test against)
+					# there are very rare cases of stderr and stdout getting read (by the dyno runner) slightly out of order
+					# if that happens, the last stderr line(s) from the program might get picked up after the next thing we echo
+					# for that reason, we redirect stderr to stdout
+					run_cmds = examples
+						.map { |example| "#{example[:cmd]} 2>&1; echo $'\\n'$?" }
+						.join("; echo -n '#{delimiter}'; ")
+					retry_until retry: 3, sleep: 5 do
+						@run = @app.run(run_cmds).split(delimiter)
+					end
+				end
+				
+				examples.each_with_index do |example, index|
+					it example[:title] do
+						output, _, code = @run[index].rstrip.rpartition("\n")
+						# in case this one has failed, print what the previous runs have done - maybe something unexpected (but still with correct exit code) happened that can aid debugging
+						previous = @run.slice(0, index).map.with_index { |run, idx| out, _, status = run.rstrip.rpartition("\n"); "Output for '#{examples[idx][:cmd]}' (exited #{status}):\n#{out}" }
+						if previous.empty?
+							previous = ""
+						else
+							previous = "\n\nFor reference, here is the output from the previous commands in this run:\n\n#{previous.join("\n\n")}"
+						end
+						expect(code).method(example[:expect]).call(
+							method(example[:operator]).call(example[:code].to_s),
+							"Expected exit code #{code} #{example[:expect]} be #{example[:operator]} to #{example[:code]}; output for '#{example[:cmd]}':\n#{output}#{previous}"
+						)
+					end
 				end
 			end
 		end
