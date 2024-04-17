@@ -1,2 +1,2 @@
-%B %Y PHP Updates
+%B %Y PHP updates
 ----
