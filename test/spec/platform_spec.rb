@@ -9,6 +9,7 @@ require "tempfile"
 generator_fixtures_subdir = "test/fixtures/platform/generator"
 manifest_fixtures_subdir = "test/fixtures/platform/builder/manifest"
 mkrepo_fixtures_subdir = "test/fixtures/platform/builder/mkrepo"
+sync_fixtures_subdir = "test/fixtures/platform/builder/sync"
 
 describe "The PHP Platform Installer" do
 	describe "composer.json Generator Script" do
@@ -209,6 +210,24 @@ describe "The PHP Platform Installer" do
 				
 					expect(expected_json).to eq(generated_json)
 				end
+			end
+		end
+	end
+	
+	describe "Repository Sync Operations Program", :focused => true do
+		it "produces the expected list of operations when syncing between two repositories" do
+			bp_root = [".."].cycle("#{sync_fixtures_subdir}".count("/")+1).to_a.join("/") # right "../.." sequence to get us back to the root of the buildpack
+			Dir.chdir("#{sync_fixtures_subdir}") do |cwd|
+				cmd = "python3 #{bp_root}/support/build/_util/include/sync.py --dry-run us-east-1 lang-php dist-heroku-24-develop/ manifests-src/ us-east-1 lang-php dist-heroku-24-stable/ manifests-dst/"
+				stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
+				
+				expect(status.exitstatus).to eq(0), "sync.py failed, stdout: #{stdout}, stderr: #{stderr}"
+				
+				expected_json = JSON.parse(File.read("expected_ops.json"))
+				generated_json = JSON.parse(stdout)
+				
+				# compare sorted list of operations (sync.py processes in no defined order)
+				expect(expected_json.sort_by(&:zip)).to eq(generated_json.sort_by(&:zip))
 			end
 		end
 	end

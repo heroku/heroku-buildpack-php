@@ -1,0 +1,113 @@
+[
+  {
+    "kind": "dist",
+    "source": "s3://lang-php/dist-heroku-24-develop/package-added-1.0.0.tar.gz",
+    "source-region": "us-east-1",
+    "destination": "s3://lang-php/dist-heroku-24-stable/package-added-1.0.0.tar.gz",
+    "destination-region": "us-east-1",
+    "op": "add",
+    "package": "package-added-1.0.0"
+  },
+  {
+    "kind": "manifest",
+    "op": "add",
+    "package": "package-added-1.0.0",
+    "source": "manifests-dst/package-added-1.0.0.composer.json",
+    "destination": "s3://lang-php/dist-heroku-24-stable/package-added-1.0.0.composer.json",
+    "destination-region": "us-east-1"
+  },
+  {
+    "kind": "dist",
+    "skip": true,
+    "source": "https://example.com/heroku-24/package-added-externaldist-1.0.0.tar.gz",
+    "reason": "file located outside of bucket",
+    "op": "add",
+    "package": "package-added-externaldist-1.0.0"
+  },
+  {
+    "kind": "manifest",
+    "op": "add",
+    "package": "package-added-externaldist-1.0.0",
+    "source": "manifests-dst/package-added-externaldist-1.0.0.composer.json",
+    "destination": "s3://lang-php/dist-heroku-24-stable/package-added-externaldist-1.0.0.composer.json",
+    "destination-region": "us-east-1"
+  },
+  {
+    "kind": "dist",
+    "op": "remove",
+    "package": "package-removed-1.0.0",
+    "destination": "s3://lang-php/dist-heroku-24-stable/package-removed-1.0.0.tar.gz",
+    "destination-region": "us-east-1"
+  },
+  {
+    "kind": "manifest",
+    "op": "remove",
+    "package": "package-removed-1.0.0",
+    "destination": "s3://lang-php/dist-heroku-24-stable/package-removed-1.0.0.composer.json",
+    "destination-region": "us-east-1"
+  },
+  {
+    "kind": "dist",
+    "op": "remove",
+    "skip": true,
+    "package": "package-removed-externaldist-1.0.0",
+    "destination": "https://example.com/heroku-24/package-removed-externaldist-1.0.0.tar.gz",
+    "reason": "file located outside of bucket"
+  },
+  {
+    "kind": "manifest",
+    "op": "remove",
+    "package": "package-removed-externaldist-1.0.0",
+    "destination": "s3://lang-php/dist-heroku-24-stable/package-removed-externaldist-1.0.0.composer.json",
+    "destination-region": "us-east-1"
+  },
+  {
+    "kind": "dist",
+    "skip": true,
+    "source": "https://example.com/heroku-24/package-updated-externaldist-1.0.0.tar.gz",
+    "reason": "file located outside of bucket",
+    "op": "update",
+    "package": "package-updated-externaldist-1.0.0"
+  },
+  {
+    "kind": "manifest",
+    "op": "update",
+    "package": "package-updated-externaldist-1.0.0",
+    "source": "manifests-dst/package-updated-externaldist-1.0.0.composer.json",
+    "destination": "s3://lang-php/dist-heroku-24-stable/package-updated-externaldist-1.0.0.composer.json",
+    "destination-region": "us-east-1"
+  },
+  {
+    "kind": "manifest",
+    "op": "update",
+    "skip": true,
+    "package": "package-newer-in-destination-1.0.0",
+    "source": "manifests-src/package-newer-in-destination-1.0.0.composer.json",
+    "reason": "destination is newer"
+  },
+  {
+    "kind": "manifest",
+    "op": "update",
+    "skip": true,
+    "package": "package-differs-only-in-contents-but-not-time-1.0.0",
+    "source": "manifests-src/package-differs-only-in-contents-but-not-time-1.0.0.composer.json",
+    "reason": "contents differ, but times are identical"
+  },
+  {
+    "kind": "dist",
+    "source": "s3://lang-php/dist-heroku-24-develop/package-updated-1.0.0.tar.gz",
+    "source-region": "us-east-1",
+    "destination": "s3://lang-php/dist-heroku-24-stable/package-updated-1.0.0.tar.gz",
+    "destination-region": "us-east-1",
+    "op": "update",
+    "package": "package-updated-1.0.0"
+  },
+  {
+    "kind": "manifest",
+    "op": "update",
+    "package": "package-updated-1.0.0",
+    "source": "manifests-dst/package-updated-1.0.0.composer.json",
+    "destination": "s3://lang-php/dist-heroku-24-stable/package-updated-1.0.0.composer.json",
+    "destination-region": "us-east-1"
+  }
+]
