@@ -1,4 +1,4 @@
-%B %Y PHP Updates
+%B %Y PHP updates
 ----
 The following new [PHP runtime versions](https://devcenter.heroku.com/articles/php-support#available-versions) are now available:
 
