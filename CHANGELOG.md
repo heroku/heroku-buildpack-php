@@ -3,6 +3,19 @@
 ## [Unreleased]
 
 
+## [v249] - 2024-04-12
+
+### ADD
+
+- PHP/8.2.18 [David Zuelke]
+- PHP/8.3.5 [David Zuelke]
+- ext-mongodb/1.18.1 [David Zuelke]
+
+### CHG
+
+- Blackfire/2.26.4 [David Zuelke]
+- Apache/2.4.59 [David Zuelke]
+
 ## [v248] - 2024-03-28
 
 ### ADD
@@ -2623,7 +2636,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v248...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v249...main
+[v249]: https://github.com/heroku/heroku-buildpack-php/compare/v248...v249
 [v248]: https://github.com/heroku/heroku-buildpack-php/compare/v247...v248
 [v247]: https://github.com/heroku/heroku-buildpack-php/compare/v246...v247
 [v246]: https://github.com/heroku/heroku-buildpack-php/compare/v245...v246
