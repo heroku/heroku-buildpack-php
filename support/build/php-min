@@ -24,6 +24,27 @@ curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
 
+# we need libreadline for PHP
+needed=()
+if [[ $STACK == heroku-2[02] ]]; then
+	needed+=( libreadline8 )
+else
+	needed+=( libreadline8t64 )
+fi
+missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
+if [[ "$missing" ]]; then
+	echo "Error! Missing libraries: $missing"
+	exit 1
+fi
+
+# we need libreadline-dev for PHP
+needed=( libreadline-dev )
+missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
+if [[ "$missing" ]]; then
+	apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
+	apt-get install -q -y $missing
+fi
+
 export PATH=${OUT_PREFIX}/bin:$PATH
 # cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
 # sqlite3 and pdo_sqlite are on by default but we're building them shared on purpose

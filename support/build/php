@@ -40,27 +40,34 @@ curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
 
-# we need libgmp for GMP, libpam0g/libc-client for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP
+# we need libgmp for GMP, libpam0g/libc-client for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP, libreadline for PHP
 needed=( libgmp10 libpam0g libc-client2007e libsasl2-2 libkrb5-3 )
 needed+=( libonig5 )
 needed+=( libsodium23 )
 if [[ $STACK == "heroku-20" ]]; then
 	needed+=( libicu66 )
 	needed+=( libldap-2.4-2 )
+	needed+=( libreadline8 )
 	needed+=( libzip5 )
-else
+elif [[ $STACK == "heroku-22" ]]; then
 	needed+=( libicu70 )
 	needed+=( libldap-2.5-0 )
+	needed+=( libreadline8 )
 	needed+=( libzip4 ) # went back from ABI v5 to v4 in 1.6 or 1.7
+else
+	needed+=( libicu74 )
+	needed+=( libldap2 )
+	needed+=( libreadline8t64 )
+	needed+=( libzip4t64 )
 fi
-
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
 	echo "Error! Missing libraries: $missing"
 	exit 1
 fi
-# we need libgmp-dev for GMP, libpam0g-dev/libc-client-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP
-needed=( libgmp-dev libpam0g-dev libc-client2007e-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev libonig-dev libsodium-dev libsqlite3-dev libzip-dev libwebp-dev )
+
+# we need libgmp-dev for GMP, libpam0g-dev/libc-client-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP, libreadline-dev for PHP
+needed=( libgmp-dev libpam0g-dev libc-client2007e-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev libonig-dev libreadline-dev libsodium-dev libsqlite3-dev libzip-dev libwebp-dev )
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
 	apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
