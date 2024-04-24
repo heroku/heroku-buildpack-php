@@ -5,16 +5,23 @@ set -o pipefail
 # fail harder
 set -eu
 
+help=false
 upload=false
 
 S5CMD_OPTIONS=(${S5CMD_NO_SIGN_REQUEST:+--no-sign-request} ${S5CMD_PROFILE:+--profile "${S5CMD_PROFILE}"} --log error)
 
 # process flags
-optstring=":-:"
+optstring=":-:h"
 while getopts "$optstring" opt; do
 	case $opt in
+		h)
+			help=true
+			;;
 		-)
 			case "$OPTARG" in
+				help)
+					help=true
+					;;
 				upload)
 					upload=true
 					;;
@@ -28,17 +35,15 @@ done
 # clear processed arguments
 shift $((OPTIND-1))
 
-if [[ $# == "1" ]]; then
+if $help; then
 	cat >&2 <<-EOF
-		Usage: $(basename "$0") [--upload] [S3_BUCKET S3_PREFIX [MANIFEST...]]
-		  S3_BUCKET: S3 bucket name for packages.json upload; default: '\$S3_BUCKET'.
-		  S3_PREFIX: S3 prefix, e.g. '' or 'dist-stable/'; default: '\$S3_PREFIX'.
-		  
-		  The environment variable '\$S3_REGION' is used to determine the bucket region;
-		  it defaults to 's3' if not present. Use e.g. 'us-east-1' to set a region.
+		Usage: $(basename "$0") [--upload] [MANIFEST...]
+		  The environment variables '\$S3_BUCKET', '\$S3_PREFIX', and '\$S3_REGION' are
+		  used for S3 bucket addressing; the prefix is optional, and the region is auto-
+		  detected if not given.
 		  
 		  If MANIFEST arguments are given, those are used to build the repo; otherwise,
-		  all manifests from given or default S3_BUCKET+S3_PREFIX are downloaded.
+		  all manifests from S3_BUCKET+S3_PREFIX are downloaded.
 		  
 		  A --upload flag triggers immediate upload, otherwise instructions are printed.
 		  
@@ -48,12 +53,10 @@ if [[ $# == "1" ]]; then
 	exit 2
 fi
 
-if [[ $# != "0" ]]; then
-	S3_BUCKET=$1; shift
-	S3_PREFIX=$1; shift
-fi
+S3_PREFIX=${S3_PREFIX:-}
 
-S3_REGION=${S3_REGION:-}
+# grep out the region (it's there even on 403 responses), and trim whitespace via xargs - important to use grep -o and discard trailing whitespace, otherwise we'll end up with a carriage return at the end of the value
+S3_REGION=${S3_REGION:-$(set -o pipefail; curl -sI "https://${S3_BUCKET}.s3.amazonaws.com/" | grep -E -o -i "^x-amz-bucket-region:\s*\S+" | cut -d: -f2 | xargs || { echo >&2 "Failed to determine region for S3 bucket '$S3_BUCKET'"; exit 1; })}
 
 if [[ $# == "0" ]]; then
 	manifests_tmp=$(mktemp -d -t "dst-repo.XXXXX")
@@ -61,7 +64,7 @@ if [[ $# == "0" ]]; then
 	echo "-----> Fetching manifests... " >&2
 	(
 		cd "$manifests_tmp"
-		AWS_REGION=$S3_REGION s5cmd "${S5CMD_OPTIONS[@]}" cp "s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json" . || { echo -e "\nFailed to fetch manifests! See message above for errors." >&2; exit 1; }
+		s5cmd "${S5CMD_OPTIONS[@]}" cp --source-region "$S3_REGION" "s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json" . || { echo -e "\nFailed to fetch manifests! See message above for errors." >&2; exit 1; }
 	)
 	manifests=("$manifests_tmp"/*.composer.json)
 else
@@ -125,7 +128,7 @@ if $redir; then
 	exec 1>&3 3>&-
 fi
 
-cmd=(s5cmd "${S5CMD_OPTIONS[@]}" cp ${S3_REGION:+--destination-region "$S3_REGION"} --content-type application/json packages.json "s3://${S3_BUCKET}/${S3_PREFIX}packages.json")
+cmd=(s5cmd "${S5CMD_OPTIONS[@]}" cp --destination-region "$S3_REGION" --content-type application/json packages.json "s3://${S3_BUCKET}/${S3_PREFIX}packages.json")
 if $upload; then
 	echo "-----> Uploading packages.json..." >&2
 	"${cmd[@]}" 1>&2
