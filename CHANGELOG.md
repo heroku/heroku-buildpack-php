@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Use PHP 8.3 for bootstrapping [David Zuelke]
 
 ## [v251] - 2024-05-30
 
