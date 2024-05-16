@@ -2,4 +2,9 @@
 
 dep_name=$(basename $BASH_SOURCE)
 
+# ext-oauth <=2.0.7 configure checks for this, but does not actually link against libpcre3
+# https://github.com/php/pecl-web_services-oauth/commit/2e02631fa424639b10d105ff47e9cf650403cef7
+# https://github.com/php/pecl-web_services-oauth/issues/28
+touch /usr/include/pcre.h
+
 source $(dirname $BASH_SOURCE)/../pecl
