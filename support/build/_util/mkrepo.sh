@@ -99,7 +99,7 @@ fi
 python <(cat <<-'PYTHON' # beware of single quotes in body
 	import sys, re, json
 	import itertools
-	from distutils import version
+	from natsort import natsorted
 	manifests = [ json.load(open(item)) for item in sys.argv[1:] if json.load(open(item)).get("type", "") != "heroku-sys-package" ]
 	# for PHP, transform all manifests in extra.shared into their own packages
 	for php in filter(lambda package: package.get("type", "") == "heroku-sys-php", manifests):
@@ -126,8 +126,8 @@ python <(cat <<-'PYTHON' # beware of single quotes in body
 	    if pkg.get("type") == "heroku-sys-php-extension":
 	        replaces["%s.native"%pkg.get("name", "")] = "self.version"
 	# we sort by a tuple: name first (so the following dictionary grouping works), then "php" requirement (see initial comment block)
-	manifests.sort(
-	    key=lambda package: (package.get("name"), version.LooseVersion(re.sub("[<>=*~^]", "0", package.get("require", {}).get("heroku-sys/php", "0.0.0")))),
+	manifests = natsorted(manifests,
+	    key=lambda package: (package.get("name"), re.sub(r"[<>=*~^]", "0", package.get("require", {}).get("heroku-sys/php", "0.0.0"))),
 	    reverse=True)
 	# convert the list to a dict with package names as keys and list of versions (sorted by "php" requirement by previous sort) as values
 	json.dump({"packages": dict((name, list(versions)) for name, versions in itertools.groupby(manifests, key=lambda package: package.get("name"))) }, sys.stdout, sort_keys=True)
