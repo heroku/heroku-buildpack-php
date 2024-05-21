@@ -152,7 +152,7 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--with-sodium=shared \
 	--with-xsl=shared \
 	"${configureopts[@]}"
-make -s -j 9
+make -s -j $(($(nproc)+1))
 make install -s
 find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|(pie-)?executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 popd

@@ -37,14 +37,14 @@ if [[ "$dep_version" == [34].* ]]; then
 	export CPPFLAGS="-DPHALCON_RELEASE"
 	phpize
 	./configure --prefix=${OUT_PREFIX} --enable-phalcon
-	make -s -j9
+	make -s -j $(($(nproc)+1))
 else
 	pushd ${dep_dirname}
 	phpize
 	./configure \
 		--prefix=${OUT_PREFIX} \
 		${CONFIGURE_EXTRA:-}
-	make -s -j 9
+	make -s -j $(($(nproc)+1))
 fi
 
 # php was a build dep, and it's in $OUT_PREFIX; we only want our build results in the final archive, and no build deps

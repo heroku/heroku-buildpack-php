@@ -74,7 +74,7 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--disable-xmlwriter \
 	--with-zip \
 	--with-zlib
-make -s -j 9
+make -s -j $(($(nproc)+1))
 
 mkdir -p ${OUT_PREFIX}/bin
 cp sapi/cli/php ${OUT_PREFIX}/bin/php
