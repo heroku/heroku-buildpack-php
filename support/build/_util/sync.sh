@@ -141,12 +141,12 @@ for filename in $common; do
 		try:
 		    src_time = datetime.datetime.strptime(src_manifest.pop("time"), "%Y-%m-%d %H:%M:%S") # UTC
 		except (KeyError, ValueError):
-		    src_time = datetime.datetime.utcfromtimestamp(os.path.getmtime(sys.argv[1]))
+		    src_time = datetime.datetime.fromtimestamp(os.path.getmtime(sys.argv[1]), tz=datetime.timezone.utc)
 		    stderrprint("WARNING: source manifest {} has invalid time entry, using mtime: {}".format(os.path.basename(sys.argv[1]), src_time.isoformat()))
 		try:
 		    dst_time = datetime.datetime.strptime(dst_manifest.pop("time"), "%Y-%m-%d %H:%M:%S") # UTC
 		except (KeyError, ValueError):
-		    dst_time = datetime.datetime.utcfromtimestamp(os.path.getmtime(sys.argv[2]))
+		    dst_time = datetime.datetime.fromtimestamp(os.path.getmtime(sys.argv[2]), tz=datetime.timezone.utc)
 		    stderrprint("WARNING: destination manifest {} has invalid time entry, using mtime: {}".format(os.path.basename(sys.argv[2]), dst_time.isoformat()))
 		# a newer source time means we will copy
 		if src_time > dst_time:
