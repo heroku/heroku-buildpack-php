@@ -46,7 +46,7 @@ if [[ $# == "1" ]]; then
 		  S3_PREFIX: S3 prefix, e.g. '' or 'dist-stable/'; default: '\$S3_PREFIX'.
 		  
 		  The environment variable '\$S3_REGION' is used to determine the bucket region;
-		  it defaults to 's3' if not present. Use e.g. 's3.us-east-1' to set a region.
+		  it defaults to 's3' if not present. Use e.g. 'us-east-1' to set a region.
 		  
 		  If MANIFEST arguments are given, those are used to build the repo; otherwise,
 		  all manifests from given or default S3_BUCKET+S3_PREFIX are downloaded.
@@ -66,15 +66,13 @@ if [[ $# != "0" ]]; then
 	S3_PREFIX=$1; shift
 fi
 
-S3_REGION=${S3_REGION:-s3}
-
 if [[ $# == "0" ]]; then
 	manifests_tmp=$(mktemp -d -t "dst-repo.XXXXX")
 	trap 'rm -rf $manifests_tmp;' EXIT
 	echo -n "-----> Fetching manifests... " >&2
 	(
 		cd $manifests_tmp
-		s3cmd --host="${S3_REGION}.amazonaws.com" --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" --ssl --progress get s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
+		s3cmd --host="s3.${S3_REGION:-}${S3_REGION:+.}amazonaws.com" --host-bucket="%(bucket)s.s3.${S3_REGION:-}${S3_REGION:+.}amazonaws.com" --ssl --progress get s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
 		rm download.log
 	)
 	echo "" >&2
@@ -140,7 +138,7 @@ if $redir; then
 	exec 1>&3 3>&-
 fi
 
-cmd="s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket='%(bucket)s.${S3_REGION}.amazonaws.com' --ssl -m application/json put packages.json s3://${S3_BUCKET}/${S3_PREFIX}packages.json"
+cmd="s3cmd --host=s3.${S3_REGION:-}${S3_REGION:+.}amazonaws.com --host-bucket='%(bucket)s.s3.${S3_REGION:-}${S3_REGION:+.}amazonaws.com' --ssl -m application/json put packages.json s3://${S3_BUCKET}/${S3_PREFIX}packages.json"
 if $upload; then
 	echo "-----> Uploading packages.json..." >&2
 	eval "$cmd 1>&2"

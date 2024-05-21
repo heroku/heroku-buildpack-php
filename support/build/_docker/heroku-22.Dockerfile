@@ -4,7 +4,7 @@ WORKDIR /app
 ENV WORKSPACE_DIR=/app/support/build
 ENV S3_BUCKET=lang-php
 ENV S3_PREFIX=dist-heroku-22-develop/
-ENV S3_REGION=s3.us-east-1
+ENV S3_REGION=us-east-1
 ENV STACK=heroku-22
 ENV DEBIAN_FRONTEND=noninteractive
 

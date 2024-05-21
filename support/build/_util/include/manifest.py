@@ -14,13 +14,19 @@ elif sys.argv[1] == 'heroku-sys-library':
 elif sys.argv[1] == 'heroku-sys-program':
 	require["heroku/installer-plugin"] = "^1.4.0"
 
+s3_region_string = os.getenv("S3_REGION")
+if s3_region_string == None:
+	s3_region_string = "s3"
+else:
+	s3_region_string = "s3.{}".format(s3_region_string)
+
 manifest = {
 	"type": sys.argv[1],
 	"name": sys.argv[2],
 	"version": sys.argv[3],
 	"dist": {
 		"type": "heroku-sys-tar",
-		"url": "https://"+os.getenv("S3_BUCKET")+"."+os.getenv("S3_REGION", "s3")+".amazonaws.com/"+os.getenv("S3_PREFIX")+sys.argv[4]
+		"url": "https://"+os.getenv("S3_BUCKET")+"."+s3_region_string+".amazonaws.com/"+os.getenv("S3_PREFIX")+sys.argv[4]
 	},
 	"require": require,
 	"conflict": json.loads(sys.argv[6]) if len(sys.argv) > 6 else {},
