@@ -254,7 +254,20 @@ cat >&2 <<-EOF
 	
 EOF
 
-read -p "Are you sure you want to sync to destination & regenerate packages.json? [yN] " proceed
+(cd "$dst_tmp"; shopt -s nullglob; manifests=( *.composer.json ); (( ${#manifests[@]} < 1 )) ) && {
+	wipe=true
+	prompt="Are you sure you want to remove all packages from destination?"
+	cat >&2 <<-EOF
+		THE REMOVALS ABOVE WILL DELETE THIS REPOSITORY IN ITS ENTIRETY!
+		THIS REPOSITORY'S packages.json WOULD BE EMPTY, SO IT WILL BE REMOVED AS WELL!
+		
+	EOF
+} || {
+	wipe=false
+	prompt="Are you sure you want to sync to destination & re-generate packages.json?"
+}
+
+read -p "${prompt} [yN] " proceed
 
 [[ ! $proceed =~ [yY](es)* ]] && exit
 
@@ -281,10 +294,16 @@ if (( ${#run_manifests_cp[@]} || ${#run_manifests_rm[@]} )); then
 	echo "" >&2
 fi
 
-echo -n "Generating and uploading packages.json... " >&2
-out=$(cd "$dst_tmp"; S3_BUCKET=$dst_bucket S3_PREFIX=$dst_prefix S3_REGION=$dst_region "$here/mkrepo.sh" --upload *.composer.json 2>&1) || { echo -e "failed! Error:\n$out\n\nIn case of transient errors, the repository must be re-generated manually." >&2; exit 1; }
-echo "done!
-" >&2
+if $wipe; then
+	echo "Removing packages.json..." >&2
+	AWS_REGION=$dst_region s5cmd "${S5CMD_OPTIONS[@]}" rm "s3://${dst_bucket}/${dst_prefix}packages.json" || { echo -e "\nFailed to remove repository! See message above for errors." >&2; exit 1; }
+	echo "" >&2
+else
+	echo -n "Generating and uploading packages.json... " >&2
+	out=$(cd "$dst_tmp"; S3_BUCKET=$dst_bucket S3_PREFIX=$dst_prefix S3_REGION=$dst_region "$here/mkrepo.sh" --upload *.composer.json 2>&1) || { echo -e "failed! Error:\n$out\n\nIn case of transient errors, the repository must be re-generated manually." >&2; exit 1; }
+	echo "done!
+	" >&2
+fi
 
 if (( ${#run_dists_rm[@]} )); then
 	echo "Removing ${#run_dists_rm[@]} dists from destination..." >&2
