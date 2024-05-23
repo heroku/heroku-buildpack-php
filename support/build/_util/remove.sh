@@ -57,13 +57,14 @@ if [[ $# -lt "1" ]]; then
 		  $(basename $0) php-8.1.{8..16} ext-{redis-4,newrelic-9}.*_php-7.*
 		  
 		  Bucket name and prefix will be read from '\$S3_BUCKET' and '\$S3_PREFIX'.
-		  Bucket region (e.g. 's3.us-east-1') will be read from '\$S3_REGION'.
+		  Bucket region (e.g. 'us-east-1') will be read from '\$S3_REGION'.
 	EOF
 	exit 2
 fi
 
 S3_PREFIX=${S3_PREFIX:-}
-S3_REGION=${S3_REGION:-s3}
+S3_REGION=${S3_REGION:-}
+S3_REGION_PART=s3${S3_REGION:+.}${S3_REGION:-}
 
 here=$(cd $(dirname $0); pwd)
 
@@ -79,7 +80,7 @@ trap 'rm -rf $manifests_tmp;' EXIT
 echo -n "-----> Fetching manifests... " >&2
 (
 	cd $manifests_tmp
-	s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" --ssl --progress get "${manifests[@]}" 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
+	s3cmd --host=${S3_REGION_PART}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION_PART}.amazonaws.com" --ssl --progress get "${manifests[@]}" 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
 	rm download.log
 )
 echo "" >&2
@@ -139,7 +140,7 @@ for manifest in "$manifests_tmp/"*".composer.json"; do
 		    print(url)
 		    sys.exit(1)
 		PYTHON
-	) $S3_BUCKET ${S3_REGION} ${S3_PREFIX})
+	) $S3_BUCKET ${S3_REGION_PART} ${S3_PREFIX})
 	then
 		echo "  - queued '$filename' for removal." >&2
 		remove_files+=("$filename")
@@ -148,7 +149,7 @@ for manifest in "$manifests_tmp/"*".composer.json"; do
 		echo "  - WARNING: not removing '$filename' (in manifest 'dist.url')!" >&2
 	fi
 	echo -n "  - removing manifest file '$(basename "$manifest")'... " >&2
-	out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" --ssl rm "s3://${S3_BUCKET}/${S3_PREFIX}$(basename "$manifest")" 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
+	out=$(s3cmd --host=${S3_REGION_PART}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION_PART}.amazonaws.com" --ssl rm "s3://${S3_BUCKET}/${S3_PREFIX}$(basename "$manifest")" 2>&1) || { echo -e "failed! Error:\n$out" >&2; exit 1; }
 	rm $manifest
 	echo "done." >&2
 done
@@ -169,7 +170,7 @@ if [[ "${#remove_files[@]}" != "0" ]]; then
 	echo "Removing files queued for deletion from bucket:" >&2
 	for filename in "${remove_files[@]}"; do
 		echo -n "  - removing '$filename'... " >&2
-		out=$(s3cmd --host=${S3_REGION}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION}.amazonaws.com" --ssl rm s3://${S3_BUCKET}/${S3_PREFIX}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
+		out=$(s3cmd --host=${S3_REGION_PART}.amazonaws.com --host-bucket="%(bucket)s.${S3_REGION_PART}.amazonaws.com" --ssl rm s3://${S3_BUCKET}/${S3_PREFIX}${filename} 2>&1) && echo "done." >&2 || echo -e "failed! Error:\n$out" >&2
 	done
 	echo "" >&2
 fi

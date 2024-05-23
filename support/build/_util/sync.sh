@@ -41,7 +41,7 @@ if [[ $# -lt "2" || $# -gt "6" ]]; then
 	cat >&2 <<-EOF
 		Usage: $(basename $0) [--no-remove] DEST_BUCKET DEST_PREFIX [DEST_REGION [SOURCE_BUCKET SOURCE_PREFIX [SOURCE_REGION]]]
 		  DEST_BUCKET:   destination S3 bucket name.
-		  DEST_REGION:   destination bucket region, e.g. 's3.us-west-1'; default: '$\S3_REGION' or 's3'.
+		  DEST_REGION:   destination bucket region, e.g. 'us-west-1'; default: '$\S3_REGION'.
 		  DEST_PREFIX:   destination prefix, e.g. '' or 'dist-stable/'.
 		  SOURCE_BUCKET: source S3 bucket name; default: '\$S3_BUCKET'.
 		  SOURCE_REGION: source bucket region; default: <DEST_REGION>.
@@ -56,8 +56,10 @@ dst_prefix=$1; shift
 if [[ $# -gt 2 ]]; then
 	# region name given
 	dst_region=$1; shift
+	dst_region_part=s3.${dst_region}
 else
-	dst_region=${S3_REGION:-"s3"}
+	dst_region=${S3_REGION:-}
+	dst_region_part=s3${dst_region:+.}${dst_region:-}
 fi
 
 src_bucket=${1:-$S3_BUCKET}; shift || true
@@ -65,12 +67,14 @@ src_prefix=${1:-$S3_PREFIX}; shift || true
 if [[ $# == "1" ]]; then
 	# region name given
 	src_region=$1; shift
+	src_region_part=s3.${src_region}; shift
 else
 	src_region=$dst_region
+	src_region_part=s3${src_region:+.}${src_region:-}
 fi
 
-s3cmd_src_host_options="--host=${src_region}.amazonaws.com --host-bucket=%(bucket)s.${src_region}.amazonaws.com"
-s3cmd_dst_host_options="--host=${dst_region}.amazonaws.com --host-bucket=%(bucket)s.${dst_region}.amazonaws.com"
+s3cmd_src_host_options="--host=${src_region_part}.amazonaws.com --host-bucket=%(bucket)s.${src_region_part}.amazonaws.com"
+s3cmd_dst_host_options="--host=${dst_region_part}.amazonaws.com --host-bucket=%(bucket)s.${dst_region_part}.amazonaws.com"
 
 if [[ "$src_region" != "$dst_region" ]]; then
 	echo "CAUTION: Source and destination regions differ. Sync may run into rate limits." >&2
@@ -141,12 +145,12 @@ for filename in $common; do
 		try:
 		    src_time = datetime.datetime.strptime(src_manifest.pop("time"), "%Y-%m-%d %H:%M:%S") # UTC
 		except (KeyError, ValueError):
-		    src_time = datetime.datetime.utcfromtimestamp(os.path.getmtime(sys.argv[1]))
+		    src_time = datetime.datetime.fromtimestamp(os.path.getmtime(sys.argv[1]), tz=datetime.timezone.utc)
 		    stderrprint("WARNING: source manifest {} has invalid time entry, using mtime: {}".format(os.path.basename(sys.argv[1]), src_time.isoformat()))
 		try:
 		    dst_time = datetime.datetime.strptime(dst_manifest.pop("time"), "%Y-%m-%d %H:%M:%S") # UTC
 		except (KeyError, ValueError):
-		    dst_time = datetime.datetime.utcfromtimestamp(os.path.getmtime(sys.argv[2]))
+		    dst_time = datetime.datetime.fromtimestamp(os.path.getmtime(sys.argv[2]), tz=datetime.timezone.utc)
 		    stderrprint("WARNING: destination manifest {} has invalid time entry, using mtime: {}".format(os.path.basename(sys.argv[2]), dst_time.isoformat()))
 		# a newer source time means we will copy
 		if src_time > dst_time:
@@ -240,7 +244,7 @@ for manifest in $add_manifests ${update_manifests[@]:-}; do
 		    print(url)
 		    sys.exit(1)
 		PYTHON
-	) $src_bucket $src_region $src_prefix $dst_bucket $dst_region $dst_prefix ${dst_tmp}/${manifest})
+	) $src_bucket $src_region_part $src_prefix $dst_bucket $dst_region_part $dst_prefix ${dst_tmp}/${manifest})
 	then
 		# the dist URL in the source's manifest points to the source bucket, so we copy the file to the dest bucket
 		echo -n "  - copying '$filename'... " >&2
@@ -279,7 +283,7 @@ for manifest in $remove_manifests; do
 		    print(url)
 		    sys.exit(1)
 		PYTHON
-	) $dst_bucket $dst_region $dst_prefix)
+	) $dst_bucket $dst_region_part $dst_prefix)
 	then
 		# the dist URL in the destination manifest points to the destination bucket, so we remove that file at the end of the script...
 		if [[ " ${copied_files[@]:-} " =~ " $filename " ]]; then

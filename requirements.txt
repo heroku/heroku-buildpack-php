@@ -1,2 +1,3 @@
-bob-builder>=0.0.15
+bob-builder>=0.0.20
 s3cmd>=1.6.0
+natsort
