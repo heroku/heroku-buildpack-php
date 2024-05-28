@@ -12,6 +12,10 @@
 - ext-phalcon/5.7.0 [David Zuelke]
 - ext-blackfire/1.92.17 [David Zuelke]
 
+### CHG
+
+- Composer/2.7.6 [David Zuelke]
+
 ## [v249] - 2024-04-12
 
 ### ADD
