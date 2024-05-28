@@ -5,6 +5,7 @@
 ### ADD
 
 - PHP/8.1.28 [David Zuelke]
+- PHP/8.2.19 [David Zuelke]
 
 ## [v249] - 2024-04-12
 
