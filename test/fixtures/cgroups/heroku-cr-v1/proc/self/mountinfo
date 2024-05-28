@@ -1,0 +1,22 @@
+2058 461 7:19 / / ro,nosuid,nodev,nodiratime,relatime master:519 - ext3 /dev/loop19 ro
+2059 2058 0:63 / /dev rw,relatime - tmpfs none rw,size=492k,mode=755,inode64
+2060 2058 253:0 /ps/e7014d20-e86a-4f46-bdcc-3b7a496d436f/app /app rw,relatime master:345 - ext4 /dev/mapper/evg0-evol0 rw
+2061 2058 253:0 /ps/e7014d20-e86a-4f46-bdcc-3b7a496d436f/tmp /tmp rw,relatime master:345 - ext4 /dev/mapper/evg0-evol0 rw
+2062 2058 253:0 /ps/e7014d20-e86a-4f46-bdcc-3b7a496d436f/var/tmp /var/tmp rw,relatime master:345 - ext4 /dev/mapper/evg0-evol0 rw
+2063 2058 0:100 / /proc rw,relatime - proc none rw
+2066 2059 0:101 / /dev rw,nosuid,noatime,nodiratime - tmpfs none rw,size=1024k,mode=755,inode64
+2069 2066 0:122 / /dev/shm rw,nosuid,nodev,relatime - tmpfs none rw,size=65536k,nr_inodes=2048,mode=700,uid=33479,gid=33479,inode64
+2071 2058 253:0 /ps/e7014d20-e86a-4f46-bdcc-3b7a496d436f/passwd /etc/passwd ro,relatime master:345 - ext4 /dev/mapper/evg0-evol0 rw
+2072 2058 253:0 /ps/e7014d20-e86a-4f46-bdcc-3b7a496d436f/group /etc/group ro,relatime master:345 - ext4 /dev/mapper/evg0-evol0 rw
+2073 2058 253:0 /ps/e7014d20-e86a-4f46-bdcc-3b7a496d436f/hostname /etc/hostname ro,relatime master:345 - ext4 /dev/mapper/evg0-evol0 rw
+2074 2058 253:0 /ps/e7014d20-e86a-4f46-bdcc-3b7a496d436f/hosts /etc/hosts ro,relatime master:345 - ext4 /dev/mapper/evg0-evol0 rw
+2075 2058 253:0 /ps/e7014d20-e86a-4f46-bdcc-3b7a496d436f/profile /etc/profile ro,relatime master:345 - ext4 /dev/mapper/evg0-evol0 rw
+2076 2058 253:0 /ps/e7014d20-e86a-4f46-bdcc-3b7a496d436f/bash.bashrc /etc/bash.bashrc ro,relatime master:345 - ext4 /dev/mapper/evg0-evol0 rw
+2077 2058 0:26 /systemd/resolve/resolv.conf /etc/resolv.conf ro,nosuid,nodev master:11 - tmpfs tmpfs rw,size=6479520k,mode=755,inode64
+2078 2063 0:5 /null /proc/kcore ro,relatime master:2 - devtmpfs devtmpfs rw,size=32389628k,nr_inodes=8097407,mode=755,inode64
+2079 2063 0:5 /null /proc/timer_list ro,relatime master:2 - devtmpfs devtmpfs rw,size=32389628k,nr_inodes=8097407,mode=755,inode64
+2080 2063 253:0 /ps/e7014d20-e86a-4f46-bdcc-3b7a496d436f/tmp/mask /proc/scsi ro,relatime master:345 - ext4 /dev/mapper/evg0-evol0 rw
+2081 2058 253:0 /ps/e7014d20-e86a-4f46-bdcc-3b7a496d436f/sys /sys rw,relatime master:345 - ext4 /dev/mapper/evg0-evol0 rw
+2082 2066 0:123 / /dev/pts rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=666,max=1024
+2083 2066 0:123 /ptmx /dev/ptmx rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=666,max=1024
+574 2063 0:101 /.lxc-boot-id /proc/sys/kernel/random/boot_id ro,nosuid,nodev,noexec,noatime,nodiratime - tmpfs none rw,size=1024k,mode=755,inode64

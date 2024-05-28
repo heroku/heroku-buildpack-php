@@ -1,0 +1,37 @@
+1161 1103 0:66 / / rw,nosuid,relatime master:401 - overlay overlay rw,lowerdir=/var/lib/runtimed/stacks/heroku-22,upperdir=/mnt/enc/containers/dynos/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2/overlay,workdir=/mnt/enc/containers/dynos/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2/work
+1162 1161 0:70 / /proc rw,nosuid,nodev,noexec,relatime - proc proc rw
+1163 1161 0:71 / /dev rw,nosuid - tmpfs tmpfs rw,size=65536k,mode=755,inode64
+1164 1163 0:72 / /dev/pts rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=666
+1165 1163 0:73 / /dev/shm rw,nosuid,nodev,noexec,relatime - tmpfs none rw,size=65536k,inode64
+1166 1163 0:69 / /dev/mqueue rw,nosuid,nodev,noexec,relatime - mqueue mqueue rw
+1167 1161 0:74 / /sys ro,nosuid,nodev,noexec,relatime - sysfs sysfs ro
+1168 1167 0:75 / /sys/fs/cgroup rw,nosuid,nodev,noexec,relatime - tmpfs tmpfs rw,mode=755,inode64
+1169 1168 0:30 /system.slice/system-heroku\134x2ddyno.slice/heroku-dyno@dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2.service/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/systemd ro,nosuid,nodev,noexec,relatime master:9 - cgroup cgroup rw,xattr,name=systemd
+1170 1168 0:33 /runtimed/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/perf_event ro,nosuid,nodev,noexec,relatime master:15 - cgroup cgroup rw,perf_event
+1171 1168 0:34 /dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/misc ro,nosuid,nodev,noexec,relatime master:16 - cgroup cgroup rw,misc
+1172 1168 0:35 /runtimed/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/cpu,cpuacct ro,nosuid,nodev,noexec,relatime master:17 - cgroup cgroup rw,cpu,cpuacct
+1173 1168 0:36 /runtimed/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/freezer ro,nosuid,nodev,noexec,relatime master:18 - cgroup cgroup rw,freezer
+1174 1168 0:37 /runtimed/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/hugetlb ro,nosuid,nodev,noexec,relatime master:19 - cgroup cgroup rw,hugetlb
+1175 1168 0:38 /runtimed/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/blkio ro,nosuid,nodev,noexec,relatime master:20 - cgroup cgroup rw,blkio
+1176 1168 0:39 /dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/cpuset ro,nosuid,nodev,noexec,relatime master:21 - cgroup cgroup rw,cpuset
+1177 1168 0:40 /dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/rdma ro,nosuid,nodev,noexec,relatime master:22 - cgroup cgroup rw,rdma
+1178 1168 0:41 /runtimed/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/net_cls,net_prio ro,nosuid,nodev,noexec,relatime master:23 - cgroup cgroup rw,net_cls,net_prio
+1179 1168 0:42 /system.slice/system-heroku\134x2ddyno.slice/heroku-dyno@dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2.service/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/pids ro,nosuid,nodev,noexec,relatime master:24 - cgroup cgroup rw,pids
+1180 1168 0:43 /runtimed/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/memory ro,nosuid,nodev,noexec,relatime master:25 - cgroup cgroup rw,memory
+1181 1168 0:44 /runtimed/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2 /sys/fs/cgroup/devices ro,nosuid,nodev,noexec,relatime master:26 - cgroup cgroup rw,devices
+1182 1161 259:0 /containers/subnets/dns/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2/resolv.conf /etc/resolv.conf ro,nosuid,nodev,noexec,relatime master:406 - ext4 /dev/nvme1n1 rw
+1183 1161 259:2 /usr/local/bin/dyno-init /usr/sbin/dyno-init ro,relatime master:1 - ext4 /dev/root rw,discard
+1184 1161 259:0 /containers/dynos/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2/passwd /etc/passwd ro,nosuid,nodev,noexec,relatime master:406 - ext4 /dev/nvme1n1 rw
+1185 1161 259:0 /containers/dynos/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2/profile /etc/profile ro,nosuid,nodev,noexec,relatime master:406 - ext4 /dev/nvme1n1 rw
+1186 1161 259:0 /containers/dynos/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2/group /etc/group ro,nosuid,nodev,noexec,relatime master:406 - ext4 /dev/nvme1n1 rw
+1187 1161 259:2 /var/lib/heroku /etc/heroku ro,nosuid,nodev,noexec,relatime master:1 - ext4 /dev/root rw,discard
+1188 1161 259:0 /containers/subnets/dns/dyno-47c8c8ec-9c39-42cd-80c4-7f081cf075a2/hosts /etc/hosts ro,nosuid,nodev,noexec,relatime master:406 - ext4 /dev/nvme1n1 rw
+1104 1163 0:72 /0 /dev/console rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=666
+1105 1162 0:70 /bus /proc/bus ro,nosuid,nodev,noexec,relatime - proc proc rw
+1106 1162 0:70 /fs /proc/fs ro,nosuid,nodev,noexec,relatime - proc proc rw
+1107 1162 0:70 /irq /proc/irq ro,nosuid,nodev,noexec,relatime - proc proc rw
+1108 1162 0:70 /sys /proc/sys ro,nosuid,nodev,noexec,relatime - proc proc rw
+1109 1162 0:70 /sysrq-trigger /proc/sysrq-trigger ro,nosuid,nodev,noexec,relatime - proc proc rw
+1110 1162 0:71 /null /proc/kcore rw,nosuid - tmpfs tmpfs rw,size=65536k,mode=755,inode64
+1111 1162 0:71 /null /proc/timer_list rw,nosuid - tmpfs tmpfs rw,size=65536k,mode=755,inode64
+1112 1162 0:76 / /proc/scsi ro,relatime - tmpfs tmpfs ro,inode64

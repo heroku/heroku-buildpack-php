@@ -1,0 +1,473 @@
+/sys/fs/cgroup/blkio/blkio.reset_stats:
+cat: /sys/fs/cgroup/blkio/blkio.reset_stats: Permission denied
+/sys/fs/cgroup/blkio/blkio.throttle.io_service_bytes:
+Total 0
+/sys/fs/cgroup/blkio/blkio.throttle.io_service_bytes_recursive:
+Total 0
+/sys/fs/cgroup/blkio/blkio.throttle.io_serviced:
+Total 0
+/sys/fs/cgroup/blkio/blkio.throttle.io_serviced_recursive:
+Total 0
+/sys/fs/cgroup/blkio/blkio.throttle.read_bps_device:
+/sys/fs/cgroup/blkio/blkio.throttle.read_iops_device:
+/sys/fs/cgroup/blkio/blkio.throttle.write_bps_device:
+/sys/fs/cgroup/blkio/blkio.throttle.write_iops_device:
+/sys/fs/cgroup/blkio/cgroup.clone_children:
+0
+/sys/fs/cgroup/blkio/cgroup.procs:
+1
+24
+40
+/sys/fs/cgroup/blkio/notify_on_release:
+0
+/sys/fs/cgroup/blkio/tasks:
+1
+24
+42
+/sys/fs/cgroup/cpu/cgroup.clone_children:
+0
+/sys/fs/cgroup/cpu/cgroup.procs:
+1
+24
+44
+/sys/fs/cgroup/cpu/cpu.cfs_burst_us:
+0
+/sys/fs/cgroup/cpu/cpu.cfs_period_us:
+100000
+/sys/fs/cgroup/cpu/cpu.cfs_quota_us:
+-1
+/sys/fs/cgroup/cpu/cpu.idle:
+0
+/sys/fs/cgroup/cpu/cpu.shares:
+1024
+/sys/fs/cgroup/cpu/cpu.stat:
+nr_periods 0
+nr_throttled 0
+throttled_time 0
+nr_bursts 0
+burst_time 0
+/sys/fs/cgroup/cpu/cpu.stat.local:
+throttled_time 0
+/sys/fs/cgroup/cpu/notify_on_release:
+0
+/sys/fs/cgroup/cpu/tasks:
+1
+24
+53
+/sys/fs/cgroup/cpuacct/cgroup.clone_children:
+0
+/sys/fs/cgroup/cpuacct/cgroup.procs:
+1
+24
+55
+/sys/fs/cgroup/cpuacct/cpuacct.stat:
+user 0
+system 1
+/sys/fs/cgroup/cpuacct/cpuacct.usage:
+20730330
+/sys/fs/cgroup/cpuacct/cpuacct.usage_all:
+cpu user system
+0 0 0
+1 3000000 9000000
+2 4000000 5000000
+3 0 0
+4 0 0
+5 0 0
+/sys/fs/cgroup/cpuacct/cpuacct.usage_percpu:
+0 11718623 9654373 0 0 0 
+/sys/fs/cgroup/cpuacct/cpuacct.usage_percpu_sys:
+0 9000000 5000000 0 0 0 
+/sys/fs/cgroup/cpuacct/cpuacct.usage_percpu_user:
+0 3000000 4000000 0 0 0 
+/sys/fs/cgroup/cpuacct/cpuacct.usage_sys:
+15000000
+/sys/fs/cgroup/cpuacct/cpuacct.usage_user:
+7000000
+/sys/fs/cgroup/cpuacct/notify_on_release:
+0
+/sys/fs/cgroup/cpuacct/tasks:
+1
+24
+65
+/sys/fs/cgroup/cpuset/cgroup.clone_children:
+0
+/sys/fs/cgroup/cpuset/cgroup.procs:
+1
+24
+67
+/sys/fs/cgroup/cpuset/cpuset.cpu_exclusive:
+0
+/sys/fs/cgroup/cpuset/cpuset.cpus:
+1-2
+/sys/fs/cgroup/cpuset/cpuset.effective_cpus:
+1-2
+/sys/fs/cgroup/cpuset/cpuset.effective_mems:
+0
+/sys/fs/cgroup/cpuset/cpuset.mem_exclusive:
+0
+/sys/fs/cgroup/cpuset/cpuset.mem_hardwall:
+0
+/sys/fs/cgroup/cpuset/cpuset.memory_migrate:
+0
+/sys/fs/cgroup/cpuset/cpuset.memory_pressure:
+0
+/sys/fs/cgroup/cpuset/cpuset.memory_spread_page:
+0
+/sys/fs/cgroup/cpuset/cpuset.memory_spread_slab:
+0
+/sys/fs/cgroup/cpuset/cpuset.mems:
+0
+/sys/fs/cgroup/cpuset/cpuset.sched_load_balance:
+1
+/sys/fs/cgroup/cpuset/cpuset.sched_relax_domain_level:
+-1
+/sys/fs/cgroup/cpuset/notify_on_release:
+0
+/sys/fs/cgroup/cpuset/tasks:
+1
+24
+82
+/sys/fs/cgroup/devices/cgroup.clone_children:
+0
+/sys/fs/cgroup/devices/cgroup.procs:
+1
+24
+84
+/sys/fs/cgroup/devices/devices.allow:
+cat: /sys/fs/cgroup/devices/devices.allow: Permission denied
+/sys/fs/cgroup/devices/devices.deny:
+cat: /sys/fs/cgroup/devices/devices.deny: Permission denied
+/sys/fs/cgroup/devices/devices.list:
+b *:* m
+c *:* m
+c 1:3 rwm
+c 1:5 rwm
+c 1:7 rwm
+c 1:8 rwm
+c 1:9 rwm
+c 5:0 rwm
+c 5:1 rwm
+c 5:2 rwm
+c 10:200 rwm
+c 136:* rwm
+/sys/fs/cgroup/devices/notify_on_release:
+0
+/sys/fs/cgroup/devices/tasks:
+1
+24
+89
+/sys/fs/cgroup/freezer/cgroup.clone_children:
+0
+/sys/fs/cgroup/freezer/cgroup.procs:
+1
+24
+91
+/sys/fs/cgroup/freezer/freezer.parent_freezing:
+0
+/sys/fs/cgroup/freezer/freezer.self_freezing:
+0
+/sys/fs/cgroup/freezer/freezer.state:
+THAWED
+/sys/fs/cgroup/freezer/notify_on_release:
+0
+/sys/fs/cgroup/freezer/tasks:
+1
+24
+96
+/sys/fs/cgroup/hugetlb/cgroup.clone_children:
+0
+/sys/fs/cgroup/hugetlb/cgroup.procs:
+1
+24
+98
+/sys/fs/cgroup/hugetlb/hugetlb.1GB.failcnt:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.1GB.limit_in_bytes:
+9223372035781033984
+/sys/fs/cgroup/hugetlb/hugetlb.1GB.max_usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.1GB.numa_stat:
+total=0 N0=0
+hierarchical_total=0 N0=0
+/sys/fs/cgroup/hugetlb/hugetlb.1GB.rsvd.failcnt:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.1GB.rsvd.limit_in_bytes:
+9223372035781033984
+/sys/fs/cgroup/hugetlb/hugetlb.1GB.rsvd.max_usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.1GB.rsvd.usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.1GB.usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.2MB.failcnt:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.2MB.limit_in_bytes:
+9223372036852678656
+/sys/fs/cgroup/hugetlb/hugetlb.2MB.max_usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.2MB.numa_stat:
+total=0 N0=0
+hierarchical_total=0 N0=0
+/sys/fs/cgroup/hugetlb/hugetlb.2MB.rsvd.failcnt:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.2MB.rsvd.limit_in_bytes:
+9223372036852678656
+/sys/fs/cgroup/hugetlb/hugetlb.2MB.rsvd.max_usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.2MB.rsvd.usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.2MB.usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.32MB.failcnt:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.32MB.limit_in_bytes:
+9223372036821221376
+/sys/fs/cgroup/hugetlb/hugetlb.32MB.max_usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.32MB.numa_stat:
+total=0 N0=0
+hierarchical_total=0 N0=0
+/sys/fs/cgroup/hugetlb/hugetlb.32MB.rsvd.failcnt:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.32MB.rsvd.limit_in_bytes:
+9223372036821221376
+/sys/fs/cgroup/hugetlb/hugetlb.32MB.rsvd.max_usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.32MB.rsvd.usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.32MB.usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.64KB.failcnt:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.64KB.limit_in_bytes:
+9223372036854710272
+/sys/fs/cgroup/hugetlb/hugetlb.64KB.max_usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.64KB.numa_stat:
+total=0 N0=0
+hierarchical_total=0 N0=0
+/sys/fs/cgroup/hugetlb/hugetlb.64KB.rsvd.failcnt:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.64KB.rsvd.limit_in_bytes:
+9223372036854710272
+/sys/fs/cgroup/hugetlb/hugetlb.64KB.rsvd.max_usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.64KB.rsvd.usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/hugetlb.64KB.usage_in_bytes:
+0
+/sys/fs/cgroup/hugetlb/notify_on_release:
+0
+/sys/fs/cgroup/hugetlb/tasks:
+1
+24
+136
+/sys/fs/cgroup/memory/cgroup.clone_children:
+0
+/sys/fs/cgroup/memory/cgroup.event_control:
+cat: /sys/fs/cgroup/memory/cgroup.event_control: Permission denied
+/sys/fs/cgroup/memory/cgroup.procs:
+1
+24
+139
+/sys/fs/cgroup/memory/memory.failcnt:
+0
+/sys/fs/cgroup/memory/memory.force_empty:
+cat: /sys/fs/cgroup/memory/memory.force_empty: Permission denied
+/sys/fs/cgroup/memory/memory.kmem.failcnt:
+0
+/sys/fs/cgroup/memory/memory.kmem.limit_in_bytes:
+9223372036854771712
+/sys/fs/cgroup/memory/memory.kmem.max_usage_in_bytes:
+7532544
+/sys/fs/cgroup/memory/memory.kmem.slabinfo:
+/sys/fs/cgroup/memory/memory.kmem.tcp.failcnt:
+0
+/sys/fs/cgroup/memory/memory.kmem.tcp.limit_in_bytes:
+9223372036854771712
+/sys/fs/cgroup/memory/memory.kmem.tcp.max_usage_in_bytes:
+0
+/sys/fs/cgroup/memory/memory.kmem.tcp.usage_in_bytes:
+0
+/sys/fs/cgroup/memory/memory.kmem.usage_in_bytes:
+6615040
+/sys/fs/cgroup/memory/memory.limit_in_bytes:
+1073741824
+/sys/fs/cgroup/memory/memory.max_usage_in_bytes:
+8409088
+/sys/fs/cgroup/memory/memory.memsw.failcnt:
+0
+/sys/fs/cgroup/memory/memory.memsw.limit_in_bytes:
+2147483648
+/sys/fs/cgroup/memory/memory.memsw.max_usage_in_bytes:
+8409088
+/sys/fs/cgroup/memory/memory.memsw.usage_in_bytes:
+8310784
+/sys/fs/cgroup/memory/memory.move_charge_at_immigrate:
+0
+/sys/fs/cgroup/memory/memory.oom_control:
+oom_kill_disable 0
+under_oom 0
+oom_kill 0
+/sys/fs/cgroup/memory/memory.pressure_level:
+cat: /sys/fs/cgroup/memory/memory.pressure_level: Invalid argument
+/sys/fs/cgroup/memory/memory.soft_limit_in_bytes:
+838860800
+/sys/fs/cgroup/memory/memory.stat:
+cache 0
+rss 622592
+rss_huge 0
+shmem 0
+mapped_file 0
+dirty 0
+writeback 0
+workingset_refault_anon 0
+workingset_refault_file 0
+swap 0
+pgpgin 6326
+pgpgout 6174
+pgfault 17718
+pgmajfault 0
+inactive_anon 0
+active_anon 581632
+inactive_file 0
+active_file 0
+unevictable 0
+hierarchical_memory_limit 1073741824
+hierarchical_memsw_limit 2147483648
+total_cache 0
+total_rss 622592
+total_rss_huge 0
+total_shmem 0
+total_mapped_file 0
+total_dirty 0
+total_writeback 0
+total_workingset_refault_anon 0
+total_workingset_refault_file 0
+total_swap 0
+total_pgpgin 6326
+total_pgpgout 6174
+total_pgfault 17718
+total_pgmajfault 0
+total_inactive_anon 0
+total_active_anon 581632
+total_inactive_file 0
+total_active_file 0
+total_unevictable 0
+/sys/fs/cgroup/memory/memory.swappiness:
+60
+/sys/fs/cgroup/memory/memory.usage_in_bytes:
+5488640
+/sys/fs/cgroup/memory/memory.use_hierarchy:
+1
+/sys/fs/cgroup/memory/notify_on_release:
+0
+/sys/fs/cgroup/memory/tasks:
+1
+24
+166
+/sys/fs/cgroup/net_cls/cgroup.clone_children:
+0
+/sys/fs/cgroup/net_cls/cgroup.procs:
+1
+24
+168
+/sys/fs/cgroup/net_cls/net_cls.classid:
+0
+/sys/fs/cgroup/net_cls/notify_on_release:
+0
+/sys/fs/cgroup/net_cls/tasks:
+1
+24
+171
+/sys/fs/cgroup/net_prio/cgroup.clone_children:
+0
+/sys/fs/cgroup/net_prio/cgroup.procs:
+1
+24
+173
+/sys/fs/cgroup/net_prio/net_prio.ifpriomap:
+lo 0
+bond0 0
+dummy0 0
+eth0 0
+eth1 0
+teql0 0
+tunl0 0
+gre0 0
+gretap0 0
+erspan0 0
+ip_vti0 0
+ip6_vti0 0
+sit0 0
+ip6tnl0 0
+ip6gre0 0
+services1 0
+docker0 0
+veth23662d5 0
+/sys/fs/cgroup/net_prio/net_prio.prioidx:
+8
+/sys/fs/cgroup/net_prio/notify_on_release:
+0
+/sys/fs/cgroup/net_prio/tasks:
+1
+24
+177
+/sys/fs/cgroup/perf_event/cgroup.clone_children:
+0
+/sys/fs/cgroup/perf_event/cgroup.procs:
+1
+24
+179
+/sys/fs/cgroup/perf_event/notify_on_release:
+0
+/sys/fs/cgroup/perf_event/tasks:
+1
+24
+181
+/sys/fs/cgroup/pids/cgroup.clone_children:
+0
+/sys/fs/cgroup/pids/cgroup.procs:
+1
+24
+183
+/sys/fs/cgroup/pids/notify_on_release:
+0
+/sys/fs/cgroup/pids/pids.current:
+3
+/sys/fs/cgroup/pids/pids.events:
+max 0
+/sys/fs/cgroup/pids/pids.max:
+max
+/sys/fs/cgroup/pids/pids.peak:
+7
+/sys/fs/cgroup/pids/tasks:
+1
+24
+189
+/sys/fs/cgroup/rdma/cgroup.clone_children:
+0
+/sys/fs/cgroup/rdma/cgroup.procs:
+1
+24
+191
+/sys/fs/cgroup/rdma/notify_on_release:
+0
+/sys/fs/cgroup/rdma/rdma.current:
+/sys/fs/cgroup/rdma/rdma.max:
+/sys/fs/cgroup/rdma/tasks:
+1
+24
+195
+/sys/fs/cgroup/systemd/cgroup.clone_children:
+0
+/sys/fs/cgroup/systemd/cgroup.procs:
+1
+24
+197
+/sys/fs/cgroup/systemd/notify_on_release:
+0
+/sys/fs/cgroup/systemd/tasks:
+1
+24
+199

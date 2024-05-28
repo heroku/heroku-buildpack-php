@@ -1,0 +1,23 @@
+1271 567 7:16 / / ro,nosuid,nodev,nodiratime,relatime master:412 - ext3 /dev/loop16 ro
+1272 1271 0:149 / /dev rw,relatime - tmpfs none rw,size=492k,mode=755,inode64
+1273 1271 253:0 /ps/055c5dae-4632-43cf-9581-f0f9d57e63b2/app /app rw,relatime master:425 - ext4 /dev/mapper/evg0-evol0 rw
+1274 1271 253:0 /ps/055c5dae-4632-43cf-9581-f0f9d57e63b2/tmp /tmp rw,relatime master:425 - ext4 /dev/mapper/evg0-evol0 rw
+1275 1271 253:0 /ps/055c5dae-4632-43cf-9581-f0f9d57e63b2/var/tmp /var/tmp rw,relatime master:425 - ext4 /dev/mapper/evg0-evol0 rw
+1276 1271 0:150 / /proc rw,relatime - proc none rw
+1277 1272 0:151 / /dev rw,nosuid,noatime,nodiratime - tmpfs none rw,size=1024k,mode=755,inode64
+1278 1277 0:152 / /dev/shm rw,nosuid,nodev,relatime - tmpfs none rw,size=65536k,nr_inodes=2048,mode=700,uid=40363,gid=40363,inode64
+1279 1271 253:0 /ps/055c5dae-4632-43cf-9581-f0f9d57e63b2/passwd /etc/passwd ro,relatime master:425 - ext4 /dev/mapper/evg0-evol0 rw
+1280 1271 253:0 /ps/055c5dae-4632-43cf-9581-f0f9d57e63b2/group /etc/group ro,relatime master:425 - ext4 /dev/mapper/evg0-evol0 rw
+1281 1271 253:0 /ps/055c5dae-4632-43cf-9581-f0f9d57e63b2/hostname /etc/hostname ro,relatime master:425 - ext4 /dev/mapper/evg0-evol0 rw
+1282 1271 253:0 /ps/055c5dae-4632-43cf-9581-f0f9d57e63b2/hosts /etc/hosts ro,relatime master:425 - ext4 /dev/mapper/evg0-evol0 rw
+1283 1271 253:0 /ps/055c5dae-4632-43cf-9581-f0f9d57e63b2/profile /etc/profile ro,relatime master:425 - ext4 /dev/mapper/evg0-evol0 rw
+1284 1271 253:0 /ps/055c5dae-4632-43cf-9581-f0f9d57e63b2/bash.bashrc /etc/bash.bashrc ro,relatime master:425 - ext4 /dev/mapper/evg0-evol0 rw
+1285 1271 0:26 /systemd/resolve/resolv.conf /etc/resolv.conf ro,nosuid,nodev master:11 - tmpfs tmpfs rw,size=6479520k,mode=755,inode64
+1286 1276 0:5 /null /proc/kcore ro,relatime master:2 - devtmpfs devtmpfs rw,size=32389620k,nr_inodes=8097405,mode=755,inode64
+1287 1276 0:5 /null /proc/timer_list ro,relatime master:2 - devtmpfs devtmpfs rw,size=32389620k,nr_inodes=8097405,mode=755,inode64
+1288 1276 253:0 /ps/055c5dae-4632-43cf-9581-f0f9d57e63b2/tmp/mask /proc/scsi ro,relatime master:425 - ext4 /dev/mapper/evg0-evol0 rw
+1289 1271 253:0 /ps/055c5dae-4632-43cf-9581-f0f9d57e63b2/sys /sys rw,relatime master:425 - ext4 /dev/mapper/evg0-evol0 rw
+1290 1289 0:28 / /sys/fs/cgroup rw,nosuid,nodev,noexec,relatime - cgroup2 none rw,nsdelegate
+1291 1277 0:153 / /dev/pts rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=666,max=1024
+1292 1277 0:153 /ptmx /dev/ptmx rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=666,max=1024
+600 1276 0:151 /.lxc-boot-id /proc/sys/kernel/random/boot_id ro,nosuid,nodev,noexec,noatime,nodiratime - tmpfs none rw,size=1024k,mode=755,inode64
