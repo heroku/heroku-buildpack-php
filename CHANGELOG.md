@@ -8,6 +8,7 @@
 - PHP/8.2.19 [David Zuelke]
 - PHP/8.3.6 [David Zuelke]
 - ext-newrelic/10.20.0.10 [David Zuelke]
+- ext-mongodb/1.19.0 [David Zuelke]
 
 ## [v249] - 2024-04-12
 
