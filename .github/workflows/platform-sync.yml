@@ -38,7 +38,7 @@ jobs:
           echo '## Stacks to sync' >> "$GITHUB_STEP_SUMMARY"
           set -o pipefail
           stacks=(${{ inputs.stack-heroku-20 == true && 'heroku-20' || ''}} ${{ inputs.stack-heroku-22 == true && 'heroku-22' || ''}})
-          printf "%s\n" "${stacks[@]}" | xargs -n1 echo -  >> "$GITHUB_STEP_SUMMARY"
+          printf -- "- %s\n" "${stacks[@]}" >> "$GITHUB_STEP_SUMMARY"
           echo -n "matrix=" >> "$GITHUB_OUTPUT"
           printf "%s\n" "${stacks[@]}" | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
   docker-build:

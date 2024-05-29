@@ -36,8 +36,8 @@ jobs:
       - name: Expand list of manifests to remove
         run: |
           echo '## Manifests input for removal' >> "$GITHUB_STEP_SUMMARY"
-          set -f
-          echo ${{inputs.manifests}} | xargs -n 1 echo - >> "$GITHUB_STEP_SUMMARY"
+          set -f # no expansion of globs to file names, we want to pass * straight on for S3 wildcard matching (but still expand curly braces)
+          printf -- '- `%s`\n' ${{inputs.manifests}} >> "$GITHUB_STEP_SUMMARY"
       - name: Restore cached Docker image
         id: restore-docker
         uses: actions/cache/restore@v4
