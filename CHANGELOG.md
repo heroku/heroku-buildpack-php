@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v250] - 2024-05-29
+
 ### ADD
 
 - PHP/8.1.28 [David Zuelke]
@@ -2650,7 +2653,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v249...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v250...main
+[v250]: https://github.com/heroku/heroku-buildpack-php/compare/v249...v250
 [v249]: https://github.com/heroku/heroku-buildpack-php/compare/v248...v249
 [v248]: https://github.com/heroku/heroku-buildpack-php/compare/v247...v248
 [v247]: https://github.com/heroku/heroku-buildpack-php/compare/v246...v247
