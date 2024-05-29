@@ -74,5 +74,5 @@ echo "Uploading manifest..."
 
 if $publish; then
 	echo "Updating repository..."
-	"$(dirname "$BASH_SOURCE")/mkrepo.sh" --upload "$S3_BUCKET" "${S3_PREFIX}"
+	"$(dirname "$BASH_SOURCE")/mkrepo.sh" --upload
 fi

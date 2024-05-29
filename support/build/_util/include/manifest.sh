@@ -9,7 +9,8 @@ print_or_export_manifest_cmd() {
 }
 
 generate_manifest_cmd() {
-	echo "s3cmd --host=s3.${S3_REGION:-}${S3_REGION:+.}amazonaws.com --host-bucket='%(bucket)s.s3.${S3_REGION:-}${S3_REGION:+.}amazonaws.com' --ssl -m application/json put $(pwd)/${1} s3://${S3_BUCKET}/${S3_PREFIX}${1}"
+	cmd=(s5cmd ${S5CMD_NO_SIGN_REQUEST:+--no-sign-request} ${S5CMD_PROFILE:+--profile "$S5CMD_PROFILE"} cp ${S3_REGION:+--destination-region "$S3_REGION"} --content-type application/json "$(pwd)/${1}" "s3://${S3_BUCKET}/${S3_PREFIX}${1}")
+	echo "${cmd[*]@Q}"
 }
 
 soname_version() {

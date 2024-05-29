@@ -562,7 +562,7 @@ The normal flow is to run `deploy.sh` first to deploy one or more packages, and 
 
     ~ $ mkrepo.sh --upload
 
-This will generate `packages.json` and upload it right away, or, if the `--upload` is not given, print upload instructions for `s3cmd`.
+This will generate `packages.json` and upload it right away, or, if the `--upload` is not given, print upload instructions for `s5cmd`.
 
 Alternatively, `deploy.sh` can be called with `--publish` as the first argument, in which case `mkrepo.sh --upload` will be called after the package deploy and manifest upload was successful:
 

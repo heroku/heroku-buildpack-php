@@ -71,10 +71,18 @@ jobs:
           set -f
           set -o pipefail
           (yes 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh ${{inputs.manifests}} 2>&1 | tee remove.out
-      - name: Output job summary
+      - name: Output dry-run summary
+        if: ${{ inputs.dry-run == true }}
         run: |
-          echo '## Packages${{ inputs.dry-run == true && ' which would be' || '' }} removed from production bucket' >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ inputs.dry-run == true && '**This is output from a dry-run**, no packages have been removed:' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '## Packages which would be removed from production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo '**This is output from a dry-run**, no packages have been removed:' >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          sed -n '/The following packages will/,$p' remove.out >> "$GITHUB_STEP_SUMMARY"
+          sed -n '/^The following packages will/,/POTENTIALLY DESTRUCTIVE ACTION/{/POTENTIALLY DESTRUCTIVE ACTION/!p}' remove.out >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: Output removal summary
+        if: ${{ inputs.dry-run == false }}
+        run: |
+          echo '## Packages removed from production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat remove.out >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"

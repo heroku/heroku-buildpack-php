@@ -5,27 +5,23 @@ set -o pipefail
 # fail harder
 set -eu
 
-function s3cmd_get_progress() {
-	len=0
-	while read line; do
-		if [[ "$len" -gt 0 ]]; then
-			# repeat a backspace $len times
-			# need to use seq; {1..$len} doesn't work
-			printf '%0.s\b' $(seq 1 $len)
-		fi
-		echo -n "$line"
-		len=${#line}
-	done < <(grep --line-buffered -o -P '(?<=\[)[0-9]+ of [0-9]+(?=\])' | awk -W interactive '{print int($1/$3*100)"% ("$1"/"$3")"}') # filter only the "[1 of 99]" bits from 's3cmd get' output and divide using awk
-}
-
+help=false
 upload=false
 
+S5CMD_OPTIONS=(${S5CMD_NO_SIGN_REQUEST:+--no-sign-request} ${S5CMD_PROFILE:+--profile "${S5CMD_PROFILE}"} --log error)
+
 # process flags
-optstring=":-:"
+optstring=":-:h"
 while getopts "$optstring" opt; do
 	case $opt in
+		h)
+			help=true
+			;;
 		-)
 			case "$OPTARG" in
+				help)
+					help=true
+					;;
 				upload)
 					upload=true
 					;;
@@ -39,17 +35,15 @@ done
 # clear processed arguments
 shift $((OPTIND-1))
 
-if [[ $# == "1" ]]; then
+if $help; then
 	cat >&2 <<-EOF
-		Usage: $(basename $0) [--upload] [S3_BUCKET S3_PREFIX [MANIFEST...]]
-		  S3_BUCKET: S3 bucket name for packages.json upload; default: '\$S3_BUCKET'.
-		  S3_PREFIX: S3 prefix, e.g. '' or 'dist-stable/'; default: '\$S3_PREFIX'.
-		  
-		  The environment variable '\$S3_REGION' is used to determine the bucket region;
-		  it defaults to 's3' if not present. Use e.g. 'us-east-1' to set a region.
+		Usage: $(basename "$0") [--upload] [MANIFEST...]
+		  The environment variables '\$S3_BUCKET', '\$S3_PREFIX', and '\$S3_REGION' are
+		  used for S3 bucket addressing; the prefix is optional, and the region is auto-
+		  detected if not given.
 		  
 		  If MANIFEST arguments are given, those are used to build the repo; otherwise,
-		  all manifests from given or default S3_BUCKET+S3_PREFIX are downloaded.
+		  all manifests from S3_BUCKET+S3_PREFIX are downloaded.
 		  
 		  A --upload flag triggers immediate upload, otherwise instructions are printed.
 		  
@@ -59,26 +53,22 @@ if [[ $# == "1" ]]; then
 	exit 2
 fi
 
-here=$(cd $(dirname $0); pwd)
+S3_PREFIX=${S3_PREFIX:-}
 
-if [[ $# != "0" ]]; then
-	S3_BUCKET=$1; shift
-	S3_PREFIX=$1; shift
-fi
+# grep out the region (it's there even on 403 responses), and trim whitespace via xargs - important to use grep -o and discard trailing whitespace, otherwise we'll end up with a carriage return at the end of the value
+S3_REGION=${S3_REGION:-$(set -o pipefail; curl -sI "https://${S3_BUCKET}.s3.amazonaws.com/" | grep -E -o -i "^x-amz-bucket-region:\s*\S+" | cut -d: -f2 | xargs || { echo >&2 "Failed to determine region for S3 bucket '$S3_BUCKET'"; exit 1; })}
 
 if [[ $# == "0" ]]; then
 	manifests_tmp=$(mktemp -d -t "dst-repo.XXXXX")
-	trap 'rm -rf $manifests_tmp;' EXIT
-	echo -n "-----> Fetching manifests... " >&2
+	trap 'rm -rf "$manifests_tmp";' EXIT
+	echo "-----> Fetching manifests... " >&2
 	(
-		cd $manifests_tmp
-		s3cmd --host="s3.${S3_REGION:-}${S3_REGION:+.}amazonaws.com" --host-bucket="%(bucket)s.s3.${S3_REGION:-}${S3_REGION:+.}amazonaws.com" --ssl --progress get s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json 2>&1 | tee download.log | s3cmd_get_progress >&2 || { echo -e "failed! Error:\n$(cat download.log)" >&2; exit 1; }
-		rm download.log
+		cd "$manifests_tmp"
+		s5cmd "${S5CMD_OPTIONS[@]}" cp --source-region "$S3_REGION" "s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json" . || { echo -e "\nFailed to fetch manifests! See message above for errors." >&2; exit 1; }
 	)
-	echo "" >&2
-	manifests=$manifests_tmp/*.composer.json
+	manifests=("$manifests_tmp"/*.composer.json)
 else
-	manifests="$@"
+	manifests=("$@")
 fi
 
 echo "-----> Generating packages.json..." >&2
@@ -130,7 +120,7 @@ python <(cat <<-'PYTHON' # beware of single quotes in body
 	# convert the list to a dict with package names as keys and list of versions (sorted by "php" requirement by previous sort) as values
 	json.dump({"packages": dict((name, list(versions)) for name, versions in itertools.groupby(manifests, key=lambda package: package.get("name"))) }, sys.stdout, sort_keys=True)
 PYTHON
-) $manifests
+) "${manifests[@]}"
 
 # restore stdout
 # note that 'exec >$(tty)' does not work as FD 1 may have been a pipe originally and not a tty
@@ -138,11 +128,11 @@ if $redir; then
 	exec 1>&3 3>&-
 fi
 
-cmd="s3cmd --host=s3.${S3_REGION:-}${S3_REGION:+.}amazonaws.com --host-bucket='%(bucket)s.s3.${S3_REGION:-}${S3_REGION:+.}amazonaws.com' --ssl -m application/json put packages.json s3://${S3_BUCKET}/${S3_PREFIX}packages.json"
+cmd=(s5cmd "${S5CMD_OPTIONS[@]}" cp --destination-region "$S3_REGION" --content-type application/json packages.json "s3://${S3_BUCKET}/${S3_PREFIX}packages.json")
 if $upload; then
 	echo "-----> Uploading packages.json..." >&2
-	eval "$cmd 1>&2"
+	"${cmd[@]}" 1>&2
 	echo "-----> Done." >&2
 elif [[ -t 1 ]]; then
-	echo "-----> Done. Run '$cmd' to upload repository." >&2
+	echo "-----> Done. To upload repository, run: ${cmd[*]@Q}" >&2
 fi
