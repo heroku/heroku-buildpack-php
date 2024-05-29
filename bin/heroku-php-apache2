@@ -10,11 +10,11 @@ shopt -s extglob
 shopt -s nullglob
 
 if ! type -p "realpath" > /dev/null; then
-	# macOS doesn't have realpath
+	# old macOSes don't have realpath
 	# readlink is not an option because BSD readlink does not have the GNU -f option
 	# must be a function so subshells, including $(…), can use it
 	realpath() {
-		python -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$@"
+		python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$@"
 	}
 fi
 
