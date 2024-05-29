@@ -19,6 +19,7 @@ ENV PATH="/app/support/build/_util:$VIRTUAL_ENV/bin:$PATH"
 
 COPY requirements.txt /app/requirements.txt
 
+RUN pip install wheel
 RUN pip install -r /app/requirements.txt
 
 ARG S5CMD_VERSION=2.2.2
