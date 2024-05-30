@@ -1,7 +1,7 @@
 import os, sys, json, re, datetime
 
 require = json.loads(sys.argv[5]) if len(sys.argv) > 5 else {}
-stack=re.match("^([^-]+)(?:-([0-9]+))?$", os.getenv("STACK", "heroku-22"))
+stack=re.match(r"^([^-]+)(?:-([0-9]+))?$", os.getenv("STACK", "heroku-22"))
 require["heroku-sys/"+stack.group(1)] = "^{}.0.0".format(stack.group(2) or "1")
 
 require["heroku/installer-plugin"] = "^1.2.0"
@@ -14,20 +14,26 @@ elif sys.argv[1] == 'heroku-sys-library':
 elif sys.argv[1] == 'heroku-sys-program':
 	require["heroku/installer-plugin"] = "^1.4.0"
 
+s3_region_string = os.getenv("S3_REGION")
+if s3_region_string == None:
+	s3_region_string = "s3"
+else:
+	s3_region_string = "s3.{}".format(s3_region_string)
+
 manifest = {
 	"type": sys.argv[1],
 	"name": sys.argv[2],
 	"version": sys.argv[3],
 	"dist": {
 		"type": "heroku-sys-tar",
-		"url": "https://"+os.getenv("S3_BUCKET")+"."+os.getenv("S3_REGION", "s3")+".amazonaws.com/"+os.getenv("S3_PREFIX")+sys.argv[4]
+		"url": "https://"+os.getenv("S3_BUCKET")+"."+s3_region_string+".amazonaws.com/"+os.getenv("S3_PREFIX")+sys.argv[4]
 	},
 	"require": require,
 	"conflict": json.loads(sys.argv[6]) if len(sys.argv) > 6 else {},
 	"replace": json.loads(sys.argv[7]) if len(sys.argv) > 7 else {},
 	"provide": json.loads(sys.argv[8]) if len(sys.argv) > 8 else {},
 	"extra": json.loads(sys.argv[9]) if len(sys.argv) > 9 else {},
-	"time": os.getenv("NOW", datetime.datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"))
+	"time": os.getenv("NOW", datetime.datetime.now(tz=datetime.timezone.utc).strftime("%Y-%m-%d %H:%M:%S"))
 }
 
 # if it's a PHP manifest, we will generate full manifests for each shared extension into extra.shared; mkrepo.sh will then expand those into actual package declarations when it generates the repo

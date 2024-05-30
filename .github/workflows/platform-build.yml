@@ -136,5 +136,5 @@ jobs:
           echo '## Package changes available for syncing to production bucket' >> "$GITHUB_STEP_SUMMARY"
           echo '**This is output from a dry-run**, no changes have been synced to production:' >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          sed -n '/The following packages will/,$p' sync.out >> "$GITHUB_STEP_SUMMARY"
+          sed -n '/^The following packages will/,/POTENTIALLY DESTRUCTIVE ACTION/{/POTENTIALLY DESTRUCTIVE ACTION/!p}' sync.out >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"

@@ -29,7 +29,7 @@ shift $((OPTIND-1))
 
 if [[ $# -lt 1 ]]; then
 	cat >&2 <<-EOF
-		Usage: $(basename $0) [--publish] FORMULA-VERSION [--overwrite]
+		Usage: $(basename "$0") [--publish] FORMULA-VERSION [--overwrite]
 		  If --publish is given, mkrepo.sh will be invoked after a successful deploy to
 		  re-generate the repo. CAUTION: this will cause all manifests in the bucket to
 		  be included in the repo, including potentially currently unpublished ones.
@@ -44,8 +44,9 @@ if [[ -z "${AWS_ACCESS_KEY_ID:-}" || -z "${AWS_SECRET_ACCESS_KEY:-}" ]]; then
 fi
 
 # a helper (print_or_export_manifest_cmd) called in the script invoked by Bob will write to this if set
-export MANIFEST_CMD=$(mktemp -t "manifest.XXXXX")
-trap 'rm -rf $MANIFEST_CMD;' EXIT
+MANIFEST_CMD=$(mktemp -t "manifest.XXXXX")
+export MANIFEST_CMD
+trap 'rm -rf "$MANIFEST_CMD";' EXIT
 
 # make sure we start cleanly
 rm -rf /app/.heroku/php
@@ -69,9 +70,9 @@ bob deploy "${args[@]}"
 # invoke manifest upload
 echo ""
 echo "Uploading manifest..."
-. $MANIFEST_CMD
+. "$MANIFEST_CMD"
 
 if $publish; then
 	echo "Updating repository..."
-	$(dirname $BASH_SOURCE)/mkrepo.sh --upload "$S3_BUCKET" "${S3_PREFIX}"
+	"$(dirname "$BASH_SOURCE")/mkrepo.sh" --upload
 fi

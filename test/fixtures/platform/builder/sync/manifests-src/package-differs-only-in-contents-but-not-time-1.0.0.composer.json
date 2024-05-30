@@ -1,0 +1,14 @@
+{
+  "dist": {
+    "type": "heroku-sys-tar",
+    "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-24-develop/package-differs-only-in-contents-but-not-time-1.0.0.tar.gz"
+  },
+  "name": "heroku-sys/package-differs-only-in-contents-but-not-time",
+  "require": {
+    "heroku-sys/heroku": "^24.0.0",
+    "heroku/installer-plugin": "^1.9.0"
+  },
+  "time": "2024-04-12 09:00:00",
+  "type": "heroku-sys-package",
+  "version": "1.0.0"
+}

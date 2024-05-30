@@ -104,12 +104,20 @@ jobs:
         with:
           name: synclog-${{matrix.stack}}
           path: sync-${{matrix.stack}}.log
-      - name: Output job summary
+      - name: Output dry-run summary
+        if: ${{ inputs.dry-run == true }}
         run: |
-          echo '## Package changes ${{ inputs.dry-run == true && 'available for syncing' || 'synced' }} to ${{matrix.stack}} production bucket' >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ inputs.dry-run == true && '**This is output from a dry-run**, no changes have been synced to production:' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo '## Package changes available for syncing to ${{matrix.stack}} production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo '**This is output from a dry-run**, no changes have been synced to production:' >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          sed -n '/The following packages will/,$p' sync-${{matrix.stack}}.log >> "$GITHUB_STEP_SUMMARY"
+          sed -n '/^The following packages will/,/POTENTIALLY DESTRUCTIVE ACTION/{/POTENTIALLY DESTRUCTIVE ACTION/!p}' sync-${{matrix.stack}}.log >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+      - name: Output sync summary
+        if: ${{ inputs.dry-run == false }}
+        run: |
+          echo '## Package changes synced to ${{matrix.stack}} production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat sync-${{matrix.stack}}.log >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
   devcenter-generate:
     needs: sync
