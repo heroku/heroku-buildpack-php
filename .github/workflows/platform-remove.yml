@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   remove:
-    runs-on: ${{ endsWith(inputs.stack, 'arm64') && 'pub-hk-ubuntu-22.04-arm-limited-large' || 'ubuntu-22.04' }}
+    runs-on: ${{ endsWith(inputs.stack, 'arm64') && 'pub-hk-ubuntu-22.04-arm-small' || 'ubuntu-22.04' }}
     env:
       AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
