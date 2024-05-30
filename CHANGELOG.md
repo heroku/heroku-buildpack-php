@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### ADD
+
+- Support heroku-24 [David Zuelke]
+- Build arm64 binaries for heroku-24+ [David Zuelke]
+
 ### CHG
 
 - Use PHP 8.3 for bootstrapping [David Zuelke]
