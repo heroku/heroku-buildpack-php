@@ -50,13 +50,10 @@ pushd "$manifests_tmp" > /dev/null
 
 echo "Fetching manifests, excluding given removals... " >&2
 s5cmd "${S5CMD_OPTIONS[@]}" cp ${S3_REGION:+--source-region "$S3_REGION"} "${excludes[@]}" "s3://${S3_BUCKET}/${S3_PREFIX}*.composer.json" "$manifests_tmp" || { echo -e "\nFailed to fetch manifests! See message above for errors." >&2; exit 1; }
-echo "...done, now performing a sync of the differences.
-" >&2
 
-# we now simply treat this as a sync of packages between two folders, passing sync.sh the local and the remote
+echo -e "\nNow performing a sync of the differences:\n" >&2
+
+# we now simply treat this as a sync of packages between two folders, passing sync.sh the local dir as source and the remote as destination
 # the "source" repository will have our matched manifests removed
 
 "${here}/sync.sh" -s "$manifests_tmp" "$S3_BUCKET" "$S3_PREFIX" "$S3_REGION" "$S3_BUCKET" "$S3_PREFIX" "$S3_REGION"
-
-echo "Removal complete.
-" >&2
