@@ -64,18 +64,10 @@ jobs:
           ls -f ${{inputs.formulae}} | xargs -n 1 echo - >> "$GITHUB_STEP_SUMMARY"
           ls -f ${{inputs.formulae}} | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
   docker-build:
-    runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-22.04-arm-large' || 'ubuntu-22.04' }}
+    runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-22.04-arm-limited-large' || 'ubuntu-22.04' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      # The beta ARM64 runners don't yet ship with the normal installed tools.
-      - name: Install Docker (ARM64 only)
-        if: endsWith(inputs.stack, '-arm64')
-        run: |
-          sudo apt-get update --error-on=any
-          sudo apt-get install -y --no-install-recommends acl docker.io docker-buildx
-          sudo usermod -aG docker $USER
-          sudo setfacl --modify user:$USER:rw /var/run/docker.sock
       - name: Cache Docker build
         id: cache-docker
         uses: actions/cache@v4
@@ -95,7 +87,7 @@ jobs:
   deploys:
     needs: [formulae-list, docker-build]
     if: ${{ needs.formulae-list.outputs.formulae != '[]' && needs.formulae-list.outputs.formulae != '' }}
-    runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-22.04-arm-large' || 'pub-hk-ubuntu-22.04-large' }}
+    runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-22.04-arm-limited-large' || 'pub-hk-ubuntu-22.04-large' }}
     strategy:
       max-parallel: ${{ fromJSON(inputs.concurrency) }}
       matrix:
@@ -111,14 +103,6 @@ jobs:
         with:
           key: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
-      # The beta ARM64 runners don't yet ship with the normal installed tools.
-      - name: Install Docker (ARM64 only)
-        if: endsWith(inputs.stack, '-arm64')
-        run: |
-          sudo apt-get update --error-on=any
-          sudo apt-get install -y --no-install-recommends acl docker.io docker-buildx
-          sudo usermod -aG docker $USER
-          sudo setfacl --modify user:$USER:rw /var/run/docker.sock
       - name: Load cached Docker image
         run: docker load -i /tmp/docker-cache.tar.gz
       - name: Build formula without deploying
@@ -133,7 +117,7 @@ jobs:
   mkrepo:
     needs: [deploys]
     if: ${{ inputs.dry-run == false && inputs.publish == true }}
-    runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-22.04-arm-large' || 'ubuntu-22.04' }}
+    runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-22.04-arm-limited-large' || 'ubuntu-22.04' }}
     env:
       AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -145,14 +129,6 @@ jobs:
         with:
           key: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
-      # The beta ARM64 runners don't yet ship with the normal installed tools.
-      - name: Install Docker (ARM64 only)
-        if: endsWith(inputs.stack, '-arm64')
-        run: |
-          sudo apt-get update --error-on=any
-          sudo apt-get install -y --no-install-recommends acl docker.io docker-buildx
-          sudo usermod -aG docker $USER
-          sudo setfacl --modify user:$USER:rw /var/run/docker.sock
       - name: Load cached Docker image
         run: docker load -i /tmp/docker-cache.tar.gz
       - name: Re-generate platform package repository

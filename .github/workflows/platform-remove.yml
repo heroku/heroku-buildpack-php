@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   remove:
-    runs-on: ${{ endsWith(inputs.stack, 'arm64') && 'pub-hk-ubuntu-22.04-arm-large' || 'ubuntu-22.04' }}
+    runs-on: ${{ endsWith(inputs.stack, 'arm64') && 'pub-hk-ubuntu-22.04-arm-limited-large' || 'ubuntu-22.04' }}
     env:
       AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -46,14 +46,6 @@ jobs:
         with:
           key: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
-      # The beta ARM64 runners don't yet ship with the normal installed tools.
-      - name: Install Docker (ARM64 only)
-        if: endsWith(inputs.stack, '-arm64')
-        run: |
-          sudo apt-get update --error-on=any
-          sudo apt-get install -y --no-install-recommends acl docker.io docker-buildx
-          sudo usermod -aG docker $USER
-          sudo setfacl --modify user:$USER:rw /var/run/docker.sock
       - name: Load cached Docker image
         if: steps.restore-docker.outputs.cache-hit == 'true'
         run: docker load -i /tmp/docker-cache.tar.gz
