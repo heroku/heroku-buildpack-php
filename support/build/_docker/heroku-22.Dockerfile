@@ -7,6 +7,7 @@ ENV WORKSPACE_DIR=/app/support/build
 ENV S3_BUCKET=robuust-heroku-php
 ENV S3_PREFIX=dist-heroku-22-develop/
 ENV S3_REGION=eu-west-1
+ENV STACK=heroku-22
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y python3-pip python3-venv
