@@ -249,23 +249,23 @@ if [[ $localdst ]] || (( !${#run_manifests_cp[@]} && !${#run_manifests_rm[@]} ))
 	exit
 fi
 
-cat >&2 <<-EOF
-	WARNING: POTENTIALLY DESTRUCTIVE ACTION!
-	
-EOF
-
 (cd "$dst_tmp"; shopt -s nullglob; manifests=( *.composer.json ); (( ${#manifests[@]} < 1 )) ) && {
 	wipe=true
 	prompt="Are you sure you want to remove all packages from destination?"
 	cat >&2 <<-EOF
 		THE REMOVALS ABOVE WILL DELETE THIS REPOSITORY IN ITS ENTIRETY!
-		THIS REPOSITORY'S packages.json WOULD BE EMPTY, SO IT WILL BE REMOVED AS WELL!
+		THE RESULTING EMPTY packages.json WILL BE REMOVED AS WELL!
 		
 	EOF
 } || {
 	wipe=false
 	prompt="Are you sure you want to sync to destination & re-generate packages.json?"
 }
+
+cat >&2 <<-EOF
+	WARNING: POTENTIALLY DESTRUCTIVE ACTION!
+	
+EOF
 
 read -p "${prompt} [yN] " proceed
 
