@@ -80,7 +80,7 @@ composer_lock_parse_error=$(
 
 # a bunch of sanity checks first
 if [[ -s "$COMPOSER" ]]; then
-	cat "$COMPOSER" | python -mjson.tool &> /dev/null || {
+	cat "$COMPOSER" | python3 -mjson.tool &> /dev/null || {
 		mcount "failures.composer_json.lint"
 		error <<-EOF
 			Basic validation for '$COMPOSER' failed!
@@ -98,7 +98,7 @@ if [[ -s "$COMPOSER" ]]; then
 		EOF
 	}
 	if [[ ! -f "$COMPOSER_LOCK" ]]; then
-		cat "$COMPOSER" | python -c 'import sys, json; sys.exit(bool(json.load(sys.stdin).get("require", {})))' 2> /dev/null || {
+		cat "$COMPOSER" | python3 -c 'import sys, json; sys.exit(bool(json.load(sys.stdin).get("require", {})))' 2> /dev/null || {
 			mcount "failures.composer_lock.missing"
 			error <<-EOF
 				No '$COMPOSER_LOCK' found!
@@ -130,7 +130,7 @@ if [[ -s "$COMPOSER" ]]; then
 			EOF
 		}
 	else
-		cat "$COMPOSER_LOCK" | python -mjson.tool &> /dev/null || {
+		cat "$COMPOSER_LOCK" | python3 -mjson.tool &> /dev/null || {
 			mcount "failures.composer_lock.lint"
 			error "$composer_lock_parse_error"
 		}
@@ -320,7 +320,7 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 }
 
 # if prefer-stable is false and minimum-stability is not stable, warn about potential unstable platform installs
-[[ ! -f "$COMPOSER_LOCK" ]] || minimum_stability=$(cat "$COMPOSER_LOCK" | python -c 'import sys, json; l = json.load(sys.stdin); print(l.get("minimum-stability")); sys.exit(l.get("minimum-stability", "stable") != "stable" and l.get("prefer-stable", False) == False);' 2> /dev/null) || {
+[[ ! -f "$COMPOSER_LOCK" ]] || minimum_stability=$(cat "$COMPOSER_LOCK" | python3 -c 'import sys, json; l = json.load(sys.stdin); print(l.get("minimum-stability")); sys.exit(l.get("minimum-stability", "stable") != "stable" and l.get("prefer-stable", False) == False);' 2> /dev/null) || {
 	possible_stabilities="dev, alpha, beta, or RC"
 	case $minimum_stability in
 		alpha)
@@ -670,7 +670,7 @@ unset COMPOSER_GITHUB_OAUTH_TOKEN
 
 # install dependencies unless composer.json is completely empty (in which case it'd talk to packagist.org which may be slow and is unnecessary)
 export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV|BPLOG_PREFIX|BUILDPACK_LOG_FILE|PHP_INI_SCAN_DIR)$'
-if cat "$COMPOSER" | python -c 'import sys,json; sys.exit(not json.load(sys.stdin));'; then
+if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit(not json.load(sys.stdin));'; then
 	install_log=$(mktemp -t heroku-buildpack-php-composer-install-log-XXXX)
 	composer install ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --prefer-dist --optimize-autoloader --no-progress --no-interaction 2>&1 | tee "$install_log" | indent || {
 		code=$?
@@ -728,7 +728,7 @@ fi
 # log number of installed dependencies
 mmeasure "dependencies.count" $(composer show --installed 2> /dev/null | wc -l)
 
-if cat "$COMPOSER" | python -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
+if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
 	status "Running 'composer compile'..."
 	composer run-script ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --no-interaction compile 2>&1 | indent || {
 		mcount "failures.compile_step"
@@ -756,15 +756,15 @@ status "Preparing runtime environment..."
 # TODO: warn if require-dev has the package using a different branch
 shopt -u dotglob # we don't want .git, .gitignore et al
 # figure out the package dir name to write to and copy to it
-hbpdir="$composer_vendordir/$(cat $bp_dir/composer.json | python -c 'import sys, json; print(json.load(sys.stdin)["name"])')"
+hbpdir="$composer_vendordir/$(cat $bp_dir/composer.json | python3 -c 'import sys, json; print(json.load(sys.stdin)["name"])')"
 mkdir -p "$build_dir/$hbpdir"
 cp -r "$bp_dir"/* "$build_dir/$hbpdir/"
 # make bin dir, just in case
 mkdir -p "$build_dir/$composer_bindir"
 # figure out shortest relative path from vendor/heroku/heroku-buildpack-php to vendor/bin (or whatever the bin dir is)
-relbin=$(python -c "import os.path; print(os.path.relpath('$hbpdir', '$composer_bindir'))")
+relbin=$(python3 -c "import os.path; print(os.path.relpath('$hbpdir', '$composer_bindir'))")
 # collect bin names from composer.json
-relbins=$(cat $bp_dir/composer.json | python -c 'from __future__ import print_function; import sys, json; { print(sys.argv[1]+"/"+bin) for bin in json.load(sys.stdin)["bin"] }' $relbin)
+relbins=$(cat $bp_dir/composer.json | python3 -c 'import sys, json; { print(sys.argv[1]+"/"+bin) for bin in json.load(sys.stdin)["bin"] }' $relbin)
 # link to bins
 cd $build_dir/$composer_bindir
 ln -fs $relbins .
