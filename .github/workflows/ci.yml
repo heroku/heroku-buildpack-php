@@ -21,6 +21,8 @@ env:
   HATCHET_BUILDPACK_BRANCH: ${{ github.head_ref || github.ref_name }}
   HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
   HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
+  S5CMD_VERSION: 2.2.2
+  S5CMD_HASH: "392c385320cd5ffa435759a95af77c215553d967e4b1c0fffe52e4f14c29cf85  s5cmd_2.2.2_linux_amd64.deb"
 
 jobs:
   integration-test:
@@ -47,6 +49,13 @@ jobs:
         with:
           php-version: "8.2"
           tools: "composer:2.7"
+      - name: Install packages from requirements.txt, plus s5cmd (for some tests)
+        run: |
+          pip install -r requirements.txt
+          curl -sSLO https://github.com/peak/s5cmd/releases/download/v${S5CMD_VERSION}/s5cmd_${S5CMD_VERSION}_linux_amd64.deb
+          echo "$S5CMD_HASH" | shasum -c -
+          dpkg -x "s5cmd_${S5CMD_VERSION}_linux_amd64.deb" .
+          echo "$HOME/usr/bin" >> "$GITHUB_PATH"
       - name: Hatchet setup
         run: bundle exec hatchet ci:setup
       - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …-develop (since we are not building main or a tag)
