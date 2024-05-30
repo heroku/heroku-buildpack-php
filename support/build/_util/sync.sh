@@ -269,7 +269,7 @@ EOF
 
 read -p "${prompt} [yN] " proceed
 
-[[ ! $proceed =~ [yY](es)* ]] && exit
+[[ ! $proceed =~ [yY](es)* ]] && { echo -e "Sync aborted.\n" >&2; exit; }
 
 echo "" >&2
 
@@ -297,13 +297,11 @@ fi
 if $wipe; then
 	echo "Removing packages.json..." >&2
 	AWS_REGION=$dst_region s5cmd "${S5CMD_OPTIONS[@]}" rm "s3://${dst_bucket}/${dst_prefix}packages.json" || { echo -e "\nFailed to remove repository! See message above for errors." >&2; exit 1; }
-	echo "" >&2
 else
-	echo -n "Generating and uploading packages.json... " >&2
-	out=$(cd "$dst_tmp"; S3_BUCKET=$dst_bucket S3_PREFIX=$dst_prefix S3_REGION=$dst_region "$here/mkrepo.sh" --upload *.composer.json 2>&1) || { echo -e "failed! Error:\n$out\n\nIn case of transient errors, the repository must be re-generated manually." >&2; exit 1; }
-	echo "done!
-	" >&2
+	echo "Generating and uploading packages.json..." >&2
+	out=$(cd "$dst_tmp"; S3_BUCKET=$dst_bucket S3_PREFIX=$dst_prefix S3_REGION=$dst_region "$here/mkrepo.sh" --upload *.composer.json 2>&1) || { echo -e "\nFailed to generate/upload repository! Error:\n$out\n\nIn case of transient errors, the repository must be re-generated manually." >&2; exit 1; }
 fi
+echo "" >&2
 
 if (( ${#run_dists_rm[@]} )); then
 	echo "Removing ${#run_dists_rm[@]} dists from destination..." >&2
@@ -311,5 +309,4 @@ if (( ${#run_dists_rm[@]} )); then
 	echo "" >&2
 fi
 
-echo "Sync complete.
-" >&2
+echo -e "Sync complete.\n" >&2
