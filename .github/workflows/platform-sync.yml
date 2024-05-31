@@ -61,31 +61,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Restore cached Docker image
-        id: restore-docker
-        uses: actions/cache/restore@v4
+      - name: Cache Docker build
+        id: cache-docker
+        uses: actions/cache@v4
         with:
           key: docker-cache-heroku-php-build-${{matrix.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
-      - name: Load cached Docker image
-        if: steps.restore-docker.outputs.cache-hit == 'true'
-        run: docker load -i /tmp/docker-cache.tar.gz
       - name: Build Docker image
-        if: steps.restore-docker.outputs.cache-hit != 'true'
+        if: steps.cache-docker.outputs.cache-hit != 'true'
         # our "input" stack might contain a "-amd64" or "-arm64" suffix, which we strip off for the Dockerfile name
         run: |
           shopt -s extglob
           stackname_with_architecture=${{matrix.stack}}
           docker build --tag heroku-php-build-${stackname_with_architecture}:${{github.sha}} --file support/build/_docker/${stackname_with_architecture%-?(amd|arm)64}.Dockerfile .
       - name: Save built Docker image
-        if: steps.restore-docker.outputs.cache-hit != 'true'
+        if: steps.cache-docker.outputs.cache-hit != 'true'
         run: docker save heroku-php-build-${{matrix.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
-      - name: Cache built Docker image
-        if: steps.restore-docker.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          key: ${{ steps.restore-docker.outputs.cache-primary-key }}
-          path: /tmp/docker-cache.tar.gz
   sync:
     needs: [stack-list, docker-build]
     strategy:
