@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v251] - 2024-05-31
+
 ### ADD
 
 - Support heroku-24 [David Zuelke]
@@ -2669,6 +2672,7 @@
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
 [unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v251...main
+[v251]: https://github.com/heroku/heroku-buildpack-php/compare/v250...v251
 [v251]: https://github.com/heroku/heroku-buildpack-php/compare/v250...v251
 [v250]: https://github.com/heroku/heroku-buildpack-php/compare/v249...v250
 [v249]: https://github.com/heroku/heroku-buildpack-php/compare/v248...v249
