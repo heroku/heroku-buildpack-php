@@ -25,13 +25,13 @@ First, `composer install` the dependencies.
 By default, all sections will be generated:
 
 ```ShellSession
-$ ./generate.php https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/packages.json https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json
+$ ./generate.php https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-{20,22,24-amd64}-stable/packages.json
 ```
 
 You may also generate any of the five sections individually using the `--runtimes`, `--built-in-extensions`, `--third-party-extensions`, `--composers`, or `--webservers` options:
 
 ```ShellSession
-$ ./generate.php --third-party-extensions https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/packages.json https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json
+$ ./generate.php --third-party-extensions https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-{20,22,24-amd64}-stable/packages.json
 ```
 
 You'd usually pipe the output into e.g. `pbcopy` and then update the Dev Center article.

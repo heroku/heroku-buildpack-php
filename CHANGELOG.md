@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### ADD
+
+- Support heroku-24 [David Zuelke]
+- Build arm64 binaries for heroku-24+ [David Zuelke]
+
+### CHG
+
+- Use PHP 8.3 for bootstrapping [David Zuelke]
+- librdkafka/2.4.0 (for heroku-24+ only) [David Zuelke]
 
 ## [v251] - 2024-05-30
 

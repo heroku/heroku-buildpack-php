@@ -6,7 +6,14 @@ OUT_PREFIX=$1
 export PATH=${OUT_PREFIX}/bin:${PATH}
 
 # can't build without this
-needed=( libsasl2-2 libmemcached11 )
+needed=( libsasl2-2 )
+if [[ $STACK == "heroku-20" ]]; then
+	needed+=( libmemcached11 )
+elif [[ $STACK == "heroku-22" ]]; then
+	needed+=( libmemcached11 )
+else
+	needed+=( libmemcached11t64 )
+fi
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
 	echo "Error! Missing libraries: $missing"

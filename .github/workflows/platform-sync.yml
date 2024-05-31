@@ -2,7 +2,7 @@ name: Platform packages sync from -develop/ to -stable/
 run-name: Sync${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-$STACK-develop/ to dist-$STACK-stable/
 
 env:
-  stacks_list_for_shell_expansion: "{heroku-20,heroku-22}"
+  stacks_list_for_shell_expansion: "{heroku-20,heroku-22,heroku-24-amd64,heroku-24-arm64}"
 
 on:
   workflow_dispatch:
@@ -14,6 +14,16 @@ on:
         required: false
       stack-heroku-22:
         description: 'Sync heroku-22 packages'
+        type: boolean
+        default: true
+        required: false
+      stack-heroku-24-amd64:
+        description: 'Sync heroku-24 (amd64) packages'
+        type: boolean
+        default: true
+        required: false
+      stack-heroku-24-arm64:
+        description: 'Sync heroku-24 (arm64) packages'
         type: boolean
         default: true
         required: false
@@ -37,14 +47,14 @@ jobs:
         run: |
           echo '## Stacks to sync' >> "$GITHUB_STEP_SUMMARY"
           set -o pipefail
-          stacks=(${{ inputs.stack-heroku-20 == true && 'heroku-20' || ''}} ${{ inputs.stack-heroku-22 == true && 'heroku-22' || ''}})
+          stacks=(${{ inputs.stack-heroku-20 == true && 'heroku-20' || ''}} ${{ inputs.stack-heroku-22 == true && 'heroku-22' || ''}} ${{ inputs.stack-heroku-24-amd64 == true && 'heroku-24-amd64' || ''}} ${{ inputs.stack-heroku-24-arm64 == true && 'heroku-24-arm64' || ''}})
           printf -- "- %s\n" "${stacks[@]}" >> "$GITHUB_STEP_SUMMARY"
           echo -n "matrix=" >> "$GITHUB_OUTPUT"
           printf "%s\n" "${stacks[@]}" | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
   docker-build:
     needs: stack-list
     if: ${{ needs.stack-list.outputs.stacks != '[]' && needs.stack-list.outputs.stacks != '' }}
-    runs-on: ubuntu-22.04
+    runs-on: ${{ endsWith(matrix.stack, '-arm64') && 'pub-hk-ubuntu-22.04-arm-small' || 'ubuntu-22.04' }}
     strategy:
       matrix:
         stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
@@ -62,7 +72,11 @@ jobs:
         run: docker load -i /tmp/docker-cache.tar.gz
       - name: Build Docker image
         if: steps.restore-docker.outputs.cache-hit != 'true'
-        run: docker build --tag heroku-php-build-${{matrix.stack}}:${{github.sha}} --file support/build/_docker/${{matrix.stack}}.Dockerfile .
+        # our "input" stack might contain a "-amd64" or "-arm64" suffix, which we strip off for the Dockerfile name
+        run: |
+          shopt -s extglob
+          stackname_with_architecture=${{matrix.stack}}
+          docker build --tag heroku-php-build-${stackname_with_architecture}:${{github.sha}} --file support/build/_docker/${stackname_with_architecture%-?(amd|arm)64}.Dockerfile .
       - name: Save built Docker image
         if: steps.restore-docker.outputs.cache-hit != 'true'
         run: docker save heroku-php-build-${{matrix.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
@@ -74,10 +88,10 @@ jobs:
           path: /tmp/docker-cache.tar.gz
   sync:
     needs: [stack-list, docker-build]
-    runs-on: ubuntu-22.04
     strategy:
       matrix:
         stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
+    runs-on: ${{ endsWith(matrix.stack, '-arm64') && 'pub-hk-ubuntu-22.04-arm-small' || 'ubuntu-22.04' }}
     env:
       AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
