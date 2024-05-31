@@ -641,7 +641,7 @@ fi
 ) & pids+=($!)
 
 (
-	trap 'echo "nginx" >&3; wait 2> /dev/null' EXIT
+	trap 'echo "httpd" >&3; wait 2> /dev/null' EXIT
 	trap '' INT;
 
 	# wait for FPM to write its PID file, which it does after initialization
