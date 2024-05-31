@@ -179,7 +179,7 @@ describe "The PHP Platform Installer" do
 				bp_root = [".."].cycle("#{manifest_fixtures_subdir}/#{testcase}".count("/")+1).to_a.join("/") # right "../.." sequence to get us back to the root of the buildpack
 				Dir.chdir("#{manifest_fixtures_subdir}/#{testcase}") do |cwd|
 					cmd = File.read("ENV") # any env vars for the test (manifest.py needs STACK, S3_BUCKET, S3_PREFIX, TIME)
-					cmd << " python #{bp_root}/support/build/_util/include/manifest.py "
+					cmd << " python3 #{bp_root}/support/build/_util/include/manifest.py "
 					cmd << File.read("ARGS")
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 				
