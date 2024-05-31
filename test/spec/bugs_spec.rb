@@ -34,7 +34,7 @@ describe "A PHP application" do
 		context "because the buildpack ran twice" do
 			it "fails the build" do
 				buildpacks = [
-					"heroku/php",
+					:default,
 					:default
 				]
 				app = new_app_with_stack_and_platrepo("test/fixtures/default", buildpacks: buildpacks, allow_failure: true)

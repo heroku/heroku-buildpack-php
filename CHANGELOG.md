@@ -3,6 +3,24 @@
 ## [Unreleased]
 
 
+## [v252] - 2024-05-31
+
+### ADD
+
+- Support heroku-24 [David Zuelke]
+- Build arm64 binaries for heroku-24+ [David Zuelke]
+
+### CHG
+
+- Use PHP 8.3 for bootstrapping [David Zuelke]
+- librdkafka/2.4.0 (for heroku-24+ only) [David Zuelke]
+
+## [v251] - 2024-05-30
+
+### ADD
+
+- PHP/8.3.7 [David Zuelke]
+
 ## [v250] - 2024-05-29
 
 ### ADD
@@ -2653,7 +2671,9 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v250...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v252...main
+[v252]: https://github.com/heroku/heroku-buildpack-php/compare/v251...v252
+[v251]: https://github.com/heroku/heroku-buildpack-php/compare/v250...v251
 [v250]: https://github.com/heroku/heroku-buildpack-php/compare/v249...v250
 [v249]: https://github.com/heroku/heroku-buildpack-php/compare/v248...v249
 [v248]: https://github.com/heroku/heroku-buildpack-php/compare/v247...v248

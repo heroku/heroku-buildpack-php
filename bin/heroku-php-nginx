@@ -10,11 +10,11 @@ shopt -s extglob
 shopt -s nullglob
 
 if ! type -p "realpath" > /dev/null; then
-	# macOS doesn't have realpath
+	# old macOSes don't have realpath
 	# readlink is not an option because BSD readlink does not have the GNU -f option
 	# must be a function so subshells, including $(…), can use it
 	realpath() {
-		python -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$@"
+		python3 -c 'import os,sys; print(os.path.realpath(sys.argv[1]))' "$@"
 	}
 fi
 
@@ -308,10 +308,11 @@ composer() {
 	# check if the composer binary is executable by PHP
 	if file --brief --dereference "$composer_bin" | grep -e "shell" -e "bash" > /dev/null ; then # newer versions of file return "data" for .phar
 		# run it directly; it's probably a bash script or similar (homebrew-php does this)
+		# disable interactive mode just in case our environment doesn't have that set (or 'composer config vendor-dir' will hang with a prompt if there is no composer.json in the cwd)
 		# re-set COMPOSER_AUTH to ensure a malformed `heroku config:set` will not cause immediate outage
-		COMPOSER_AUTH= "$composer_bin" "$@"
+		COMPOSER_NO_INTERACTION=1 COMPOSER_AUTH= "$composer_bin" "$@"
 	else
-		COMPOSER_AUTH= php "$composer_bin" "$@"
+		COMPOSER_NO_INTERACTION=1 COMPOSER_AUTH= php "$composer_bin" "$@"
 	fi
 }
 # these exports are used in default web server configs to lock down access to composer directories

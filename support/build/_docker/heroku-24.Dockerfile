@@ -1,13 +1,15 @@
-FROM heroku/heroku:20-build.v127
+FROM heroku/heroku:24-build.v127
 
 ARG TARGETARCH
+
+USER root
 
 WORKDIR /app
 ENV WORKSPACE_DIR=/app/support/build
 ENV S3_BUCKET=lang-php
-ENV S3_PREFIX=dist-heroku-20-develop/
+ENV S3_PREFIX=dist-heroku-24-${TARGETARCH}-develop/
 ENV S3_REGION=us-east-1
-ENV STACK=heroku-20
+ENV STACK=heroku-24
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y python3-pip python3-venv

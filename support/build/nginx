@@ -49,7 +49,7 @@ VAR=${OUT_PREFIX}/var
 	--with-http_realip_module \
 	--with-http_ssl_module \
 	--with-http_stub_status_module
-make -s -j 9
+make -s -j $(($(nproc)+1))
 make install -s
 find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|(pie-)?executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 popd

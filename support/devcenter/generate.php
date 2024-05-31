@@ -26,6 +26,7 @@ if(isset($sections['s'])) {
 	$stacks = [
 		1 => '20', // the offset we start with here is relevant for the numbering of footnotes
 		'22',
+		'24',
 	];
 }
 
