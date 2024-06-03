@@ -1,8 +1,8 @@
-name: Platform packages build and deploy to -develop/
-run-name: Build ${{ inputs.dry-run == true && 'w/o deploy' || '& deploy' }}${{ inputs.overwrite == true && '(+overwrite)' || '' }} to dist-${{inputs.stack}}-develop/
+name: Platform packages build and deploy to -cnb/
+run-name: Build ${{ inputs.dry-run == true && 'w/o deploy' || '& deploy' }}${{ inputs.overwrite == true && '(+overwrite)' || '' }} to dist-${{inputs.stack}}-cnb/
 
 env:
-  dst_path_suffix: "-stable/"
+  dst_path_suffix: "-cnb-stable/"
 
 on:
   workflow_dispatch:
