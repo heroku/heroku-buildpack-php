@@ -7,7 +7,7 @@ USER root
 WORKDIR /app
 ENV WORKSPACE_DIR=/app/support/build
 ENV S3_BUCKET=lang-php
-ENV S3_PREFIX=dist-heroku-24-${TARGETARCH}-develop/
+ENV S3_PREFIX=dist-heroku-24-${TARGETARCH}-cnb/
 ENV S3_REGION=us-east-1
 ENV STACK=heroku-24
 ENV DEBIAN_FRONTEND=noninteractive
