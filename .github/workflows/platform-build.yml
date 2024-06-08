@@ -1,5 +1,5 @@
 name: Platform packages build and deploy to -develop/
-run-name: Build ${{ inputs.dry-run == true && 'w/o deploy' || '& deploy' }}${{ inputs.overwrite == true && '(+overwrite)' || '' }} to dist-${{inputs.stack}}-develop/ ${{ inputs.publish == false && 'w/o publishing packages into Composer platform repository' || '' }}
+run-name: Build ${{ inputs.dry-run == true && 'w/o deploy' || '& deploy' }}${{ inputs.overwrite == true && '(+overwrite)' || '' }} to dist-${{inputs.stack}}-develop/
 
 env:
   dst_path_suffix: "-stable/"
@@ -29,11 +29,6 @@ on:
         description: 'Overwrite existing packages'
         type: boolean
         default: false
-        required: false
-      publish:
-        description: 'Publish updated Composer platform repository after all builds are complete'
-        type: boolean
-        default: true
         required: false
       concurrency:
         description: 'GitHub Actions runner concurrency'
@@ -119,7 +114,7 @@ jobs:
         run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh --overwrite ${{matrix.formula}}
   mkrepo:
     needs: [deploys]
-    if: ${{ inputs.dry-run == false && inputs.publish == true }}
+    if: ${{ inputs.dry-run == false }}
     runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-22.04-arm-small' || 'ubuntu-22.04' }}
     env:
       AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
