@@ -11,6 +11,7 @@ permissions:
   contents: read
 
 env:
+  src_path_suffix: "-develop/"
   HEROKU_DISABLE_AUTOUPDATE: 1
   HATCHET_RETRIES: 3
   IS_RUNNING_ON_CI: true
@@ -58,11 +59,11 @@ jobs:
           echo "$HOME/usr/bin" >> "$GITHUB_PATH"
       - name: Hatchet setup
         run: bundle exec hatchet ci:setup
-      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …-develop (since we are not building main or a tag)
+      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}} (since we are not building main or a tag)
         if: github.ref_type != 'tag' && github.ref_name != 'main'
         run: |
           if [[ $STACK != heroku-2[02] ]]; then STACK="${STACK}-amd64"; fi
-          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}-develop/" >> "$GITHUB_ENV"
+          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}" >> "$GITHUB_ENV"
       - name: Calculate number of parallel_rspec processes (half of num of lines in runtime log)
         run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat test/var/log/parallel_runtime_rspec.${STACK}.log | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"
       - name: Execute tests
