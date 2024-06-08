@@ -81,7 +81,9 @@ jobs:
         if: ${{ inputs.dry-run == true }}
         run: |
           echo '## Packages which would be removed from production bucket' >> "$GITHUB_STEP_SUMMARY"
-          echo '**This is output from a dry-run**, no packages have been removed:' >> "$GITHUB_STEP_SUMMARY"
+          echo '> [!IMPORTANT]' >> "$GITHUB_STEP_SUMMARY"
+          echo '> **This is output from a dry-run**, no packages have been removed.' >> "$GITHUB_STEP_SUMMARY"
+          echo >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           sed -n '/^The following packages will/,/POTENTIALLY DESTRUCTIVE ACTION/{/POTENTIALLY DESTRUCTIVE ACTION/!p}' remove.out >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
