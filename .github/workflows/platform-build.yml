@@ -1,6 +1,9 @@
 name: Platform packages build and deploy to -develop/
 run-name: Build ${{ inputs.dry-run == true && 'w/o deploy' || '& deploy' }}${{ inputs.overwrite == true && '(+overwrite)' || '' }} to dist-${{inputs.stack}}-develop/ ${{ inputs.publish == false && 'w/o publishing packages into Composer platform repository' || '' }}
 
+env:
+  dst_path_suffix: "-stable/"
+
 on:
   workflow_dispatch:
     inputs:
@@ -136,7 +139,7 @@ jobs:
       - name: Dry-run sync.sh to show package changes available for syncing to production bucket
         run: |
           set -o pipefail
-          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/ 2>&1 | tee sync.out
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync.out
       - name: Output job summary
         run: |
           echo '## Package changes available for syncing to production bucket' >> "$GITHUB_STEP_SUMMARY"
