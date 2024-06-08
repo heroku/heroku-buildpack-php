@@ -120,7 +120,9 @@ jobs:
         if: ${{ inputs.dry-run == true }}
         run: |
           echo '## Package changes available for syncing to ${{matrix.stack}} production bucket' >> "$GITHUB_STEP_SUMMARY"
-          echo '**This is output from a dry-run**, no changes have been synced to production:' >> "$GITHUB_STEP_SUMMARY"
+          echo '> [!IMPORTANT]' >> "$GITHUB_STEP_SUMMARY"
+          echo '> **This is output from a dry-run**, no changes have been synced to production!' >> "$GITHUB_STEP_SUMMARY"
+          echo >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           sed -n '/^The following packages will/,/POTENTIALLY DESTRUCTIVE ACTION/{/POTENTIALLY DESTRUCTIVE ACTION/!p}' sync-${{matrix.stack}}.log >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
@@ -244,7 +246,9 @@ jobs:
               exit ${diff_result}
             }
             echo '## Diff of changes to ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
-            echo "${{ inputs.dry-run == true && '**This is based on the source bucket (due to dry-run mode)**, not the production bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+            echo "${{ inputs.dry-run == true && '> [!IMPORTANT]' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+            echo "${{ inputs.dry-run == true && '> **This is based on the source bucket (due to dry-run mode)**, not the destination bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+            echo "${{ inputs.dry-run == false && '-n' || '' }}" >> "$GITHUB_STEP_SUMMARY"
             echo '``````diff' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
             cat php-support.diff >> "$GITHUB_STEP_SUMMARY"
             echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
@@ -304,10 +308,10 @@ jobs:
         run: |
           echo '## Updated markdown for ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
           echo "${{ inputs.dry-run == true && '> [!IMPORTANT]' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ inputs.dry-run == true && '**This is based on the source bucket (due to dry-run mode)**, not the production bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ inputs.dry-run == true && '' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '> **This is based on the source bucket** (due to dry-run mode), not the destination bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == false && '-n' || '' }}" >> "$GITHUB_STEP_SUMMARY"
           echo "> [!WARNING]" >> "$GITHUB_STEP_SUMMARY"
-          echo "> **Dev Center has not been updated with the contents below**, the output is for reference only" >> "$GITHUB_STEP_SUMMARY"
+          echo "> **Dev Center has not been updated with the contents below**${{ inputs.dry-run == true && ' (due to dry-run mode)' || ', copy the Markdown for manual updating!' }}" >> "$GITHUB_STEP_SUMMARY"
           echo >> "$GITHUB_STEP_SUMMARY"
           echo '``````markdown' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
           cat php-support.md >> "$GITHUB_STEP_SUMMARY"
@@ -351,6 +355,9 @@ jobs:
         run: |
           shopt -s extglob
           echo '## Markdown for package Changelog entry' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '> [!WARNING]' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '> **These changes have not been synced to the destination bucket**, the changelog entry is for reference only!' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == false && '-n' || '' }}" >> "$GITHUB_STEP_SUMMARY"
           echo '### Title' >> "$GITHUB_STEP_SUMMARY"
           echo '``````markdown' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
           cat changelog-00.md >> "$GITHUB_STEP_SUMMARY"
