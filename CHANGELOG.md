@@ -10,6 +10,10 @@
 - ext-newrelic/10.21.0.11 [David Zuelke]
 - ext-mongodb/1.19.2 [David Zuelke]
 
+### CHG
+
+- Nginx/1.26.1 [David Zuelke]
+
 ## [v252] - 2024-05-31
 
 ### ADD
