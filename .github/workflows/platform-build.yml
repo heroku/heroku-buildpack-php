@@ -1,5 +1,8 @@
 name: Platform packages build and deploy to -develop/
-run-name: Build ${{ inputs.dry-run == true && 'w/o deploy' || '& deploy' }}${{ inputs.overwrite == true && '(+overwrite)' || '' }} to dist-${{inputs.stack}}-develop/ ${{ inputs.publish == false && 'w/o publishing packages into Composer platform repository' || '' }}
+run-name: Build ${{ inputs.dry-run == true && 'w/o deploy' || '& deploy' }}${{ inputs.overwrite == true && '(+overwrite)' || '' }} to dist-${{inputs.stack}}-develop/
+
+env:
+  dst_path_suffix: "-stable/"
 
 on:
   workflow_dispatch:
@@ -26,11 +29,6 @@ on:
         description: 'Overwrite existing packages'
         type: boolean
         default: false
-        required: false
-      publish:
-        description: 'Publish updated Composer platform repository after all builds are complete'
-        type: boolean
-        default: true
         required: false
       concurrency:
         description: 'GitHub Actions runner concurrency'
@@ -116,7 +114,7 @@ jobs:
         run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh --overwrite ${{matrix.formula}}
   mkrepo:
     needs: [deploys]
-    if: ${{ inputs.dry-run == false && inputs.publish == true }}
+    if: ${{ inputs.dry-run == false }}
     runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-22.04-arm-small' || 'ubuntu-22.04' }}
     env:
       AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
@@ -136,11 +134,13 @@ jobs:
       - name: Dry-run sync.sh to show package changes available for syncing to production bucket
         run: |
           set -o pipefail
-          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}-stable/ 2>&1 | tee sync.out
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync.out
       - name: Output job summary
         run: |
           echo '## Package changes available for syncing to production bucket' >> "$GITHUB_STEP_SUMMARY"
-          echo '**This is output from a dry-run**, no changes have been synced to production:' >> "$GITHUB_STEP_SUMMARY"
+          echo '> [!IMPORTANT]' >> "$GITHUB_STEP_SUMMARY"
+          echo '> **This is output from a dry-run**, no changes have been synced to production!' >> "$GITHUB_STEP_SUMMARY"
+          echo >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           sed -n '/^The following packages will/,/POTENTIALLY DESTRUCTIVE ACTION/{/POTENTIALLY DESTRUCTIVE ACTION/!p}' sync.out >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"

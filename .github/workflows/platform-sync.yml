@@ -3,6 +3,8 @@ run-name: Sync${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-$STACK
 
 env:
   stacks_list_for_shell_expansion: "{heroku-20,heroku-22,heroku-24-amd64,heroku-24-arm64}"
+  src_path_suffix: "-develop/"
+  dst_path_suffix: "-stable/"
 
 on:
   workflow_dispatch:
@@ -31,6 +33,11 @@ on:
         description: 'Only list package changes, without syncing'
         type: boolean
         default: false
+        required: false
+      update-devcenter:
+        description: 'Update "PHP Support" Dev Center article after sync'
+        type: boolean
+        default: true
         required: false
 
 permissions:
@@ -61,31 +68,22 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: Restore cached Docker image
-        id: restore-docker
-        uses: actions/cache/restore@v4
+      - name: Cache Docker build
+        id: cache-docker
+        uses: actions/cache@v4
         with:
           key: docker-cache-heroku-php-build-${{matrix.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
-      - name: Load cached Docker image
-        if: steps.restore-docker.outputs.cache-hit == 'true'
-        run: docker load -i /tmp/docker-cache.tar.gz
       - name: Build Docker image
-        if: steps.restore-docker.outputs.cache-hit != 'true'
+        if: steps.cache-docker.outputs.cache-hit != 'true'
         # our "input" stack might contain a "-amd64" or "-arm64" suffix, which we strip off for the Dockerfile name
         run: |
           shopt -s extglob
           stackname_with_architecture=${{matrix.stack}}
           docker build --tag heroku-php-build-${stackname_with_architecture}:${{github.sha}} --file support/build/_docker/${stackname_with_architecture%-?(amd|arm)64}.Dockerfile .
       - name: Save built Docker image
-        if: steps.restore-docker.outputs.cache-hit != 'true'
+        if: steps.cache-docker.outputs.cache-hit != 'true'
         run: docker save heroku-php-build-${{matrix.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
-      - name: Cache built Docker image
-        if: steps.restore-docker.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v4
-        with:
-          key: ${{ steps.restore-docker.outputs.cache-primary-key }}
-          path: /tmp/docker-cache.tar.gz
   sync:
     needs: [stack-list, docker-build]
     strategy:
@@ -112,7 +110,7 @@ jobs:
           # yes gets "n" to print for dry-runs so the sync aborts
           # errors are redirected to /dev/null, and we || true, to suppress SIGPIPE errors from 'docker run' exiting eventually
           # we need -i for Docker to accept input on stdin, but must not use -t for the pipeline to work
-          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh lang-php dist-${{matrix.stack}}-stable/ 2>&1 | tee sync-${{matrix.stack}}.log
+          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh lang-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log
       - name: Upload sync log as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -122,7 +120,9 @@ jobs:
         if: ${{ inputs.dry-run == true }}
         run: |
           echo '## Package changes available for syncing to ${{matrix.stack}} production bucket' >> "$GITHUB_STEP_SUMMARY"
-          echo '**This is output from a dry-run**, no changes have been synced to production:' >> "$GITHUB_STEP_SUMMARY"
+          echo '> [!IMPORTANT]' >> "$GITHUB_STEP_SUMMARY"
+          echo '> **This is output from a dry-run**, no changes have been synced to production!' >> "$GITHUB_STEP_SUMMARY"
+          echo >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           sed -n '/^The following packages will/,/POTENTIALLY DESTRUCTIVE ACTION/{/POTENTIALLY DESTRUCTIVE ACTION/!p}' sync-${{matrix.stack}}.log >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
@@ -136,6 +136,8 @@ jobs:
   devcenter-generate:
     needs: sync
     runs-on: ubuntu-22.04
+    outputs:
+      diff_result: ${{ steps.diff.outputs.diff_result }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -154,7 +156,7 @@ jobs:
       - name: Generate Dev Center article sections
         run: |
           set -o pipefail
-          urls=( https://lang-php.s3.amazonaws.com/dist-${{ env.stacks_list_for_shell_expansion }}-${{ inputs.dry-run == true && 'develop' || 'stable' }}/packages.json )
+          urls=( https://lang-php.s3.amazonaws.com/dist-${{ env.stacks_list_for_shell_expansion }}${{ inputs.dry-run == true && env.src_path_suffix || env.dst_path_suffix }}packages.json )
           # generate.php can generate individual sections, but doing it in one go a) is faster and b) means this code does not need to know what those sections are
           # Instead we split the generated contents into individual files, with the known delimiter as the split pattern.
           # tee stderr to a file
@@ -174,11 +176,11 @@ jobs:
         run: |
           set -o pipefail
           # jq -j, not -r, otherwise we get a stray trailing newline
-          curl -H "Accept: application/json" https://devcenter.heroku.com/api/v1/articles/2021 | jq -j '.content' > php-support.md
+          curl -H "Accept: application/json" https://devcenter.heroku.com/api/v1/articles/php-support | jq -j '.content' > php-support.md
           # Because the articles are edited in a web interface, they likely use CRLF line endings.
           # We will be patching using the LF line ending section files generated in an earlier step.
           # For this reason, we may have to convert to LF, so we check if the file would be converted by dos2unix using the --info option.
-          # The "c" info flag prints only file names that would trigger conversion; we first remember this output for the next step via tee -a.
+          # The "c" info flag prints only file names that would trigger conversion; we first remember this output for the next step via tee.
           # The "0" flag triggers zero-byte output for happy consumption by xargs
           # Then, we finally run the conversion (if needed) by passing the file name to dos2unix again via xargs.
           dos2unix --info=c0 php-support.md | tee have_crlf.txt | xargs -r0 dos2unix
@@ -193,11 +195,11 @@ jobs:
             last=$(tail -n1 "$f")
             # grep the line numbers (-n) as fixed (-F) full-line (-x) strings and extract them
             start=$(set -o pipefail; grep -nFx "$first" php-support.md | cut -d':' -f1) || {
-              echo "::warning title=Failed to match section start marker::Start marker '$first' not found in input markdown; skipping section..."
+              echo "::warning title=Failed to match section start marker::Start marker '$first' not found in input markdown; skipping '$f'..."
               continue
             }
             end=$(set -o pipefail; grep -nFx "$last" php-support.md | cut -d':' -f1) || {
-              echo "::warning title=Failed to match section end marker::End marker '$last' not found in input markdown; skipping section..."
+              echo "::warning title=Failed to match section end marker::End marker '$last' not found in input markdown; skipping '$f'..."
               continue
             }
             # write out a line with the start-end range and filename
@@ -227,12 +229,14 @@ jobs:
         id: diff
         if: steps.find-section-markers.outputs.num_sections > 0
         run: |
-          echo '## Diff of changes to ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ inputs.dry-run == true && '**This is based on the source bucket (due to dry-run mode)**, not the production bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
-          echo '``````diff' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
           # diff exits 0 if there are no differences, 1 if there are, 2 if there was trouble
-          diff -u php-support.md.orig php-support.md >> "$GITHUB_STEP_SUMMARY" && {
-            echo "::warning title=No diff in markdown::There were no differences after applying the generated sections to the input markdown."
+          # our patch --ed earlier added a newline at the end of the file
+          # the downloaded markdown, however, may not have a newline at the end of the file
+          # as a result, `diff` may produce a difference for that, but we want to ignore it
+          # we run through a sed that matches on end of file ($), then appends (a) nothing (after backslash)
+          # GNU sed will then add a newline at the end if there isn't one
+          diff -u <(sed -e '$a\' php-support.md.orig) <(sed -e '$a\' php-support.md) > php-support.diff && {
+            echo "::notice title=No diff in markdown::There were no differences after applying the generated sections to the input markdown."
             echo "diff_result=0" >> "$GITHUB_OUTPUT"
           } || {
             diff_result=$?
@@ -241,19 +245,83 @@ jobs:
               echo "::error title=Unexpected error during diffing::Exit status of 'diff' command was '${diff_result}'."
               exit ${diff_result}
             }
+            echo '## Diff of changes to ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
+            echo "${{ inputs.dry-run == true && '> [!IMPORTANT]' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+            echo "${{ inputs.dry-run == true && '> **This is based on the source bucket (due to dry-run mode)**, not the destination bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+            echo "${{ inputs.dry-run == false && '-n' || '' }}" >> "$GITHUB_STEP_SUMMARY"
+            echo '``````diff' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+            cat php-support.diff >> "$GITHUB_STEP_SUMMARY"
+            echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
           }
-          echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
-      - name: Output complete Dev Center article markdown
+      - name: Upload diff as artifact
         if: steps.find-section-markers.outputs.num_sections > 0 && steps.diff.outputs.diff_result == 1
+        uses: actions/upload-artifact@v4
+        with:
+          name: devcenter-diff
+          path: |
+            have_crlf.txt
+            php-support.diff
+  devcenter-update:
+    needs: devcenter-generate
+    if: ${{ needs.devcenter-generate.outputs.diff_result == 1 }}
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install dos2unix
+        run: |
+          sudo apt-get update
+          sudo apt-get install dos2unix
+      - name: Download current Dev Center article markdown
         run: |
           set -o pipefail
-          echo '## Updated markdown for ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
-          echo "${{ inputs.dry-run == true && '**This is based on the source bucket (due to dry-run mode)**, not the production bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
-          echo '``````markdown' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+          # we need to query this JSON twice, and a temp file is easiest for error handling
+          curl -H "Accept: application/json" https://devcenter.heroku.com/api/v1/articles/php-support > php-support.json
+          # jq -j, not -r, otherwise we get a stray trailing newline
+          cat php-support.json | jq -je '.content' > php-support.md
+          # here we want the trailing newline; run through alternative operator and empty filter to cause exit status 4 with -e if field missing
+          cat php-support.json | jq -re '.id // empty | @sh "article_id=\(.)"' >> "$GITHUB_ENV"
+          # Because the articles are edited in a web interface, they likely use CRLF line endings.
+          # We will be patching using an LF diff.
+          # For this reason, we may have to convert to LF, so we check if the file would be converted by dos2unix using the --info option.
+          # The "c" info flag prints only file names that would trigger conversion; we first remember this output for the next step via tee -a.
+          # The "0" flag triggers zero-byte output for happy consumption by xargs
+          # Then, we finally run the conversion (if needed) by passing the file name to dos2unix again via xargs.
+          dos2unix --info=c0 php-support.md | tee have_crlf.txt | xargs -r0 dos2unix
+      - name: Download diff artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: devcenter-diff
+          path: devcenter-diffs
+      - name: Patch Dev Center article markdown
+        run: |
+          patch php-support.md devcenter-diffs/php-support.diff
           # convert back to the original CRLF if dos2unix ran in an earlier step (have_crlf.txt will be empty if not, and xargs will not run due to -r)
           cat have_crlf.txt | xargs -r0 unix2dos
+      - name: Validate Dev Center article
+        if: inputs.dry-run == true || inputs.update-devcenter == false
+        run: |
+          set -o pipefail
+          curl -sS --fail-with-body -X POST -K <(echo -n "user = bot:"; printenv "HEROKU_DEVCENTER_API_TOKEN") -H "Accept: application/json" --data-urlencode 'article[content]@php-support.md' "https://devcenter.heroku.com/api/v1/private/articles/${article_id}/validate.json"
+      - name: Output Dev Center article
+        if: inputs.dry-run == true || inputs.update-devcenter == false
+        run: |
+          echo '## Updated markdown for ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '> [!IMPORTANT]' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '> **This is based on the source bucket** (due to dry-run mode), not the destination bucket.' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == false && '-n' || '' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "> [!WARNING]" >> "$GITHUB_STEP_SUMMARY"
+          echo "> **Dev Center has not been updated with the contents below**${{ inputs.dry-run == true && ' (due to dry-run mode)' || ', copy the Markdown for manual updating!' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo >> "$GITHUB_STEP_SUMMARY"
+          echo '``````markdown' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
           cat php-support.md >> "$GITHUB_STEP_SUMMARY"
           echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+      - name: Update Dev Center article
+        if: inputs.dry-run == false && inputs.update-devcenter == true
+        run: |
+          set -o pipefail
+          curl -sS --fail-with-body -X PUT -K <(echo -n "user = bot:"; printenv "HEROKU_DEVCENTER_API_TOKEN") -H "Accept: application/json" --data-urlencode 'article[content]@php-support.md' "https://devcenter.heroku.com/api/v1/private/articles/${article_id}.json"
+          echo 'Successfully updated ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support) with synced packages.' >> "$GITHUB_STEP_SUMMARY"
   changelog-generate:
     needs: sync
     runs-on: ubuntu-22.04
@@ -287,6 +355,9 @@ jobs:
         run: |
           shopt -s extglob
           echo '## Markdown for package Changelog entry' >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '> [!WARNING]' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == true && '> **These changes have not been synced to the destination bucket**, the changelog entry is for reference only!' || '-n' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "${{ inputs.dry-run == false && '-n' || '' }}" >> "$GITHUB_STEP_SUMMARY"
           echo '### Title' >> "$GITHUB_STEP_SUMMARY"
           echo '``````markdown' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
           cat changelog-00.md >> "$GITHUB_STEP_SUMMARY"

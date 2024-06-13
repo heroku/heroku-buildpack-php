@@ -9,7 +9,7 @@ devcenter_tooling_subdir = "support/devcenter"
 
 describe "The Dev Center support tooling" do
 	before(:all) do
-		system("composer install -n -d #{devcenter_tooling_subdir}") or raise "Failed to install Dev Center support tooling dependencies"
+		system("composer install --quiet -d #{devcenter_tooling_subdir}") or raise "Failed to install Dev Center support tooling dependencies"
 	end
 	
 	describe "Changelog generator script" do
