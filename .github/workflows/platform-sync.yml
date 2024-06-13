@@ -265,6 +265,8 @@ jobs:
     needs: devcenter-generate
     if: ${{ needs.devcenter-generate.outputs.diff_result == 1 }}
     runs-on: ubuntu-22.04
+    env:
+      HEROKU_DEVCENTER_API_TOKEN:  ${{ secrets.HEROKU_DEVCENTER_API_TOKEN }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
