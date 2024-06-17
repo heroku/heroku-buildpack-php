@@ -26,6 +26,21 @@ env:
   S5CMD_HASH: "392c385320cd5ffa435759a95af77c215553d967e4b1c0fffe52e4f14c29cf85  s5cmd_2.2.2_linux_amd64.deb"
 
 jobs:
+  unit-test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: ["ubuntu-20.04", "ubuntu-22.04", "ubuntu-24.04"]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Install Ruby and Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          ruby-version: "3.2"
+      - name: Execute tests
+        run: bundle exec rspec test/spec/cgroup_spec.rb
   integration-test:
     runs-on: ubuntu-22.04
     strategy:
@@ -67,7 +82,9 @@ jobs:
       - name: Calculate number of parallel_rspec processes (half of num of lines in runtime log)
         run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat test/var/log/parallel_runtime_rspec.${STACK}.log | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"
       - name: Execute tests
-        run: bundle exec parallel_rspec --group-by runtime --first-is-1 --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/
+        run: |
+          shopt -s extglob
+          bundle exec parallel_rspec --group-by runtime --first-is-1 --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/!(cgroup)_spec.rb
       - name: Print list of executed examples
         run: cat test/var/log/group.*.json | jq -r --slurp '[.[].examples[]] | sort_by(.id) | flatten[] | .full_description'
       - name: Print parallel_runtime_rspec.log
