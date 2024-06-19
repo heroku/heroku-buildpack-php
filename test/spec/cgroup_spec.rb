@@ -22,8 +22,8 @@ def expected_limit(case_limits)
 end
 
 describe "The cgroup helper shell functions" do
-	["+eu", "-eu", "+e -u", "-e +u"].each do |set|
-		context "running in a 'set #{set}' Bash instance" do
+	["+e", "-e"].product(["+u", "-u"]).product([true, false]).each do |setopts, verbose|
+		context "running in a 'set #{setopts}' Bash instance with verbose=#{verbose}" do
 			Dir.each_child(cgroup_fixtures_subdir).reject { |f| not File.directory?("#{cgroup_fixtures_subdir}/#{f}") }.each do |testcase|
 				context "for test case #{testcase}" do
 					casedir = "#{cgroup_fixtures_subdir}/#{testcase}"
@@ -51,7 +51,7 @@ describe "The cgroup helper shell functions" do
 							# unlimited containers in Docker with cgroupsv1 have memory.limit_in_bytes = 9223372036854771712
 							is_docker_v1_unlimited_case = (case_limits["memory.limit_in_bytes"].to_i == UNLIMITED_MEMORY)
 							
-							cmd = "set #{set};"
+							cmd = "set #{setopts.join(" ")};"
 							cmd << "source 'bin/util/cgroups.sh';"
 							# UNCOMMENT THIS BOCK WHEN RUNNING LOCALLY ON MACOS
 							# if testcase.include?("v1")
@@ -63,7 +63,8 @@ describe "The cgroup helper shell functions" do
 							# else
 							# 	cmd << "findmnt() { echo '/sys/fs/cgroup'; }; export -f findmnt;"
 							# end
-							cmd << "cgroup_util_read_cgroup_memory_limit -v -p #{casedir}/proc -s #{cgroupfs} -m #{MAX_MEMORY}"
+							cmd << "cgroup_util_read_cgroup_memory_limit -p #{casedir}/proc -s #{cgroupfs} -m #{MAX_MEMORY}"
+							cmd << " -v" if verbose
 							
 							stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 							
@@ -85,6 +86,21 @@ describe "The cgroup helper shell functions" do
 							
 							expect(stderr).not_to include("unbound variable"), "cgroups call contained 'unbound variable' in stderr: #{stderr}, stdout: #{stdout}"
 							
+							next unless expected_status == 0
+							
+							begin
+								expected_stdout = File.read("#{casedir}/expected_stdout").strip
+							rescue Errno::ENOENT
+								expected_stdout = expected_limit(case_limits)
+							ensure
+								expect(stdout.strip).to eq(expected_stdout), "cgroups call was expected to return #{expected_stdout} in stdout but did not; status: #{status.exitstatus}, expected: #{expected_status}, stderr: #{stderr}, stdout: #{stdout}"
+							end
+							
+							unless verbose
+								expect(stderr).to be_empty
+								next
+							end
+							
 							begin
 								# expand %s in file with our tempdir prefix
 								expected_stderr = sprintf(File.read("#{casedir}/expected_stderr").strip, cgroupfs)
@@ -98,16 +114,6 @@ describe "The cgroup helper shell functions" do
 								end
 							ensure
 								expect(stderr.strip).to match(expected_stderr), "cgroups call was expected to match #{expected_stderr} in stderr but did not; status: #{status.exitstatus}, expected: #{expected_status}, stderr: #{stderr}, stdout: #{stdout}"
-							end
-							
-							next unless expected_status == 0
-							
-							begin
-								expected_stdout = File.read("#{casedir}/expected_stdout").strip
-							rescue Errno::ENOENT
-								expected_stdout = expected_limit(case_limits)
-							ensure
-								expect(stdout.strip).to eq(expected_stdout), "cgroups call was expected to return #{expected_stdout} in stdout but did not; status: #{status.exitstatus}, expected: #{expected_status}, stderr: #{stderr}, stdout: #{stdout}"
 							end
 						end
 					end
