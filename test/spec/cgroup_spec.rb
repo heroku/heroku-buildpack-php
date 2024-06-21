@@ -2,6 +2,7 @@ require_relative "spec_helper"
 
 require "fileutils"
 require "json"
+require "mkmf"
 require "open3"
 require "shellwords"
 
@@ -11,6 +12,9 @@ cgroup_fixtures_subdir = "test/fixtures/cgroups"
 MAX_MEMORY = 8*1024*1024*1024*1024
 # what Docker sets as memory.limit_in_bytes with cgroupv1 if there is none defined on the container
 UNLIMITED_MEMORY = 0x7FFFFFFFFFFFF000 # == 9223372036854771712
+
+# this is a Linux program, so if it is not there, we emulate it with bash functions later to allow testing on e.g. macOS
+HAVE_FINDMNT = find_executable("findmnt")
 
 def expected_limit(case_limits)
 	["memory.limit_in_bytes", "memory.high", "memory.max", "memory.low"].each do |k|
@@ -53,16 +57,18 @@ describe "The cgroup helper shell functions" do
 							
 							cmd = "set #{setopts.join(" ")};"
 							cmd << "source 'bin/util/cgroups.sh';"
-							# UNCOMMENT THIS BOCK WHEN RUNNING LOCALLY ON MACOS
-							# if testcase.include?("v1")
-							# 	if testcase.match?(/heroku-(ps-v1-crcompat|cr-v1)/)
-							# 		cmd << "findmnt() { return 1; }; export -f findmnt;"
-							# 	else
-							# 		cmd << "findmnt() { echo '/sys/fs/cgroup/memory'; }; export -f findmnt;"
-							# 	end
-							# else
-							# 	cmd << "findmnt() { echo '/sys/fs/cgroup'; }; export -f findmnt;"
-							# end
+							
+							# "emulate" findmnt in case it is missing, e.g. when running these tests on macOS
+							if !HAVE_FINDMNT && testcase.include?("v1")
+								if testcase.match?(/heroku-(ps-v1-crcompat|cr-v1)/)
+									cmd << "findmnt() { return 1; }; export -f findmnt;"
+								else
+									cmd << "findmnt() { echo '/sys/fs/cgroup/memory'; }; export -f findmnt;"
+								end
+							elsif !HAVE_FINDMNT
+								cmd << "findmnt() { echo '/sys/fs/cgroup'; }; export -f findmnt;"
+							end
+							
 							cmd << "CGROUP_UTIL_PROCFS_ROOT=#{casedir}/proc "
 							cmd << "CGROUP_UTIL_CGROUPFS_PREFIX=#{cgroupfs} "
 							cmd << "CGROUP_UTIL_VERBOSE=1 " if verbose
