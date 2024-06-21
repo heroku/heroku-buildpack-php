@@ -87,37 +87,10 @@ cgroup_util_find_v2_path() {
 
 # this ignores memory.soft_limit_in_bytes on purpose for the reasons outlined in https://www.kernel.org/doc/html/latest/admin-guide/cgroup-v2.html#id1
 cgroup_util_read_cgroupv1_memory_limit() {
-	local usage="Usage: ${FUNCNAME[0]} [-v] PATH"
-	local verbose=
-	
-	# we must declare this as local, otherwise the caller's $OPTIND will be modified by getopts	
-	local OPTIND
-	while getopts ":v" opt; do
-		case "$opt" in
-			v)
-				verbose=1
-				;;
-			\?)
-				echo "Invalid option: -${OPTARG}" >&2
-				return 2
-				;;
-			:)
-				echo "Option -${OPTARG} requires an argument" >&2
-				return 2
-				;;
-			*)
-				echo "Internal error during options parsing" >&2
-				return 2
-				;;
-		esac
-	done
-	# clear processed arguments
-	shift $((OPTIND-1))
-	
 	local usage="Usage: ${FUNCNAME[0]} PATH"
 	local f="${1:?$usage}/memory.limit_in_bytes"
 	if [[ -r "$f" ]]; then
-		[[ -n $verbose ]] && echo "Using limit from '${f}'" >&2
+		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Using limit from '${f}'" >&2
 		cat "$f"
 		return
 	else
@@ -127,32 +100,7 @@ cgroup_util_read_cgroupv1_memory_limit() {
 
 # this reads memory.high first, then falls back to memory.max, memory.low, or memory.min
 cgroup_util_read_cgroupv2_memory_limit() {
-	local usage="Usage: ${FUNCNAME[0]} [-v] PATH"
-	local verbose=
-	
-	# we must declare this as local, otherwise the caller's $OPTIND will be modified by getopts	
-	local OPTIND
-	while getopts ":v" opt; do
-		case "$opt" in
-			v)
-				verbose=1
-				;;
-			\?)
-				echo "Invalid option: -${OPTARG}" >&2
-				return 2
-				;;
-			:)
-				echo "Option -${OPTARG} requires an argument" >&2
-				return 2
-				;;
-			*)
-				echo "Internal error during options parsing" >&2
-				return 2
-				;;
-		esac
-	done
-	# clear processed arguments
-	shift $((OPTIND-1))
+	local usage="Usage: ${FUNCNAME[0]} PATH"
 	
 	local f
 	local limit
@@ -162,7 +110,7 @@ cgroup_util_read_cgroupv2_memory_limit() {
 		if [[ -r "$f" ]]; then
 			limit=$(cat "$f")
 			if [[ "$limit" != "max" && "$limit" != "0" ]]; then
-				[[ -n $verbose ]] && echo "Using limit from '${f}'" >&2
+				[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Using limit from '${f}'" >&2
 				echo "$limit"
 				return
 			fi
@@ -176,18 +124,16 @@ cgroup_util_read_cgroupv2_memory_limit() {
 # -m is the maximum memory to allow for any value (e.g. Docker may give 8 Exabytes for unlimited containers); no value is returned if this value is exceeded, and it defaults to the value read from "free"
 # -p is the location of procfs, defaults to /proc (useful as an override for testing)
 # -s is a prefix that will be prepended to found cgroupfs mount locations (useful for testing)
-# -v is verbose mode
+# pass a value for env var CGROUP_UTIL_VERBOSE to enable verbose mode
 cgroup_util_read_cgroup_memory_limit() {
-	local usage="Usage: ${FUNCNAME[0]} [-v] [-m MEMORY_MAXIMUM] [-p PROCFS_ROOT] [-s CGROUPFS_PREFIX]"
+	local usage="Usage: ${FUNCNAME[0]} [-m MEMORY_MAXIMUM] [-p PROCFS_ROOT] [-s CGROUPFS_PREFIX]"
 	
 	local cgroupfs_prefix=
 	local maximum
 	local proc=/proc
-	local verbose=
-	
 	# we must declare this as local, otherwise the caller's $OPTIND will be modified by getopts	
 	local OPTIND
-	while getopts ":m:p:s:v" opt; do
+	while getopts ":m:p:s:" opt; do
 		case "$opt" in
 			m)
 				maximum=$OPTARG
@@ -197,9 +143,6 @@ cgroup_util_read_cgroup_memory_limit() {
 				;;
 			s)
 				cgroupfs_prefix=$OPTARG
-				;;
-			v)
-				verbose=1
 				;;
 			\?)
 				echo "Invalid option: -${OPTARG}" >&2
@@ -229,25 +172,25 @@ cgroup_util_read_cgroup_memory_limit() {
 	
 	local procfs_cgroup_entry
 	procfs_cgroup_entry=$(cgroup_util_find_controller_from_procfs_cgroup_contents "$controller" < "${proc}/self/cgroup") || {
-		[[ -n $verbose ]] && echo "Could not find cgroup controller '${controller}' in '${proc}/self/cgroup'" >&2
+		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not find cgroup controller '${controller}' in '${proc}/self/cgroup'" >&2
 		return 3
 	}
 	
 	local controller_version
 	controller_version=$(echo "$procfs_cgroup_entry" | cgroup_util_get_controller_version_from_procfs_cgroup_line) || {
-		[[ -n $verbose ]] && echo "Could not determine version for cgroup controller '${controller}' from '${proc}/self/cgroup'" >&2
+		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not determine version for cgroup controller '${controller}' from '${proc}/self/cgroup'" >&2
 		return 4
 	}
 	
 	local controller_path
 	controller_path=$(echo "$procfs_cgroup_entry" | cgroup_util_get_controller_path_from_procfs_cgroup_line) || {
-		[[ -n $verbose ]] && echo "Could not determine path for cgroup controller '${controller}' from '${proc}/self/cgroup'" >&2
+		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not determine path for cgroup controller '${controller}' from '${proc}/self/cgroup'" >&2
 		return 5
 	}
 	
 	local controller_mount
 	controller_mount=$(cgroup_util_find_v"$controller_version"_mount_from_procfs_mountinfo_contents "$controller" < "${proc}/self/mountinfo") || {
-		[[ -n $verbose ]] && echo "Could not determine mount point for cgroup controller '${controller}' from '${proc}/self/mountinfo'" >&2
+		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not determine mount point for cgroup controller '${controller}' from '${proc}/self/mountinfo'" >&2
 		return 6
 	}
 	# for testing purposes, a prefix can be passed to "relocate" the /sys/fs/cgroup/... location we are reading from next
@@ -255,19 +198,19 @@ cgroup_util_read_cgroup_memory_limit() {
 	
 	local location
 	location=$(cgroup_util_find_v"$controller_version"_path "$controller" "$controller_mount" "$controller_path") || {
-		[[ -n $verbose ]] && echo "Could not find a location for cgroup controller '${controller}'" >&2
+		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not find a location for cgroup controller '${controller}'" >&2
 		return 7
 	}
 	
-	[[ -n $verbose ]] && echo "Reading cgroup v${controller_version} limit from '${location}'" >&2
+	[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Reading cgroup v${controller_version} limit from '${location}'" >&2
 	
 	local limit
 	case "$controller_version" in
 		1)
-			limit=$(cgroup_util_read_cgroupv1_memory_limit ${verbose:+"-v"} "$location") || return
+			limit=$(cgroup_util_read_cgroupv1_memory_limit "$location") || return
 			;;
 		2)
-			limit=$(cgroup_util_read_cgroupv2_memory_limit ${verbose:+"-v"} "$location") || return
+			limit=$(cgroup_util_read_cgroupv2_memory_limit "$location") || return
 			;;
 		*)
 			echo "Internal error: invalid cgroup controller version '${controller_version}'" >&2
@@ -279,7 +222,7 @@ cgroup_util_read_cgroup_memory_limit() {
 		echo "$limit"
 		return
 	else
-		[[ -n $verbose ]] && echo "Ignoring cgroup memory limit of ${limit} Bytes (exceeds maximum of ${maximum} Bytes)" >&2
+		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Ignoring cgroup memory limit of ${limit} Bytes (exceeds maximum of ${maximum} Bytes)" >&2
 		return 99
 	fi
 }
