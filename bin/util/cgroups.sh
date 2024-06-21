@@ -122,27 +122,23 @@ cgroup_util_read_cgroupv2_memory_limit() {
 
 # reads a cgroup v1 (memory.limit_in_bytes) or v2 (memory.high, fallback to memory.max, fallback to memory.low, fallback to memory.min)
 # -m is the maximum memory to allow for any value (e.g. Docker may give 8 Exabytes for unlimited containers); no value is returned if this value is exceeded, and it defaults to the value read from "free"
-# -p is the location of procfs, defaults to /proc (useful as an override for testing)
-# -s is a prefix that will be prepended to found cgroupfs mount locations (useful for testing)
+# if env var CGROUP_UTIL_PROCFS_ROOT is passed, it will be used instead of '/proc' to find '/proc/self/cgroup', '/proc/self/mountinfo' etc (useful for testing, defaults to '/proc')
+# if env var CGROUP_UTIL_CGROUPFS_PREFIX is passed, it will be prepended to any /sys/fs/cgroup or similar path used (useful for testing, defaults to '')
 # pass a value for env var CGROUP_UTIL_VERBOSE to enable verbose mode
 cgroup_util_read_cgroup_memory_limit() {
-	local usage="Usage: ${FUNCNAME[0]} [-m MEMORY_MAXIMUM] [-p PROCFS_ROOT] [-s CGROUPFS_PREFIX]"
+	local usage="Usage: ${FUNCNAME[0]} [-m MEMORY_MAXIMUM]"
 	
-	local cgroupfs_prefix=
+	if [[ -z "${CGROUP_UTIL_PROCFS_ROOT-}" ]]; then
+		local CGROUP_UTIL_PROCFS_ROOT=/proc
+	fi
+	
 	local maximum
-	local proc=/proc
 	# we must declare this as local, otherwise the caller's $OPTIND will be modified by getopts	
 	local OPTIND
-	while getopts ":m:p:s:" opt; do
+	while getopts ":m:" opt; do
 		case "$opt" in
 			m)
 				maximum=$OPTARG
-				;;
-			p)
-				proc=$OPTARG
-				;;
-			s)
-				cgroupfs_prefix=$OPTARG
 				;;
 			\?)
 				echo "Invalid option: -${OPTARG}" >&2
@@ -171,30 +167,30 @@ cgroup_util_read_cgroup_memory_limit() {
 	local controller=memory
 	
 	local procfs_cgroup_entry
-	procfs_cgroup_entry=$(cgroup_util_find_controller_from_procfs_cgroup_contents "$controller" < "${proc}/self/cgroup") || {
-		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not find cgroup controller '${controller}' in '${proc}/self/cgroup'" >&2
+	procfs_cgroup_entry=$(cgroup_util_find_controller_from_procfs_cgroup_contents "$controller" < "${CGROUP_UTIL_PROCFS_ROOT}/self/cgroup") || {
+		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not find cgroup controller '${controller}' in '${CGROUP_UTIL_PROCFS_ROOT}/self/cgroup'" >&2
 		return 3
 	}
 	
 	local controller_version
 	controller_version=$(echo "$procfs_cgroup_entry" | cgroup_util_get_controller_version_from_procfs_cgroup_line) || {
-		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not determine version for cgroup controller '${controller}' from '${proc}/self/cgroup'" >&2
+		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not determine version for cgroup controller '${controller}' from '${CGROUP_UTIL_PROCFS_ROOT}/self/cgroup'" >&2
 		return 4
 	}
 	
 	local controller_path
 	controller_path=$(echo "$procfs_cgroup_entry" | cgroup_util_get_controller_path_from_procfs_cgroup_line) || {
-		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not determine path for cgroup controller '${controller}' from '${proc}/self/cgroup'" >&2
+		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not determine path for cgroup controller '${controller}' from '${CGROUP_UTIL_PROCFS_ROOT}/self/cgroup'" >&2
 		return 5
 	}
 	
 	local controller_mount
-	controller_mount=$(cgroup_util_find_v"$controller_version"_mount_from_procfs_mountinfo_contents "$controller" < "${proc}/self/mountinfo") || {
-		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not determine mount point for cgroup controller '${controller}' from '${proc}/self/mountinfo'" >&2
+	controller_mount=$(cgroup_util_find_v"$controller_version"_mount_from_procfs_mountinfo_contents "$controller" < "${CGROUP_UTIL_PROCFS_ROOT}/self/mountinfo") || {
+		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not determine mount point for cgroup controller '${controller}' from '${CGROUP_UTIL_PROCFS_ROOT}/self/mountinfo'" >&2
 		return 6
 	}
 	# for testing purposes, a prefix can be passed to "relocate" the /sys/fs/cgroup/... location we are reading from next
-	controller_mount="${cgroupfs_prefix}${controller_mount}"
+	controller_mount="${CGROUP_UTIL_CGROUPFS_PREFIX-}${controller_mount}"
 	
 	local location
 	location=$(cgroup_util_find_v"$controller_version"_path "$controller" "$controller_mount" "$controller_path") || {

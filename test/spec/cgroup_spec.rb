@@ -63,8 +63,10 @@ describe "The cgroup helper shell functions" do
 							# else
 							# 	cmd << "findmnt() { echo '/sys/fs/cgroup'; }; export -f findmnt;"
 							# end
+							cmd << "CGROUP_UTIL_PROCFS_ROOT=#{casedir}/proc "
+							cmd << "CGROUP_UTIL_CGROUPFS_PREFIX=#{cgroupfs} "
 							cmd << "CGROUP_UTIL_VERBOSE=1 " if verbose
-							cmd << "cgroup_util_read_cgroup_memory_limit -p #{casedir}/proc -s #{cgroupfs} -m #{MAX_MEMORY}"
+							cmd << "cgroup_util_read_cgroup_memory_limit -m #{MAX_MEMORY}"
 							
 							stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 							
