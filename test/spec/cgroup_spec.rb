@@ -72,7 +72,7 @@ describe "The cgroup helper shell functions" do
 							cmd << "CGROUP_UTIL_PROCFS_ROOT=#{casedir}/proc "
 							cmd << "CGROUP_UTIL_CGROUPFS_PREFIX=#{cgroupfs} "
 							cmd << "CGROUP_UTIL_VERBOSE=1 " if verbose
-							cmd << "cgroup_util_read_cgroup_memory_limit -m #{MAX_MEMORY}"
+							cmd << "cgroup_util_read_cgroup_memory_limit #{MAX_MEMORY}"
 							
 							stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 							
