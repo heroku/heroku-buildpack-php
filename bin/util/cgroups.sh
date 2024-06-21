@@ -121,42 +121,18 @@ cgroup_util_read_cgroupv2_memory_limit() {
 }
 
 # reads a cgroup v1 (memory.limit_in_bytes) or v2 (memory.high, fallback to memory.max, fallback to memory.low, fallback to memory.min)
-# -m is the maximum memory to allow for any value (e.g. Docker may give 8 Exabytes for unlimited containers); no value is returned if this value is exceeded, and it defaults to the value read from "free"
+# optional argument is the maximum memory to allow for any value (e.g. Docker may give 8 Exabytes for unlimited containers); no value is returned if this value is exceeded, and it defaults to the value read from "free"
 # if env var CGROUP_UTIL_PROCFS_ROOT is passed, it will be used instead of '/proc' to find '/proc/self/cgroup', '/proc/self/mountinfo' etc (useful for testing, defaults to '/proc')
 # if env var CGROUP_UTIL_CGROUPFS_PREFIX is passed, it will be prepended to any /sys/fs/cgroup or similar path used (useful for testing, defaults to '')
 # pass a value for env var CGROUP_UTIL_VERBOSE to enable verbose mode
 cgroup_util_read_cgroup_memory_limit() {
-	local usage="Usage: ${FUNCNAME[0]} [-m MEMORY_MAXIMUM]"
+	local usage="Usage: ${FUNCNAME[0]} [MEMORY_MAXIMUM]"
 	
 	if [[ -z "${CGROUP_UTIL_PROCFS_ROOT-}" ]]; then
 		local CGROUP_UTIL_PROCFS_ROOT=/proc
 	fi
 	
-	local maximum
-	# we must declare this as local, otherwise the caller's $OPTIND will be modified by getopts	
-	local OPTIND
-	while getopts ":m:" opt; do
-		case "$opt" in
-			m)
-				maximum=$OPTARG
-				;;
-			\?)
-				echo "Invalid option: -${OPTARG}" >&2
-				return 2
-				;;
-			:)
-				echo "Option -${OPTARG} requires an argument" >&2
-				return 2
-				;;
-			*)
-				echo "Internal error during options parsing" >&2
-				return 2
-				;;
-		esac
-	done
-	# clear processed arguments
-	shift $((OPTIND-1))
-	
+	local maximum=${1-}
 	if [[ -z "$maximum" ]]; then
 		maximum=$(set -o pipefail; free -b | awk 'NR == 2 { print $4 }') || {
 			echo "Could not determine maximum RAM from 'free'" >&2
