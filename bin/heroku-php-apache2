@@ -390,13 +390,11 @@ fpm_command=( php-fpm --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${
 httpd_command=( httpd -D NO_DETACH -c "Include $httpd_config" )
 
 ram=
-# a hard maximum we never want to exceed, e.g. in case of silly values
-memory_maximum=$(( 8*1024*1024*1024*1024 ))
 # attempt to read a "correct" limit from cgroupfs
 # this will handle cgroups v1 and v2, and, for v2, prefer memory.high over memory.max over memory.low
 if [[ -d "/proc" ]]; then # check for /proc, just in case someone is running this on e.g. macOS
 	[[ $verbose ]] && echo "Checking cgroupfs for memory limits..." >&2
-	ram=$(CGROUP_UTIL_VERBOSE=${verbose:+1} cgroup_util_read_cgroup_memory_limit "$memory_maximum") || {
+	ram=$(CGROUP_UTIL_VERBOSE=${verbose:+1} cgroup_util_read_cgroup_memory_limit) || {
 		# 99 means the limit was exceeded; in verbose mode, a message was then already printed
 		if (( $? == 99)); then
 			ram="512M"
