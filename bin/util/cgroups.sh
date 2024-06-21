@@ -125,19 +125,15 @@ cgroup_util_read_cgroupv1_memory_limit() {
 	fi
 }
 
-# this reads memory.high first, then falls back to memory.max, then falls back to memory.low unless -L is passed
+# this reads memory.high first, then falls back to memory.max, memory.low, or memory.min
 cgroup_util_read_cgroupv2_memory_limit() {
-	local usage="Usage: ${FUNCNAME[0]} [-Lv] PATH"
-	local fallback_to_low=true # for an if later
+	local usage="Usage: ${FUNCNAME[0]} [-v] PATH"
 	local verbose=
 	
 	# we must declare this as local, otherwise the caller's $OPTIND will be modified by getopts	
 	local OPTIND
-	while getopts ":Lv" opt; do
+	while getopts ":v" opt; do
 		case "$opt" in
-			L)
-				fallback_to_low=false
-				;;
 			v)
 				verbose=1
 				;;
@@ -158,13 +154,14 @@ cgroup_util_read_cgroupv2_memory_limit() {
 	# clear processed arguments
 	shift $((OPTIND-1))
 	
-	local limit
-	
 	local f
-	for f in "${1}/memory.high" "${1}/memory.max"; do
+	local limit
+	# memory.high is the the best limit to read ("This is the main mechanism to control memory usage of a cgroup.", https://www.kernel.org/doc/html/v5.15/admin-guide/cgroup-v2.html)
+	# we fall back to memory.max first (the final "safety net" limit), then memory.low (best-effort memory protection, e.g. OCI memory.reservation or Docker --memory-reservation), then finally memory.min (hard guaranteed minimum)
+	for f in "${1:?$usage}/memory.high" "${1}/memory.max" "${1}/memory.low" "${1}/memory.min"; do
 		if [[ -r "$f" ]]; then
 			limit=$(cat "$f")
-			if [[ "$limit" != "max" ]]; then
+			if [[ "$limit" != "max" && "$limit" != "0" ]]; then
 				[[ -n $verbose ]] && echo "Using limit from '${f}'" >&2
 				echo "$limit"
 				return
@@ -172,41 +169,26 @@ cgroup_util_read_cgroupv2_memory_limit() {
 		fi
 	done
 	
-	f="${1}/memory.low"
-	if $fallback_to_low && [[ -r "$f" ]]; then
-		limit=$(cat "$f")
-		if [[ "$limit" != "0" ]]; then
-			[[ -n $verbose ]] && echo "Using limit from '${f}'" >&2
-			echo "$limit"
-			return
-		fi
-	fi
-	
 	return 9
 }
 
-# reads a cgroup v1 (memory.limit_in_bytes) or v2 (memory.high, fallback to memory.max, fallback to memory.low)
-# -L disables fallback to memory.low if memory.high and memory.max do not have a value (i.e. are "max"), e.g. when using 'docker run' with '--memory-reservation' but not '--memory'
+# reads a cgroup v1 (memory.limit_in_bytes) or v2 (memory.high, fallback to memory.max, fallback to memory.low, fallback to memory.min)
 # -m is the maximum memory to allow for any value (e.g. Docker may give 8 Exabytes for unlimited containers); no value is returned if this value is exceeded, and it defaults to the value read from "free"
 # -p is the location of procfs, defaults to /proc (useful as an override for testing)
 # -s is a prefix that will be prepended to found cgroupfs mount locations (useful for testing)
 # -v is verbose mode
 cgroup_util_read_cgroup_memory_limit() {
-	local usage="Usage: ${FUNCNAME[0]} [-Lv] [-m MEMORY_MAXIMUM] [-p PROCFS_ROOT] [-s CGROUPFS_PREFIX]"
+	local usage="Usage: ${FUNCNAME[0]} [-v] [-m MEMORY_MAXIMUM] [-p PROCFS_ROOT] [-s CGROUPFS_PREFIX]"
 	
 	local cgroupfs_prefix=
-	local l= # for the ${l+:} check later
 	local maximum
 	local proc=/proc
 	local verbose=
 	
 	# we must declare this as local, otherwise the caller's $OPTIND will be modified by getopts	
 	local OPTIND
-	while getopts ":Lm:p:s:v" opt; do
+	while getopts ":m:p:s:v" opt; do
 		case "$opt" in
-			L)
-				l=false
-				;;
 			m)
 				maximum=$OPTARG
 				;;
@@ -285,7 +267,7 @@ cgroup_util_read_cgroup_memory_limit() {
 			limit=$(cgroup_util_read_cgroupv1_memory_limit ${verbose:+"-v"} "$location") || return
 			;;
 		2)
-			limit=$(cgroup_util_read_cgroupv2_memory_limit ${verbose:+"-v"} ${l:+"-L"} "$location") || return
+			limit=$(cgroup_util_read_cgroupv2_memory_limit ${verbose:+"-v"} "$location") || return
 			;;
 		*)
 			echo "Internal error: invalid cgroup controller version '${controller_version}'" >&2
