@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # stdin is the output of e.g. /proc/self/cgroup
-cgroup_util_find_controller_from_procfs_cgroup() {
+cgroup_util_find_controller_from_procfs_cgroup_contents() {
 	local usage="Usage (stdin is /proc/self/cgroup format): ${FUNCNAME[0]} CONTROLLER"
 	# there may be an entry for a v1 controller like:
 	# 7:memory:/someprefix
@@ -39,14 +39,14 @@ cgroup_util_get_controller_path_from_procfs_cgroup_line() {
 
 # stdin is the output of e.g. /proc/self/mountinfo
 # $1 is a controller name, which is matched against the mount options using -O (so it could be a comma-separated list, too)
-cgroup_util_find_v1_mount_from_procfs_mountinfo() {
+cgroup_util_find_v1_mount_from_procfs_mountinfo_contents() {
 	local usage="Usage (stdin is /proc/self/cgroup format): ${FUNCNAME[0]} CONTROLLER"
 	# must specify --list explicitly or it might output tree parts after all...
 	findmnt --list --noheadings --first-only -t cgroup -O "${1:?$usage}" -o target -F <(cat)
 }
 
 # stdin is the output of e.g. /proc/self/mountinfo
-cgroup_util_find_v2_mount_from_procfs_mountinfo() {
+cgroup_util_find_v2_mount_from_procfs_mountinfo_contents() {
 	# must specify --list explicitly or it might output tree parts after all...
 	findmnt --list --noheadings --first-only -t cgroup2 -o target -F <(cat)
 }
@@ -228,7 +228,7 @@ cgroup_util_read_cgroup_memory_limit() {
 	local controller=memory
 	
 	local procfs_cgroup_entry
-	procfs_cgroup_entry=$(cgroup_util_find_controller_from_procfs_cgroup "$controller" < "${proc}/self/cgroup") || {
+	procfs_cgroup_entry=$(cgroup_util_find_controller_from_procfs_cgroup_contents "$controller" < "${proc}/self/cgroup") || {
 		[[ -n $verbose ]] && echo "Could not find cgroup controller '${controller}' in '${proc}/self/cgroup'" >&2
 		return 3
 	}
@@ -246,7 +246,7 @@ cgroup_util_read_cgroup_memory_limit() {
 	}
 	
 	local controller_mount
-	controller_mount=$(cgroup_util_find_v"$controller_version"_mount_from_procfs_mountinfo "$controller" < "${proc}/self/mountinfo") || {
+	controller_mount=$(cgroup_util_find_v"$controller_version"_mount_from_procfs_mountinfo_contents "$controller" < "${proc}/self/mountinfo") || {
 		[[ -n $verbose ]] && echo "Could not determine mount point for cgroup controller '${controller}' from '${proc}/self/mountinfo'" >&2
 		return 6
 	}
