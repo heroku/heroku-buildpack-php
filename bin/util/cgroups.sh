@@ -121,24 +121,16 @@ cgroup_util_read_cgroupv2_memory_limit() {
 }
 
 # reads a cgroup v1 (memory.limit_in_bytes) or v2 (memory.high, fallback to memory.max, fallback to memory.low, fallback to memory.min)
-# optional argument is the maximum memory to allow for any value (e.g. Docker may give 8 Exabytes for unlimited containers); no value is returned if this value is exceeded, and it defaults to the value read from "free"
 # if env var CGROUP_UTIL_PROCFS_ROOT is passed, it will be used instead of '/proc' to find '/proc/self/cgroup', '/proc/self/mountinfo' etc (useful for testing, defaults to '/proc')
 # if env var CGROUP_UTIL_CGROUPFS_PREFIX is passed, it will be prepended to any /sys/fs/cgroup or similar path used (useful for testing, defaults to '')
 # pass a value for env var CGROUP_UTIL_VERBOSE to enable verbose mode
 cgroup_util_read_cgroup_memory_limit() {
-	local usage="Usage: ${FUNCNAME[0]} [MEMORY_MAXIMUM]"
-	
 	if [[ -z "${CGROUP_UTIL_PROCFS_ROOT-}" ]]; then
 		local CGROUP_UTIL_PROCFS_ROOT=/proc
 	fi
 	
-	local maximum=${1-}
-	if [[ -z "$maximum" ]]; then
-		maximum=$(set -o pipefail; free -b | awk 'NR == 2 { print $4 }') || {
-			echo "Could not determine maximum RAM from 'free'" >&2
-			return 2
-		}
-	fi
+	# this value is used as a threshold for "silly" maximums returned e.g. by Docker on a cgroups v1 system
+	local maximum=$((8 * 1024 * 1024 * 1024 * 1024)) # 8 TB
 	
 	local controller=memory
 	
@@ -199,17 +191,23 @@ cgroup_util_read_cgroup_memory_limit() {
 	fi
 }
 
+# reads a cgroup v1 (memory.limit_in_bytes) or v2 (memory.high, fallback to memory.max, fallback to memory.low, fallback to memory.min)
+# optional argument is a file path to fall back to for reading a default value, useful e.g. when reading on a system that has a "fake" limit info file (defaults to '/sys/fs/cgroup/memory/memory.limit_in_bytes')
+# if env var CGROUP_UTIL_PROCFS_ROOT is passed, it will be used instead of '/proc' to find '/proc/self/cgroup', '/proc/self/mountinfo' etc (useful for testing, defaults to '/proc')
+# if env var CGROUP_UTIL_CGROUPFS_PREFIX is passed, it will be prepended to any /sys/fs/cgroup or similar path used (useful for testing, defaults to '')
+# pass a value for env var CGROUP_UTIL_VERBOSE to enable verbose mode
 cgroup_util_read_cgroup_memory_limit_with_fallback() {
 	local fallback=${1-"${CGROUP_UTIL_CGROUPFS_PREFIX-}/sys/fs/cgroup/memory/memory.limit_in_bytes"}
 	
-	cgroup_util_read_cgroup_memory_limit "$@"
-	local retval=$?
-	
-	if ((retval != 99)) && [[ -r "$fallback" ]]; then
-		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Reading fallback limit from '${fallback}'" >&2
-		cat "$fallback"
-		return
-	fi
-	
-	return "$retval"
+	cgroup_util_read_cgroup_memory_limit || {
+		local retval=$?
+		
+		if ((retval != 99)) && [[ -r "$fallback" ]]; then
+			[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Reading fallback limit from '${fallback}'" >&2
+			cat "$fallback"
+			return
+		fi
+		
+		return "$retval"
+	}
 }

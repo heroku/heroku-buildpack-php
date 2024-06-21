@@ -8,8 +8,6 @@ require "shellwords"
 
 cgroup_fixtures_subdir = "test/fixtures/cgroups"
 
-# what we pass in test cases as an upper limit
-MAX_MEMORY = 8*1024*1024*1024*1024
 # what Docker sets as memory.limit_in_bytes with cgroupv1 if there is none defined on the container
 UNLIMITED_MEMORY = 0x7FFFFFFFFFFFF000 # == 9223372036854771712
 
@@ -72,7 +70,7 @@ describe "The cgroup helper shell functions" do
 							cmd << "CGROUP_UTIL_PROCFS_ROOT=#{casedir}/proc "
 							cmd << "CGROUP_UTIL_CGROUPFS_PREFIX=#{cgroupfs} "
 							cmd << "CGROUP_UTIL_VERBOSE=1 " if verbose
-							cmd << "cgroup_util_read_cgroup_memory_limit #{MAX_MEMORY}"
+							cmd << "cgroup_util_read_cgroup_memory_limit"
 							
 							stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 							
@@ -114,7 +112,7 @@ describe "The cgroup helper shell functions" do
 								expected_stderr = sprintf(File.read("#{casedir}/expected_stderr").strip, cgroupfs)
 							rescue Errno::ENOENT
 								if is_docker_v1_unlimited_case
-									expected_stderr = /Ignoring cgroup memory limit of #{UNLIMITED_MEMORY} Bytes \(exceeds maximum of #{MAX_MEMORY} Bytes\)/
+									expected_stderr = /Ignoring cgroup memory limit of #{UNLIMITED_MEMORY} Bytes \(exceeds maximum of \d+ Bytes\)/
 								elsif expected_status == 0
 									expected_stderr = /Using limit from/
 								else
