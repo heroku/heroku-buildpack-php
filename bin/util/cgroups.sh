@@ -198,3 +198,18 @@ cgroup_util_read_cgroup_memory_limit() {
 		return 99
 	fi
 }
+
+cgroup_util_read_cgroup_memory_limit_with_fallback() {
+	local fallback=${1-"${CGROUP_UTIL_CGROUPFS_PREFIX-}/sys/fs/cgroup/memory/memory.limit_in_bytes"}
+	
+	cgroup_util_read_cgroup_memory_limit "$@"
+	local retval=$?
+	
+	if ((retval != 99)) && [[ -r "$fallback" ]]; then
+		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Reading fallback limit from '${fallback}'" >&2
+		cat "$fallback"
+		return
+	fi
+	
+	return "$retval"
+}
