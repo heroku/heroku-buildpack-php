@@ -394,26 +394,16 @@ ram=
 # this will handle cgroups v1 and v2, and, for v2, prefer memory.high over memory.max over memory.low
 if [[ -d "/proc" ]]; then # check for /proc, just in case someone is running this on e.g. macOS
 	[[ $verbose ]] && echo "Checking cgroupfs for memory limits..." >&2
-	ram=$(CGROUP_UTIL_VERBOSE=${verbose:+1} cgroup_util_read_cgroup_memory_limit) || {
+	ram=$(CGROUP_UTIL_VERBOSE=${verbose:+1} cgroup_util_read_cgroup_memory_limit_with_fallback) || {
 		# 99 means the limit was exceeded; in verbose mode, a message was then already printed
-		if (( $? == 99)); then
-			ram="512M"
-			echo "Assuming RAM to be ${ram} Bytes" >&2
-		elif [[ $verbose ]]; then
+		if (( $? != 99)) && [[ $verbose ]]; then
 			echo "No cgroup memory limits found" >&2
 		fi
 	}
 fi
 if [[ -z "$ram" ]]; then
-	# for maximum backward compatibility, use a hard-coded path's value as the default if it exists
-	mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
-	if [[ -f "$mlib" ]]; then
-		[[ $verbose ]] && echo "Reading available RAM from '$mlib'" >&2
-		ram=$(cat "$mlib")
-	else
-		ram="512M"
-		echo "Assuming RAM to be ${ram} Bytes" >&2
-	fi
+	ram="512M"
+	echo "Assuming RAM to be ${ram} Bytes" >&2
 fi
 
 # read number of available processor cores in a portable (Linux, macOS, BSDs) fashion (leading underscore is not always there)
