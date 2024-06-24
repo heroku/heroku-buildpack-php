@@ -169,18 +169,7 @@ cgroup_util_read_cgroup_memory_limit() {
 	[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Reading cgroup v${controller_version} limit from '${location}'" >&2
 	
 	local limit
-	case "$controller_version" in
-		1)
-			limit=$(cgroup_util_read_cgroupv1_memory_limit "$location") || return
-			;;
-		2)
-			limit=$(cgroup_util_read_cgroupv2_memory_limit "$location") || return
-			;;
-		*)
-			echo "Internal error: invalid cgroup controller version '${controller_version}'" >&2
-			return 1
-			;;
-	esac
+	limit=$(cgroup_util_read_cgroupv"$controller_version"_memory_limit "$location") || return
 	
 	if (( maximum > 0 && limit <= maximum )); then
 		echo "$limit"
