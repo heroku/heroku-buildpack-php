@@ -24,8 +24,9 @@ def expected_limit(case_limits)
 end
 
 describe "The cgroup helper shell functions" do
-	["+e", "-e"].product(["+u", "-u"]).product([true, false]).each do |setopts, verbose|
-		context "running in a 'set #{setopts}' Bash instance with verbose=#{verbose}" do
+	["+e", "-e"].product(["+u", "-u"]).product([true, false], ['', '_with_fallback']).each do |setopts, verbose, with_fallback_fn_suffix|
+		func = "cgroup_util_read_cgroup_memory_limit#{with_fallback_fn_suffix}"
+		context "running '#{func}' in a 'set #{setopts}' Bash instance with verbose=#{verbose}" do
 			Dir.each_child(cgroup_fixtures_subdir).reject { |f| not File.directory?("#{cgroup_fixtures_subdir}/#{f}") }.each do |testcase|
 				context "for test case #{testcase}" do
 					casedir = "#{cgroup_fixtures_subdir}/#{testcase}"
@@ -70,12 +71,12 @@ describe "The cgroup helper shell functions" do
 							cmd << "CGROUP_UTIL_PROCFS_ROOT=#{casedir}/proc "
 							cmd << "CGROUP_UTIL_CGROUPFS_PREFIX=#{cgroupfs} "
 							cmd << "CGROUP_UTIL_VERBOSE=1 " if verbose
-							cmd << "cgroup_util_read_cgroup_memory_limit"
+							cmd << func
 							
 							stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 							
 							begin
-								expected_status = File.read("#{casedir}/expected_status").to_i
+								expected_status = File.read("#{casedir}/expected_status#{with_fallback_fn_suffix}").to_i
 							rescue Errno::ENOENT
 								if is_docker_v1_unlimited_case
 									# see above - we are expecting a "limit exceeded" here
@@ -94,10 +95,18 @@ describe "The cgroup helper shell functions" do
 							
 							next unless expected_status == 0
 							
+							expected_stdout_filename = "#{casedir}/expected_stdout#{with_fallback_fn_suffix}"
+							expected_stdout_filename_fallback = "#{casedir}/expected_stdout"
 							begin
-								expected_stdout = File.read("#{casedir}/expected_stdout").strip
+								expected_stdout = File.read(expected_stdout_filename).strip
 							rescue Errno::ENOENT
-								expected_stdout = expected_limit(case_limits)
+								# fall back to "regular case" output, it's the same for most test cases
+								if expected_stdout_filename != expected_stdout_filename_fallback
+									expected_stdout_filename = expected_stdout_filename_fallback
+									retry
+								else
+									expected_stdout = expected_limit(case_limits)
+								end
 							ensure
 								expect(stdout.strip).to eq(expected_stdout), "cgroups call was expected to return #{expected_stdout} in stdout but did not; status: #{status.exitstatus}, expected: #{expected_status}, stderr: #{stderr}, stdout: #{stdout}"
 							end
@@ -109,7 +118,7 @@ describe "The cgroup helper shell functions" do
 							
 							begin
 								# expand %s in file with our tempdir prefix
-								expected_stderr = sprintf(File.read("#{casedir}/expected_stderr").strip, cgroupfs)
+								expected_stderr = sprintf(File.read("#{casedir}/expected_stderr#{with_fallback_fn_suffix}").strip, cgroupfs)
 							rescue Errno::ENOENT
 								if is_docker_v1_unlimited_case
 									expected_stderr = /Ignoring cgroup memory limit of #{UNLIMITED_MEMORY} Bytes \(exceeds maximum of \d+ Bytes\)/

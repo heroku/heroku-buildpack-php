@@ -1,0 +1,2 @@
+Could not determine mount point for cgroup controller 'memory' from 'test/fixtures/cgroups/heroku-ps-v1-crcompat/proc/self/mountinfo'
+Reading fallback limit from '%1$s/sys/fs/cgroup/memory/memory.limit_in_bytes'
