@@ -39,20 +39,20 @@ cgroup_util_get_controller_path_from_procfs_cgroup_line() {
 
 # stdin is the output of e.g. /proc/self/mountinfo
 # $1 is a controller name, which is matched against the mount options using -O (so it could be a comma-separated list, too)
-cgroup_util_find_v1_mount_from_procfs_mountinfo_contents() {
+cgroup_util_find_cgroupv1_mount_from_procfs_mountinfo_contents() {
 	local usage="Usage (stdin is /proc/self/cgroup format): ${FUNCNAME[0]} CONTROLLER"
 	# must specify --list explicitly or it might output tree parts after all...
 	findmnt --list --noheadings --first-only -t cgroup -O "${1:?$usage}" -o target -F <(cat)
 }
 
 # stdin is the output of e.g. /proc/self/mountinfo
-cgroup_util_find_v2_mount_from_procfs_mountinfo_contents() {
+cgroup_util_find_cgroupv2_mount_from_procfs_mountinfo_contents() {
 	# must specify --list explicitly or it might output tree parts after all...
 	findmnt --list --noheadings --first-only -t cgroup2 -o target -F <(cat)
 }
 
 # $1 is the controller name, $2 is the mount root from /proc/self/mountinfo, $3 is the mount relative dir from /proc/self/cgroup
-cgroup_util_find_v1_path() {
+cgroup_util_find_cgroupv1_path() {
 	local usage="Usage: ${FUNCNAME[0]} CONTROLLER MOUNT CGROUP"
 	local relpath=${3:?$usage}
 	# strip trailing slash if present (it would also be if it was just "/")
@@ -71,7 +71,7 @@ cgroup_util_find_v1_path() {
 }
 
 # $1 is the controller name, $2 is the mount root from /proc/self/mountinfo, $3 is the mount relative dir from /proc/self/cgroup
-cgroup_util_find_v2_path() {
+cgroup_util_find_cgroupv2_path() {
 	local usage="Usage: ${FUNCNAME[0]} CONTROLLER MOUNT CGROUP"
 	local retval=${3:?$usage}
 	# strip trailing slash if present (it would also be if it was just "/")
@@ -120,7 +120,7 @@ cgroup_util_read_cgroupv2_memory_limit() {
 	return 9
 }
 
-# reads a cgroup v1 (memory.limit_in_bytes) or v2 (memory.high, fallback to memory.max, fallback to memory.low, fallback to memory.min)
+# reads a cgroup v1 (memory.limit_in_bytes) or v2 (memory.high, fallback to memory.max, fallback to memory.low, fallback to memory.min) memory limit
 # if env var CGROUP_UTIL_PROCFS_ROOT is passed, it will be used instead of '/proc' to find '/proc/self/cgroup', '/proc/self/mountinfo' etc (useful for testing, defaults to '/proc')
 # if env var CGROUP_UTIL_CGROUPFS_PREFIX is passed, it will be prepended to any /sys/fs/cgroup or similar path used (useful for testing, defaults to '')
 # pass a value for env var CGROUP_UTIL_VERBOSE to enable verbose mode
@@ -129,7 +129,7 @@ cgroup_util_read_cgroup_memory_limit() {
 		local CGROUP_UTIL_PROCFS_ROOT=/proc
 	fi
 	
-	# this value is used as a threshold for "silly" maximums returned e.g. by Docker on a cgroups v1 system
+	# this value is used as a threshold for "silly" maximums returned e.g. by Docker on a cgroupv1 system
 	local maximum=$((8 * 1024 * 1024 * 1024 * 1024)) # 8 TB
 	
 	local controller=memory
@@ -153,7 +153,7 @@ cgroup_util_read_cgroup_memory_limit() {
 	}
 	
 	local controller_mount
-	controller_mount=$(cgroup_util_find_v"$controller_version"_mount_from_procfs_mountinfo_contents "$controller" < "${CGROUP_UTIL_PROCFS_ROOT}/self/mountinfo") || {
+	controller_mount=$("cgroup_util_find_cgroupv${controller_version}_mount_from_procfs_mountinfo_contents" "$controller" < "${CGROUP_UTIL_PROCFS_ROOT}/self/mountinfo") || {
 		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not determine mount point for cgroup controller '${controller}' from '${CGROUP_UTIL_PROCFS_ROOT}/self/mountinfo'" >&2
 		return 6
 	}
@@ -161,7 +161,7 @@ cgroup_util_read_cgroup_memory_limit() {
 	controller_mount="${CGROUP_UTIL_CGROUPFS_PREFIX-}${controller_mount}"
 	
 	local location
-	location=$(cgroup_util_find_v"$controller_version"_path "$controller" "$controller_mount" "$controller_path") || {
+	location=$("cgroup_util_find_cgroupv${controller_version}_path" "$controller" "$controller_mount" "$controller_path") || {
 		[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Could not find a location for cgroup controller '${controller}'" >&2
 		return 7
 	}
@@ -169,7 +169,7 @@ cgroup_util_read_cgroup_memory_limit() {
 	[[ -n ${CGROUP_UTIL_VERBOSE-} ]] && echo "Reading cgroup v${controller_version} limit from '${location}'" >&2
 	
 	local limit
-	limit=$(cgroup_util_read_cgroupv"$controller_version"_memory_limit "$location") || return
+	limit=$("cgroup_util_read_cgroupv${controller_version}_memory_limit" "$location") || return
 	
 	if (( maximum > 0 && limit <= maximum )); then
 		echo "$limit"
@@ -180,7 +180,7 @@ cgroup_util_read_cgroup_memory_limit() {
 	fi
 }
 
-# reads a cgroup v1 (memory.limit_in_bytes) or v2 (memory.high, fallback to memory.max, fallback to memory.low, fallback to memory.min)
+# reads a cgroup v1 (memory.limit_in_bytes) or v2 (memory.high, fallback to memory.max, fallback to memory.low, fallback to memory.min) memory limit
 # optional argument is a file path to fall back to for reading a default value, useful e.g. when reading on a system that has a "fake" limit info file (defaults to '/sys/fs/cgroup/memory/memory.limit_in_bytes')
 # if env var CGROUP_UTIL_PROCFS_ROOT is passed, it will be used instead of '/proc' to find '/proc/self/cgroup', '/proc/self/mountinfo' etc (useful for testing, defaults to '/proc')
 # if env var CGROUP_UTIL_CGROUPFS_PREFIX is passed, it will be prepended to any /sys/fs/cgroup or similar path used (useful for testing, defaults to '')
