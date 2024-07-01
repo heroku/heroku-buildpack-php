@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Sync Nginx `mime.types` config with upstream to add `application/wasm` for `.wasm` and `image/avif` for `.avif` files (#738) [David Zuelke]
 
 ## [v253] - 2024-06-13
 
