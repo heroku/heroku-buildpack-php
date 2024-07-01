@@ -5,6 +5,7 @@
 ### CHG
 
 - Sync Nginx `mime.types` config with upstream to add `application/wasm` for `.wasm` and `image/avif` for `.avif` files (#738) [David Zuelke]
+- Add MIME type `text/javascript` for `.mjs` files to Nginx config as per RFC 9239; `application/javascript` remains for `.js` from upstream default `mime.types` (#737) [David Zuelke]
 
 ## [v253] - 2024-06-13
 

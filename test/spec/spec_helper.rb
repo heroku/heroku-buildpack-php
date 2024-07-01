@@ -34,12 +34,16 @@ RSpec.configure do |config|
 	end
 end
 
-def successful_body(app, options = {})
+def successful_request(app, options = {})
 	retry_limit = options[:retry_limit] || 5
 	retry_interval = options[:retry_interval] || 2
 	path = options[:path] ? "/#{options[:path]}" : ''
 	web_url = app.platform_api.app.info(app.name).fetch("web_url")
-	Excon.get("#{web_url}#{path}", :idempotent => true, :expects => 200, :retry_limit => retry_limit, :retry_interval => retry_interval).body
+	Excon.get("#{web_url}#{path}", :idempotent => true, :expects => 200, :retry_limit => retry_limit, :retry_interval => retry_interval)
+end
+
+def successful_body(app, options = {})
+	successful_request(app, options).body
 end
 
 def expect_exit(expect: :to, operator: :eq, code: 0)
