@@ -1,0 +1,9 @@
+# this file is separate from mime.types to allow easier syncing with upstream
+types {
+	# mime.types still defines "application/javascript" for "js"
+	# We only define "mjs" here to avoid duplicate extension warnings on startup.
+	# In compliance with RFC 9239, we are using "text/javascript" for "mjs"
+	# If and when upsteam ever update their default config, we can drop this.
+	# Also see https://trac.nginx.org/nginx/ticket/2216
+	text/javascript mjs;
+}
