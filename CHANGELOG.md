@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.2.21 [David Zuelke]
+
 ### CHG
 
 - Sync Nginx `mime.types` config with upstream to add `application/wasm` for `.wasm` and `image/avif` for `.avif` files (#738) [David Zuelke]
