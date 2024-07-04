@@ -7,6 +7,7 @@
 - PHP/8.2.21 [David Zuelke]
 - PHP/8.3.9 [David Zuelke]
 - ext-newrelic/10.22.0.12 [David Zuelke]
+- ext-blackfire/1.92.18 [David Zuelke]
 
 ### CHG
 
