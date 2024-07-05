@@ -17,7 +17,7 @@ The following new [Composer versions](https://devcenter.heroku.com/articles/php-
 
 - [Composer 2.8.0](https://getcomposer.org/changelog/2.8.0)
 
-The Apache HTTPD [web server](https://devcenter.heroku.com/articles/php-support#web-servers) has been updated to version [2.4.4](https://downloads.apache.org/httpd/CHANGES_2.4.4).
+The Apache HTTP [web server](https://devcenter.heroku.com/articles/php-support#web-servers) has been updated to version [2.4.4](https://archive.apache.org/dist/httpd/CHANGES_2.4.4).
 
 The Nginx [web server](https://devcenter.heroku.com/articles/php-support#web-servers) has been updated to version [2.9.0](https://nginx.org/en/CHANGES-2.9).
 
