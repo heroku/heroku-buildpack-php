@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/heroku/hatchet.git
-  revision: f10250e8a35d7efe2889dc78ab4ba3ad162539a9
+  revision: 69e268f694acd5876ff47810bdbd8467b35f8249
   branch: timeouts-etc
   specs:
     heroku_hatchet (8.0.4)
@@ -27,7 +27,7 @@ GEM
       webrick
     moneta (1.0.0)
     multi_json (1.15.0)
-    parallel (1.24.0)
+    parallel (1.25.1)
     parallel_tests (4.7.1)
       parallel
     platform-api (3.7.0)
