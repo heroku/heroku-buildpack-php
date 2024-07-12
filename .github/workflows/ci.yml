@@ -52,11 +52,14 @@ jobs:
           tools: "composer:2.7"
       - name: Install packages from requirements.txt, plus s5cmd (for some tests)
         run: |
+          export VIRTUAL_ENV=$HOME/.venv
+          python3 -m venv "$VIRTUAL_ENV"
+          export PATH=$VIRTUAL_ENV/bin:$PATH
           pip install -r requirements.txt
           curl -sSLO https://github.com/peak/s5cmd/releases/download/v${S5CMD_VERSION}/s5cmd_${S5CMD_VERSION}_linux_amd64.deb
           echo "$S5CMD_HASH" | shasum -c -
           dpkg -x "s5cmd_${S5CMD_VERSION}_linux_amd64.deb" .
-          echo "$HOME/usr/bin" >> "$GITHUB_PATH"
+          echo "$HOME/usr/bin:$VIRTUAL_ENV/bin" >> "$GITHUB_PATH"
       - name: Hatchet setup
         run: bundle exec hatchet ci:setup
       - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}} (since we are not building main or a tag)
