@@ -61,7 +61,7 @@ jobs:
   docker-build:
     needs: stack-list
     if: ${{ needs.stack-list.outputs.stacks != '[]' && needs.stack-list.outputs.stacks != '' }}
-    runs-on: ${{ endsWith(matrix.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-ip' || 'ubuntu-24.04' }}
+    runs-on: ${{ endsWith(matrix.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-small' || 'ubuntu-24.04' }}
     strategy:
       matrix:
         stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
@@ -89,7 +89,7 @@ jobs:
     strategy:
       matrix:
         stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
-    runs-on: ${{ endsWith(matrix.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-ip' || 'ubuntu-24.04' }}
+    runs-on: ${{ endsWith(matrix.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-small' || 'ubuntu-24.04' }}
     env:
       AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}

@@ -62,7 +62,7 @@ jobs:
           ls -f ${{inputs.formulae}} | xargs -n 1 echo - >> "$GITHUB_STEP_SUMMARY"
           ls -f ${{inputs.formulae}} | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
   docker-build:
-    runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-ip' || 'ubuntu-24.04' }}
+    runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-small' || 'ubuntu-24.04' }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -115,7 +115,7 @@ jobs:
   mkrepo:
     needs: [deploys]
     if: ${{ inputs.dry-run == false }}
-    runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-ip' || 'ubuntu-24.04' }}
+    runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-small' || 'ubuntu-24.04' }}
     env:
       AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
