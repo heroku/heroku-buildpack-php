@@ -45,7 +45,7 @@ permissions:
 
 jobs:
   stack-list:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       stacks: ${{ steps.list-stacks.outputs.matrix }}
     steps:
@@ -61,7 +61,7 @@ jobs:
   docker-build:
     needs: stack-list
     if: ${{ needs.stack-list.outputs.stacks != '[]' && needs.stack-list.outputs.stacks != '' }}
-    runs-on: ${{ endsWith(matrix.stack, '-arm64') && 'pub-hk-ubuntu-22.04-arm-small' || 'ubuntu-22.04' }}
+    runs-on: ${{ endsWith(matrix.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-small' || 'ubuntu-24.04' }}
     strategy:
       matrix:
         stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
@@ -89,7 +89,7 @@ jobs:
     strategy:
       matrix:
         stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
-    runs-on: ${{ endsWith(matrix.stack, '-arm64') && 'pub-hk-ubuntu-22.04-arm-small' || 'ubuntu-22.04' }}
+    runs-on: ${{ endsWith(matrix.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-small' || 'ubuntu-24.04' }}
     env:
       AWS_ACCESS_KEY_ID:  ${{ secrets.AWS_ACCESS_KEY_ID }}
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -135,7 +135,7 @@ jobs:
           echo '```' >> "$GITHUB_STEP_SUMMARY"
   devcenter-generate:
     needs: sync
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       diff_result: ${{ steps.diff.outputs.diff_result }}
     steps:
@@ -264,7 +264,7 @@ jobs:
   devcenter-update:
     needs: devcenter-generate
     if: ${{ needs.devcenter-generate.outputs.diff_result == 1 }}
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     env:
       HEROKU_DEVCENTER_API_TOKEN:  ${{ secrets.HEROKU_DEVCENTER_API_TOKEN }}
     steps:
@@ -326,7 +326,7 @@ jobs:
           echo 'Successfully updated ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support) with synced packages.' >> "$GITHUB_STEP_SUMMARY"
   changelog-generate:
     needs: sync
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
