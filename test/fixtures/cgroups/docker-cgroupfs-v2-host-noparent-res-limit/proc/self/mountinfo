@@ -1,0 +1,20 @@
+189 93 0:68 / / rw,relatime master:34 - overlay overlay rw,lowerdir=/var/lib/docker/overlay2/l/5BIV4TB6CYQ6R3D3KANY7GAXNC:/var/lib/docker/overlay2/l/NW2ZLNYVYYJN5YLHNVMWFBV6K3:/var/lib/docker/overlay2/l/NCDJO43BOWGSP7CFKT2HFGE336,upperdir=/var/lib/docker/overlay2/6b7c217d06580b0dfdd4769e0cbf70b48a00097a7ebf9448cf27509b373d910c/diff,workdir=/var/lib/docker/overlay2/6b7c217d06580b0dfdd4769e0cbf70b48a00097a7ebf9448cf27509b373d910c/work
+190 189 0:71 / /proc rw,nosuid,nodev,noexec,relatime - proc proc rw
+191 189 0:72 / /dev rw,nosuid - tmpfs tmpfs rw,size=65536k,mode=755
+192 191 0:73 / /dev/pts rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=666
+193 189 0:74 / /sys ro,nosuid,nodev,noexec,relatime - sysfs sysfs ro
+194 193 0:31 / /sys/fs/cgroup ro,nosuid,nodev,noexec,relatime - cgroup2 cgroup rw
+195 191 0:70 / /dev/mqueue rw,nosuid,nodev,noexec,relatime - mqueue mqueue rw
+196 191 0:75 / /dev/shm rw,nosuid,nodev,noexec,relatime - tmpfs shm rw,size=65536k
+197 189 254:1 /docker/containers/916becc9722fc1020d96b724dbac41fbaaec817bbfaef5c131188a01f66cb8b8/resolv.conf /etc/resolv.conf rw,relatime - ext4 /dev/vda1 rw,discard
+198 189 254:1 /docker/containers/916becc9722fc1020d96b724dbac41fbaaec817bbfaef5c131188a01f66cb8b8/hostname /etc/hostname rw,relatime - ext4 /dev/vda1 rw,discard
+199 189 254:1 /docker/containers/916becc9722fc1020d96b724dbac41fbaaec817bbfaef5c131188a01f66cb8b8/hosts /etc/hosts rw,relatime - ext4 /dev/vda1 rw,discard
+94 190 0:71 /bus /proc/bus ro,nosuid,nodev,noexec,relatime - proc proc rw
+95 190 0:71 /fs /proc/fs ro,nosuid,nodev,noexec,relatime - proc proc rw
+96 190 0:71 /irq /proc/irq ro,nosuid,nodev,noexec,relatime - proc proc rw
+97 190 0:71 /sys /proc/sys ro,nosuid,nodev,noexec,relatime - proc proc rw
+98 190 0:71 /sysrq-trigger /proc/sysrq-trigger ro,nosuid,nodev,noexec,relatime - proc proc rw
+99 190 0:72 /null /proc/kcore rw,nosuid - tmpfs tmpfs rw,size=65536k,mode=755
+100 190 0:72 /null /proc/keys rw,nosuid - tmpfs tmpfs rw,size=65536k,mode=755
+101 190 0:72 /null /proc/timer_list rw,nosuid - tmpfs tmpfs rw,size=65536k,mode=755
+102 193 0:76 / /sys/firmware ro,relatime - tmpfs tmpfs ro
