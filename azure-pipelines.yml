@@ -5,7 +5,6 @@ trigger:
 
 pool:
   vmImage: 'ubuntu-latest'
-  name: 'Default'
 
 variables:
   SNYK_TOKEN: '5f0577a3-2f8b-475f-a1ff-e2689c59290c'  # Define this variable in your pipeline settings
