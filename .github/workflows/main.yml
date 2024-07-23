@@ -45,7 +45,7 @@ jobs:
         continue-on-error: true  # Ensures the workflow continues even if vulnerabilities are found
 
       - name: Ignore specific vulnerability
-        run: snyk ignore --id=SNYK-RUBY-ERUBIS-20482 --expiry='2024-12-31T23:59:59Z' --reason='False positive' --policy-path=.
+        run: snyk ignore --id=SNYK-RUBY-ERUBIS-20482 --expiry='2024-12-31T23:59:59Z' --reason='Testing Ignore policy' --policy-path=.
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           SNYK_ORG: ${{ secrets.SNYK_ORG }}
