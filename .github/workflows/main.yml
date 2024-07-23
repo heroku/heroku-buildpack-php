@@ -1,58 +1,54 @@
-name: Snyk Configuration and Test
+name: Snyk Security Scan
 
-on:
-  push:
-    branches:
-      - '**'  # Change this to the branch you want to trigger the workflow
-  pull_request:
-    branches:
-      - '**'  # Change this to the branch you want to trigger the workflow
-  workflow_dispatch:  # Allows manual triggers from the GitHub UI
+on: [push, pull_request]
 
 jobs:
-  snyk:
+  security:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: '14'  # Specify the Node.js version
 
       - name: Install Snyk CLI
-        run: |
-          npm install -g snyk@latest  # Ensure you have the latest version
-      - name: Configure Snyk Endpoint
-        run: |
-          snyk config set endpoint=https://app.au.snyk.io/api
-          snyk config get endpoint  # Check that the endpoint is set correctly
+        run: npm install -g snyk
+
+      - name: Authenticate Snyk
+        run: snyk auth ${{ secrets.SNYK_TOKEN }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-          SNYK_ORG: ${{ secrets.SNYK_ORG }}
+
+      - name: Configure Snyk Endpoint
+        run: snyk config set endpoint=https://app.au.snyk.io/api
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
 
       - name: Configure Snyk Organization
-        run: |
-          snyk config set org=$SNYK_ORG
-          snyk config get org  # Verify that the org is set correctly
+        run: snyk config set org=${{ secrets.SNYK_ORG }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           SNYK_ORG: ${{ secrets.SNYK_ORG }}
 
       - name: Run Snyk to check for vulnerabilities
-        run: |
-           snyk test # Retry up to 3 times
+        run: snyk test --all-projects --org=${{ secrets.SNYK_ORG }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           SNYK_ORG: ${{ secrets.SNYK_ORG }}
-        continue-on-error: true  # Ensures the workflow continues even if vulnerabilities are found
+        continue-on-error: true  # Ensure the pipeline continues even if vulnerabilities are found
 
       - name: Ignore specific vulnerability
-        run: snyk ignore --id=SNYK-RUBY-ERUBIS-20482 --expiry='2024-12-31T23:59:59Z' --reason='Testing Ignore policy' --policy-path=.
+        run: snyk ignore --id=SNYK-RUBY-ERUBIS-20482 --expiry='2024-12-31T23:59:59Z' --reason='False positive' --policy-path=.
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           SNYK_ORG: ${{ secrets.SNYK_ORG }}
 
       - name: Monitor project and report results to Snyk GUI
-        run: |
-           snyk monitor
+        run: snyk monitor --project-name="OWASP Vulnerable Web App" --tags="OWASP" --org=${{ secrets.SNYK_ORG }}
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
           SNYK_ORG: ${{ secrets.SNYK_ORG }}
