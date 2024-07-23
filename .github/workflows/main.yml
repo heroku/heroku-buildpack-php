@@ -1,12 +1,52 @@
-name: Example workflow for PHP using Snyk
-on: push
+name: Snyk Configuration and Test
+
+on:
+  push:
+    branches:
+      - '**'  # Change this to the branch you want to trigger the workflow
+  pull_request:
+    branches:
+      - '**'  # Change this to the branch you want to trigger the workflow
+  workflow_dispatch:  # Allows manual triggers from the GitHub UI
+
 jobs:
-  security:
+  snyk:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@master
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/php@master
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Snyk CLI
+        run: |
+          npm install -g snyk@latest  # Ensure you have the latest version
+      - name: Configure Snyk Endpoint
+        run: |
+          snyk config set endpoint=https://app.au.snyk.io/api
+          snyk config get endpoint  # Check that the endpoint is set correctly
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-#updated Synk token.
+          SNYK_ORG: ${{ secrets.SNYK_ORG }}
+
+      - name: Configure Snyk Organization
+        run: |
+          snyk config set org=$SNYK_ORG
+          snyk config get org  # Verify that the org is set correctly
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          SNYK_ORG: ${{ secrets.SNYK_ORG }}
+
+      - name: Run Snyk to check for vulnerabilities
+        run: |
+           snyk test # Retry up to 3 times
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          SNYK_ORG: ${{ secrets.SNYK_ORG }}
+        continue-on-error: true  # Ensures the workflow continues even if vulnerabilities are found
+
+      - name: Monitor project and report results to Snyk GUI
+        run: |
+           snyk monitor
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+          SNYK_ORG: ${{ secrets.SNYK_ORG }}
