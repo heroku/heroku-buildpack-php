@@ -9,6 +9,7 @@
 - ext-phalcon/5.8.0 [David Zuelke]
 - ext-event/3.1.4 [David Zuelke]
 - ext-newrelic/11.0.0.13 [David Zuelke]
+- ext-blackfire/1.92.21 [David Zuelke]
 
 ## [v254] - 2024-07-05
 
