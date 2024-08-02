@@ -11,6 +11,10 @@
 - ext-newrelic/11.0.0.13 [David Zuelke]
 - ext-blackfire/1.92.21 [David Zuelke]
 
+### CHG
+
+- librdkafka/2.5.0 [David Zuelke]
+
 ## [v254] - 2024-07-05
 
 ### ADD
