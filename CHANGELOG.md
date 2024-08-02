@@ -7,6 +7,7 @@
 - PHP/8.2.22 [David Zuelke]
 - PHP/8.3.10 [David Zuelke]
 - ext-phalcon/5.8.0 [David Zuelke]
+- ext-event/3.1.4 [David Zuelke]
 
 ## [v254] - 2024-07-05
 
