@@ -15,6 +15,7 @@
 
 - librdkafka/2.5.0 [David Zuelke]
 - Apache/2.4.62 [David Zuelke]
+- Blackfire/2.28.10 [David Zuelke]
 
 ## [v254] - 2024-07-05
 
