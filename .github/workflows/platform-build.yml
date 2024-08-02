@@ -87,6 +87,7 @@ jobs:
     if: ${{ needs.formulae-list.outputs.formulae != '[]' && needs.formulae-list.outputs.formulae != '' }}
     runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-xlarge' || 'pub-hk-ubuntu-24.04-xlarge' }}
     strategy:
+      fail-fast: false
       max-parallel: ${{ fromJSON(inputs.concurrency) }}
       matrix:
         formula: ${{ fromJSON(needs.formulae-list.outputs.formulae) }}

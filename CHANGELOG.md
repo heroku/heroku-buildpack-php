@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.2.22 [David Zuelke]
+- PHP/8.3.10 [David Zuelke]
+- ext-phalcon/5.8.0 [David Zuelke]
+- ext-event/3.1.4 [David Zuelke]
+- ext-newrelic/11.0.0.13 [David Zuelke]
+- ext-blackfire/1.92.21 [David Zuelke]
+
+### CHG
+
+- librdkafka/2.5.0 [David Zuelke]
+- Apache/2.4.62 [David Zuelke]
+- Blackfire/2.28.10 [David Zuelke]
 
 ## [v254] - 2024-07-05
 

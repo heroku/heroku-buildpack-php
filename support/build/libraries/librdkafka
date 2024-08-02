@@ -26,6 +26,14 @@ if [[ "$missing" ]]; then
 	apt-get install -q -y $missing
 fi
 
+if [[ $STACK == heroku-2[02] && $dep_version == 2.* ]]; then
+	echo "librdkafka 2.x is heroku-24+ only"
+	exit 1
+elif [[ $STACK != heroku-2[02] && $dep_version == 1.* ]]; then
+	echo "librdkafka 1.x is heroku-{20,22} only"
+	exit 1
+fi
+
 echo "-----> Building ${dep_package}..."
 
 curl -L ${dep_url} | tar xz
