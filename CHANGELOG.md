@@ -12,6 +12,7 @@
 ### CHG
 
 - Blackfire/2.28.11 [David Zuelke]
+- Nginx/1.26.2 [David Zuelke]
 
 ## [v255] - 2024-08-02
 
