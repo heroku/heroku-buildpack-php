@@ -26,16 +26,43 @@ foreach($splits as $split) {
 	if($section == "ADDED") {
 		preg_match_all($package_pattern, $split, $packages, PREG_SET_ORDER);
 		foreach($packages as $package) {
-			$additions[] = [
+			$addition = [
 				"name" => $package["name"],
 				"version" => $package["version"],
 				"is_ext" => (bool)$package["ext"],
-				"series" => match($package["name"]) {
-					"php" => preg_filter("/^(\d+)\..+/", '$1', $package["version"]),
-					"nginx" => preg_filter("/^(\d+\.\d+)\..+$/", '$1', $package["version"]),
-					default => $package["series"] ?? null,
-				},
+				"link" => null,
 			];
+			if($addition["name"] == "php") {
+				$addition["link"] = sprintf(
+					"https://www.php.net/ChangeLog-%s.php#%s",
+					preg_filter("/^(\d+)\..+/", '$1', $addition["version"]),
+					$addition["version"]
+				);
+			} elseif($addition["name"] == "composer") {
+				$addition["link"] = sprintf("https://getcomposer.org/changelog/%s", $addition["version"]);
+			} elseif($addition["name"] == "ext-newrelic") {
+				try {
+					$addition["link"] = vsprintf(
+						"https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/php-agent-%d-%d-%d-%d/",
+						explode(".", $addition["version"])
+					);
+				} catch(ValueError) {
+					# didn't get four version parts from the explode()
+				}
+			} elseif($addition["is_ext"] && $addition["name"] != "ext-blackfire") { # blackfire doesn't have a changelog'
+				$addition["link"] = sprintf(
+					"https://pecl.php.net/package-changelog.php?package=%s&release=%s",
+					substr($addition["name"], 4),
+					$addition["version"]
+				);
+			} elseif($addition["name"] == "apache") {
+				$addition["link"] = sprintf("https://archive.apache.org/dist/httpd/CHANGES_%s", $addition["version"]);
+			} elseif($addition["name"] == "nginx") {
+				$addition["link"] = sprintf("https://nginx.org/en/CHANGES-%s", preg_filter("/^(\d+\.\d+)\..+$/", '$1', $addition["version"]));
+			} elseif($addition["name"] == "librdkafka") {
+				$addition["link"] = sprintf("https://github.com/confluentinc/librdkafka/releases/tag/v%s", $addition["version"]);
+			}
+			$additions[] = $addition;
 		}
 	}
 }
