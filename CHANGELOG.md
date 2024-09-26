@@ -9,6 +9,7 @@
 - PHP/8.3.12 [David Zuelke]
 - ext-ev/1.2.0 [David Zuelke]
 - ext-mongodb/1.19.4 [David Zuelke]
+- ext-blackfire/1.92.23 [David Zuelke]
 
 ### CHG
 
