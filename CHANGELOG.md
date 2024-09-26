@@ -6,6 +6,7 @@
 
 - PHP/8.1.30 [David Zuelke]
 - PHP/8.2.24 [David Zuelke]
+- PHP/8.3.12 [David Zuelke]
 
 ## [v256] - 2024-08-30
 
