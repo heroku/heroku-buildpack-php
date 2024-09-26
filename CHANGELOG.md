@@ -11,6 +11,7 @@
 ### CHG
 
 - Composer/2.7.9 [David Zuelke]
+- Blackfire/2.28.12 [David Zuelke]
 
 ## [v256] - 2024-08-30
 
