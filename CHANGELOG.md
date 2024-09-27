@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.1.30 [David Zuelke]
+- PHP/8.2.24 [David Zuelke]
+- PHP/8.3.12 [David Zuelke]
+- ext-ev/1.2.0 [David Zuelke]
+- ext-blackfire/1.92.23 [David Zuelke]
+- ext-apcu/5.1.24 [David Zuelke]
+- ext-mongodb/1.20.0 [David Zuelke]
+
+### CHG
+
+- Composer/2.7.9 [David Zuelke]
+- Blackfire/2.28.12 [David Zuelke]
 
 ## [v256] - 2024-08-30
 
