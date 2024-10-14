@@ -1,0 +1,24 @@
+856 661 0:51 / / rw,nosuid,relatime master:322 - overlay overlay rw,lowerdir=/var/lib/runtimed/stacks/heroku-24,upperdir=/mnt/enc/containers/dynos/dyno-35184f40-8aed-4e9a-bc78-30057f1ef072/overlay,workdir=/mnt/enc/containers/dynos/dyno-35184f40-8aed-4e9a-bc78-30057f1ef072/work
+857 856 0:55 / /proc rw,nosuid,nodev,noexec,relatime - proc proc rw
+858 856 0:56 / /dev rw,nosuid - tmpfs tmpfs rw,size=65536k,mode=755,inode64
+859 858 0:57 / /dev/pts rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=666
+860 858 0:58 / /dev/shm rw,nosuid,nodev,noexec,relatime - tmpfs none rw,size=65536k,inode64
+861 858 0:54 / /dev/mqueue rw,nosuid,nodev,noexec,relatime - mqueue mqueue rw
+862 856 0:59 / /sys ro,nosuid,nodev,noexec,relatime - sysfs sysfs ro
+863 856 259:1 /containers/subnets/dns/dyno-35184f40-8aed-4e9a-bc78-30057f1ef072/resolv.conf /etc/resolv.conf ro,nosuid,nodev,noexec,relatime master:282 - ext4 /dev/nvme1n1 rw
+864 856 259:2 /usr/local/bin/dyno-init /usr/sbin/dyno-init ro,relatime master:1 - ext4 /dev/root rw,discard
+865 862 0:28 / /sys/fs/cgroup ro,nosuid,nodev,noexec,relatime - cgroup2 none rw,nsdelegate
+866 856 259:1 /containers/dynos/dyno-35184f40-8aed-4e9a-bc78-30057f1ef072/passwd /etc/passwd ro,nosuid,nodev,noexec,relatime master:282 - ext4 /dev/nvme1n1 rw
+867 856 259:1 /containers/dynos/dyno-35184f40-8aed-4e9a-bc78-30057f1ef072/profile /etc/profile ro,nosuid,nodev,noexec,relatime master:282 - ext4 /dev/nvme1n1 rw
+868 856 259:1 /containers/dynos/dyno-35184f40-8aed-4e9a-bc78-30057f1ef072/group /etc/group ro,nosuid,nodev,noexec,relatime master:282 - ext4 /dev/nvme1n1 rw
+869 856 259:2 /var/lib/heroku /etc/heroku ro,nosuid,nodev,noexec,relatime master:1 - ext4 /dev/root rw,discard
+870 856 259:1 /containers/subnets/dns/dyno-35184f40-8aed-4e9a-bc78-30057f1ef072/hosts /etc/hosts ro,nosuid,nodev,noexec,relatime master:282 - ext4 /dev/nvme1n1 rw
+662 858 0:57 /0 /dev/console rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=666
+663 857 0:55 /bus /proc/bus ro,nosuid,nodev,noexec,relatime - proc proc rw
+664 857 0:55 /fs /proc/fs ro,nosuid,nodev,noexec,relatime - proc proc rw
+665 857 0:55 /irq /proc/irq ro,nosuid,nodev,noexec,relatime - proc proc rw
+666 857 0:55 /sys /proc/sys ro,nosuid,nodev,noexec,relatime - proc proc rw
+667 857 0:55 /sysrq-trigger /proc/sysrq-trigger ro,nosuid,nodev,noexec,relatime - proc proc rw
+668 857 0:56 /null /proc/kcore rw,nosuid - tmpfs tmpfs rw,size=65536k,mode=755,inode64
+669 857 0:56 /null /proc/timer_list rw,nosuid - tmpfs tmpfs rw,size=65536k,mode=755,inode64
+670 857 0:60 / /proc/scsi ro,relatime - tmpfs tmpfs ro,inode64
