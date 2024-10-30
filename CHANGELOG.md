@@ -9,6 +9,7 @@
 - ext-redis/6.1.0 [David Zuelke]
 - ext-uuid/1.2.1 [David Zuelke]
 - ext-oauth/2.0.9 [David Zuelke]
+- ext-memcached/3.3.0 [David Zuelke]
 
 ## [v257] - 2024-09-27
 

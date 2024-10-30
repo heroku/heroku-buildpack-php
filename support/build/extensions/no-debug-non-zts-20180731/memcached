@@ -28,6 +28,10 @@ if [[ "$missing" ]]; then
 	apt-get install -q -y $missing
 fi
 
+if [[ $dep_version != 3.[012].* ]]; then
+	CONFIGURE_EXTRA="--with-zstd"
+fi
+
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/memcached.ini-dist\"}"}"
 
 source $(dirname $BASH_SOURCE)/../pecl
