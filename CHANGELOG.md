@@ -11,6 +11,7 @@
 - ext-oauth/2.0.9 [David Zuelke]
 - ext-memcached/3.3.0 [David Zuelke]
 - ext-rdkafka/6.0.4 [David Zuelke]
+- ext-newrelic/11.3.0.16 [David Zuelke]
 
 ## [v257] - 2024-09-27
 
