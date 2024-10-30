@@ -14,6 +14,10 @@
 - ext-newrelic/11.3.0.16 [David Zuelke]
 - ext-blackfire/1.92.27 [David Zuelke]
 
+### CHG
+
+- Composer/2.8.2 [David Zuelke]
+
 ## [v257] - 2024-09-27
 
 ### ADD
