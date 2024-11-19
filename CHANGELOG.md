@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.1.31 [David Zuelke]
+
 ### CHG
 
 - Update internal PHP EOL info to align with 2024 updates laid out in https://wiki.php.net/rfc/release_cycle_update [David Zuelke]
