@@ -8,6 +8,7 @@
 - PHP/8.2.26 [David Zuelke]
 - PHP/8.3.14 [David Zuelke]
 - ext-rdkafka/6.0.5 [David Zuelke]
+- ext-blackfire/1.92.28 [David Zuelke]
 
 ### CHG
 
