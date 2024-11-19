@@ -14,6 +14,7 @@
 
 - Update internal PHP EOL info to align with 2024 updates laid out in https://wiki.php.net/rfc/release_cycle_update [David Zuelke]
 - Blackfire/2.28.19 [David Zuelke]
+- Composer/2.8.3 [David Zuelke]
 
 ## [v258] - 2024-10-31
 
