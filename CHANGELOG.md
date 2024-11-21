@@ -2,9 +2,19 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.1.31 [David Zuelke]
+- PHP/8.2.26 [David Zuelke]
+- PHP/8.3.14 [David Zuelke]
+- ext-rdkafka/6.0.5 [David Zuelke]
+- ext-blackfire/1.92.28 [David Zuelke]
+
 ### CHG
 
 - Update internal PHP EOL info to align with 2024 updates laid out in https://wiki.php.net/rfc/release_cycle_update [David Zuelke]
+- Blackfire/2.28.19 [David Zuelke]
+- Composer/2.8.3 [David Zuelke]
 
 ## [v258] - 2024-10-31
 
