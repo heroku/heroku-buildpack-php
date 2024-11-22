@@ -126,11 +126,16 @@ shared_examples "A PHP application for testing boot options" do |series, server|
 					# there are very rare cases of stderr and stdout getting read (by the dyno runner) slightly out of order
 					# if that happens, the last stderr line(s) from the program might get picked up after the next thing we echo
 					# for that reason, we redirect stderr to stdout
+					# there is also still a bash buffering issue where the last line from the program's exit trap ("Shutdown complete") may show up after the echo that prints $?
+					# this is presumably due to the process substitutions that tee stdout and stderr in waitforit.sh, but an explicit wait call in there (which should wait for process substitutions to terminate since Bash 5.0) does not help
+					# so we simply write it all to files instead and at the end cat everything together
+					# (shell globbing sorts alnum for us thankfully)
+					# jq does not have a "individual raw file slurp" mode, so we cannot elegantly produce a JSON array of outputs/statuses
 					run_cmds = examples
-						.map { |example| "#{example[:cmd]} 2>&1; echo $'\\n'$?" }
-						.join("; echo -n '#{delimiter}'; ")
+						.map.with_index { |example, i| "i='#{"%03d" % i}'; #{example[:cmd]} >run.$i.out 2>&1; echo $'\\n'$? >run.$i.status" }
+						.join("; echo -n '#{delimiter}' >run.$i.xdelim; ")
 					retry_until retry: 3, sleep: 5 do
-						@run = @app.run(run_cmds).split(delimiter)
+						@run = @app.run("#{run_cmds}; sleep 1; cat run.*").split(delimiter)
 					end
 				end
 				
