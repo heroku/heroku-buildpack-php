@@ -6,6 +6,10 @@
 
 - PHP/8.4.1 [David Zuelke]
 
+### CHG
+
+- Use latest Composer (instead of 2.2 LTS) if no lock file is present [David Zuelke]
+
 ## [v259] - 2024-11-21
 
 ### ADD

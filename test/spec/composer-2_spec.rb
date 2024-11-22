@@ -43,10 +43,10 @@ describe "A PHP application intended for Composer 2" do
 		end
 	end
 	context "with only an index.php" do
-		it "builds using Composer 2.2" do
+		it "builds using Composer 2.3 or later" do
 			new_app_with_stack_and_platrepo('test/fixtures/default').deploy do |app|
-				expect(app.output).to match(/- composer \(2\.2\./)
-				expect(app.output).to match(/Composer version 2\.2\./)
+				expect(app.output).to match(/- composer \(2\.([3-9]|\d{2,})\./)
+				expect(app.output).to match(/Composer version 2\.([3-9]|\d{2,}\.)/)
 			end
 		end
 	end
