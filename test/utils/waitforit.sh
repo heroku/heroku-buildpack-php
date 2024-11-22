@@ -55,8 +55,9 @@ duration=$1; shift
 text=$1; shift
 
 pipeout=
-# check if stdout is a pipeline (we can't -p /dev/stdout, so a TTY check on FD 1 is the next closest thing), in which case we'll behave differently
-[[ -t 1 ]] || pipeout=1
+# check if stdout is a pipeline, in which case we'll behave differently (another program can "attach" to us and execute something after a match)
+# we use -p on FD 1 so that redirecting our output to a file does not change behavior
+[[ -p /proc/$$/fd/1 ]] && pipeout=1
 
 if [[ $pipeout ]]; then
 	grepargs="-m1"
