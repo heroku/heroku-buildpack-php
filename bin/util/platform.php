@@ -194,7 +194,9 @@ if(file_exists($COMPOSER_LOCK)) {
 	if($metapaks) $repositories[] = ["type" => "package", "package" => $metapaks];
 } else {
 	// default to using Composer 2 if there is no lock file
-	$lock["plugin-api-version"] = "2.2.0";
+	// 2.6.0 will allow any current 2.x Composer version (see further below), which means 2.8 is possible
+	// that matters because the LTS Composer 2.2 (which we'd get if we used "2.2.0" here) throws countless deprecation warnings
+	$lock["plugin-api-version"] = "2.6.0";
 }
 
 // if no PHP is required anywhere, we need to add something
