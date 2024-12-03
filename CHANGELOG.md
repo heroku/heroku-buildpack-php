@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### ADD
+
+- ext-blackfire/1.92.29 [David Zuelke]
 
 ## [v259] - 2024-11-21
 
