@@ -14,6 +14,7 @@ $eol = array(
 	"8.1" => array("2023-11-25", "2025-12-31"),
 	"8.2" => array("2024-12-31", "2026-12-31"),
 	"8.3" => array("2025-12-31", "2027-12-31"),
+	"8.4" => array("2026-12-31", "2028-12-31"),
 );
 
 if(basename(__FILE__) != basename($_SERVER["PHP_SELF"])) return $eol; // we're being included, just return the data

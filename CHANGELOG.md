@@ -6,6 +6,7 @@
 
 - ext-blackfire/1.92.29 [David Zuelke]
 - ext-pcov/1.0.12 [David Zuelke]
+- PHP/8.4.1 [David Zuelke]
 
 ### CHG
 
