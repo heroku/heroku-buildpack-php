@@ -21,28 +21,28 @@ shared_examples "A PHP application using ext-blackfire and" do |agent|
 						@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 							buildpacks: buildpacks,
 							config: credentials.merge({ "BLACKFIRE_LOG_LEVEL" => "4"}),
-							before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:*' 'ext-blackfire:*'") or raise "Failed to require PHP/ext-blackfire" }
+							before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install 'php:*' 'ext-blackfire:*'") or raise "Failed to require PHP/ext-blackfire" }
 						)
 					elsif mode == "without BLACKFIRE_SERVER_TOKEN"
 						# ext-blackfire is listed as a dependency in composer.json, but a BLACKFIRE_SERVER_TOKEN/ID is missing
 						@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 							buildpacks: buildpacks,
 							config: { "BLACKFIRE_LOG_LEVEL" => "4" },
-							before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:*' 'ext-blackfire:*'") or raise "Failed to require PHP/ext-blackfire" }
+							before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install 'php:*' 'ext-blackfire:*'") or raise "Failed to require PHP/ext-blackfire" }
 						)
 					elsif mode == "with default BLACKFIRE_LOG_LEVEL"
 						# ext-blackfire is listed as a dependency in composer.json, and BLACKFIRE_LOG_LEVEL is the default (1=error)
 						@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 							buildpacks: buildpacks,
 							config: credentials,
-							before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:*' 'ext-blackfire:*'") or raise "Failed to require PHP/ext-blackfire" }
+							before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install 'php:*' 'ext-blackfire:*'") or raise "Failed to require PHP/ext-blackfire" }
 						)
 					else
 						# a BLACKFIRE_SERVER_TOKEN/ID triggers the automatic installation of ext-blackfire at the end of the build
 						@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 							buildpacks: buildpacks,
 							config: credentials.merge({ "BLACKFIRE_LOG_LEVEL" => "4"}),
-							before_deploy: -> { system("composer require --quiet --ignore-platform-reqs 'php:*'") or raise "Failed to require PHP version" }
+							before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install 'php:*'") or raise "Failed to require PHP version" }
 						)
 					end
 					@app.deploy
