@@ -48,7 +48,7 @@ jobs:
       - name: Install PHP and Composer
         uses: shivammathur/setup-php@v2
         with:
-          php-version: "8.2"
+          php-version: "8.3"
           tools: "composer:2.8"
       - name: Install packages from requirements.txt, plus s5cmd (for some tests)
         run: |

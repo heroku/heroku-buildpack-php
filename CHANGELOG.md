@@ -2,6 +2,15 @@
 
 ## [Unreleased]
 
+### ADD
+
+- ext-blackfire/1.92.29 [David Zuelke]
+- ext-pcov/1.0.12 [David Zuelke]
+- PHP/8.4.1 [David Zuelke]
+
+### CHG
+
+- Composer/2.2.25 [David Zuelke]
 
 ## [v259] - 2024-11-21
 
