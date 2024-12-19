@@ -7,6 +7,7 @@
 - PHP/8.2.27 [David Zuelke]
 - PHP/8.3.15 [David Zuelke]
 - PHP/8.4.2 [David Zuelke]
+- ext-mongodb/1.20.1 [David Zuelke]
 
 ## [v260] - 2024-12-19
 
