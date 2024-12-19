@@ -11,6 +11,10 @@
 - ext-newrelic/11.4.0.17 [David Zuelke]
 - ext-blackfire/1.92.30 [David Zuelke]
 
+### CHG
+
+- Blackfire/2.28.21 [David Zuelke]
+
 ## [v260] - 2024-12-19
 
 ### ADD
