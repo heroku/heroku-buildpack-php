@@ -14,7 +14,7 @@ The following [PHP extensions](https://devcenter.heroku.com/articles/php-support
 - [`ext-newrelic` 11.0.0.13](https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/php-agent-11-0-0-13/)
 - [`ext-phalcon` 5.6.0](https://pecl.php.net/package-changelog.php?package=phalcon&release=5.6.0)
 
-The following new [Composer versions](https://devcenter.heroku.com/articles/php-support#available-composer-versions) are now available [for use during builds](https://devcenter.heroku.com/articles/php-support#installation-of-dependencies):
+The following new [Composer versions](https://devcenter.heroku.com/articles/php-support#available-composer-versions) are now available [for use during builds](https://devcenter.heroku.com/articles/heroku-php-behavior#installation-of-dependencies):
 
 - [Composer 2.8.0](https://getcomposer.org/changelog/2.8.0)
 
