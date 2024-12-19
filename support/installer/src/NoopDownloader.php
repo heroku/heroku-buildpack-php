@@ -24,12 +24,12 @@ class NoopDownloader implements DownloaderInterface
 		return "dist";
 	}
 	
-	public function download(PackageInterface $package, string $path, PackageInterface $prevPackage = null): PromiseInterface
+	public function download(PackageInterface $package, string $path, ?PackageInterface $prevPackage = null): PromiseInterface
 	{
 		return \React\Promise\resolve(null);
 	}
 	
-	public function prepare(string $type, PackageInterface $package, string $path, PackageInterface $prevPackage = null): PromiseInterface
+	public function prepare(string $type, PackageInterface $package, string $path, ?PackageInterface $prevPackage = null): PromiseInterface
 	{
 		return \React\Promise\resolve(null);
 	}
@@ -50,7 +50,7 @@ class NoopDownloader implements DownloaderInterface
 		return \React\Promise\resolve(null);
 	}
 	
-	public function cleanup(string $type, PackageInterface $package, string $path, PackageInterface $prevPackage = null): PromiseInterface
+	public function cleanup(string $type, PackageInterface $package, string $path, ?PackageInterface $prevPackage = null): PromiseInterface
 	{
 		return \React\Promise\resolve(null);
 	}

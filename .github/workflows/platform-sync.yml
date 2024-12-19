@@ -317,6 +317,7 @@ jobs:
           echo >> "$GITHUB_STEP_SUMMARY"
           echo '``````markdown' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
           cat php-support.md >> "$GITHUB_STEP_SUMMARY"
+          [[ -n "$(tail -c1 php-support.md)" ]] && echo >> "$GITHUB_STEP_SUMMARY" # add trailing newline if necessary
           echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
       - name: Update Dev Center article
         if: inputs.dry-run == false && inputs.update-devcenter == true

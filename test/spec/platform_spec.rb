@@ -214,7 +214,7 @@ describe "The PHP Platform Installer" do
 		end
 	end
 	
-	describe "Repository Sync Operations Program", :focused => true do
+	describe "Repository Sync Operations Program" do
 		it "produces the expected list of operations when syncing between two repositories" do
 			bp_root = [".."].cycle("#{sync_fixtures_subdir}".count("/")+1).to_a.join("/") # right "../.." sequence to get us back to the root of the buildpack
 			Dir.chdir("#{sync_fixtures_subdir}") do |cwd|

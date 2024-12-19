@@ -28,6 +28,8 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
 		dep_url=https://downloads.php.net/~pierrick/${dep_archive_name}
 	elif [[ $dep_version == 8.3.* ]]; then
 		dep_url=https://downloads.php.net/~eric/${dep_archive_name}
+	elif [[ $dep_version == 8.4.* ]]; then
+		dep_url=https://downloads.php.net/~calvinb/${dep_archive_name}
 	fi
 else
 	dep_url=https://www.php.net/distributions/${dep_archive_name}
@@ -40,8 +42,8 @@ curl -L ${dep_url} | tar xz
 
 pushd ${dep_dirname}
 
-# we need libgmp for GMP, libpam0g/libc-client for IMAP, libicu for intl, libsasl2/krb/ldap for LDAP, libreadline for PHP
-needed=( libgmp10 libpam0g libc-client2007e libsasl2-2 libkrb5-3 )
+# we need libgmp for GMP, libicu for intl, libsasl2/ldap for LDAP, libreadline for PHP
+needed=( libgmp10 libsasl2-2  )
 needed+=( libonig5 )
 needed+=( libsodium23 )
 if [[ $STACK == "heroku-20" ]]; then
@@ -60,14 +62,20 @@ else
 	needed+=( libreadline8t64 )
 	needed+=( libzip4t64 )
 fi
+if [[ $dep_version == 7.* || $dep_version == 8.[0-3].* ]]; then
+	needed+=( libc-client2007e libkrb5-3 libpam0g  ) # the IMAP extension was bundled before PHP 8.4
+fi
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
 	echo "Error! Missing libraries: $missing"
 	exit 1
 fi
 
-# we need libgmp-dev for GMP, libpam0g-dev/libc-client-dev for IMAP, libicu-dev for intl, libsasl2/krb5/ldap2-dev for LDAP, libreadline-dev for PHP
-needed=( libgmp-dev libpam0g-dev libc-client2007e-dev libicu-dev libsasl2-dev libkrb5-dev libldap2-dev libonig-dev libreadline-dev libsodium-dev libsqlite3-dev libzip-dev libwebp-dev )
+# we need libgmp-dev for GMP, libicu-dev for intl, libsasl2/ldap2-dev for LDAP, libreadline-dev for PHP
+needed=( libgmp-dev libicu-dev libsasl2-dev libldap2-dev libonig-dev libreadline-dev libsodium-dev libsqlite3-dev libzip-dev libwebp-dev )
+if [[ $dep_version == 7.* || $dep_version == 8.[0-3].* ]]; then
+	needed+=( libc-client2007e-dev libkrb5-dev libpam0g-dev ) # the IMAP extension was bundled before PHP 8.4
+fi
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
 	apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
@@ -84,10 +92,12 @@ fi
 
 # we want to build FPM with tracing using pread, which uses /proc/$pid/mem
 # depending on host/container capabilities, it will likely detect ptrace as present, but that's blocked on the platform
-# the only easy way to force it to use pread is by patching configure so it assumes the ptrace check has failed
+# the only easy way to force it to use pread is by patching configure to write out pread to the appropriate variable even if the ptrace check was successful
 # see the AC_DEFUN([AC_FPM_TRACE] bits in sapi/fpm/config.m4
-sed -i 's/have_ptrace=yes/have_ptrace=no/' configure
+echo "Patching configure to force pread for PHP-FPM tracing..."
+grep "fpm_trace_type=ptrace" configure && sed -i 's/fpm_trace_type=ptrace/fpm_trace_type=pread/' configure || exit 99
 
+echo "Patching SIGTERM handling in PHP-FPM..."
 if [[ $dep_version == 7.4.* ]]; then
 	patch -p1 < "$(dirname $BASH_SOURCE)/patches/php/7/4/ignoresigterm.patch"
 elif [[ $dep_version == 7.* ]]; then
@@ -112,6 +122,10 @@ fi
 if [[ $dep_version == 7.3.* ]]; then
 	configureopts+=("--with-libzip=/usr" "--with-onig=/usr") # PHP before 7.4 bundles these, so give explicit locations
 fi
+if [[ $dep_version == 7.* || $dep_version == 8.[0-3].* ]]; then
+	configureopts+=("--with-imap=shared" "--with-imap-ssl") # the IMAP extension was bundled before PHP 8.4
+	configureopts+=("--with-kerberos") # for IMAP and OpenSSL before PHP 8.4
+fi
 
 export PATH=${OUT_PREFIX}/bin:$PATH
 # cannot be built shared: date, ereg, opcache (always), pcre, reflection, sockets (?), spl, standard,
@@ -127,7 +141,6 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--with-pdo-mysql \
 	--with-mysqli \
 	--with-openssl \
-		--with-kerberos \
 	--with-password-argon2 \
 	--with-pgsql \
 	--with-pdo-pgsql \
@@ -140,8 +153,6 @@ export PATH=${OUT_PREFIX}/bin:$PATH
 	--enable-ftp=shared \
 	--with-gettext=shared \
 	--with-gmp=shared \
-	--with-imap=shared \
-		--with-imap-ssl \
 	--enable-intl=shared \
 	--with-ldap=shared \
 		--with-ldap-sasl \
@@ -218,7 +229,7 @@ if ! curl -sL https://composer.github.io/installer.sha384sum | sha384sum --quiet
 	exit 1
 fi
 
-php composer-setup.php --2.2 # https://github.com/composer/composer/issues/11046
+php composer-setup.php
 
 # first, read all platform packages (just "ext-" and "php-") that are already there; could be statically built, or enabled through one of the INIs loaded
 platform_default=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-\S+)' | sed s@^@heroku-sys/@ | tr -s " " | cut -d " " -f1,2 | sort)
