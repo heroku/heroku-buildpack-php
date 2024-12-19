@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v261] - 2024-12-19
+
 ### ADD
 
 - ext-blackfire/1.92.29 [David Zuelke]
@@ -2797,7 +2800,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v259...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v261...main
+[v261]: https://github.com/heroku/heroku-buildpack-php/compare/v260...v261
 [v259]: https://github.com/heroku/heroku-buildpack-php/compare/v258...v259
 [v258]: https://github.com/heroku/heroku-buildpack-php/compare/v257...v258
 [v257]: https://github.com/heroku/heroku-buildpack-php/compare/v256...v257
