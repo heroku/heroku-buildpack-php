@@ -9,6 +9,7 @@ require "tempfile"
 generator_fixtures_subdir = "test/fixtures/platform/generator"
 manifest_fixtures_subdir = "test/fixtures/platform/builder/manifest"
 mkrepo_fixtures_subdir = "test/fixtures/platform/builder/mkrepo"
+priorities_fixtures_subdir = "test/fixtures/platform/repository/priorities"
 sync_fixtures_subdir = "test/fixtures/platform/builder/sync"
 
 describe "The PHP Platform Installer" do
@@ -154,19 +155,21 @@ describe "The PHP Platform Installer" do
 			end
 		end
 		
-		it "combined with a custom repository installs packages from that repo according to the priority given" do
-			Dir.chdir("test/fixtures/platform/repository/priorities") do |cwd|
-				Dir.glob("composer-*.json") do |testcase|
-					cmd = "COMPOSER=#{testcase} composer install --dry-run"
-					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
-					expect(status.exitstatus).to eq(0), "dry run install failed for case #{testcase}, stderr: #{stderr}, stdout: #{stdout}"
-					
-					expect(stderr).to include("heroku-sys/php (8.0.8)")
-					expect(stderr).to include("heroku-sys/ext-igbinary (3.2.7)")
-					if ["composer-default.json"].include? testcase
-						expect(stderr).to include("heroku-sys/ext-redis (5.3.4)") # packages from the custom repo (listed first) are authoritative; the newer package version from the default repo is not selected
-					else
-						expect(stderr).to include("heroku-sys/ext-redis (5.3.5)") # canonical=false or an appropriate only/exclude setting on the custom repo means the newer version from the default repo is selected
+		describe "combined with a custom repository installs packages from that repo according to the priority given", :focused => true do
+			Dir.glob("composer-*.json", base: priorities_fixtures_subdir) do |testcase|
+				it "in case #{testcase}" do
+					Dir.chdir(priorities_fixtures_subdir) do |cwd|
+						cmd = "COMPOSER=#{testcase} composer install --dry-run"
+						stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
+						expect(status.exitstatus).to eq(0), "dry run install failed, stderr: #{stderr}, stdout: #{stdout}"
+						
+						expect(stderr).to include("heroku-sys/php (8.0.8)")
+						expect(stderr).to include("heroku-sys/ext-igbinary (3.2.7)")
+						if ["composer-default.json"].include? testcase
+							expect(stderr).to include("heroku-sys/ext-redis (5.3.4)") # packages from the custom repo (listed first) are authoritative; the newer package version from the default repo is not selected
+						else
+							expect(stderr).to include("heroku-sys/ext-redis (5.3.5)") # canonical=false or an appropriate only/exclude setting on the custom repo means the newer version from the default repo is selected
+						end
 					end
 				end
 			end

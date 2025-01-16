@@ -446,22 +446,32 @@ As package of type `heroku-sys-php` may come bundled with a bunch of extensions,
 
 The repository is a `packages.json` of all manifests, which can be used by Composer as a `packagist` repository type. See [Usage in Applications](#usage-in-applications) for instructions on how to use such a repository with an application.
 
-The structure of a `packagist` type repository is a struct with a single key "`packages`", which is an array containing another array (!) which is a list of all the manifest structs:
+The structure of a `packagist` type repository is a struct with a single key "`packages`", which is a hash of package names containing arrays of all the individual manifest structs for that package (in different versions):
 
     {
-    	"packages": [
-    		[
+    	"packages": {
+    		"heroku-sys/php": [
     			{
-    				"name": "heroku-sys/php"
+    				"name": "heroku-sys/php",
+    				"version": "8.4.1",
+    				…
+    			},
+    			{
+    				"name": "heroku-sys/php",
+    				"version": "8.4.2",
     				…
     			},
     			…
+    		],
+    		"heroku-sys/ext-foobar": [
     			{
-    				"name": "heroku-sys/ext-foobar"
+    				"name": "heroku-sys/ext-foobar",
+    				"version": "1.0.0",
     				…
-    			}
+    			},
+    			…
     		]
-    	]
+    	}
     }
 
 
@@ -802,8 +812,8 @@ Name this tarball `ext-myext-1.2.3_php-7.3.tar.gz` and make it available at `htt
 Assuming that the extension has no stack-specific requirements (meaning it can run on any stack), you can then have a repository at `https://download.example.com/heroku/packages.json` with the following contents:
 
     {
-    	"packages": [
-    		[
+    	"packages": {
+    		"heroku-sys/ext-myext": [
     			{
     				"name": "heroku-sys/ext-myext",
     				"version": "1.2.3",
@@ -819,7 +829,7 @@ Assuming that the extension has no stack-specific requirements (meaning it can r
     				"time": "WHEN DID MCFLY COME BACK FROM THE FUTURE",
     			}
     		]
-    	]
+    	}
     }
 
 **Remember the warning above about version ordering: the PHP 7.3 variant of `ext-myext` version 1.2.3 must be listed before the PHP 7.2 variant, and so forth, to ensure Composer picks the highest possible PHP version.**

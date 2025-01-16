@@ -1,6 +1,6 @@
 {
-  "packages": [
-    [
+  "packages": {
+    "heroku-sys/ext-bcmath": [
       {
         "conflict": {},
         "dist": {
@@ -19,7 +19,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-calendar": [
       {
         "conflict": {},
         "dist": {
@@ -38,7 +40,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-exif": [
       {
         "conflict": {},
         "dist": {
@@ -57,7 +61,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-ftp": [
       {
         "conflict": {},
         "dist": {
@@ -76,7 +82,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-gd": [
       {
         "conflict": {},
         "dist": {
@@ -95,7 +103,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-gettext": [
       {
         "conflict": {},
         "dist": {
@@ -114,7 +124,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-gmp": [
       {
         "conflict": {},
         "dist": {
@@ -133,7 +145,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-imap": [
       {
         "conflict": {},
         "dist": {
@@ -152,7 +166,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-intl": [
       {
         "conflict": {},
         "dist": {
@@ -171,7 +187,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-ldap": [
       {
         "conflict": {},
         "dist": {
@@ -190,7 +208,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-mbstring": [
       {
         "conflict": {},
         "dist": {
@@ -209,7 +229,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-pcntl": [
       {
         "conflict": {},
         "dist": {
@@ -228,7 +250,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-pdo_sqlite": [
       {
         "conflict": {},
         "dist": {
@@ -247,7 +271,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-shmop": [
       {
         "conflict": {},
         "dist": {
@@ -266,7 +292,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-soap": [
       {
         "conflict": {},
         "dist": {
@@ -285,7 +313,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-sodium": [
       {
         "conflict": {},
         "dist": {
@@ -304,7 +334,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-sqlite3": [
       {
         "conflict": {},
         "dist": {
@@ -323,7 +355,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-xsl": [
       {
         "conflict": {},
         "dist": {
@@ -342,7 +376,9 @@
         "time": "2021-07-29 20:07:21",
         "type": "heroku-sys-php-extension",
         "version": "8.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-amqp": [
       {
         "conflict": {},
         "dist": {
@@ -361,7 +397,9 @@
         "time": "2021-04-15 18:00:03",
         "type": "heroku-sys-php-extension",
         "version": "1.11.0beta"
-      },
+      }
+    ],
+    "heroku-sys/ext-apcu": [
       {
         "conflict": {},
         "dist": {
@@ -382,7 +420,9 @@
         "time": "2021-06-07 14:51:08",
         "type": "heroku-sys-php-extension",
         "version": "5.1.20"
-      },
+      }
+    ],
+    "heroku-sys/ext-blackfire": [
       {
         "conflict": {},
         "dist": {
@@ -402,7 +442,9 @@
         "time": "2021-07-29 20:08:12",
         "type": "heroku-sys-php-extension",
         "version": "1.64.0"
-      },
+      }
+    ],
+    "heroku-sys/ext-ev": [
       {
         "conflict": {},
         "dist": {
@@ -421,7 +463,9 @@
         "time": "2021-07-29 20:08:43",
         "type": "heroku-sys-php-extension",
         "version": "1.1.4"
-      },
+      }
+    ],
+    "heroku-sys/ext-event": [
       {
         "conflict": {},
         "dist": {
@@ -440,7 +484,9 @@
         "time": "2021-06-07 14:50:42",
         "type": "heroku-sys-php-extension",
         "version": "3.0.4"
-      },
+      }
+    ],
+    "heroku-sys/ext-imagick": [
       {
         "conflict": {},
         "dist": {
@@ -459,7 +505,9 @@
         "time": "2021-07-29 20:08:29",
         "type": "heroku-sys-php-extension",
         "version": "3.5.1"
-      },
+      }
+    ],
+    "heroku-sys/ext-memcached": [
       {
         "conflict": {
           "heroku-sys/hhvm": "*"
@@ -482,7 +530,9 @@
         "time": "2020-10-29 03:10:43",
         "type": "heroku-sys-php-extension",
         "version": "3.1.5"
-      },
+      }
+    ],
+    "heroku-sys/ext-mongodb": [
       {
         "conflict": {},
         "dist": {
@@ -501,7 +551,9 @@
         "time": "2021-06-07 14:50:26",
         "type": "heroku-sys-php-extension",
         "version": "1.9.1"
-      },
+      }
+    ],
+    "heroku-sys/ext-newrelic": [
       {
         "conflict": {},
         "dist": {
@@ -524,7 +576,9 @@
         "time": "2021-06-07 15:39:55",
         "type": "heroku-sys-php-extension",
         "version": "9.17.1.301"
-      },
+      }
+    ],
+    "heroku-sys/ext-oauth": [
       {
         "conflict": {
           "heroku-sys/hhvm": "*"
@@ -545,7 +599,9 @@
         "time": "2020-10-29 03:11:59",
         "type": "heroku-sys-php-extension",
         "version": "2.0.7"
-      },
+      }
+    ],
+    "heroku-sys/ext-pcov": [
       {
         "conflict": {},
         "dist": {
@@ -564,7 +620,9 @@
         "time": "2021-06-07 14:49:42",
         "type": "heroku-sys-php-extension",
         "version": "1.0.9"
-      },
+      }
+    ],
+    "heroku-sys/ext-pq": [
       {
         "conflict": {
           "heroku-sys/hhvm": "*"
@@ -588,7 +646,9 @@
         "time": "2020-10-29 03:19:28",
         "type": "heroku-sys-php-extension",
         "version": "2.1.8"
-      },
+      }
+    ],
+    "heroku-sys/ext-psr": [
       {
         "conflict": {
           "heroku-sys/hhvm": "*"
@@ -609,7 +669,9 @@
         "time": "2020-11-13 08:39:02",
         "type": "heroku-sys-php-extension",
         "version": "1.0.1"
-      },
+      }
+    ],
+    "heroku-sys/ext-raphf": [
       {
         "conflict": {
           "heroku-sys/hhvm": "*"
@@ -630,7 +692,9 @@
         "time": "2020-10-29 03:08:15",
         "type": "heroku-sys-php-extension",
         "version": "2.0.1"
-      },
+      }
+    ],
+    "heroku-sys/ext-rdkafka": [
       {
         "conflict": {},
         "dist": {
@@ -651,7 +715,9 @@
         "time": "2021-02-04 21:44:34",
         "type": "heroku-sys-php-extension",
         "version": "5.0.0"
-      },
+      }
+    ],
+    "heroku-sys/ext-redis": [
       {
         "conflict": {},
         "dist": {
@@ -670,7 +736,9 @@
         "time": "2021-04-15 18:01:17",
         "type": "heroku-sys-php-extension",
         "version": "5.3.4"
-      },
+      }
+    ],
+    "heroku-sys/ext-uuid": [
       {
         "conflict": {
           "heroku-sys/hhvm": "*"
@@ -691,7 +759,9 @@
         "time": "2020-11-12 18:09:42",
         "type": "heroku-sys-php-extension",
         "version": "1.2.0"
-      },
+      }
+    ],
+    "heroku-sys/composer": [
       {
         "conflict": {},
         "dist": {
@@ -753,7 +823,9 @@
         "time": "2021-07-29 20:07:48",
         "type": "heroku-sys-program",
         "version": "2.1.5"
-      },
+      }
+    ],
+    "heroku-sys/apache": [
       {
         "conflict": {},
         "dist": {
@@ -774,7 +846,9 @@
         "time": "2021-07-01 11:58:42",
         "type": "heroku-sys-webserver",
         "version": "2.4.48"
-      },
+      }
+    ],
+    "heroku-sys/blackfire": [
       {
         "conflict": {},
         "dist": {
@@ -795,7 +869,9 @@
         "time": "2021-07-29 20:07:58",
         "type": "heroku-sys-program",
         "version": "2.4.3"
-      },
+      }
+    ],
+    "heroku-sys/libcassandra": [
       {
         "conflict": {},
         "dist": {
@@ -815,7 +891,9 @@
         "time": "2021-04-15 17:47:55",
         "type": "heroku-sys-library",
         "version": "2.16.0"
-      },
+      }
+    ],
+    "heroku-sys/librdkafka": [
       {
         "conflict": {},
         "dist": {
@@ -835,7 +913,9 @@
         "time": "2021-06-07 14:49:26",
         "type": "heroku-sys-library",
         "version": "1.7.0"
-      },
+      }
+    ],
+    "heroku-sys/nginx": [
       {
         "conflict": {},
         "dist": {
@@ -856,7 +936,9 @@
         "time": "2021-06-07 16:00:06",
         "type": "heroku-sys-webserver",
         "version": "1.20.1"
-      },
+      }
+    ],
+    "heroku-sys/php": [
       {
         "conflict": {},
         "dist": {
@@ -1010,5 +1092,5 @@
         "version": "8.0.9"
       }
     ]
-  ]
+  }
 }
