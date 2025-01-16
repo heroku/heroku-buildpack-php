@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### ADD
+
+- ext-newrelic/11.5.0.18 (now available for PHP 8.4) [David Zuelke]
 
 ## [v261] - 2024-12-20
 
