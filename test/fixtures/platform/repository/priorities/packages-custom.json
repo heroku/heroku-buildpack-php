@@ -1,6 +1,6 @@
 {
-  "packages": [
-    [
+  "packages": {
+    "heroku-sys/ext-redis": [
       {
         "conflict": {},
         "dist": {
@@ -19,7 +19,9 @@
         "time": "2022-01-14 18:01:17",
         "type": "heroku-sys-php-extension",
         "version": "5.3.4"
-      },
+      }
+    ],
+    "heroku-sys/ext-igbinary": [
       {
         "conflict": {},
         "dist": {
@@ -40,5 +42,5 @@
         "version": "3.2.7"
       }
     ]
-  ]
+  }
 }
