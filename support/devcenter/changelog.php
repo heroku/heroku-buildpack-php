@@ -41,14 +41,7 @@ foreach($splits as $split) {
 			} elseif($addition["name"] == "composer") {
 				$addition["link"] = sprintf("https://getcomposer.org/changelog/%s", $addition["version"]);
 			} elseif($addition["name"] == "ext-newrelic") {
-				try {
-					$addition["link"] = vsprintf(
-						"https://docs.newrelic.com/docs/release-notes/agent-release-notes/php-release-notes/php-agent-%d-%d-%d-%d/",
-						explode(".", $addition["version"])
-					);
-				} catch(ValueError) {
-					# didn't get four version parts from the explode()
-				}
+				$addition["link"] = sprintf("https://github.com/newrelic/newrelic-php-agent/releases/tag/v%s", $addition["version"]);
 			} elseif($addition["is_ext"] && $addition["name"] != "ext-blackfire") { # blackfire doesn't have a changelog'
 				$addition["link"] = sprintf(
 					"https://pecl.php.net/package-changelog.php?package=%s&release=%s",

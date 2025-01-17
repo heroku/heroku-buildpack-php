@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+### ADD
+
+- ext-newrelic/11.5.0.18 (now available for PHP 8.4) [David Zuelke]
+- ext-blackfire/1.92.32 [David Zuelke]
+- PHP/8.3.16 [David Zuelke]
+- PHP/8.4.3 [David Zuelke]
+
+### CHG
+
+- Blackfire/2.28.22 [David Zuelke]
 
 ## [v261] - 2024-12-20
 
