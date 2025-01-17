@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v262] - 2025-01-17
+
 ### ADD
 
 - ext-newrelic/11.5.0.18 (now available for PHP 8.4) [David Zuelke]
@@ -2826,7 +2829,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v261...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v262...main
+[v262]: https://github.com/heroku/heroku-buildpack-php/compare/v261...v262
 [v261]: https://github.com/heroku/heroku-buildpack-php/compare/v260...v261
 [v260]: https://github.com/heroku/heroku-buildpack-php/compare/v259...v260
 [v259]: https://github.com/heroku/heroku-buildpack-php/compare/v258...v259
