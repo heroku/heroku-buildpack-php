@@ -613,6 +613,9 @@ else
 	fi
 fi
 
+# compile ioncube
+./bin/compile_ioncube
+
 status "Installing dependencies..."
 
 # echo composer version for info purposes
