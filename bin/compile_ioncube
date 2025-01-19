@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+# bin/compile_ioncube
+
+set -e
+
+IONCUBE_VERSION="12.0.5"
+IONCUBE_URL="https://downloads.ioncube.com/loader_downloads/ioncube_loaders_lin_x86-64.tar.gz"
+
+echo "-----> Installing IonCube Loader ${IONCUBE_VERSION}"
+
+# Download and extract IonCube Loader
+curl -L "${IONCUBE_URL}" -o /tmp/ioncube.tar.gz
+mkdir -p /tmp/ioncube
+tar -xzf /tmp/ioncube.tar.gz -C /tmp/ioncube
+
+# Find the correct PHP extension directory
+PHP_EXT_DIR=$(php -r "echo ini_get('extension_dir');")
+
+# Copy the IonCube loader to the PHP extension directory
+cp /tmp/ioncube/ioncube/ioncube_loader_lin_$(php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;").so "${PHP_EXT_DIR}/"
+
+# Enable IonCube in PHP configuration
+echo "zend_extension=${PHP_EXT_DIR}/ioncube_loader_lin_$(php -r "echo PHP_MAJOR_VERSION . '.' . PHP_MINOR_VERSION;").so" > "${PHP_INI_SCAN_DIR}/00-ioncube.ini"
+
+echo "-----> IonCube Loader installed successfully"
