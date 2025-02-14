@@ -7,6 +7,10 @@
 - PHP/8.3.17 [David Zuelke]
 - PHP/8.4.4 [David Zuelke]
 
+### CHG
+
+- Composer/2.8.5 [David Zuelke]
+
 ## [v262] - 2025-01-17
 
 ### ADD
