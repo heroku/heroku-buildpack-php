@@ -11,6 +11,7 @@
 
 - Composer/2.8.5 [David Zuelke]
 - Blackfire/2.28.23 [David Zuelke]
+- Nginx/1.26.3 [David Zuelke]
 
 ## [v262] - 2025-01-17
 
