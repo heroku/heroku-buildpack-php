@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.1.32 [David Zuelke]
+- PHP/8.2.28 [David Zuelke]
+- PHP/8.3.19 [David Zuelke]
+- PHP/8.4.5 [David Zuelke]
+- ext-newrelic/11.6.0.19 [David Zuelke]
+- ext-phalcon/5.9.0 (supports PHP 8.1 through 8.4) [David Zuelke]
+
+### CHG
+
+- Composer/2.8.6 [David Zuelke]
 
 ## [v263] - 2025-02-14
 
