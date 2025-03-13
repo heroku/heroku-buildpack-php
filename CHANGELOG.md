@@ -8,6 +8,7 @@
 - PHP/8.2.28 [David Zuelke]
 - PHP/8.3.19 [David Zuelke]
 - PHP/8.4.5 [David Zuelke]
+- ext-newrelic/11.6.0.19 [David Zuelke]
 
 ### CHG
 
