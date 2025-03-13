@@ -9,6 +9,10 @@
 - PHP/8.3.19 [David Zuelke]
 - PHP/8.4.5 [David Zuelke]
 
+### CHG
+
+- Composer/2.8.6 [David Zuelke]
+
 ## [v263] - 2025-02-14
 
 ### ADD
