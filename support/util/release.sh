@@ -72,6 +72,9 @@ gh release create "${new_git_tag}" --title "${new_git_tag}" --notes "${changelog
 
 echo >&2
 echo >&2 "Publishing buildpack '${buildpack_registry_name}' using Git tag '${new_git_tag}' on Heroku Buildpack Registry..."
-heroku buildpacks:publish "${buildpack_registry_name}" "${new_git_tag}"
+heroku buildpacks:publish "${buildpack_registry_name}" "${new_git_tag}" || abort "Failed to publish to Buildpack Registry.
+See error message above for details.
+Publishing can be re-attempted using the following command:
+heroku buildpacks:publish ${buildpack_registry_name@Q} ${new_git_tag@Q}"
 echo >&2
 heroku buildpacks:versions "${buildpack_registry_name}" | head -n 3
