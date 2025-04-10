@@ -13,6 +13,10 @@
 - PHP/8.3.20 [David Zuelke]
 - PHP/8.4.6 [David Zuelke]
 
+### CHG
+
+- Composer/2.8.8 [David Zuelke]
+
 ## [v264] - 2025-03-13
 
 ### ADD
