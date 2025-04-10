@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### ADD
+
+- ext-grpc/1.71.0 (for PHP 8.1 and later) [David Zuelke]
 
 ## [v264] - 2025-03-13
 
