@@ -9,6 +9,7 @@
 - ext-mongodb/2.0.0 (supports PHP 8.1 and later) [David Zuelke]
 - ext-newrelic/11.7.0.21 [David Zuelke]
 - ext-redis/6.2.0 [David Zuelke]
+- ext-phalcon/5.9.2 [David Zuelke]
 
 ## [v264] - 2025-03-13
 
