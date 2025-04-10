@@ -11,6 +11,7 @@
 - ext-redis/6.2.0 [David Zuelke]
 - ext-phalcon/5.9.2 [David Zuelke]
 - PHP/8.3.20 [David Zuelke]
+- PHP/8.4.6 [David Zuelke]
 
 ## [v264] - 2025-03-13
 
