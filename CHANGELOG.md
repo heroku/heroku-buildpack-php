@@ -12,6 +12,7 @@
 - ext-phalcon/5.9.2 [David Zuelke]
 - PHP/8.3.20 [David Zuelke]
 - PHP/8.4.6 [David Zuelke]
+- ext-imagick/3.8.0 [David Zuelke]
 
 ### CHG
 
