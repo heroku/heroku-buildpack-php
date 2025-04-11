@@ -84,13 +84,13 @@ if [[ -s "$COMPOSER" ]]; then
 		mcount "failures.composer_json.lint"
 		error <<-EOF
 			Basic validation for '$COMPOSER' failed!
-			
+
 			It must be a valid JSON document compatible with Composer.
-			
+
 			You most likely created or edited the file by hand, and it now
 			contains a syntax error. Please refer to the documentation at
 			https://getcomposer.org/doc/ for information on the format.
-			
+
 			You can run 'composer validate' locally on your computer for
 			further diagnosis. Remember to also always keep your lock file
 			up to date with any changes according to the instructions at
@@ -102,16 +102,16 @@ if [[ -s "$COMPOSER" ]]; then
 			mcount "failures.composer_lock.missing"
 			error <<-EOF
 				No '$COMPOSER_LOCK' found!
-				
+
 				A '$COMPOSER_LOCK' file was not found in your project, but there
 				is a '$COMPOSER' file with dependencies inside 'require'.
-				
+
 				The lock file is required in order to guarantee reliable and
 				reproducible installation of dependencies across platforms and
 				deploys. You must follow the Composer best practice of having
 				your lock file under version control in order to deploy. The
 				lock file must not be in your '.gitignore'.
-				
+
 				Please perform the following steps locally on your computer to
 				resolve this issue before attempting another deploy:
 				1) remove '$COMPOSER_LOCK' from file '.gitignore', if present
@@ -119,11 +119,11 @@ if [[ -s "$COMPOSER" ]]; then
 				3) stage the lock file changes using 'git add $COMPOSER_LOCK'
 				4) if you edited '.gitignore', also run 'git add .gitignore'
 				5) commit the change using 'git commit'
-				
+
 				Please remember to always keep your '$COMPOSER_LOCK' updated in
 				lockstep with '$COMPOSER' to avoid common problems related
 				to dependencies during collaboration and deployment.
-				
+
 				Please refer to the Composer documentation for further details:
 				https://getcomposer.org/doc/
 				https://getcomposer.org/doc/01-basic-usage.md
@@ -140,17 +140,17 @@ else
 		mcount "warnings.composer_json.missing"
 		warning <<-EOF
 			No '$COMPOSER' found!
-			
+
 			Your project only contains an 'index.php', no '$COMPOSER'.
-			
+
 			Using 'index.php' to declare app type as PHP is deprecated and
 			may lead to unexpected behavior.
-			
+
 			Please consider updating your codebase to utilize Composer and
 			modern dependency management in order to benefit from the latest
 			PHP runtimes and improved application performance, as well as
 			control over the PHP versions and extensions available.
-			
+
 			For an introduction to dependency management with Composer and
 			how to get the most out of PHP on Heroku, refer to the docs at
 			https://getcomposer.org/doc/00-intro.md and
@@ -160,12 +160,12 @@ else
 		mcount "warnings.composer_json.empty"
 		notice <<-EOF
 			Your '$COMPOSER' is completely empty!
-			
+
 			A completely empty file is not a valid JSON document.
-			
+
 			Heroku automatically corrected this problem, but it is strongly
 			recommended you change the contents to at least '{}'.
-			
+
 			For documentation on Composer and dependency management, check
 			out the introduction at https://getcomposer.org/doc/00-intro.md
 		EOF
@@ -185,24 +185,24 @@ mkdir $build_dir/.heroku/php || {
 	mcount "failures.platform.slug_as_source"
 	error <<-EOF
 		Your app source code contains artifacts from a previous build!
-		
+
 		A '.heroku/php/' directory exists in your app source, but this
 		directory is created during a build of your app and should not
 		be in your source repository, as it contains binaries for PHP,
 		web servers, PHP extensions, and so forth.
-		
+
 		This situation can happen if you:
 		1) have accidentally set this buildpack on your app twice;
 		2) downloaded a built app ("slug") and used it as source code.
-		
+
 		To address situation 1, check the 'heroku buildpacks' command.
-		
+
 		To address situation 2, ensure the following directories are
 		not part of your source code in your version control system:
 		- .heroku/
 		- .profile.d/
 		- vendor/
-		
+
 		It is recommended you create a new Git repository that doesn't
 		have these directories in its commit history. If you only
 		perform a 'git rm', the binaries will remain part of your code
@@ -210,7 +210,7 @@ mkdir $build_dir/.heroku/php || {
 		may also use common techniques for rewriting commit history to
 		retroactively remove the directories from the old commits that
 		introduced them.
-		
+
 		If you were using other buildpacks together with PHP, you may
 		want to ensure that those buildpacks' build artifacts, such as
 		a Node.js 'node_modules/' directory, are also not part of your
@@ -254,7 +254,7 @@ curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --sil
 	mcount "failures.bootstrap.download.php-min"
 	error <<-EOF
 		Failed to download minimal PHP for bootstrapping!
-		
+
 		This is most likely a temporary internal error. If the problem
 		persists, make sure that you are not running a custom or forked
 		version of the Heroku PHP buildpack which may need updating.
@@ -267,7 +267,7 @@ curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --sil
 	mcount "failures.bootstrap.download.composer"
 	error <<-EOF
 		Failed to download Composer for bootstrapping!
-		
+
 		This is most likely a temporary internal error. If this problem
 		persists, make sure that you are not running a custom or forked
 		version of the Heroku PHP buildpack which may need updating.
@@ -296,28 +296,28 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 	composer_lock_outdated=true
 	warning <<-EOF
 		Your '$COMPOSER_LOCK' is out of date!
-		
+
 		The '$COMPOSER_LOCK' file in your project is not up to date with
 		the main '$COMPOSER' file. This may result in installation
 		of incorrect packages or package versions.
-		
+
 		The lock file is required in order to guarantee reliable and
 		reproducible installation of dependencies across systems and
 		deploys. It must always be kept in sync with '$COMPOSER'.
-		
+
 		Whenever you change '$COMPOSER', ensure that you perform
 		the following steps locally on your computer:
 		1) run 'composer update'
 		2) add all changes using 'git add $COMPOSER $COMPOSER_LOCK'
 		3) commit using 'git commit'
-		
+
 		Ensure that you updated the lock file correctly, and that you
 		ran 'git add' on both files, before deploying again.
-		
+
 		Please remember to always keep your '$COMPOSER_LOCK' updated in
 		lockstep with '$COMPOSER' to avoid common problems related
 		to dependencies during collaboration and deployment.
-		
+
 		Please refer to the Composer documentation for further details:
 		https://getcomposer.org/doc/
 		https://getcomposer.org/doc/01-basic-usage.md
@@ -341,22 +341,22 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 	mcount "warnings.composer_lock.minimum_stability"
 	warning <<-EOF
 		Non-stable 'minimum-stability'!
-	
+
 		Your '$COMPOSER' contains a 'minimum-stability' setting of
 		'$minimum_stability', and the 'prefer-stable' setting is not enabled.
-		
+
 		This combination of options may negatively impact the stability
 		of your app and result in crashes as it permits installation of
 		$possible_stabilities versions of PHP runtimes and extensions.
-		
+
 		If possible, you should always use explicit stability flags on
 		only those dependencies that you want unstable versions of, and
 		leave 'minimum-stability' at its default 'stable' setting.
-		
+
 		If you really need a global 'minimum-stability' setting lower
 		than 'stable', it is strongly recommended that you enable the
 		'prefer-stable' setting in '$COMPOSER'.
-		
+
 		For more information, refer to the following documentation:
 		https://getcomposer.org/doc/articles/versions.md
 		https://getcomposer.org/doc/04-schema.md#package-links
@@ -380,23 +380,23 @@ export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 		mcount "failures.platform.composer_lock.runtime_only_in_dev"
 		error <<-EOF
 			Runtime specified in 'require-dev' but not in 'require'!
-			
+
 			Your '$COMPOSER' contains a 'require-dev' section which
 			specifies a PHP runtime version (either directly, or through
 			a dependency), but no such requirement is present in 'require'
 			or in any of the packages listed in 'require'.
-			
+
 			Even if dev requirements are not being installed, the entirety
 			of all dependencies needs to resolve to an installable set.
 			Heroku cannot select a default runtime version in this case.
-			
+
 			Please perform the following steps locally on your computer to
 			resolve this issue before attempting another deploy:
 			1) add a dependency for 'php' to 'require' in '$COMPOSER'
 			2) run 'composer update' to re-generate the lock file
 			3) stage changes using 'git add $COMPOSER $COMPOSER_LOCK'
 			4) commit changes using 'git commit'
-			
+
 			For more information on selecting PHP runtimes, please refer to
 			https://devcenter.heroku.com/articles/php-support
 		EOF
@@ -443,20 +443,20 @@ else
 		# something else
 		mcount "failures.platform.install.$(detect_platform_install_failures <<< "$install_log")"
 	fi
-	
+
 	error <<-EOF
 		Failed to install system packages!
-		
+
 		Your platform requirements (for runtimes and extensions) could
 		not be resolved to an installable set of dependencies, or a
 		platform package repository was unreachable.
-		
+
 		This usually means that you (or packages you are using) depend
 		on a combination of PHP versions and/or extensions that are
 		currently not available on Heroku.
-		
+
 		The following is the full output from the installation attempt:
-		
+
 		$install_log
 		$(
 			$composer_lock_outdated && cat <<-EOF2
@@ -464,16 +464,16 @@ else
 				A possible cause for this error is your '$COMPOSER_LOCK' file,
 				which is currently out of date, as changes have been made to
 				your '$COMPOSER' that are not yet reflected in the lock file.
-		
+
 				In order to guarantee reliable installation of system packages,
 				Heroku uses information from '$COMPOSER_LOCK'.
-		
+
 				If you already attempted to fix the error above by updating the
 				requirements in '$COMPOSER', remember to also update the
 				lock file by running 'composer update', followed by a 'git add'
 				and 'git commit' of the changes. The warning message further
 				above contains step-by-step instructions.
-		
+
 				Please remember to always keep your '$COMPOSER_LOCK' updated in
 				lockstep with '$COMPOSER' to avoid common problems related
 				to dependencies during collaboration and deployment.
@@ -481,17 +481,17 @@ else
 			EOF2
 		)
 		For reference, the following runtimes are currently available:
-		
+
 		PHP:  $(composer show -d "$build_dir/.heroku/php" --available heroku-sys/php 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
-		
+
 		Please verify that all requirements for runtime versions in
 		'$COMPOSER_LOCK' are compatible with the list above, and ensure
 		all required extensions are available for the desired runtimes.
-		
+
 		When choosing a PHP runtimes and extensions, please also ensure
 		they are available on your app's stack ($STACK), and select
 		a different stack if needed after consulting the article below.
-		
+
 		For a list of supported runtimes & extensions on Heroku, please
 		refer to: https://devcenter.heroku.com/articles/php-support
 	EOF
@@ -562,10 +562,10 @@ else
 			It is strongly recommended you update your app to a version of
 			PHP with "active support" status immediately to ensure you get
 			the latest bugfixes and security updates each time you deploy.
-			
+
 			You may check the list of versions supported by the PHP Group
 			and their EOL dates here: http://php.net/supported-versions.php
-			
+
 			For a list of supported runtimes & extensions on Heroku, please
 			refer to: https://devcenter.heroku.com/articles/php-support
 		EOF
@@ -574,40 +574,40 @@ else
 		mcount "warnings.runtime_eol.eol_reached"
 		warning <<-EOF
 			Your selected PHP version has reached end-of-life
-			
+
 			No updates or security fixes have been provided for your PHP
 			version series by the PHP Group since $eoldate.
-			
+
 			$eolmsg
 		EOF
 	elif (( $code == 3 )); then
 		mcount "warnings.runtime_eol.eol_close"
 		warning <<-EOF
 			Your selected PHP version is close to end-of-life
-			
+
 			No updates or security fixes will be provided for your PHP
 			version series by the PHP Group as of $eoldate.
-			
+
 			$eolmsg
 		EOF
 	elif (( $code == 4 )); then
 		mcount "warnings.runtime_eol.eom_reached"
 		warning <<-EOF
 			Your app's PHP version is no longer actively maintained
-			
+
 			Only security updates will be provided for your PHP version
 			series by the PHP Group until its end-of-life on $eoldate.
-			
+
 			$eolmsg
 		EOF
 	elif (( $code == 5 )); then
 		mcount "warnings.runtime_eol.eom_close"
 		warning <<-EOF
 			Your app's PHP version is close to end of maintenance
-			
+
 			Only security updates will be provided for your PHP version
 			series by the PHP Group as of $eoldate.
-			
+
 			$eolmsg
 		EOF
 	fi
@@ -625,23 +625,23 @@ if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer"
 	mcount "warnings.vendor_dir"
 	warning <<-EOF
 		Composer vendor dir found in project!
-		
+
 		Your Git repository contains Composer's '$composer_vendordir' directory.
-		
+
 		This directory should not be under version control; only your
 		'$COMPOSER' and '$COMPOSER_LOCK' files need to be added, as
 		Composer will handle installation of dependencies on deploy.
-		
+
 		To suppress this notice, first remove the folder from the index
 		by running 'git rm -r --cached $composer_vendordir/'.
 		Next, edit your project's '.gitignore' file and add the folder
 		'/$composer_vendordir/' to the list, then commit the changes.
 		$(
 			[[ ! "$composer_bindir/" == "$composer_vendordir"/* && -d "$composer_bindir" ]] && cat <<-EOF2
-			
+
 				Your Composer bin dir is configured to reside outside of vendor
 				dir, so please repeat the two steps above for '$composer_bindir/'.
-			
+
 			EOF2
 		)
 		For more info, refer to the Composer FAQ: http://bit.ly/1rlCSZU
@@ -659,7 +659,7 @@ if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
 		mcount "failures.dependencies.auth.COMPOSER_GITHUB_OAUTH_TOKEN"
 		error <<-EOF
 			Invalid token for GitHub OAuth!
-			
+
 			The OAuth token set in the '\$COMPOSER_GITHUB_OAUTH_TOKEN'
 			config var is invalid. Please ensure that you obtain a valid
 			token from https://github.com/settings/tokens and set it on the
@@ -688,19 +688,19 @@ if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit(not json.load(sys.std
 		# FIXME: can we provide more advice depending on the error?
 		error <<-EOF
 			Dependency installation failed!
-			
+
 			The 'composer install' process failed with an error. The cause
 			may be the download or installation of packages, or a pre- or
 			post-install hook (e.g. a 'post-install-cmd' item in 'scripts')
 			in your '$COMPOSER'.
-			
+
 			Typical error cases are out-of-date or missing parts of code,
 			timeouts when making external connections, or memory limits.
-			
+
 			Check the above error output closely to determine the cause of
 			the problem, ensure the code you're pushing is functioning
 			properly, and that all local changes are committed correctly.
-			
+
 			For more information on builds for PHP on Heroku, refer to
 			https://devcenter.heroku.com/articles/php-support
 		EOF
@@ -713,12 +713,12 @@ if [[ -z "${HEROKU_PHP_INSTALL_DEV+are-we-running-in-ci}" ]]; then
 		mcount "failures.dependencies.buildpack_as_dependency"
 		error <<-EOF
 			Package 'heroku/heroku-buildpack-php' found!
-			
+
 			Your '$COMPOSER' requires 'heroku/heroku-buildpack-php' in
 			the 'require' section. This package may only be used as a
 			dependency in 'require-dev', because Heroku installs the latest
 			version of the buildpack during builds.
-			
+
 			Please perform the following steps locally on your computer to
 			resolve this issue before attempting another deploy:
 			1) move the requirement for 'heroku/heroku-buildpack-php' from
@@ -739,15 +739,15 @@ if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit("compile" not in json
 		mcount "failures.compile_step"
 		error <<-EOF
 			Compile step failed!
-			
+
 			Installation of dependencies was successful, but the custom
 			script you're using to perform actions after 'composer install'
 			failed with the error above.
-			
+
 			Check that the 'compile' command(s) in the 'scripts' section of
 			your '$COMPOSER' are working properly and not running into
 			timeouts or memory limits.
-			
+
 			For more information on the 'composer compile' step, refer to
 			https://devcenter.heroku.com/articles/php-support
 		EOF
