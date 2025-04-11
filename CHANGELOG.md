@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v265] - 2025-04-11
+
 ### ADD
 
 - ext-grpc/1.71.0 (for PHP 8.1 and later) [David Zuelke]
@@ -2873,7 +2876,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v264...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v265...main
+[v265]: https://github.com/heroku/heroku-buildpack-php/compare/v264...v265
 [v264]: https://github.com/heroku/heroku-buildpack-php/compare/v263...v264
 [v263]: https://github.com/heroku/heroku-buildpack-php/compare/v262...v263
 [v262]: https://github.com/heroku/heroku-buildpack-php/compare/v261...v262
