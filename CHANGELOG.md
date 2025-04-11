@@ -2,6 +2,21 @@
 
 ## [Unreleased]
 
+### ADD
+
+- ext-grpc/1.71.0 (for PHP 8.1 and later) [David Zuelke]
+- ext-mongodb/1.21.0 (supports PHP 8.1 and later) [David Zuelke]
+- ext-mongodb/2.0.0 (supports PHP 8.1 and later) [David Zuelke]
+- ext-newrelic/11.7.0.21 [David Zuelke]
+- ext-redis/6.2.0 [David Zuelke]
+- ext-phalcon/5.9.2 [David Zuelke]
+- PHP/8.3.20 [David Zuelke]
+- PHP/8.4.6 [David Zuelke]
+- ext-imagick/3.8.0 [David Zuelke]
+
+### CHG
+
+- Composer/2.8.8 [David Zuelke]
 
 ## [v264] - 2025-03-13
 
