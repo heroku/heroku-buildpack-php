@@ -1,6 +1,6 @@
 GIT
   remote: https://github.com/heroku/hatchet.git
-  revision: 69e268f694acd5876ff47810bdbd8467b35f8249
+  revision: 4dff977ab2cd0db87230c448503b1472d369ba37
   branch: timeouts-etc
   specs:
     heroku_hatchet (8.0.4)
@@ -30,7 +30,7 @@ GEM
     parallel (1.26.3)
     parallel_tests (5.1.0)
       parallel
-    platform-api (3.7.0)
+    platform-api (3.8.0)
       heroics (~> 0.1.1)
       moneta (~> 1.0.0)
       rate_throttle_client (~> 0.1.0)
