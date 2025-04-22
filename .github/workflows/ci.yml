@@ -57,8 +57,17 @@ jobs:
           echo "$VIRTUAL_ENV/bin" >> "$GITHUB_PATH"
       - name: Hatchet setup
         run: bundle exec hatchet ci:setup
-      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}} (since we are not building main or a tag)
-        if: github.ref_type != 'tag' && github.ref_name != 'main'
+      - name: Calculate formulae state Hash
+        run: |
+          echo -n "PLATFORM_REPO_SNAPSHOT_SHA256=" >> "$GITHUB_ENV"
+          support/build/_util/formulae-hash.sh >> "$GITHUB_ENV"
+      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}}packages-${snapshot}.json (since we are not building main or a tag, but it's a PR)
+        if: github.ref_type != 'tag' && github.ref_name != 'main' && github.event_name == 'pull_request'
+        run: |
+          if [[ $STACK != heroku-22 ]]; then STACK="${STACK}-amd64"; fi
+          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}packages-${PLATFORM_REPO_SNAPSHOT_SHA256}.json" >> "$GITHUB_ENV"
+      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}} (since we are not building main or a tag, and it's not a PR, so no snapshot)
+        if: github.ref_type != 'tag' && github.ref_name != 'main' && github.event_name != 'pull_request'
         run: |
           if [[ $STACK != heroku-22 ]]; then STACK="${STACK}-amd64"; fi
           echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}" >> "$GITHUB_ENV"

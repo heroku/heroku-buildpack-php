@@ -10,15 +10,20 @@ set -o pipefail
 # when using --progress, no output goes to stdout, but errors are mixed with progress info
 S5CMD_OPTIONS=(${S5CMD_NO_SIGN_REQUEST:+--no-sign-request} ${S5CMD_PROFILE:+--profile "${S5CMD_PROFILE}"} --log error)
 
+checksum=
+
 localsrc=
 localdst=
 
 remove=true
 
 # process flags
-optstring=":-:d:s:"
+optstring=":-:c:d:s:"
 while getopts "$optstring" opt; do
 	case $opt in
+		c)
+			checksum=$OPTARG
+			;;
 		d)
 			localdst=$OPTARG
 			;;
@@ -42,13 +47,14 @@ shift $((OPTIND-1))
 
 if [[ $# -lt "2" || $# -gt "6" ]]; then
 	cat >&2 <<-EOF
-		Usage: $(basename "$0") [--no-remove] [-d DEST_DIR] [-s SRC_DIR] DEST_BUCKET DEST_PREFIX [DEST_REGION [SOURCE_BUCKET SOURCE_PREFIX [SOURCE_REGION]]]
+		Usage: $(basename "$0") [--no-remove] [-c CHECKSUM] [-d DEST_DIR] [-s SRC_DIR] DEST_BUCKET DEST_PREFIX [DEST_REGION [SOURCE_BUCKET SOURCE_PREFIX [SOURCE_REGION]]]
 		  DEST_BUCKET:   destination S3 bucket name.
 		  DEST_PREFIX:   destination prefix, e.g. '' or 'dist-stable/'.
 		  DEST_REGION:   destination bucket region, e.g. 'us-west-1'; auto-detected if not given.
 		  SOURCE_BUCKET: source S3 bucket name; default: '\$S3_BUCKET'.
 		  SOURCE_PREFIX: source prefix; default: '\$S3_PREFIX'.
 		  SOURCE_REGION: source bucket region; default: '\$S3_REGION'; auto-detected if not given.
+		  -c CHECKSUM:   the checksum of the snapshot to base the sync on (must match packages.json).
 		  -d DEST_DIR:   use local directory <DEST_DIR> as destination instead of fetching from S3,
 		                 this will then not perform any operations, only print a summary.
 		  -s SOURCE_DIR: use local directory <SOURCE_DIR> as source instead of fetching from S3.
@@ -115,6 +121,12 @@ if [[ ! $localsrc ]]; then
 		  s3://${src_bucket}/${src_prefix}...
 	EOF
 	s5cmd "${S5CMD_OPTIONS[@]}" cp --source-region "$src_region" "s3://${src_bucket}/${src_prefix}packages.json" "$src_tmp" || { echo -e "\nFailed to fetch repository! See message above for errors." >&2; exit 1; }
+	if [[ $checksum ]]; then
+		s5cmd "${S5CMD_OPTIONS[@]}" cp --source-region "$src_region" "s3://${src_bucket}/${src_prefix}packages-${checksum}.json" "$src_tmp" || { echo -e "\nFailed to fetch repository snapshot! See message above for errors." >&2; exit 1; }
+		# for now, we are syncing based on all found .composer.json manifests, that's how the sync.py logic works
+		# in the future, given a specific snapshot, the manifests could potentially be extracted from the snapshotted repo instead for much more selective syncing (where we just carry over the entire repo, and re-write the dist URLs only)
+		diff -q "${src_tmp}/packages.json" "${src_tmp}/packages-${checksum}.json" >/dev/null || { echo -e "\npackages.json and packages-${checksum}.json differ; can only sync snapshots that match latest state. Aborting." >&2; exit 1; }
+	fi
 	
 	src_manifests="s3://${src_bucket}/${src_prefix}*.composer.json"
 	
@@ -129,6 +141,10 @@ if [[ ! $localdst ]]; then
 		Checking destination bucket at
 		  s3://${dst_bucket}/${dst_prefix}...
 	EOF
+	# we won't sync if the destination already has a snapshot for the given checksum
+	# except for when the source is local - that's a removal, which happens on dev prefixes and may be necessary
+	# (a later sync to a stable prefix would fail if the stable prefix already has the same snapshot)
+	[[ $checksum && ! $localsrc ]] && AWS_REGION=$dst_region s5cmd "${S5CMD_OPTIONS[@]}" ls "s3://${dst_bucket}/${dst_prefix}packages-${checksum}.json" >/dev/null 2>&1 && { echo -e "\nDestination bucket already has packages-${checksum}.json, aborting." >&2; exit 1; }
 	dst_ls_json=$(AWS_REGION=$dst_region s5cmd "${S5CMD_OPTIONS[@]}" --json ls "${dst_manifests}" 2>&1) && {
 		# this is for an 's5cmd run' later, so we're generating quoted arguments
 		downloads+=("cp --source-region ${dst_region@Q} ${dst_manifests@Q} ${dst_tmp@Q}")
@@ -151,7 +167,7 @@ echo "" >&2
 # this mkrepo.sh call won't actually download, but use the given *.composer.json, and echo a generated packages.json
 # we use this to compare to the downloaded packages.json
 # unless we're using a local source dir, because that can be used for easy removals
-[[ $localsrc ]] || S3_BUCKET=$src_bucket S3_PREFIX=$src_prefix S3_REGION=$src_region "$here/mkrepo.sh" "${src_tmp}"/*.composer.json 2>/dev/null | python -c 'import sys, json; sys.exit(json.load(open(sys.argv[1])) != json.load(sys.stdin))' "${src_tmp}"/packages.json || {
+[[ $localsrc ]] || S3_BUCKET=$src_bucket S3_PREFIX=$src_prefix S3_REGION=$src_region "$here/mkrepo.sh" "${src_tmp}"/*.composer.json 2>/dev/null | python -c 'import sys, json; sys.exit(json.load(open(sys.argv[1])) != json.load(sys.stdin))' "${src_tmp}/packages.json" || {
 	cat >&2 <<-EOF
 		WARNING: packages.json from source does not match its list of manifests!
 		 You should run 'mkrepo.sh' to update, or ask the bucket maintainers to do so.
@@ -254,12 +270,13 @@ fi
 	prompt="Are you sure you want to remove all packages from destination?"
 	cat >&2 <<-EOF
 		THE REMOVALS ABOVE WILL DELETE THIS REPOSITORY IN ITS ENTIRETY!
-		THE RESULTING EMPTY packages.json WILL BE REMOVED AS WELL!
+		THE RESULTING EMPTY packages.json, AND ANY packages-\$checksum.json FILES,
+		WILL BE REMOVED AS WELL!
 		
 	EOF
 } || {
 	wipe=false
-	prompt="Are you sure you want to sync to destination & re-generate packages.json?"
+	prompt="Are you sure you want to sync to destination and re-generate packages.json${checksum:+" and packages-${checksum}.json"}?"
 }
 
 cat >&2 <<-EOF
@@ -295,11 +312,11 @@ if (( ${#run_manifests_cp[@]} || ${#run_manifests_rm[@]} )); then
 fi
 
 if $wipe; then
-	echo "Removing packages.json..." >&2
-	AWS_REGION=$dst_region s5cmd "${S5CMD_OPTIONS[@]}" rm "s3://${dst_bucket}/${dst_prefix}packages.json" || { echo -e "\nFailed to remove repository! See message above for errors." >&2; exit 1; }
+	echo "Removing packages.json and any snapshots..." >&2
+	AWS_REGION=$dst_region s5cmd "${S5CMD_OPTIONS[@]}" rm "s3://${dst_bucket}/${dst_prefix}packages*.json" || { echo -e "\nFailed to remove repository! See message above for errors." >&2; exit 1; }
 else
 	echo "Generating and uploading packages.json..." >&2
-	out=$(cd "$dst_tmp"; S3_BUCKET=$dst_bucket S3_PREFIX=$dst_prefix S3_REGION=$dst_region "$here/mkrepo.sh" --upload *.composer.json 2>&1) || { echo -e "\nFailed to generate/upload repository! Error:\n$out\n\nIn case of transient errors, the repository must be re-generated manually." >&2; exit 1; }
+	out=$(cd "$dst_tmp"; S3_BUCKET=$dst_bucket S3_PREFIX=$dst_prefix S3_REGION=$dst_region "$here/mkrepo.sh" --upload ${checksum:+"-c" "$checksum"} *.composer.json 2>&1) || { echo -e "\nFailed to generate/upload repository! Error:\n$out\n\nIn case of transient errors, the repository must be re-generated manually." >&2; exit 1; }
 fi
 echo "" >&2
 

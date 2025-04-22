@@ -6,16 +6,20 @@ set -o pipefail
 set -eu
 
 help=false
+checksum=
 upload=false
 
 S5CMD_OPTIONS=(${S5CMD_NO_SIGN_REQUEST:+--no-sign-request} ${S5CMD_PROFILE:+--profile "${S5CMD_PROFILE}"} --log error)
 
 # process flags
-optstring=":-:h"
+optstring=":-:hc:"
 while getopts "$optstring" opt; do
 	case $opt in
 		h)
 			help=true
+			;;
+		c)
+			checksum=$OPTARG
 			;;
 		-)
 			case "$OPTARG" in
@@ -37,13 +41,16 @@ shift $((OPTIND-1))
 
 if $help; then
 	cat >&2 <<-EOF
-		Usage: $(basename "$0") [--upload] [MANIFEST...]
+		Usage: $(basename "$0") [-c CHECKSUM] [--upload] [MANIFEST...]
 		  The environment variables '\$S3_BUCKET', '\$S3_PREFIX', and '\$S3_REGION' are
 		  used for S3 bucket addressing; the prefix is optional, and the region is auto-
 		  detected if not given.
 		  
 		  If MANIFEST arguments are given, those are used to build the repo; otherwise,
 		  all manifests from S3_BUCKET+S3_PREFIX are downloaded.
+		  
+		  The -c option, if given, causes uploading or writing (see --upload below)
+		  of an additional packages.CHECKSUM.json as a snapshot.
 		  
 		  A --upload flag triggers immediate upload, otherwise instructions are printed.
 		  
@@ -137,11 +144,24 @@ if $redir; then
 	exec 1>&3 3>&-
 fi
 
-cmd=(s5cmd "${S5CMD_OPTIONS[@]}" cp --destination-region "$S3_REGION" --content-type application/json packages.json "s3://${S3_BUCKET}/${S3_PREFIX}packages.json")
+packages_json_upload_cmd=(s5cmd "${S5CMD_OPTIONS[@]}" cp --destination-region "$S3_REGION" --content-type application/json packages.json "s3://${S3_BUCKET}/${S3_PREFIX}packages.json")
+if [[ -n "$checksum" ]]; then
+	# cp s3://.../packages.json s3://...packages-${checksum}.json
+	packages_snapshot_json_cp_cmd=(s5cmd "${S5CMD_OPTIONS[@]}" cp --source-region "$S3_REGION" --destination-region "$S3_REGION" "s3://${S3_BUCKET}/${S3_PREFIX}packages"{,"-${checksum}"}".json")
+fi
 if $upload; then
 	echo "-----> Uploading packages.json..." >&2
-	"${cmd[@]}" 1>&2
+	"${packages_json_upload_cmd[@]}" 1>&2
+	if [[ -n "$checksum" ]]; then
+		echo "-----> Snapshotting to packages-${checksum}.json..." >&2
+		"${packages_snapshot_json_cp_cmd[@]}" 1>&2
+	fi
 	echo "-----> Done." >&2
 elif [[ -t 1 ]]; then
-	echo "-----> Done. To upload repository, run: ${cmd[*]@Q}" >&2
+	echo "-----> Done. To upload repository, run:" >&2
+	echo "${packages_json_upload_cmd[@]@Q}" >&2
+	if [[ -n "$checksum" ]]; then
+		echo "       and (for repository snapshot)": >&2
+		echo "${packages_snapshot_json_cp_cmd[@]@Q}" >&2
+	fi
 fi

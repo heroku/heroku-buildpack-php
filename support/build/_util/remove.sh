@@ -5,13 +5,39 @@ set -o pipefail
 # fail harder
 set -eu
 
-publish=true
+help=false
+checksum=
 
 S5CMD_OPTIONS=(${S5CMD_NO_SIGN_REQUEST:+--no-sign-request} ${S5CMD_PROFILE:+--profile "${S5CMD_PROFILE}"} --log error)
 
-if [[ $# -lt "1" ]]; then
+# process flags
+optstring=":-:hc:"
+while getopts "$optstring" opt; do
+	case $opt in
+		h)
+			help=true
+			;;
+		c)
+			checksum=$OPTARG
+			;;
+		-)
+			case "$OPTARG" in
+				help)
+					help=true
+					;;
+				*)
+					echo "Invalid option: --$OPTARG" >&2
+					exit 2
+					;;
+			esac
+	esac
+done
+# clear processed arguments
+shift $((OPTIND-1))
+
+if $help || [[ $# -lt "1" ]]; then
 	cat >&2 <<-EOF
-		Usage: $(basename "$0") MANIFEST...
+		Usage: $(basename "$0") [-c CHECKSUM] MANIFEST...
 		  MANIFEST: name of manifest, e.g. 'ext-event-2.0.0_php-7.4'
 		  
 		  Wildcard expansion for MANIFEST will be performed by s5cmd and can be combined
@@ -20,7 +46,10 @@ if [[ $# -lt "1" ]]; then
 		  
 		  Bucket name and prefix will be read from '\$S3_BUCKET' and '\$S3_PREFIX'.
 		  Bucket region (e.g. 'us-east-1') will be read from '\$S3_REGION', or detected
-			automatically if not set.
+		  automatically if not set.
+		  
+		  The -c option, if given, causes uploading or writing (see --upload below)
+		  of an additional packages.CHECKSUM.json as a snapshot.
 	EOF
 	exit 2
 fi
@@ -56,4 +85,4 @@ echo -e "\nNow performing a sync of the differences:\n" >&2
 # we now simply treat this as a sync of packages between two folders, passing sync.sh the local dir as source and the remote as destination
 # the "source" repository will have our matched manifests removed
 
-"${here}/sync.sh" -s "$manifests_tmp" "$S3_BUCKET" "$S3_PREFIX" "$S3_REGION" "$S3_BUCKET" "$S3_PREFIX" "$S3_REGION"
+"${here}/sync.sh" ${checksum:+"-c" "$checksum"} -s "$manifests_tmp" "$S3_BUCKET" "$S3_PREFIX" "$S3_REGION" "$S3_BUCKET" "$S3_PREFIX" "$S3_REGION"
