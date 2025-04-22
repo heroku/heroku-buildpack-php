@@ -20,8 +20,8 @@ cd "$bp_dir"
 cat .tagref
 ls -la .git
 git status
-git describe --tags
-git describe --tags --exact || true
+git describe --always --tags
+git describe --always --tags --exact
 exit 1
 
 export BPLOG_PREFIX="buildpack.php"
