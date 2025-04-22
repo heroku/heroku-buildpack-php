@@ -5,7 +5,7 @@
 # fail hard
 set -o pipefail
 # fail harder
-set -eu
+set -eux
 # move hidden files too, just in case
 shopt -s dotglob
 
@@ -18,6 +18,8 @@ bp_dir=$(cd $(dirname $0); cd ..; pwd)
 
 cd "$bp_dir"
 cat .tagref
+ls -la .git
+git status
 git describe --tags
 git describe --tags --exact || true
 exit 1
