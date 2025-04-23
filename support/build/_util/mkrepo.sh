@@ -86,9 +86,18 @@ fi
 # sort so that packages with the same name and version (e.g. ext-memcached 2.2.0) show up with their php requirement in descending order - otherwise a Composer limitation means that a simple "ext-memcached: * + php: ^7.0.0" request would install 7.0.latest and not 7.4.latest, as it finds the 7.0.* requirement extension first and sticks to that instead of 7.4. For packages with identical names and versions (but different e.g. requirements), Composer basically treats them as equal and picks as a winner whatever it finds first. The requirements have to be written like "x.y.*" for this to work of course (we replace "*", "<=" and so forth with "0", as that's fine for the purpose of just sorting - otherwise, a comparison of e.g. "^7.0.0" and "7.0.*" would cause "TypeError: '<' not supported between instances of 'str' and 'int'")
 python <(cat <<-'PYTHON' # beware of single quotes in body
 	import sys, re, json
-	import itertools
+	from itertools import groupby
 	from natsort import natsorted
+	from operator import itemgetter
 	manifests = [ json.load(open(item)) for item in sys.argv[1:] if json.load(open(item)).get("type", "") != "heroku-sys-package" ]
+	# first, we need to discard packages with the same name and version, but different build infos in the version string
+	# only the natsorted-ly "highest" variant remains
+	# this is to ensure that we do not end up with "foo-1.0.1" and "foo-1.0.1+build2" in the repo, because semver considers these equivalent, and so does Composer
+	# we only want "foo-1.0.1+build2" in this case, as it'll be the newer/higher package
+	rsorted = natsorted(manifests, lambda p: (p["name"], p["version"]), reverse=True) # reverse natsort by name and entire version
+	version_groups = groupby(rsorted, lambda p: (p["name"], p["version"].partition("+")[0])) # group by only the version part before a possible "+"
+	version_whitelist = set(itemgetter("name", "version")(next(paks)) for group, paks in version_groups) # make a set of whitelisted name/version combos
+	manifests = [m for m in manifests if (m["name"], m["version"]) in version_whitelist] # remove any manifest with versions not in whitelist
 	# for PHP, transform all manifests in extra.shared into their own packages
 	for php in filter(lambda package: package.get("type", "") == "heroku-sys-php", manifests):
 	    shared = php.get("extra", {}).get("shared", {})
@@ -100,7 +109,7 @@ python <(cat <<-'PYTHON' # beware of single quotes in body
 	        shared[extname] = False # make sure there still is a record of this extension in the PHP package (e.g. for tooling that generates version infos for Heroku Dev Center), but prevent e.g. the legacy Installer Plugin logic from handling this
 	# for each php or extension package, generate a "replace" entry for ".native", and require ".native" variants of any other exts it depends on
 	# this is used by the installer to ignore userland provides for internal dependencies (one ext requiring another), while allowing userland provides to optionally stand in for native extensions if they do not exist (but an installation attempt is made for them once main dependency resolution is finished)
-	# this way, extension package formulae do not have to know about this ".native" business in theif formulae
+	# this way, extension package formulae do not have to know about this ".native" business in their formulae
 	for pkg in filter(lambda package: package.get("type", "") in ["heroku-sys-php", "heroku-sys-php-extension"], manifests):
 	    # generate ".native" replace and require entry variants for each "heroku-sys/ext-…" in them
 	    # there may be extensions "replace"ing other extensions, e.g. "ext-apcu" replaces "ext-apc"
@@ -118,7 +127,7 @@ python <(cat <<-'PYTHON' # beware of single quotes in body
 	    key=lambda package: (package.get("name"), re.sub(r"[<>=*~^]", "0", package.get("require", {}).get("heroku-sys/php", "0.0.0"))),
 	    reverse=True)
 	# convert the list to a dict with package names as keys and list of versions (sorted by "php" requirement by previous sort) as values
-	json.dump({"packages": dict((name, list(versions)) for name, versions in itertools.groupby(manifests, key=lambda package: package.get("name"))) }, sys.stdout, sort_keys=True)
+	json.dump({"packages": dict((name, list(versions)) for name, versions in groupby(manifests, key=lambda package: package.get("name"))) }, sys.stdout, sort_keys=True)
 PYTHON
 ) "${manifests[@]}"
 

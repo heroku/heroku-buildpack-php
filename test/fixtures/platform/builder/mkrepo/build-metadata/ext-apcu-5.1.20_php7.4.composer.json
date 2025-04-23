@@ -1,0 +1,23 @@
+{
+  "conflict": {},
+  "dist": {
+    "type": "heroku-sys-tar",
+    "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20190902/apcu-5.1.20.tar.gz"
+  },
+  "extra": {
+    "config": "etc/php/conf.d/apcu.ini-dist"
+  },
+  "name": "heroku-sys/ext-apcu",
+  "provide": {},
+  "replace": {
+    "heroku-sys/ext-apc": "self.version"
+  },
+  "require": {
+    "heroku-sys/heroku": "^20.0.0",
+    "heroku-sys/php": "7.4.*",
+    "heroku/installer-plugin": "^1.6.0"
+  },
+  "time": "2021-06-07 14:50:08",
+  "type": "heroku-sys-php-extension",
+  "version": "5.1.20"
+}
