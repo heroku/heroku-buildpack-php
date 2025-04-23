@@ -156,7 +156,7 @@ describe "The PHP Platform Installer" do
 			end
 		end
 		
-		describe "combined with a custom repository installs packages from that repo according to the priority given", :focused => true do
+		describe "combined with a custom repository installs packages from that repo according to the priority given" do
 			Dir.glob("composer-*.json", base: priorities_fixtures_subdir) do |testcase|
 				it "in case #{testcase}" do
 					Dir.chdir(priorities_fixtures_subdir) do |cwd|
