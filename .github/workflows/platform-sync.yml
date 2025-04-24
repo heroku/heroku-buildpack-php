@@ -134,6 +134,7 @@ jobs:
           cat sync-${{matrix.stack}}.log >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
   devcenter-generate:
+    if: false # not on this branch
     needs: sync
     runs-on: ubuntu-24.04
     outputs:
@@ -334,6 +335,7 @@ jobs:
           curl -sS --fail-with-body -X PUT -K <(echo -n "user = bot:"; printenv "HEROKU_DEVCENTER_API_TOKEN") -H "Accept: application/json" --data-urlencode 'article[content]@php-support.md' "https://devcenter.heroku.com/api/v1/private/articles/${article_id}.json"
           echo 'Successfully updated ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support) with synced packages.' >> "$GITHUB_STEP_SUMMARY"
   changelog-generate:
+    if: false # not on this branch
     needs: sync
     runs-on: ubuntu-24.04
     steps:
