@@ -1,5 +1,5 @@
-name: Platform packages build and deploy to -cnb/
-run-name: Build ${{ inputs.dry-run == true && 'w/o deploy' || '& deploy' }}${{ inputs.overwrite == true && '(+overwrite)' || '' }} to dist-${{inputs.stack}}-cnb/
+name: Platform packages build and deploy to -cnb-develop/
+run-name: Build ${{ inputs.dry-run == true && 'w/o deploy' || '& deploy' }}${{ inputs.overwrite == true && '(+overwrite)' || '' }} to dist-${{inputs.stack}}-cnb-develop/
 
 env:
   dst_path_suffix: "-cnb-stable/"
