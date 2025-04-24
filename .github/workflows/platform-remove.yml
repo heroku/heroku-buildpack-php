@@ -1,5 +1,5 @@
-name: Platform packages removal from -cnb/
-run-name: Removal${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-${{inputs.stack}}-cnb/
+name: Platform packages removal from -cnb-develop/
+run-name: Removal${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-${{inputs.stack}}-cnb-develop/
 
 on:
   workflow_dispatch:

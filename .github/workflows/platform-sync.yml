@@ -1,9 +1,9 @@
-name: Platform packages sync from -cnb/ to -cnb-stable/
-run-name: Sync${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-$STACK-cnb/ to dist-$STACK-cnb-stable/
+name: Platform packages sync from -cnb-develop/ to -cnb-stable/
+run-name: Sync${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-$STACK-cnb-develop/ to dist-$STACK-cnb-stable/
 
 env:
   stacks_list_for_shell_expansion: "{heroku-22,heroku-24-amd64,heroku-24-arm64}"
-  src_path_suffix: "-cnb/"
+  src_path_suffix: "-cnb-develop/"
   dst_path_suffix: "-cnb-stable/"
 
 on:
