@@ -1,0 +1,64 @@
+{
+    "config": {
+        "allow-plugins": {
+            "heroku/installer-plugin": true
+        },
+        "cache-files-ttl": 0,
+        "discard-changes": true,
+        "secure-http": false
+    },
+    "minimum-stability": "stable",
+    "prefer-stable": false,
+    "provide": {
+        "heroku-sys\/heroku": "20.2025.04.03"
+    },
+    "replace": {},
+    "require": {
+        "composer-duplicate.json\/composer-duplicate.lock": "dev-fc385a27e5169a169062c230878645d1"
+    },
+    "require-dev": {},
+    "repositories": [
+        {
+            "packagist": false
+        },
+        {
+            "type": "path",
+            "url": "..\/..\/..\/..\/..\/support\/installer",
+            "options": {
+                "symlink": false
+            }
+        },
+        {
+            "type": "composer",
+            "url": "./packages-custom.json",
+            "only": ["heroku-sys/ext-igbinary"]
+        },
+        {
+            "type": "composer",
+            "url": "./packages-duplicate.json",
+            "canonical": false
+        },
+        {
+            "type": "composer",
+            "url": "./packages.json"
+        },
+        {
+            "type": "package",
+            "package": [
+                {
+                    "type": "metapackage",
+                    "name": "composer-duplicate.json\/composer-duplicate.lock",
+                    "version": "dev-fc385a27e5169a169062c230878645d1",
+                    "require": {
+                        "heroku-sys\/php": "8.0.*",
+                        "heroku-sys\/ext-igbinary": "*",
+                        "heroku-sys\/ext-redis": "*"
+                    },
+                    "replace": {},
+                    "provide": {},
+                    "conflict": {}
+                }
+            ]
+        }
+    ]
+}
