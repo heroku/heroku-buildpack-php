@@ -82,7 +82,7 @@ echo "Patching configure to force pread for PHP-FPM tracing..."
 grep "fpm_trace_type=ptrace" configure && sed -i 's/fpm_trace_type=ptrace/fpm_trace_type=pread/' configure || exit 99
 
 echo "Patching SIGTERM handling in PHP-FPM..."
-patch -p1 < "$(dirname $BASH_SOURCE)/patches/php/ignoresigterm.patch"
+patch -p1 < "$(dirname $BASH_SOURCE)/_patches/php/ignoresigterm.patch"
 
 configureopts=()
 configureopts+=("--with-zip")
