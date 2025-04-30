@@ -13,7 +13,12 @@ class ComposerInstaller extends LibraryInstaller
 		// we return the cwd here (sine we get invoked in the destination base directory); the Downloader takes care of the "merging" part by extracting packages into the existing structure
 		return realpath('./');
 	}
-
+	
+	public static function formatHerokuSysName(string $name): string
+	{
+		return sscanf($name, "heroku-sys/%s")[0] ?? $name;
+	}
+	
 	/**
 	 * {@inheritDoc}
 	 */

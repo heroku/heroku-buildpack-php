@@ -89,10 +89,11 @@ describe "The PHP Platform Installer" do
 		before(:all) do
 			@install_tmpdir = Dir.mktmpdir(nil, generator_fixtures_subdir) # this needs to be on the same level as the source fixture so the relative path references to the installer plugin inside composer.json work
 			@export_tmpfile = Tempfile.new("export")
+			@humanlog_tmpfile = Tempfile.new("humanlog")
 			@profiled_tmpdir = Dir.mktmpdir("profile.d")
 			FileUtils.cp("#{generator_fixtures_subdir}/base/expected_platform_composer.json", "#{@install_tmpdir}/composer.json")
 			Dir.chdir(@install_tmpdir) do
-				cmd = "export_file_path=#{@export_tmpfile.path} profile_dir_path=#{@profiled_tmpdir} composer install --no-dev"
+				cmd = "exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}> #{@humanlog_tmpfile.path}; export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO; export_file_path=#{@export_tmpfile.path} profile_dir_path=#{@profiled_tmpdir} composer install --no-dev"
 				@stdout, @stderr, @status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 			end
 		end
@@ -141,6 +142,27 @@ describe "The PHP Platform Installer" do
 		it "enables shared extensions bundled with PHP if necessary" do
 			expect(@stderr).to match("Enabling heroku-sys/ext-mbstring")
 			expect(Dir.entries("#{@install_tmpdir}/etc/php/conf.d").any? {|f| f.include?("ext-mbstring.ini")}).to eq(true)
+		end
+		
+		it "writes a human-readable log to a given file descriptor" do
+			version_triple = /\(\d+\.\d+\.\d+(\+[^)]+)?\)/ # 1.2.3 or 1.2.3+build2
+			bundled = /\(bundled with php\)/
+			expect(@humanlog_tmpfile.read).to match Regexp.new(<<~EOF)
+			^- php #{version_triple.source}$
+			^- ext-sqlite3 #{bundled.source}$
+			^- ext-redis #{version_triple.source}$
+			^- ext-mbstring #{bundled.source}$
+			^- ext-ldap #{bundled.source}$
+			^- ext-intl #{bundled.source}$
+			^- ext-imap #{version_triple.source}$
+			^- ext-gmp #{bundled.source}$
+			^- blackfire #{version_triple.source}$
+			^- ext-blackfire #{version_triple.source}$
+			^- apache #{version_triple.source}$
+			^- composer #{version_triple.source}$
+			^- nginx #{version_triple.source}$
+			EOF
+
 		end
 	end
 	
