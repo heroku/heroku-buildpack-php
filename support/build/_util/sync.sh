@@ -111,8 +111,8 @@ fi
 
 if [[ ! $localsrc ]]; then
 	cat >&2 <<-EOF
-		Fetching source repository
-		  from s3://${src_bucket}/${src_prefix}...
+		Fetching source repository from
+		  s3://${src_bucket}/${src_prefix}...
 	EOF
 	s5cmd "${S5CMD_OPTIONS[@]}" cp --source-region "$src_region" "s3://${src_bucket}/${src_prefix}packages.json" "$src_tmp" || { echo -e "\nFailed to fetch repository! See message above for errors." >&2; exit 1; }
 	
@@ -126,7 +126,7 @@ if [[ ! $localdst ]]; then
 	dst_manifests="s3://${dst_bucket}/${dst_prefix}*.composer.json"
 	
 	cat >&2 <<-EOF
-		Checking destination bucket
+		Checking destination bucket at
 		  s3://${dst_bucket}/${dst_prefix}...
 	EOF
 	dst_ls_json=$(AWS_REGION=$dst_region s5cmd "${S5CMD_OPTIONS[@]}" --json ls "${dst_manifests}" 2>&1) && {
@@ -142,7 +142,7 @@ if [[ ! $localdst ]]; then
 fi
 
 if (( ${#downloads[@]} )); then
-	echo "Fetching manifests... " >&2
+	echo "Fetching manifests from source... " >&2
 	printf "%s\n" "${downloads[@]}" | s5cmd "${S5CMD_OPTIONS[@]}" run || { echo -e "\nFailed to fetch manifests! See message above for errors." >&2; exit 1; }
 fi
 
