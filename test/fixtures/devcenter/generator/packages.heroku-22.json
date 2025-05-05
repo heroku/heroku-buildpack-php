@@ -42,7 +42,7 @@
 					"heroku/installer-plugin": "^1.4.0"
 				},
 				"type": "heroku-sys-program",
-				"version": "2.2.22"
+				"version": "2.2.22+rebuild1"
 			},
 			{
 				"conflict": {},
