@@ -226,7 +226,7 @@ mkdir -p $COMPOSER_HOME
 
 status "Bootstrapping..."
 
-if [[ $STACK == heroku-2[02] ]]; then
+if [[ $STACK == "heroku-22" ]]; then
 	stack_locator=$STACK
 else
 	stack_locator="${STACK}-$(dpkg --print-architecture)"
@@ -367,11 +367,7 @@ composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPO
 
 status "Preparing platform package installation..."
 
-if [[ $STACK == "heroku-20" ]]; then
-	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^7.3.0 | ^8.0.0 <8.5"
-else
-	HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^8.0.0 <8.5"
-fi
+HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^8.1.0 <8.5"
 export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # extract requirements from composer.lock
 /app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php ${have_custom_platform_repos:+"--list-repositories"} "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | indent || {

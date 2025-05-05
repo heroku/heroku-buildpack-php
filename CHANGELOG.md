@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Remove support for heroku-20 [David Zuelke]
 
 ## [v265] - 2025-04-11
 

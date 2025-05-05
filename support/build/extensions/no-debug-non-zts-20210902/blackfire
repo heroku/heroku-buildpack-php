@@ -14,12 +14,6 @@ ZEND_MODULE_API_VERSION=$(basename $(dirname $0))
 ZEND_MODULE_API_VERSION=${ZEND_MODULE_API_VERSION#no-debug-non-zts-}
 
 case ${ZEND_MODULE_API_VERSION} in
-	20180731)
-		series=7.3
-		;;
-	20190902)
-		series=7.4
-		;;
 	20200930)
 		series=8.0
 		;;

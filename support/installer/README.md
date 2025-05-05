@@ -35,7 +35,7 @@ It utilizes the following environment variables:
 - `$COMPOSER` and `$COMPOSER_LOCK` for the project `composer.json` and `composer.lock` file names
 - `$HEROKU_PHP_DEFAULT_RUNTIME_VERSION` with the default version selection string for PHP runtimes (differs by stack)
 - `$HEROKU_PHP_INSTALL_DEV` (which is an empty string when installing on Heroku CI)
-- `$STACK` for the name of the current stack ("heroku-20" etc).
+- `$STACK` for the name of the current stack ("heroku-22" etc).
 
 First, it generates a list of all repositories that should be used. Packagist gets disabled as a repository (we do not want to install public packages here), then a `path` type repository (forcing copying vs symlinking, due to different filesystems at build time and runtime) points Composer to our installer plugin (given to the program as the first argument).
 
@@ -62,7 +62,7 @@ Example generated "`platform.json`" from a simple project's `composer.lock`:
     "minimum-stability": "RC",
     "prefer-stable": true,
     "provide": {
-        "heroku-sys\/heroku": "20.2021.08.05"
+        "heroku-sys\/heroku": "24.2025.05.04"
     },
     "replace": {},
     "require": {
@@ -91,7 +91,7 @@ Example generated "`platform.json`" from a simple project's `composer.lock`:
         },
         {
             "type": "composer",
-            "url": "https:\/\/lang-php.s3.us-east-1.amazonaws.com\/dist-heroku-20-stable\/packages.json"
+            "url": "https:\/\/lang-php.s3.us-east-1.amazonaws.com\/dist-heroku-24-stable\/packages.json"
         },
         {
             "type": "package",

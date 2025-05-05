@@ -37,35 +37,6 @@ make -s -j $(($(nproc)+1))
 # so instead we use the extension Makefile's INSTALL_ROOT variable to prefix the install destination path name, and then move that back to $OUT_PREFIX
 tmpdest=$(mktemp -d)
 
-if [[ $series == 7.* ]]; then
-	# we need to install apcu first to build this
-	make install -s
-	popd
-
-	dep2_name=apcu_bc
-	dep2_version=1.0.5
-	dep2_dirname=${dep2_name}-${dep2_version}
-	dep2_archive_name=${dep2_dirname}.tgz
-	dep2_url=https://pecl.php.net/get/${dep2_archive_name}
-
-	echo "-----> Building ${dep2_name}-${dep2_version} (from PECL)..."
-
-	curl -L ${dep2_url} | tar xz
-
-	pushd ${dep2_dirname}
-	phpize
-	./configure \
-		--prefix=${OUT_PREFIX}
-	make -s -j $(($(nproc)+1))
-	echo "-----> Installing into clean ${tmpdest}..."
-	make INSTALL_ROOT=$tmpdest install -s
-	popd
-
-	MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{\"heroku-sys/ext-apc\":\"self.version\"}"}" # despite version 1.0.3 or whatever, apcu_bc identifies itself using the apcu version number
-	
-	pushd ${dep_dirname}
-fi
-
 # install apcu ext
 echo "-----> Installing into clean ${tmpdest}..."
 make INSTALL_ROOT=$tmpdest install -s
@@ -78,11 +49,6 @@ mkdir -p ${OUT_PREFIX}/etc/php/conf.d
 cat > ${OUT_PREFIX}/etc/php/conf.d/apcu.ini-dist <<'EOF'
 extension=apcu.so
 EOF
-if [[ $series == 7.* ]]; then
-	cat >> ${OUT_PREFIX}/etc/php/conf.d/apcu.ini-dist <<-'EOF'
-		extension=apc.so
-	EOF
-fi
 
 # cleanup
 strip --strip-unneeded ${OUT_PREFIX}/lib/php/extensions/*/*.so

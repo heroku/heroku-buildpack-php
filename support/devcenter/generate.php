@@ -24,8 +24,7 @@ if(isset($sections['s'])) {
 } else {
 	// these need updating from time to time to add new stacks and remove EOL ones
 	$stacks = [
-		1 => '20', // the offset we start with here is relevant for the numbering of footnotes
-		'22',
+		1 => '22', // the offset we start with here is relevant for the numbering of footnotes
 		'24',
 	];
 }
@@ -37,9 +36,6 @@ if(isset($sections['p'])) {
 } else {
 	// these need updating from time to time to add new series and remove series no longer on any stack
 	$series = [
-		'7.3',
-		'7.4',
-		'8.0',
 		'8.1',
 		'8.2',
 		'8.3',
@@ -166,7 +162,7 @@ $insertExtension = $db->prepare("INSERT INTO extensions (name, url, version, run
 foreach($packages as $package) {
 	if($package['type'] == 'heroku-sys-php-extension') {
 		// for extensions, we want to find the stack(s) and PHP version series (always just one due to extension API version) that match the "require" entries in the extension package's metadata, and then generate an entry for each permutation
-		// example: an extension is for heroku-sys/php:8.3.* and for heroku-sys/heroku:*, then we want two entires, both for series 8.3, but one for heroku-20 and one for heroku-22 (or whatever stacks are current)
+		// example: an extension is for heroku-sys/php:8.3.* and for heroku-sys/heroku:*, then we want two entires, both for series 8.3, but one for heroku-22 and one for heroku-24 (or whatever stacks are current)
 		foreach($findstacks($package) as $stack) {
 			// check whether it's a regular extension, or one bundled with PHP but not compiled in (those have that special dist type)
 			// bundled and compiled in extensions do not get separate package entries, but are only declared in the "replace" list of their PHP release entry
@@ -175,7 +171,7 @@ foreach($packages as $package) {
 				// bundled extensions have the exact same version as the PHP version they are bundled with; no wildcards
 				// no need to match anything in this case (and we couldn't, anyway, since only a "x.y.0" version would match an "x.y" series entry)
 				// instead, we grab the series straight from the version number
-				$matchingSeries = [ implode('.', array_slice(explode('.', $package['version']), 0, 2)) ]; // 7.3, 7.4, 8.0 etc
+				$matchingSeries = [ implode('.', array_slice(explode('.', $package['version']), 0, 2)) ]; // 8.2, 8.3, 8.4 etc
 			} else {
 				$matchingSeries = $findseries($package);
 			}
@@ -208,7 +204,7 @@ foreach($packages as $package) {
 		$insertPackage->bindValue(':stack', $stack, SQLITE3_TEXT);
 		if($package['type'] == 'heroku-sys-php') {
 			// PHP bundles extensions that are shared objects (with their own package metadata, handled further above), and extensions that are compiled in (handled here)
-			$serie = implode('.', array_slice(explode('.', $package['version']), 0, 2)); // 7.3, 7.4, 8.0 etc
+			$serie = implode('.', array_slice(explode('.', $package['version']), 0, 2)); // 8.2, 8.3, 8.4 etc
 			// 'replace' contains entries for all compiled-in extensions, so we make an entry for each of them, copying over the PHP package's version number
 			foreach($package['replace']??[] as $rname => $rversion) {
 				if(strpos($rname, "heroku-sys/ext-") !== 0 || strpos($rname, ".native")) continue;
@@ -329,7 +325,7 @@ while($row = $result->fetchArray(SQLITE3_ASSOC)) {
 $extCounts = array_count_values(array_column($eExtensions, 'name')); // preserves keys
 // remove major_version key from each non-matched row
 foreach($eExtensions as &$row) if($extCounts[$row['name']] < 2) unset($row['major_version']);
-// but then see if any of these have no overlap by series, e.g. v1 only for PHP 5.5 and 5.6, and v2 for 7.0+; we can collapse them into one row then after all
+// but then see if any of these have no overlap by series, e.g. v1 only for PHP 8.1 and 8.2, and v2 for 8.3+; we can collapse them into one row then after all
 foreach($extCounts as $name => $count) {
 	if($count < 2) continue;
 	// this preserves keys from $eExtensions, so we can splice later
@@ -348,7 +344,7 @@ foreach($extCounts as $name => $count) {
 			// contains more than just "name", "data", and "major_version" keys
 			// that means at least one of the runtime series "columm" contains more than one major version
 			// we thus cannot collapse anything, even if some versions do not have any overlap, to avoid confusion
-			// (e.g. ext-phalcon 2.x is only on 5.5 and 5.6, 3.x is on 7.0+, 4.x is on 7.3+, so we want three rows, even though 2.x and 3.x have no overlap)
+			// (e.g. ext-phalcon 2.x was only on 5.5 and 5.6, 3.x is on 7.0+, 4.x is on 7.3+, so we want three rows, even though 2.x and 3.x have no overlap)
 			$overlap = true;
 			break;
 		}

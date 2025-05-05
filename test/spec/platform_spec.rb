@@ -72,7 +72,7 @@ describe "The PHP Platform Installer" do
 						end
 					end
 					
-					break unless ["base", "blackfire-cli", "complex", "composer1", "composer2.0", "composer2.1", "composer2.2", "composer2.3", "defaultphp", "mongo-php-adapter", "provided-ext-bcmath", "symfony-polyfill"].include?(testcase)
+					break unless ["base", "blackfire-cli", "complex", "composer2.0", "composer2.1", "composer2.2", "composer2.3", "defaultphp", "mongo-php-adapter", "provided-ext-bcmath", "symfony-polyfill"].include?(testcase)
 					
 					# and finally check if it's installable in a dry run
 					cmd = "COMPOSER=expected_platform_composer.json composer install --dry-run"

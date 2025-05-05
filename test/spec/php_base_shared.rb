@@ -62,11 +62,9 @@ shared_examples "A basic PHP application" do |series|
 			# 1x libonig for extensions/…/mbstring.so
 			# 1x libsqlite3.so for extensions/…/pdo_sqlite.so
 			# 1x libsqlite3.so for extensions/…/sqlite3.so
-			# 1x libsqlite3.so for bin/php (before heroku-22)
 			# 1x libzip.so for bin/php
 			expected_count = 4
 			expected_count += 1 if have_bundled_imap # libc-client.so in extensions/…/imap.so
-			expected_count += 1 if "heroku-20" == ENV['STACK'] # libsqlite3.so in bin/php
 			expect(@run[3]).to match(/^#{expected_count}$/)
 		end
 	end

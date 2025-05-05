@@ -15,13 +15,8 @@ dep_formula=${0#$WORKSPACE_DIR/}
 dep_name=$(basename $BASH_SOURCE)
 dep_version=${dep_formula##*"/${dep_name}-"}
 dep_package=ext-${dep_name}-${dep_version}
-if [[ "$dep_version" == [34].* ]]; then
-	dep_dirname=cphalcon-${dep_version}
-	dep_url=archive/refs/tags/v${dep_version}.tar.gz
-else
-	dep_dirname=phalcon-${dep_version}
-	dep_url=releases/download/v${dep_version}/phalcon-pecl.tgz
-fi
+dep_dirname=phalcon-${dep_version}
+dep_url=releases/download/v${dep_version}/phalcon-pecl.tgz
 dep_url=https://github.com/phalcon/cphalcon/${dep_url}
 series=$(php-config --version | cut -d. -f1,2) # get "7.3", "7.4", "8.0" etc for the php requirement in the manifest
 dep_manifest=${dep_package}_php-$series.composer.json
@@ -30,22 +25,12 @@ echo "-----> Building ${dep_package}..."
 
 curl -L ${dep_url} | tar xz
 
-if [[ "$dep_version" == [34].* ]]; then
-	pushd ${dep_dirname}/build/php${series:0:1}/64bits
-	export CC="gcc"
-	export CFLAGS="-O2 -fvisibility=hidden"
-	export CPPFLAGS="-DPHALCON_RELEASE"
-	phpize
-	./configure --prefix=${OUT_PREFIX} --enable-phalcon
-	make -s -j $(($(nproc)+1))
-else
-	pushd ${dep_dirname}
-	phpize
-	./configure \
-		--prefix=${OUT_PREFIX} \
-		${CONFIGURE_EXTRA:-}
-	make -s -j $(($(nproc)+1))
-fi
+pushd ${dep_dirname}
+phpize
+./configure \
+	--prefix=${OUT_PREFIX} \
+	${CONFIGURE_EXTRA:-}
+make -s -j $(($(nproc)+1))
 
 # php was a build dep, and it's in $OUT_PREFIX; we only want our build results in the final archive, and no build deps
 # the easiest way is to nuke $OUT_PREFIX and running "make install", but extensions built for PHP 8.1+ need PHP headers during linking
@@ -59,14 +44,7 @@ mv ${tmpdest}${OUT_PREFIX} $OUT_PREFIX # move from /tmp/foobarz/app/.heroku/php 
 strip --strip-unneeded ${OUT_PREFIX}/lib/php/extensions/*/*.so
 popd
 
-case "$dep_version" in
-	4.*)
-		MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\",\"heroku-sys/ext-psr\":\"^1.0.0\"}"}"
-		;;
-	*)
-		MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
-		;;
-esac
+MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"

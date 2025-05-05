@@ -237,7 +237,7 @@ $require["heroku-sys/apache"] = "^2.4.10";
 $require["heroku-sys/nginx"] = "^1.8.0";
 
 preg_match("#^([^-]+)(?:-([0-9]+))?\$#", $STACK, $stack);
-$provide = ["heroku-sys/".$stack[1] => (isset($stack[2])?$stack[2]:"1").gmdate(".Y.m.d")]; # heroku: 20.2021.02.04 etc
+$provide = ["heroku-sys/".$stack[1] => (isset($stack[2])?$stack[2]:"1").gmdate(".Y.m.d")]; # heroku: 24.2025.05.04 etc
 
 $replace = [];
 // check whether the blackfire CLI is already there (from their https://github.com/blackfireio/integration-heroku buildpack)

@@ -7,9 +7,7 @@ export PATH=${OUT_PREFIX}/bin:${PATH}
 
 # can't build without this
 needed=( libsasl2-2 )
-if [[ $STACK == "heroku-20" ]]; then
-	needed+=( libmemcached11 )
-elif [[ $STACK == "heroku-22" ]]; then
+if [[ $STACK == "heroku-22" ]]; then
 	needed+=( libmemcached11 )
 else
 	needed+=( libmemcached11t64 )
@@ -28,9 +26,7 @@ if [[ "$missing" ]]; then
 	apt-get install -q -y $missing
 fi
 
-if [[ $dep_version != 3.[012].* ]]; then
-	CONFIGURE_EXTRA="--with-zstd"
-fi
+CONFIGURE_EXTRA="--with-zstd"
 
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/memcached.ini-dist\"}"}"
 
@@ -40,9 +36,3 @@ mkdir -p ${OUT_PREFIX}/etc/php/conf.d
 cat > ${OUT_PREFIX}/etc/php/conf.d/memcached.ini-dist <<'EOF'
 extension = memcached.so
 EOF
-if [[ $dep_version == 2.* ]]; then
-	# this setting is gone in v3; SASL gets initialized on demand
-	cat >> ${OUT_PREFIX}/etc/php/conf.d/memcached.ini-dist <<'EOF'
-memcached.use_sasl = 1
-EOF
-fi

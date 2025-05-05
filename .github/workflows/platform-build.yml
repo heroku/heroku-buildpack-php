@@ -15,7 +15,6 @@ on:
         description: 'Stack to build for'
         type: choice
         options:
-        - heroku-20
         - heroku-22
         - heroku-24-amd64
         - heroku-24-arm64

@@ -12,7 +12,6 @@ on:
         description: 'Stack to remove from'
         type: choice
         options:
-        - heroku-20
         - heroku-22
         - heroku-24-amd64
         - heroku-24-arm64
