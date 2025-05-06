@@ -23,7 +23,7 @@ describe "The PHP Platform Installer" do
 						cmd << File.read("ENV") # any env vars (e.g. `HEROKU_PHP_INSTALL_DEV=`), or function declarations
 					rescue Errno::ENOENT
 					end
-					cmd << " STACK=heroku-20 " # that's the stack all the tests are written for
+					cmd << " STACK=heroku-24 " # that's the stack all the tests are written for
 					cmd << " php #{bp_root}/bin/util/platform.php"
 					args = ""
 					begin
@@ -32,7 +32,7 @@ describe "The PHP Platform Installer" do
 					rescue Errno::ENOENT
 					end
 					cmd << " #{bp_root}/support/installer "
-					cmd << " https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/packages.json " # our default repo
+					cmd << " https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-24-amd64-stable/packages.json " # our default repo
 					cmd << args
 					
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
@@ -63,16 +63,17 @@ describe "The PHP Platform Installer" do
 					# we have to do this because we want to treat e.g. the "provide" key a bit differently
 					generated_json.keys.each do | key |
 						if key == "provide"
-							# "heroku-sys/heroku" in "provide" has a string like "20.2021.02.28" where "20" is the version from the stack name (like heroku-20) and the rest is a current date string
+							# "heroku-sys/heroku" in "provide" has a string like "24.2025.05.05" where "24" is the version from the stack name (like heroku-24) and the rest is a current date string
 							expect(generated_json[key].keys).to eq(expected_json[key].keys)
 							expect(generated_json[key]).to include(expected_json[key].tap { |h| h.delete("heroku-sys/heroku") })
-							expect(generated_json[key]["heroku-sys/heroku"]).to match(/^20/)
+							expect(generated_json[key]["heroku-sys/heroku"]).to match(/^24/)
 						else
 							expect(generated_json[key]).to eq(expected_json[key])
 						end
 					end
 					
-					break unless ["base", "blackfire-cli", "complex", "composer2.0", "composer2.1", "composer2.2", "composer2.3", "defaultphp", "mongo-php-adapter", "provided-ext-bcmath", "symfony-polyfill"].include?(testcase)
+					# not all cases are actually installable (e.g. "composer1" is expected to fail since that is EOL; "customrepo" points to a repo URL that does not actually exist)
+					break if ["blackfire-cli-unknown", "composer1", "customrepo", "require-dev-runtime-only"].include?(testcase)
 					
 					# and finally check if it's installable in a dry run
 					cmd = "COMPOSER=expected_platform_composer.json composer install --dry-run"

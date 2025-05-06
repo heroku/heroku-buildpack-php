@@ -9,13 +9,13 @@
     "minimum-stability": "stable",
     "prefer-stable": false,
     "provide": {
-        "heroku-sys\/heroku": "20.2021.08.04"
+        "heroku-sys\/heroku": "24.2025.05.04"
     },
     "replace": {
       "heroku-sys\/blackfire": "2.4.3"
     },
     "require": {
-        "composer.json\/composer.lock": "dev-fc385a27e5169a169062c230878645d1",
+        "composer.json\/composer.lock": "dev-e7113f052bcc55a036d374f1ffa1efc2",
         "heroku-sys\/composer": "*",
         "heroku-sys\/composer-plugin-api": "^2",
         "heroku-sys\/apache": "^2.4.10",
@@ -35,7 +35,7 @@
         },
         {
             "type": "composer",
-            "url": "https:\/\/lang-php.s3.us-east-1.amazonaws.com\/dist-heroku-20-stable\/packages.json"
+            "url": "https:\/\/lang-php.s3.us-east-1.amazonaws.com\/dist-heroku-24-amd64-stable\/packages.json"
         },
         {
             "type": "package",
@@ -43,9 +43,9 @@
                 {
                     "type": "metapackage",
                     "name": "composer.json\/composer.lock",
-                    "version": "dev-fc385a27e5169a169062c230878645d1",
+                    "version": "dev-e7113f052bcc55a036d374f1ffa1efc2",
                     "require": {
-                        "heroku-sys\/php": "7.4.*",
+                        "heroku-sys\/php": "^8.4.0",
                         "heroku-sys\/ext-gmp": "*",
                         "heroku-sys\/ext-intl": "*",
                         "heroku-sys\/ext-mbstring": "*",

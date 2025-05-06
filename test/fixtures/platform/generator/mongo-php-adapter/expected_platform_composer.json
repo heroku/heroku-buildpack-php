@@ -9,7 +9,7 @@
     "minimum-stability": "stable",
     "prefer-stable": false,
     "provide": {
-        "heroku-sys\/heroku": "20.2021.08.19"
+        "heroku-sys\/heroku": "24.2025.05.06"
     },
     "replace": {},
     "require": {
@@ -18,7 +18,7 @@
         "mongodb\/mongodb": "1.9.0",
         "symfony\/polyfill-php80": "v1.23.1",
         "heroku-sys\/composer": "*",
-        "heroku-sys\/composer-plugin-api": "^1",
+        "heroku-sys\/composer-plugin-api": "^2",
         "heroku-sys\/apache": "^2.4.10",
         "heroku-sys\/nginx": "^1.8.0"
     },
@@ -36,7 +36,7 @@
         },
         {
             "type": "composer",
-            "url": "https:\/\/lang-php.s3.us-east-1.amazonaws.com\/dist-heroku-20-stable\/packages.json"
+            "url": "https:\/\/lang-php.s3.us-east-1.amazonaws.com\/dist-heroku-24-amd64-stable\/packages.json"
         },
         {
             "type": "package",

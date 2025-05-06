@@ -9,7 +9,7 @@
     "minimum-stability": "stable",
     "prefer-stable": false,
     "provide": {
-        "heroku-sys\/heroku": "20.2022.01.07"
+        "heroku-sys\/heroku": "24.2025.05.06"
     },
     "replace": {},
     "require": {
@@ -33,7 +33,7 @@
         },
         {
             "type": "composer",
-            "url": "https:\/\/lang-php.s3.us-east-1.amazonaws.com\/dist-heroku-20-stable\/packages.json"
+            "url": "https:\/\/lang-php.s3.us-east-1.amazonaws.com\/dist-heroku-24-amd64-stable\/packages.json"
         },
         {
             "type": "package",
