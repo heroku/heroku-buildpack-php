@@ -3,8 +3,8 @@ test/spec/blackfire-herokuagent_spec.rb:120
 test/spec/bugs_spec.rb:40
 test/spec/ci_frameworks-a_spec.rb:120
 test/spec/ci_frameworks-k_spec.rb:120
-test/spec/ci_spec.rb:125
-test/spec/composer-1_spec.rb:40
+test/spec/ci_spec.rb:140
+test/spec/composer-1_spec.rb:30
 test/spec/composer-2_spec.rb:90
 test/spec/devcenter_spec.rb:5
 test/spec/httpd_spec.rb:18
@@ -39,4 +39,4 @@ test/spec/php-8.4_concurrency-nginx_spec.rb:65
 test/spec/php-8.4_sigterm-apache2_spec.rb:70
 test/spec/php-8.4_sigterm-nginx_spec.rb:70
 test/spec/php_default_spec.rb:60
-test/spec/platform_spec.rb:60
+test/spec/platform_spec.rb:80
