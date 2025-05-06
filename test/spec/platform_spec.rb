@@ -268,18 +268,6 @@ describe "The PHP Platform Installer" do
 					expect(out_after_polyfills).to include("- ext-xmlrpc (bundled with php)")
 				end
 			end
-			it "installs native bundled extensions for legacy PHP builds for installer < 1.6 even if they are provided by a polyfill", :requires_php_on_stack => "7.3" do
-				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-legacy', config: { "COMPOSER_AUTH" => "broken" }, allow_failure: true).deploy do |app|
-					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
-					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")
-					out_before_polyfills, out_after_polyfills = app.output.split("detected userland polyfill packages for PHP extensions", 2)
-					expect(out_before_polyfills).to include("- php (7.3")
-					expect(out_before_polyfills).to include("- ext-xmlrpc (")
-					expect(out_after_polyfills).to include("- ext-raphf (") # ext-pq, which we required, depends on it
-					expect(out_after_polyfills).to include("- ext-pq (")
-					expect(out_after_polyfills).to include("- ext-uuid (")
-				end
-			end
 			it "solves using the polyfills first and does not downgrade installed packages in the later native install step" do
 				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-nodowngrade', config: { "COMPOSER_AUTH" => "broken" }, allow_failure: true).deploy do |app|
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
