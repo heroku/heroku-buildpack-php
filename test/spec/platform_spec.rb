@@ -255,17 +255,17 @@ describe "The PHP Platform Installer" do
 		context "of a project that uses polyfills providing both bundled-with-PHP and third-party extensions" do
 			# we set an invalid COMPOSER_AUTH on all of these to stop and fail the build on userland dependency install
 			# we only need to check what happened during the platform install step, so that speeds things up
-			it "treats polyfills for bundled-with-PHP and third-party extensions the same", :requires_php_on_stack => "7.4" do
+			it "treats polyfills for bundled-with-PHP and third-party extensions the same" do
 				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills', config: { "COMPOSER_AUTH" => "broken" }, allow_failure: true).deploy do |app|
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")
 					out_before_polyfills, out_after_polyfills = app.output.split("detected userland polyfill packages for PHP extensions", 2)
-					expect(out_before_polyfills).to include("- php (7.4")
+					expect(out_before_polyfills).to include("- php (8.3")
 					expect(out_after_polyfills).to include("- ext-ctype (already enabled)")
 					expect(out_after_polyfills).to include("- ext-raphf (") # ext-pq, which we required, depends on it
 					expect(out_after_polyfills).to include("- ext-pq (")
 					expect(out_after_polyfills).to include("- ext-uuid (")
-					expect(out_after_polyfills).to include("- ext-xmlrpc (bundled with php)")
+					expect(out_after_polyfills).to include("- ext-imap (bundled with php)")
 				end
 			end
 			it "solves using the polyfills first and does not downgrade installed packages in the later native install step" do
