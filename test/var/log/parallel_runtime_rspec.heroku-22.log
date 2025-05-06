@@ -4,6 +4,7 @@ test/spec/bugs_spec.rb:40
 test/spec/ci_frameworks-a_spec.rb:120
 test/spec/ci_frameworks-k_spec.rb:120
 test/spec/ci_spec.rb:125
+test/spec/composer-1_spec.rb:40
 test/spec/composer-2_spec.rb:90
 test/spec/devcenter_spec.rb:5
 test/spec/httpd_spec.rb:18

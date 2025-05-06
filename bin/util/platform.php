@@ -218,8 +218,8 @@ $require["heroku-sys/composer"] = "*";
 // otherwise, builds would fail the moment e.g. 2.6.0 comes out and people try it, even though 2.5 could install the project just fine
 $pav = $lock["plugin-api-version"] ?? false;
 if($pav === false) {
-	file_put_contents("php://stderr", "\033[1;33mNOTICE:\033[0m No Composer plugin-api-version recorded in $COMPOSER_LOCK; file must be very old. Will attempt to use Composer 1 for installation.\n");
-	$pav = "1.0.0";
+	file_put_contents("php://stderr", "ERROR: No Composer plugin-api-version recorded in $COMPOSER_LOCK; file must be very old. Please update it using a recent version of Composer.\n");
+	exit(1);
 }
 if(in_array($pav, ["2.0.0", "2.1.0", "2.2.0"])) {
 	// no rule without an exception, of course:
