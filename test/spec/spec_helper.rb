@@ -57,18 +57,11 @@ def expect_exit(expect: :to, operator: :eq, code: 0)
 end
 
 def expected_default_php(stack)
-	case stack
-		when "heroku-20"
-			"8.3"
-		else
-			"8.4"
-	end
+	"8.4"
 end
 
 def php_on_stack?(series)
 	case ENV["STACK"]
-		when "heroku-20"
-			available = ["7.3", "7.4", "8.0", "8.1", "8.2", "8.3"]
 		when "heroku-22"
 			available = ["8.1", "8.2", "8.3", "8.4"]
 		else

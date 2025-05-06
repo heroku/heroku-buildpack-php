@@ -12,9 +12,9 @@ describe "A PHP application" do
 				next unless "heroku-22" == ENV['STACK'] # testing one stack change is enough
 				
 				expect(app.output).to include("Downloading")
-				app.update_stack("heroku-20")
-				# we are changing the stack to heroku-20, so we also need to adjust the platform repository accordingly, otherwise, for tests running on branches where HEROKU_PHP_PLATFORM_REPOSITORIES is set to a value, the build would use the wrong repo
-				app.set_config({"HEROKU_PHP_PLATFORM_REPOSITORIES" => ENV["HEROKU_PHP_PLATFORM_REPOSITORIES"].sub("heroku-22", "heroku-20")}) if ENV["HEROKU_PHP_PLATFORM_REPOSITORIES"]
+				app.update_stack("heroku-24")
+				# we are changing the stack to heroku-24, so we also need to adjust the platform repository accordingly, otherwise, for tests running on branches where HEROKU_PHP_PLATFORM_REPOSITORIES is set to a value, the build would use the wrong repo
+				app.set_config({"HEROKU_PHP_PLATFORM_REPOSITORIES" => ENV["HEROKU_PHP_PLATFORM_REPOSITORIES"].sub("heroku-22", "heroku-24-amd64")}) if ENV["HEROKU_PHP_PLATFORM_REPOSITORIES"]
 				app.commit!
 				app.push!
 				expect(app.output).to_not include("Downloading")

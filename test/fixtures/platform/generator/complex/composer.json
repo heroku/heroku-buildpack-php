@@ -8,7 +8,7 @@
 		"ext-ldap": "*",
 		"ext-imap": "*",
 		"ext-blackfire": "*",
-		"symfony/process": "5.1.0-RC1"
+		"symfony/process": "7.2.0-RC1"
 	},
 	"require-dev": {
 		"kahlan/kahlan": "^5.0.0",

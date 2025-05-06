@@ -25,13 +25,13 @@ First, `composer install` the dependencies.
 By default, all sections will be generated:
 
 ```ShellSession
-$ ./generate.php https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-{20,22,24-amd64}-stable/packages.json
+$ ./generate.php https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-{22,24-amd64}-stable/packages.json
 ```
 
 You may also generate any of the five sections individually using the `--runtimes`, `--built-in-extensions`, `--third-party-extensions`, `--composers`, or `--webservers` options:
 
 ```ShellSession
-$ ./generate.php --third-party-extensions https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-{20,22,24-amd64}-stable/packages.json
+$ ./generate.php --third-party-extensions https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-{22,24-amd64}-stable/packages.json
 ```
 
 You'd usually pipe the output into e.g. `pbcopy` and then update the Dev Center article.
@@ -50,8 +50,8 @@ It will then generate a list of new PHP releases, extensions, Composer versions,
 
 First, `composer install` the dependencies.
 
-Assuming you ran a `sync.sh` job for two stacks (say, heroku-20 and heroku-22) and `tee`d the outputs into `sync-heroku-{20,22}.log`:
+Assuming you ran a `sync.sh` job for two stacks (say, heroku-22 and heroku-24-amd64) and `tee`d the outputs into `sync-heroku-{22,24-amd64}.log`:
 
 ```ShellSession
-cat `sync-heroku-{20,22}.log | ./changelog.php`
+cat `sync-heroku-{22,24-amd64}.log | ./changelog.php`
 ```

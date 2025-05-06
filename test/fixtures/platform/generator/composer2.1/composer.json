@@ -1,6 +1,6 @@
 {
 	"require": {
-		"php": "7.4.*",
+		"php": "^8.4.0",
 		"ext-gmp": "*",
 		"ext-intl": "*",
 		"ext-mbstring": "*",

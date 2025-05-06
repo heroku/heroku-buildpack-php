@@ -2,18 +2,13 @@ name: Platform packages sync from -develop/ to -stable/
 run-name: Sync${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-$STACK-develop/ to dist-$STACK-stable/
 
 env:
-  stacks_list_for_shell_expansion: "{heroku-20,heroku-22,heroku-24-amd64,heroku-24-arm64}"
+  stacks_list_for_shell_expansion: "{heroku-22,heroku-24-amd64,heroku-24-arm64}"
   src_path_suffix: "-develop/"
   dst_path_suffix: "-stable/"
 
 on:
   workflow_dispatch:
     inputs:
-      stack-heroku-20:
-        description: 'Sync heroku-20 packages'
-        type: boolean
-        default: true
-        required: false
       stack-heroku-22:
         description: 'Sync heroku-22 packages'
         type: boolean
@@ -54,7 +49,7 @@ jobs:
         run: |
           echo '## Stacks to sync' >> "$GITHUB_STEP_SUMMARY"
           set -o pipefail
-          stacks=(${{ inputs.stack-heroku-20 == true && 'heroku-20' || ''}} ${{ inputs.stack-heroku-22 == true && 'heroku-22' || ''}} ${{ inputs.stack-heroku-24-amd64 == true && 'heroku-24-amd64' || ''}} ${{ inputs.stack-heroku-24-arm64 == true && 'heroku-24-arm64' || ''}})
+          stacks=(${{ inputs.stack-heroku-22 == true && 'heroku-22' || ''}} ${{ inputs.stack-heroku-24-amd64 == true && 'heroku-24-amd64' || ''}} ${{ inputs.stack-heroku-24-arm64 == true && 'heroku-24-arm64' || ''}})
           printf -- "- %s\n" "${stacks[@]}" >> "$GITHUB_STEP_SUMMARY"
           echo -n "matrix=" >> "$GITHUB_OUTPUT"
           printf "%s\n" "${stacks[@]}" | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"

@@ -23,7 +23,7 @@ describe "The PHP Platform Installer" do
 						cmd << File.read("ENV") # any env vars (e.g. `HEROKU_PHP_INSTALL_DEV=`), or function declarations
 					rescue Errno::ENOENT
 					end
-					cmd << " STACK=heroku-20 " # that's the stack all the tests are written for
+					cmd << " STACK=heroku-24 " # that's the stack all the tests are written for
 					cmd << " php #{bp_root}/bin/util/platform.php"
 					args = ""
 					begin
@@ -32,7 +32,7 @@ describe "The PHP Platform Installer" do
 					rescue Errno::ENOENT
 					end
 					cmd << " #{bp_root}/support/installer "
-					cmd << " https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/packages.json " # our default repo
+					cmd << " https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-24-amd64-stable/packages.json " # our default repo
 					cmd << args
 					
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
@@ -63,16 +63,17 @@ describe "The PHP Platform Installer" do
 					# we have to do this because we want to treat e.g. the "provide" key a bit differently
 					generated_json.keys.each do | key |
 						if key == "provide"
-							# "heroku-sys/heroku" in "provide" has a string like "20.2021.02.28" where "20" is the version from the stack name (like heroku-20) and the rest is a current date string
+							# "heroku-sys/heroku" in "provide" has a string like "24.2025.05.05" where "24" is the version from the stack name (like heroku-24) and the rest is a current date string
 							expect(generated_json[key].keys).to eq(expected_json[key].keys)
 							expect(generated_json[key]).to include(expected_json[key].tap { |h| h.delete("heroku-sys/heroku") })
-							expect(generated_json[key]["heroku-sys/heroku"]).to match(/^20/)
+							expect(generated_json[key]["heroku-sys/heroku"]).to match(/^24/)
 						else
 							expect(generated_json[key]).to eq(expected_json[key])
 						end
 					end
 					
-					break unless ["base", "blackfire-cli", "complex", "composer1", "composer2.0", "composer2.1", "composer2.2", "composer2.3", "defaultphp", "mongo-php-adapter", "provided-ext-bcmath", "symfony-polyfill"].include?(testcase)
+					# not all cases are actually installable (e.g. "composer1" is expected to fail since that is EOL; "customrepo" points to a repo URL that does not actually exist)
+					break if ["blackfire-cli-unknown", "composer1", "customrepo", "require-dev-runtime-only"].include?(testcase)
 					
 					# and finally check if it's installable in a dry run
 					cmd = "COMPOSER=expected_platform_composer.json composer install --dry-run"
@@ -254,29 +255,17 @@ describe "The PHP Platform Installer" do
 		context "of a project that uses polyfills providing both bundled-with-PHP and third-party extensions" do
 			# we set an invalid COMPOSER_AUTH on all of these to stop and fail the build on userland dependency install
 			# we only need to check what happened during the platform install step, so that speeds things up
-			it "treats polyfills for bundled-with-PHP and third-party extensions the same", :requires_php_on_stack => "7.4" do
+			it "treats polyfills for bundled-with-PHP and third-party extensions the same" do
 				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills', config: { "COMPOSER_AUTH" => "broken" }, allow_failure: true).deploy do |app|
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")
 					out_before_polyfills, out_after_polyfills = app.output.split("detected userland polyfill packages for PHP extensions", 2)
-					expect(out_before_polyfills).to include("- php (7.4")
+					expect(out_before_polyfills).to include("- php (8.3")
 					expect(out_after_polyfills).to include("- ext-ctype (already enabled)")
 					expect(out_after_polyfills).to include("- ext-raphf (") # ext-pq, which we required, depends on it
 					expect(out_after_polyfills).to include("- ext-pq (")
 					expect(out_after_polyfills).to include("- ext-uuid (")
-					expect(out_after_polyfills).to include("- ext-xmlrpc (bundled with php)")
-				end
-			end
-			it "installs native bundled extensions for legacy PHP builds for installer < 1.6 even if they are provided by a polyfill", :requires_php_on_stack => "7.3" do
-				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-legacy', config: { "COMPOSER_AUTH" => "broken" }, allow_failure: true).deploy do |app|
-					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
-					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")
-					out_before_polyfills, out_after_polyfills = app.output.split("detected userland polyfill packages for PHP extensions", 2)
-					expect(out_before_polyfills).to include("- php (7.3")
-					expect(out_before_polyfills).to include("- ext-xmlrpc (")
-					expect(out_after_polyfills).to include("- ext-raphf (") # ext-pq, which we required, depends on it
-					expect(out_after_polyfills).to include("- ext-pq (")
-					expect(out_after_polyfills).to include("- ext-uuid (")
+					expect(out_after_polyfills).to include("- ext-imap (bundled with php)")
 				end
 			end
 			it "solves using the polyfills first and does not downgrade installed packages in the later native install step" do

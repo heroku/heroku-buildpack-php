@@ -30,7 +30,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        stack: ["heroku-20", "heroku-22", "heroku-24"]
+        stack: ["heroku-22", "heroku-24"]
     env:
       STACK: ${{ matrix.stack }}
       BLACKFIRE_CLIENT_ID:  ${{ secrets.BLACKFIRE_CLIENT_ID }}
@@ -65,7 +65,7 @@ jobs:
       - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}} (since we are not building main or a tag)
         if: github.ref_type != 'tag' && github.ref_name != 'main'
         run: |
-          if [[ $STACK != heroku-2[02] ]]; then STACK="${STACK}-amd64"; fi
+          if [[ $STACK != heroku-22 ]]; then STACK="${STACK}-amd64"; fi
           echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}" >> "$GITHUB_ENV"
       - name: Calculate number of parallel_rspec processes (half of num of lines in runtime log)
         run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat test/var/log/parallel_runtime_rspec.${STACK}.log | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"

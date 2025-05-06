@@ -3,14 +3,14 @@
 		{
 			"type": "package",
 			"package": {
-				"name": "dummypak/ext-xmlrpc-polyfill",
+				"name": "dummypak/ext-imap-polyfill",
 				"version": "1.0.3",
 				"type": "metapackage",
 				"require": {
 					"php": "^7.0 | ^8.0"
 				},
 				"provide": {
-					"ext-xmlrpc": "8.1.0"
+					"ext-imap": "8.3.0"
 				}
 			}
 		},
@@ -30,15 +30,15 @@
 		}
 	],
 	"require": {
-		"php": "7.4.*",
+		"php": "8.3.*",
 		"dummypak/ext-pq-polyfill": "^1.0",
-		"dummypak/ext-xmlrpc-polyfill": "^1.0",
+		"dummypak/ext-imap-polyfill": "^1.0",
 		"symfony/polyfill-ctype": "^1.24.0",
-		"symfony/polyfill-mbstring": "^1.24.0",
+		"symfony/polyfill-mbstring": "^1.32.0",
 		"symfony/polyfill-uuid": "^1.24.0",
 		"ext-ctype": "*",
+		"ext-imap": "*",
 		"ext-pq": "*",
-		"ext-uuid": "*",
-		"ext-xmlrpc": "*"
+		"ext-uuid": "*"
 	}
 }
