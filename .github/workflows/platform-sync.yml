@@ -109,7 +109,7 @@ jobs:
           # yes gets "n" to print for dry-runs so the sync aborts
           # errors are redirected to /dev/null, and we || true, to suppress SIGPIPE errors from 'docker run' exiting eventually
           # we need -i for Docker to accept input on stdin, but must not use -t for the pipeline to work
-          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh -c "$PLATFORM_REPO_SNAPSHOT_SHA256" lang-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log
+          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh --no-remove -c "$PLATFORM_REPO_SNAPSHOT_SHA256" lang-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log
       - name: Upload sync log as artifact
         uses: actions/upload-artifact@v4
         with:
