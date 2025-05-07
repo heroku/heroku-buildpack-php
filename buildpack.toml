@@ -8,6 +8,7 @@ name = "PHP"
 		".rspec_parallel",
 		"support/build/_*/",
 		"support/devcenter/",
+		"support/util/",
 		"test/",
 		"Gemfile",
 		"Gemfile.lock",
