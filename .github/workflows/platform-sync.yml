@@ -82,6 +82,7 @@ jobs:
   sync:
     needs: [stack-list, docker-build]
     strategy:
+      fail-fast: false
       matrix:
         stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
     runs-on: ${{ endsWith(matrix.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-small' || 'ubuntu-24.04' }}
