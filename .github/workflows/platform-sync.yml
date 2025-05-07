@@ -123,7 +123,7 @@ jobs:
           echo '> **This is output from a dry-run**, no changes have been synced to production!' >> "$GITHUB_STEP_SUMMARY"
           echo >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          sed -n '/^The following packages will/,/POTENTIALLY DESTRUCTIVE ACTION/{/POTENTIALLY DESTRUCTIVE ACTION/!p}' sync-${{matrix.stack}}.log >> "$GITHUB_STEP_SUMMARY"
+          sed -En '/^(The following packages will|Nothing to do except)/,/POTENTIALLY DESTRUCTIVE ACTION/{/POTENTIALLY DESTRUCTIVE ACTION/!p}' sync-${{matrix.stack}}.log >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
       - name: Output sync summary
         if: ${{ inputs.dry-run == false }}

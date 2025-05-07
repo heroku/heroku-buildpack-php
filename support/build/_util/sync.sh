@@ -260,9 +260,20 @@ $remove || {
 	run_dists_rm=()
 }
 
+snapshot_copy_only=false
 if [[ $localdst ]] || (( !${#run_manifests_cp[@]} && !${#run_manifests_rm[@]} )); then
-	echo "Nothing to do" ${localdst:+"with local dir as destination"} "- aborting." >&2
-	exit
+	echo -n "Nothing to do" ${localdst:+"with local dir as destination"} >&2
+	if [[ $checksum && ! $localdst ]]; then
+		# no operations, but a checksum was given
+		# we would have bailed out already earlier if that snapshot existed in the destination
+		# so we only copy the snapshot on the destination (can happen e.g. if legacy formulae that weren't even built get removed, or when the snapshot "algorithm" that computes the checksum changes)
+		snapshot_copy_only=true
+		echo " except snapshot creation on destination." >&2
+		echo "" >&2
+	else
+		echo " - aborting." >&2
+		exit
+	fi
 fi
 
 (cd "$dst_tmp"; shopt -s nullglob; manifests=( *.composer.json ); (( ${#manifests[@]} < 1 )) ) && {
@@ -276,7 +287,11 @@ fi
 	EOF
 } || {
 	wipe=false
-	prompt="Are you sure you want to sync to destination and re-generate packages.json${checksum:+" and packages-${checksum}.json"}?"
+	if $snapshot_copy_only; then
+		prompt="Are you sure you want to snapshot destination packages.json to packages-${checksum}.json?"
+	else
+		prompt="Are you sure you want to sync to destination and re-generate packages.json${checksum:+" and packages-${checksum}.json"}?"
+	fi
 }
 
 cat >&2 <<-EOF
@@ -289,6 +304,14 @@ read -p "${prompt} [yN] " proceed
 [[ ! $proceed =~ [yY](es)* ]] && { echo -e "Sync aborted.\n" >&2; exit; }
 
 echo "" >&2
+
+if $snapshot_copy_only; then
+	echo "Snapshotting destination packages.json to packages-${checksum}.json..." >&2
+	# cp s3://.../packages.json s3://...packages-${checksum}.json
+	s5cmd "${S5CMD_OPTIONS[@]}" cp --source-region "$dst_region" --destination-region "$dst_region" "s3://${dst_bucket}/${dst_prefix}packages"{,"-${checksum}"}".json" || { echo -e "\nFailed to create snapshot! See message above for errors." >&2; exit 1; }
+	echo -e "\nSync complete.\n" >&2
+	exit
+fi
 
 # we perform our operations in three consecutive groups (each group runs all its tasks in parallel via s5cmd):
 # 1) copy all dists files from src bucket to dst bucket
