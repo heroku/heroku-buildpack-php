@@ -3,7 +3,6 @@
 dep_name=$(basename $BASH_SOURCE)
 
 OUT_PREFIX=$1
-export PATH=${OUT_PREFIX}/bin:${PATH}
 
 # can't build without this
 needed=( libsasl2-2 )
