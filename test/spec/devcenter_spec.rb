@@ -23,7 +23,7 @@ describe "The Dev Center support tooling" do
 			expected_markdown = File.read("#{devcenter_fixtures_subdir}/changelog/changelog.md")
 			# the expected markdown contains "%B %Y" strftime directives at the top
 			expected_markdown = Time.now.utc.strftime(expected_markdown)
-			expect(expected_markdown).to eq(generated_markdown)
+			expect(generated_markdown).to eq(expected_markdown)
 		end
 		it "produces a near-empty document if there are no additions" do
 			cmd = "cat #{devcenter_fixtures_subdir}/changelog/sync-nothingnew.log | #{devcenter_tooling_subdir}/changelog.php"
@@ -35,7 +35,7 @@ describe "The Dev Center support tooling" do
 			expected_markdown = File.read("#{devcenter_fixtures_subdir}/changelog/changelog-nothingnew.md")
 			# the expected markdown contains "%B %Y" strftime directives at the top
 			expected_markdown = Time.now.utc.strftime(expected_markdown)
-			expect(expected_markdown).to eq(generated_markdown)
+			expect(generated_markdown).to eq(expected_markdown)
 		end
 	end
 	
@@ -48,7 +48,7 @@ describe "The Dev Center support tooling" do
 			expect(status.exitstatus).to eq(0), "generate.php exited with status #{status.exitstatus}; stderr: #{stderr}, stdout: #{stdout}"
 			
 			expected_markdown = File.read("#{devcenter_fixtures_subdir}/generator/php-support.md")
-			expect(expected_markdown).to eq(generated_markdown)
+			expect(generated_markdown).to eq(expected_markdown)
 			
 			expect(stderr).to include("NOTICE: whitelisted runtime series not found in input: 7.3")
 		end

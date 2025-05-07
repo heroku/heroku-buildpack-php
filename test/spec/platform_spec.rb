@@ -156,7 +156,7 @@ describe "The PHP Platform Installer" do
 			end
 		end
 		
-		describe "combined with a custom repository installs packages from that repo according to the priority given", :focused => true do
+		describe "combined with a custom repository installs packages from that repo according to the priority given" do
 			Dir.glob("composer-*.json", base: priorities_fixtures_subdir) do |testcase|
 				it "in case #{testcase}" do
 					Dir.chdir(priorities_fixtures_subdir) do |cwd|
@@ -206,13 +206,13 @@ describe "The PHP Platform Installer" do
 					
 					cmd = "S3_BUCKET=OURS3BUCKET S3_PREFIX=OURS3PREFIX/ #{bp_root}/support/build/_util/mkrepo.sh *.composer.json"
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
-				
+					
 					expect(status.exitstatus).to eq(0), "mkrepo.sh failed, stdout: #{stdout}, stderr: #{stderr}"
-				
+					
 					expected_json = JSON.parse(File.read("expected_packages.json"))
 					generated_json = JSON.parse(stdout)
-				
-					expect(expected_json).to eq(generated_json)
+					
+					expect(generated_json).to eq(expected_json)
 				end
 			end
 		end

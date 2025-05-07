@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+dep_name=$(basename $BASH_SOURCE)
+
 # let's see if librabbitmq is there
 needed=( librabbitmq4 )
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
@@ -14,7 +16,5 @@ if [[ "$missing" ]]; then
 	apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
 	apt-get install -q -y $missing
 fi
-
-dep_name=$(basename $BASH_SOURCE)
 
 source $(dirname $BASH_SOURCE)/../pecl
