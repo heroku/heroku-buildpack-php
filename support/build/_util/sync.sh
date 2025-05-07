@@ -10,6 +10,8 @@ set -o pipefail
 # when using --progress, no output goes to stdout, but errors are mixed with progress info
 S5CMD_OPTIONS=(${S5CMD_NO_SIGN_REQUEST:+--no-sign-request} ${S5CMD_PROFILE:+--profile "${S5CMD_PROFILE}"} --log error)
 
+help=false
+
 checksum=
 
 localsrc=
@@ -18,9 +20,12 @@ localdst=
 remove=true
 
 # process flags
-optstring=":-:c:d:s:"
+optstring=":-:hc:d:s:"
 while getopts "$optstring" opt; do
 	case $opt in
+		h)
+			help=true
+			;;
 		c)
 			checksum=$OPTARG
 			;;
@@ -32,6 +37,9 @@ while getopts "$optstring" opt; do
 			;;
 		-)
 			case "$OPTARG" in
+				help)
+					help=true
+					;;
 				no-remove)
 					remove=false
 					;;
@@ -45,7 +53,7 @@ done
 # clear processed arguments
 shift $((OPTIND-1))
 
-if [[ $# -lt "2" || $# -gt "6" ]]; then
+if $help || [[ $# -lt "2" || $# -gt "6" ]]; then
 	cat >&2 <<-EOF
 		Usage: $(basename "$0") [--no-remove] [-c CHECKSUM] [-d DEST_DIR] [-s SRC_DIR] DEST_BUCKET DEST_PREFIX [DEST_REGION [SOURCE_BUCKET SOURCE_PREFIX [SOURCE_REGION]]]
 		  DEST_BUCKET:   destination S3 bucket name.

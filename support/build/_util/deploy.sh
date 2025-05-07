@@ -5,14 +5,22 @@ set -o pipefail
 # fail harder
 set -eu
 
+help=false
+
 publish=false
 
 # process flags
-optstring=":-:"
+optstring=":-:h"
 while getopts "$optstring" opt; do
 	case $opt in
+		h)
+			help=true
+			;;
 		-)
 			case "$OPTARG" in
+				help)
+					help=true
+					;;
 				publish)
 					publish=true
 					break
@@ -27,7 +35,7 @@ done
 # clear processed "publish" argument
 shift $((OPTIND-1))
 
-if [[ $# -lt 1 ]]; then
+if $help || [[ $# -lt 1 ]]; then
 	cat >&2 <<-EOF
 		Usage: $(basename "$0") [--publish] FORMULA-VERSION [--overwrite]
 		  If --publish is given, mkrepo.sh will be invoked after a successful deploy to
