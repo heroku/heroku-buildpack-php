@@ -28,11 +28,11 @@ The following packages will be ADDED
   - ext-newrelic-11.0.0.13_php-8.1
   - ext-newrelic-11.0.0.13_php-8.2
   - ext-newrelic-11.0.0.13_php-8.3
-  - ext-phalcon-5.6.0_php-8.0
-  - ext-phalcon-5.6.0_php-8.1
-  - ext-phalcon-5.6.0_php-8.2
-  - ext-phalcon-5.6.0_php-8.3
-  - php-8.2.15
+  - ext-phalcon-5.6.0+build_for_php-6.7_with_underscores_2_php-8.0
+  - ext-phalcon-5.6.0+build_for_php-6.7_with_underscores_2_php-8.1
+  - ext-phalcon-5.6.0+build_for_php-6.7_with_underscores_2_php-8.2
+  - ext-phalcon-5.6.0+build_for_php-6.7_with_underscores_2_php-8.3
+  - php-8.2.15+build2
   - php-8.3.2
   - pkg-php-min-8.1.27
   - libcassandra-1.2.3
@@ -98,18 +98,18 @@ Copying ext-event-3.1.1_php-8.2:
 Copying ext-event-3.1.1_php-8.3:
   - copying 'extensions/no-debug-non-zts-20230831/event-3.1.1.tar.gz'... done.
   - copying manifest file 'ext-event-3.1.1_php-8.3.composer.json'... done.
-Copying ext-phalcon-5.6.0_php-8.0:
-  - copying 'extensions/no-debug-non-zts-20200930/phalcon-5.6.0.tar.gz'... done.
-  - copying manifest file 'ext-phalcon-5.6.0_php-8.0.composer.json'... done.
-Copying ext-phalcon-5.6.0_php-8.1:
-  - copying 'extensions/no-debug-non-zts-20210902/phalcon-5.6.0.tar.gz'... done.
-  - copying manifest file 'ext-phalcon-5.6.0_php-8.1.composer.json'... done.
-Copying ext-phalcon-5.6.0_php-8.2:
-  - copying 'extensions/no-debug-non-zts-20220829/phalcon-5.6.0.tar.gz'... done.
-  - copying manifest file 'ext-phalcon-5.6.0_php-8.2.composer.json'... done.
-Copying ext-phalcon-5.6.0_php-8.3:
-  - copying 'extensions/no-debug-non-zts-20230831/phalcon-5.6.0.tar.gz'... done.
-  - copying manifest file 'ext-phalcon-5.6.0_php-8.3.composer.json'... done.
+Copying ext-phalcon-5.6.0+build_for_php-6.7_with_underscores_2_php-8.0:
+  - copying 'extensions/no-debug-non-zts-20200930/phalcon-5.6.0+build_for_php-6.7_with_underscores_2.tar.gz'... done.
+  - copying manifest file 'ext-phalcon-5.6.0+build_for_php-6.7_with_underscores_2_php-8.0.composer.json'... done.
+Copying ext-phalcon-5.6.0+build_for_php-6.7_with_underscores_2_php-8.1:
+  - copying 'extensions/no-debug-non-zts-20210902/phalcon-5.6.0+build_for_php-6.7_with_underscores_2.tar.gz'... done.
+  - copying manifest file 'ext-phalcon-5.6.0+build_for_php-6.7_with_underscores_2_php-8.1.composer.json'... done.
+Copying ext-phalcon-5.6.0+build_for_php-6.7_with_underscores_2_php-8.2:
+  - copying 'extensions/no-debug-non-zts-20220829/phalcon-5.6.0+build_for_php-6.7_with_underscores_2.tar.gz'... done.
+  - copying manifest file 'ext-phalcon-5.6.0+build_for_php-6.7_with_underscores_2_php-8.2.composer.json'... done.
+Copying ext-phalcon-5.6.0+build_for_php-6.7_with_underscores_2_php-8.3:
+  - copying 'extensions/no-debug-non-zts-20230831/phalcon-5.6.0+build_for_php-6.7_with_underscores_2.tar.gz'... done.
+  - copying manifest file 'ext-phalcon-5.6.0+build_for_php-6.7_with_underscores_2_php-8.3.composer.json'... done.
 Copying php-8.2.15:
   - copying 'php-8.2.15.tar.gz'... done.
   - copying manifest file 'php-8.2.15.composer.json'... done.
@@ -202,9 +202,9 @@ Copying ext-phalcon-5.6.0_php-8.2:
 Copying ext-phalcon-5.6.0_php-8.3:
   - copying 'extensions/no-debug-non-zts-20230831/phalcon-5.6.0.tar.gz'... done.
   - copying manifest file 'ext-phalcon-5.6.0_php-8.3.composer.json'... done.
-Copying php-8.2.15:
-  - copying 'php-8.2.15.tar.gz'... done.
-  - copying manifest file 'php-8.2.15.composer.json'... done.
+Copying php-8.2.15+build2:
+  - copying 'php-8.2.15+build2.tar.gz'... done.
+  - copying manifest file 'php-8.2.15+build2.composer.json'... done.
 Copying php-8.3.2:
   - copying 'php-8.3.2.tar.gz'... done.
   - copying manifest file 'php-8.3.2.composer.json'... done.

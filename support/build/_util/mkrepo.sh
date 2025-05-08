@@ -6,16 +6,20 @@ set -o pipefail
 set -eu
 
 help=false
+checksum=
 upload=false
 
 S5CMD_OPTIONS=(${S5CMD_NO_SIGN_REQUEST:+--no-sign-request} ${S5CMD_PROFILE:+--profile "${S5CMD_PROFILE}"} --log error)
 
 # process flags
-optstring=":-:h"
+optstring=":-:hc:"
 while getopts "$optstring" opt; do
 	case $opt in
 		h)
 			help=true
+			;;
+		c)
+			checksum=$OPTARG
 			;;
 		-)
 			case "$OPTARG" in
@@ -37,13 +41,16 @@ shift $((OPTIND-1))
 
 if $help; then
 	cat >&2 <<-EOF
-		Usage: $(basename "$0") [--upload] [MANIFEST...]
+		Usage: $(basename "$0") [-c CHECKSUM] [--upload] [MANIFEST...]
 		  The environment variables '\$S3_BUCKET', '\$S3_PREFIX', and '\$S3_REGION' are
 		  used for S3 bucket addressing; the prefix is optional, and the region is auto-
 		  detected if not given.
 		  
 		  If MANIFEST arguments are given, those are used to build the repo; otherwise,
 		  all manifests from S3_BUCKET+S3_PREFIX are downloaded.
+		  
+		  The -c option, if given, causes uploading or writing (see --upload below)
+		  of an additional packages.CHECKSUM.json as a snapshot.
 		  
 		  A --upload flag triggers immediate upload, otherwise instructions are printed.
 		  
@@ -86,9 +93,18 @@ fi
 # sort so that packages with the same name and version (e.g. ext-memcached 2.2.0) show up with their php requirement in descending order - otherwise a Composer limitation means that a simple "ext-memcached: * + php: ^7.0.0" request would install 7.0.latest and not 7.4.latest, as it finds the 7.0.* requirement extension first and sticks to that instead of 7.4. For packages with identical names and versions (but different e.g. requirements), Composer basically treats them as equal and picks as a winner whatever it finds first. The requirements have to be written like "x.y.*" for this to work of course (we replace "*", "<=" and so forth with "0", as that's fine for the purpose of just sorting - otherwise, a comparison of e.g. "^7.0.0" and "7.0.*" would cause "TypeError: '<' not supported between instances of 'str' and 'int'")
 python <(cat <<-'PYTHON' # beware of single quotes in body
 	import sys, re, json
-	import itertools
+	from itertools import groupby
 	from natsort import natsorted
+	from operator import itemgetter
 	manifests = [ json.load(open(item)) for item in sys.argv[1:] if json.load(open(item)).get("type", "") != "heroku-sys-package" ]
+	# first, we need to discard packages with the same name and version, but different build infos in the version string
+	# only the natsorted-ly "highest" variant remains
+	# this is to ensure that we do not end up with "foo-1.0.1" and "foo-1.0.1+build2" in the repo, because semver considers these equivalent, and so does Composer
+	# we only want "foo-1.0.1+build2" in this case, as it'll be the newer/higher package
+	rsorted = natsorted(manifests, lambda p: (p["name"], p["version"]), reverse=True) # reverse natsort by name and entire version
+	version_groups = groupby(rsorted, lambda p: (p["name"], p["version"].partition("+")[0])) # group by only the version part before a possible "+"
+	version_whitelist = set(itemgetter("name", "version")(next(paks)) for group, paks in version_groups) # make a set of whitelisted name/version combos
+	manifests = [m for m in manifests if (m["name"], m["version"]) in version_whitelist] # remove any manifest with versions not in whitelist
 	# for PHP, transform all manifests in extra.shared into their own packages
 	for php in filter(lambda package: package.get("type", "") == "heroku-sys-php", manifests):
 	    shared = php.get("extra", {}).get("shared", {})
@@ -100,7 +116,7 @@ python <(cat <<-'PYTHON' # beware of single quotes in body
 	        shared[extname] = False # make sure there still is a record of this extension in the PHP package (e.g. for tooling that generates version infos for Heroku Dev Center), but prevent e.g. the legacy Installer Plugin logic from handling this
 	# for each php or extension package, generate a "replace" entry for ".native", and require ".native" variants of any other exts it depends on
 	# this is used by the installer to ignore userland provides for internal dependencies (one ext requiring another), while allowing userland provides to optionally stand in for native extensions if they do not exist (but an installation attempt is made for them once main dependency resolution is finished)
-	# this way, extension package formulae do not have to know about this ".native" business in theif formulae
+	# this way, extension package formulae do not have to know about this ".native" business in their formulae
 	for pkg in filter(lambda package: package.get("type", "") in ["heroku-sys-php", "heroku-sys-php-extension"], manifests):
 	    # generate ".native" replace and require entry variants for each "heroku-sys/ext-…" in them
 	    # there may be extensions "replace"ing other extensions, e.g. "ext-apcu" replaces "ext-apc"
@@ -118,7 +134,7 @@ python <(cat <<-'PYTHON' # beware of single quotes in body
 	    key=lambda package: (package.get("name"), re.sub(r"[<>=*~^]", "0", package.get("require", {}).get("heroku-sys/php", "0.0.0"))),
 	    reverse=True)
 	# convert the list to a dict with package names as keys and list of versions (sorted by "php" requirement by previous sort) as values
-	json.dump({"packages": dict((name, list(versions)) for name, versions in itertools.groupby(manifests, key=lambda package: package.get("name"))) }, sys.stdout, sort_keys=True)
+	json.dump({"packages": dict((name, list(versions)) for name, versions in groupby(manifests, key=lambda package: package.get("name"))) }, sys.stdout, sort_keys=True)
 PYTHON
 ) "${manifests[@]}"
 
@@ -128,11 +144,24 @@ if $redir; then
 	exec 1>&3 3>&-
 fi
 
-cmd=(s5cmd "${S5CMD_OPTIONS[@]}" cp --destination-region "$S3_REGION" --content-type application/json packages.json "s3://${S3_BUCKET}/${S3_PREFIX}packages.json")
+packages_json_upload_cmd=(s5cmd "${S5CMD_OPTIONS[@]}" cp --destination-region "$S3_REGION" --content-type application/json packages.json "s3://${S3_BUCKET}/${S3_PREFIX}packages.json")
+if [[ -n "$checksum" ]]; then
+	# cp s3://.../packages.json s3://...packages-${checksum}.json
+	packages_snapshot_json_cp_cmd=(s5cmd "${S5CMD_OPTIONS[@]}" cp --source-region "$S3_REGION" --destination-region "$S3_REGION" "s3://${S3_BUCKET}/${S3_PREFIX}packages"{,"-${checksum}"}".json")
+fi
 if $upload; then
 	echo "-----> Uploading packages.json..." >&2
-	"${cmd[@]}" 1>&2
+	"${packages_json_upload_cmd[@]}" 1>&2
+	if [[ -n "$checksum" ]]; then
+		echo "-----> Snapshotting to packages-${checksum}.json..." >&2
+		"${packages_snapshot_json_cp_cmd[@]}" 1>&2
+	fi
 	echo "-----> Done." >&2
 elif [[ -t 1 ]]; then
-	echo "-----> Done. To upload repository, run: ${cmd[*]@Q}" >&2
+	echo "-----> Done. To upload repository, run:" >&2
+	echo "${packages_json_upload_cmd[@]@Q}" >&2
+	if [[ -n "$checksum" ]]; then
+		echo "       and (for repository snapshot)": >&2
+		echo "${packages_snapshot_json_cp_cmd[@]@Q}" >&2
+	fi
 fi

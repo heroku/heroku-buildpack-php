@@ -11,8 +11,9 @@ OUT_PREFIX=$1
 
 dep_formula=${0#$WORKSPACE_DIR/}
 dep_name=$(basename $BASH_SOURCE)
-dep_version=${dep_formula#"${dep_name}-"}
-dep_package=${dep_name}-${dep_version}
+dep_build=${dep_formula#"${dep_name}-"}
+dep_version=${dep_build%%+*} # strip build metadata off the end of the version
+dep_package=${dep_name}-${dep_build}
 dep_dirname=php-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_version == *RC* ]]; then
@@ -30,7 +31,7 @@ else
 fi
 dep_manifest=${dep_package}.composer.json
 
-echo "-----> Building ${dep_package}..."
+echo "-----> Building ${dep_name} (${dep_version})..."
 
 curl -L ${dep_url} | tar xz
 
@@ -81,7 +82,7 @@ echo "Patching configure to force pread for PHP-FPM tracing..."
 grep "fpm_trace_type=ptrace" configure && sed -i 's/fpm_trace_type=ptrace/fpm_trace_type=pread/' configure || exit 99
 
 echo "Patching SIGTERM handling in PHP-FPM..."
-patch -p1 < "$(dirname $BASH_SOURCE)/patches/php/ignoresigterm.patch"
+patch -p1 < "$(dirname $BASH_SOURCE)/_patches/php/ignoresigterm.patch"
 
 configureopts=()
 configureopts+=("--with-zip")
@@ -192,7 +193,9 @@ fi
 php composer-setup.php
 
 # first, read all platform packages (just "ext-" and "php-") that are already there; could be statically built, or enabled through one of the INIs loaded
-platform_default=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-\S+)' | sed s@^@heroku-sys/@ | tr -s " " | cut -d " " -f1,2 | sort)
+# most built-in extensions report the same version number as the PHP release they are bundled with
+# we are replacing an exact match of $dep_version with $dep_build, so that if the formula is "php-8.4.6+build2", these extensions also get "8.4.6+build2" as their metadata version instead of just "8.4.6"
+platform_default=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-\S+)' | sed s@^@heroku-sys/@ | tr -s " " | cut -d " " -f1,2 | sed "s/ ${dep_version}\$/ ${dep_build}/" | sort)
 
 # next enable all bundled shared extensions temporarily so we can fetch their info too
 echo "-----> Preparing built-in extensions..."
@@ -205,8 +208,10 @@ for f in ${OUT_PREFIX}/lib/php/extensions/*/*.so; do
 	echo "extension=$(basename $f)" >> ${OUT_PREFIX}/etc/php/conf.d/999-sharedexts.ini
 done
 
-# now we'll get all platform packages (just "ext-" and "php-")
-platform_all=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-\S+)' | sed s@^@heroku-sys/@ | tr -s " " | cut -d " " -f1,2 | sort)
+# now we'll get all platform packages (just "ext-" and "php-") that the built PHP runtime reports
+# most built-in extensions report the same version number as the PHP release they are bundled with
+# we are replacing an exact match of $dep_version with $dep_build, so that if the formula is "php-8.4.6+build2", these extensions also get "8.4.6+build2" as their metadata version instead of just "8.4.6"
+platform_all=$(php composer.phar show --platform | grep -E '^(ext-\S+|php-\S+)' | sed s@^@heroku-sys/@ | tr -s " " | cut -d " " -f1,2 | sed "s/ ${dep_version}\$/ ${dep_build}/" | sort)
 
 # remove temporary ini file that enables all extensions, and the composer download
 rm ${OUT_PREFIX}/etc/php/conf.d/999-sharedexts.ini composer.phar
@@ -218,11 +223,11 @@ exts_shared=$(diff --new-line-format="%L" --old-line-format="" --unchanged-line-
 echo "-----> Preparing manifest contents..."
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
-MANIFEST_REPLACE=$(echo "$platform_default" | sed "s/ $dep_version\$/ self.version/" | python -c 'import sys, json; json.dump({item[0]:item[1] for item in [line.split() for line in sys.stdin]}, sys.stdout)')
+MANIFEST_REPLACE=$(echo "$platform_default" | sed "s/ ${dep_build}\$/ self.version/" | python -c 'import sys, json; json.dump({item[0]:item[1] for item in [line.split() for line in sys.stdin]}, sys.stdout)')
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA=$(echo "$exts_shared" | python -c 'import sys, json; json.dump({"shared": dict(item.split() for item in sys.stdin), "export": "bin/export.php.sh", "profile": "bin/profile.php.sh"}, sys.stdout)')
 
 echo "-----> Generating manifest..."
-python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

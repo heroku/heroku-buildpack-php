@@ -1,8 +1,6 @@
 #!/usr/bin/env php
 <?php
 
-use Composer\Semver\Comparator;
-
 require('vendor/autoload.php');
 
 // sections to generate, but also some other stuff, can be passed via options
@@ -71,6 +69,13 @@ $findseries = function(array $package) use($series, $strict) {
 
 $stackname = function($version) {
 	return "heroku-$version";
+};
+
+$normalizeVersion = function($version) {
+	if (preg_match('/^([^,\s+]++)\+[^\s]++$/', $version, $match)) {
+		return $match[1];
+	}
+	return $version;
 };
 
 $filterStackVersions = function(array $row, string $serie, array $stacks, array $seriesByStack, callable $getValue) {
@@ -160,6 +165,9 @@ $insertPackage = $db->prepare("INSERT INTO packages (name, version, type, series
 $insertExtension = $db->prepare("INSERT INTO extensions (name, url, version, runtime, series, stack, bundled, enabled) VALUES(:name, :url, :version, :runtime, :series, :stack, :bundled, :enabled)");
 
 foreach($packages as $package) {
+	// strip off build metadata (so e.g. "3.2.0+build2" becomes just "3.2.0")
+	$package['version'] = $normalizeVersion($package['version']);
+	
 	if($package['type'] == 'heroku-sys-php-extension') {
 		// for extensions, we want to find the stack(s) and PHP version series (always just one due to extension API version) that match the "require" entries in the extension package's metadata, and then generate an entry for each permutation
 		// example: an extension is for heroku-sys/php:8.3.* and for heroku-sys/heroku:*, then we want two entires, both for series 8.3, but one for heroku-22 and one for heroku-24 (or whatever stacks are current)

@@ -2,7 +2,7 @@
   "conflict": {},
   "dist": {
     "type": "heroku-sys-tar",
-    "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-7.4.22.tar.gz"
+    "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9+build10.tar.gz"
   },
   "extra": {
     "export": "bin/export.php.sh",
@@ -12,17 +12,17 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-php-bundled-extension",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-7.4.22.tar.gz?extension=heroku-sys/ext-bcmath"
+          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9+build10.tar.gz?extension=heroku-sys/ext-bcmath"
         },
         "name": "heroku-sys/ext-bcmath",
         "require": {
           "heroku-sys/heroku": "^20.0.0",
-          "heroku-sys/php": "7.4.22",
+          "heroku-sys/php": "8.0.9+build10",
           "heroku/installer-plugin": "^1.6.0"
         },
-        "time": "2021-07-29 20:06:21",
+        "time": "2021-07-31 20:07:21",
         "type": "heroku-sys-php-extension",
-        "version": "7.4.22"
+        "version": "8.0.9+build10"
       }
     }
   },
@@ -35,7 +35,7 @@
     "heroku-sys/heroku": "^20.0.0",
     "heroku/installer-plugin": "^1.6.0"
   },
-  "time": "2021-07-29 20:06:21",
+  "time": "2021-07-31 20:07:21",
   "type": "heroku-sys-php",
-  "version": "7.4.22"
+  "version": "8.0.9+build10"
 }

@@ -64,18 +64,22 @@ jobs:
         with:
           key: ${{ steps.restore-docker.outputs.cache-primary-key }}
           path: /tmp/docker-cache.tar.gz
+      - name: Calculate formulae state Hash
+        run: |
+          echo -n "PLATFORM_REPO_SNAPSHOT_SHA256=" >> "$GITHUB_ENV"
+          support/build/_util/formulae-hash.sh >> "$GITHUB_ENV"
       - name: List packages for removal using given input list
         if: ${{ inputs.dry-run == true }}
         run: |
           set -f
           set -o pipefail
-          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh ${{inputs.manifests}} 2>&1 | tee remove.out
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh -c "$PLATFORM_REPO_SNAPSHOT_SHA256" ${{inputs.manifests}} 2>&1 | tee remove.out
       - name: Remove packages from repository
         if: ${{ inputs.dry-run == false }}
         run: |
           set -f
           set -o pipefail
-          (yes 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh ${{inputs.manifests}} 2>&1 | tee remove.out
+          (yes 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh -c "$PLATFORM_REPO_SNAPSHOT_SHA256" ${{inputs.manifests}} 2>&1 | tee remove.out
       - name: Output dry-run summary
         if: ${{ inputs.dry-run == true }}
         run: |

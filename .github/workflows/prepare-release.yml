@@ -7,6 +7,20 @@ on:
 permissions: {}
 
 jobs:
+  check-platform-repo-snapshot:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Calculate formulae state Hash
+        run: |
+          echo -n "PLATFORM_REPO_SNAPSHOT_SHA256=" >> "$GITHUB_ENV"
+          support/build/_util/formulae-hash.sh >> "$GITHUB_ENV"
+      - name: Check that repo snapshot URLs exist
+        run: |
+          curl --silent --head --fail --fail-early \
+            "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-{22,24-amd64,24-arm64}-stable/packages-${PLATFORM_REPO_SNAPSHOT_SHA256}.json"
   prepare-release:
+    needs: check-platform-repo-snapshot
     uses: heroku/languages-github-actions/.github/workflows/_classic-buildpack-prepare-release.yml@latest
     secrets: inherit

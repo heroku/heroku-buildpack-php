@@ -371,6 +371,14 @@ Additional dependencies can be expressed as well; for example, if an extension r
 
 The name of a package must begin with "`heroku-sys/`", and the part after this suffix must be the name Composer expects for the corresponding platform package. A PHP runtime package must thus be named "`heroku-sys/php`", and a "foobar" extension, known to Composer as "`ext-foobar`", must be named "`heroku-sys/ext-foobar`".
 
+#### Package version
+
+The version of a package must conform to [Composer's version specification](https://getcomposer.org/doc/articles/versions.md) and [Semantic Versioning](https://semver.org).
+
+When updating the build for an existing, published version of a package (e.g. with updated compile options), it is recommended to use *build metadata* in the version string of the updated package in order to distinguish it from the existing, published version. For example, `php-8.4.6` would become `php-8.4.6+build2`.
+
+Per Semver specifications, any build metadata in a version string is ignored during version comparison. This means it could not be guaranteed that `php-8.4.6+build2` is picked, if it exists in the same repository as `php-8.4.6`. For this reason, when [(Re-)generating Repositories](re-generating-repositories), only the package/version combination with the "highest" (compared using lenient version string comparison) build metadata will be included, meaning that in the example above, `php-8.4.6` would not be included in the generated repository, only `php-8.4.6+build2`.
+
 #### Package Type
 
 The `type` of a package must be one of the following:
@@ -566,6 +574,20 @@ Or by targeting several possible values for `heroku-sys/heroku`:
 
 However, as many of Heroku's other packages are stack-specific in their library usage, separate repositories have to be kept anyway, so the `newrelic` extension is treated the same way as all other packages.
 
+### Repository Snapshots
+
+It can be desirable to have immutable "frozen" repository states for the buildpack, or apps, to refer to. The buildpack itself uses this for the default repository to avoid older releases picking up newly published platform packages.
+
+To achieve this, a `packages-${snapshot}.json` can be [generated](#re-generating-repositories) and [synced](#syncing-repositories) in addition to the "bleeding edge" `packages.json`. The buildpack uses a hash of the list of platform package formulae as the value for `${snapshot}`. This way, the hash changes every time a formula file name is added or changed.
+
+The hash is computed and printed by the `formulae-hash.sh` helper in the `_util` directory; this hash can then be passed to `mkrepo.sh`, `sync.sh` and `remove.sh` using the `-c` option. The buildpack also uses it in `bin/compile` to construct the expected URL to `platform-${snapshot}.json` for the default platform repository.
+
+**When updating build formulae without changing the version (e.g. when changing compile options), to ensure that existing package builds are not updated, build metadata should be used in the [version](#package-version) of the updated package (so e.g. `php-8.4.6` becomes `php-8.4.6+build2`).** This way, the updated build can co-exist with the older builds, and existing repository snapshots will not pick up the changed build, because the hash of the list of formulae has changed due to the updated formula filename.
+
+When [(re)-generating repositories](#re-generating-repositories), existing snapshots can be overwritten. This is intentional, as it allows iteration during the development in a dev/staging bucket before [syncing](#syncing-repositories).
+
+However, the tooling for [syncing repositories](#syncing-repositories) will not allow updating of existing snapshots in the destination bucket to ensure their integrity.
+
 ### (Re-)generating Repositories
 
 The normal flow is to run `deploy.sh` first to deploy one or more packages, and then to use `mkrepo.sh` to re-generate the repo:
@@ -574,11 +596,17 @@ The normal flow is to run `deploy.sh` first to deploy one or more packages, and 
 
 This will generate `packages.json` and upload it right away, or, if the `--upload` is not given, print upload instructions for `s5cmd`.
 
-Alternatively, `deploy.sh` can be called with `--publish` as the first argument, in which case `mkrepo.sh --upload` will be called after the package deploy and manifest upload was successful:
+If option `-c` is given to `mkrepo.sh`, the option value will be treated as a "snapshot" identifier; the result will be a `packages-${snapshot}.json` in addition to `packages.json`:
+
+    ~ $ mkrepo.sh -c "$(formulae-hash.sh)" --upload
+
+**Also see [Repository Snapshots](#repository-snapshots) above for snapshot usage considerations.**
+
+As an alternative to manually running `mkrepo.sh`, `deploy.sh` can be called with `--publish` as the first argument, in which case `mkrepo.sh --upload` will be called after the package deploy and manifest upload was successful:
 
     ~ $ deploy.sh --publish php-6.0.0
 
-**This should be used with caution, as several parallel `deploy.sh` invocations could result in a race condition when re-generating the repository.**
+**This should be used with caution, as several parallel `deploy.sh` invocations could result in a race condition when re-generating the repository. It is mostly useful for speeding up debugging or development.**
 
 ### Syncing Repositories
 
@@ -591,6 +619,12 @@ After testing builds, the contents of that "develop" repository can then be sync
 *The `sync.sh` script takes destination bucket info as arguments first, then source bucket info*.
 
 The `sync.sh` script automatically detects additions, updates and removals based on manifests. It will also warn if the source `packages.json` is not up to date with its manifests, and prompt for confirmation before syncing.
+
+If option `-c` is given to `mkrepo.sh`, the option value will be treated as a "snapshot" identifier. In this case, the snapshot must exist in the source bucket, but is not allowed to already exist in the destination bucket. This prevents the modification of existing buckets:
+
+    ~ $ sync.sh -c "$(formulae-hash.sh)" my-bucket dist-heroku-24-amd64-stable/ us-east-1 my-bucket dist-heroku-24-amd64-develop/ us-east-1
+
+**Also see [Repository Snapshots](#repository-snapshots) above for snapshot usage considerations.**
 
 #### Syncing from Upstream
 
@@ -606,7 +640,13 @@ The `remove.sh` helper removes a package manifest and its tarball from a bucket,
 
     ~ $ remove.sh ext-imagick-3.4.4_php-7.3.composer.json ext-imagick-3.4.4_php-7.4.composer.json
 
-Unless the `--no-publish` option is given, the repository will be re-generated immediately after removal. Otherwise, the manifests and tarballs would be removed, but the main repository would remain in place, pointing to non-existing packages, so usage of this flag is only recommended for debugging purposes or similar.
+This will always [re-generate the repository](#re-generating-repositories). **Packages should typically only be removed from staging/development buckets during development,** especially when [repository snapshots](#repository-snapshots) are used.
+
+If option `-c` is given to `remove.sh`, the option value will be treated as a "snapshot" identifier; the result will be a `packages-${snapshot}.json` in addition to `packages.json`:
+
+    ~ $ remove.sh -c "$(formulae-hash.sh)" ext-imagick-3.4.4_php-7.3.composer.json ext-imagick-3.4.4_php-7.4.composer.json
+
+**Also see [Repository Snapshots](#repository-snapshots) above for snapshot usage considerations.**
 
 ## Examples
 

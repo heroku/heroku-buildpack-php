@@ -12,15 +12,16 @@ OUT_PREFIX=$1
 export PATH=${OUT_PREFIX}/bin:${PATH}
 
 dep_formula=${0#$WORKSPACE_DIR/}
-dep_version=${dep_formula##*"/${dep_name}-"}
-dep_package=ext-${dep_name}-${dep_version}
+dep_build=${dep_formula##*"/${dep_name}-"}
+dep_version=${dep_build%%+*} # strip build metadata off the end of the version
+dep_package=ext-${dep_name}-${dep_build}
 dep_dirname=${dep_name}-${dep_version}
 dep_archive_name=${dep_dirname}.tgz
 dep_url=https://pecl.php.net/get/${dep_archive_name}
 series=$(php-config --version | cut -d. -f1,2) # get "7.3", "7.4", "8.0" etc for the php requirement in the manifest
 dep_manifest=${dep_package}_php-$series.composer.json
 
-echo "-----> Building ${dep_package} (from PECL)..."
+echo "-----> Building ext-${dep_name} (${dep_version}, from PECL)..."
 
 curl -L ${dep_url} | tar xz
 
@@ -50,6 +51,6 @@ MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{}"}"
 
-python $(dirname $BASH_SOURCE)/../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+python $(dirname $BASH_SOURCE)/../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

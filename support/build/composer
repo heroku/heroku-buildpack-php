@@ -11,11 +11,12 @@ OUT_PREFIX=$1
 
 dep_formula=${0#$WORKSPACE_DIR/}
 dep_name=$(basename $BASH_SOURCE)
-dep_version=${dep_formula#"${dep_name}-"}
-dep_package=${dep_name}-${dep_version}
+dep_build=${dep_formula#"${dep_name}-"}
+dep_version=${dep_build%%+*} # strip build metadata off the end of the version
+dep_package=${dep_name}-${dep_build}
 dep_manifest=${dep_package}.composer.json
 
-echo "-----> Bundling Composer (${dep_version})..."
+echo "-----> Packaging ${dep_name} (${dep_version})..."
 
 export PATH=${OUT_PREFIX}/bin:$PATH
 
@@ -107,6 +108,6 @@ MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{\"heroku-sys/composer-plugin-api\":\"${plugin_api_version}\",\"heroku-sys/composer-runtime-api\":\"${runtime_api_version}\"}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.composer.sh\",\"profile\":\"bin/profile.composer.sh\"}"}"
 
-python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-program" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-program" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

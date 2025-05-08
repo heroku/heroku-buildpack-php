@@ -82,6 +82,7 @@ jobs:
   sync:
     needs: [stack-list, docker-build]
     strategy:
+      fail-fast: false
       matrix:
         stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
     runs-on: ${{ endsWith(matrix.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-small' || 'ubuntu-24.04' }}
@@ -98,6 +99,10 @@ jobs:
           path: /tmp/docker-cache.tar.gz
       - name: Load cached Docker image
         run: docker load -i /tmp/docker-cache.tar.gz
+      - name: Calculate formulae state Hash
+        run: |
+          echo -n "PLATFORM_REPO_SNAPSHOT_SHA256=" >> "$GITHUB_ENV"
+          support/build/_util/formulae-hash.sh >> "$GITHUB_ENV"
       - name: ${{ inputs.dry-run == true && 'Dry-run sync of' || 'Sync' }} changed packages to production bucket
         run: |
           # we want to fail if 'docker run' fails; without this, 'tee' would "eat" the failure status
@@ -105,7 +110,7 @@ jobs:
           # yes gets "n" to print for dry-runs so the sync aborts
           # errors are redirected to /dev/null, and we || true, to suppress SIGPIPE errors from 'docker run' exiting eventually
           # we need -i for Docker to accept input on stdin, but must not use -t for the pipeline to work
-          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh lang-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log
+          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh --no-remove -c "$PLATFORM_REPO_SNAPSHOT_SHA256" lang-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log
       - name: Upload sync log as artifact
         uses: actions/upload-artifact@v4
         with:
@@ -119,7 +124,7 @@ jobs:
           echo '> **This is output from a dry-run**, no changes have been synced to production!' >> "$GITHUB_STEP_SUMMARY"
           echo >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
-          sed -n '/^The following packages will/,/POTENTIALLY DESTRUCTIVE ACTION/{/POTENTIALLY DESTRUCTIVE ACTION/!p}' sync-${{matrix.stack}}.log >> "$GITHUB_STEP_SUMMARY"
+          sed -En '/^(The following packages will|Nothing to do except)/,/POTENTIALLY DESTRUCTIVE ACTION/{/POTENTIALLY DESTRUCTIVE ACTION/!p}' sync-${{matrix.stack}}.log >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
       - name: Output sync summary
         if: ${{ inputs.dry-run == false }}

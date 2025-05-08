@@ -232,11 +232,24 @@ else
 	stack_locator="${STACK}-$(dpkg --print-architecture)"
 fi
 s3_url="https://lang-php.s3.us-east-1.amazonaws.com/dist-${stack_locator}-stable/"
+# hash the list of "declared" build formulae, this is the "snapshot" of a fixed repo state
+platform_repo_url="${s3_url}packages-$("$bp_dir"/support/build/_util/formulae-hash.sh).json"
+if ! curl_retry_on_18  --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent -I "$platform_repo_url" > /dev/null; then
+	notice_inline "Default platform repository snapshot not available."
+	export_env_dir "$env_dir" '^HEROKU_PHP_PLATFORM_REPOSITORY_SNAPSHOT_FALLBACK$'
+	# let's check if a fallback to the non-snapshot URL is allowed
+	if [[ "${HEROKU_PHP_PLATFORM_REPOSITORY_SNAPSHOT_FALLBACK:-0}" != "0" ]]; then
+		notice_inline 'Falling back to latest repository version as allowed by $HEROKU_PHP_PLATFORM_REPOSITORY_SNAPSHOT_FALLBACK.'
+		platform_repo_url=$s3_url
+	fi
+	# if no fallback is allowed, we do nothing - it is possible that $HEROKU_PHP_PLATFORM_REPOSITORIES removes the default repo
+fi
+
 # prepend the default repo to the list configured by the user
 # list of repositories to use is in ascening order of precedence
 export_env_dir "$env_dir" '^HEROKU_PHP_PLATFORM_REPOSITORIES$'
 have_custom_platform_repos="${HEROKU_PHP_PLATFORM_REPOSITORIES:+1}"
-HEROKU_PHP_PLATFORM_REPOSITORIES="${s3_url} ${HEROKU_PHP_PLATFORM_REPOSITORIES:-}"
+HEROKU_PHP_PLATFORM_REPOSITORIES="${platform_repo_url} ${HEROKU_PHP_PLATFORM_REPOSITORIES:-}"
 if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
 	# a single "-" in the user supplied string removes everything to the left of it; can be used to delete the default repo
 	notice_inline "Default platform repository disabled."

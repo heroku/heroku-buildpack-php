@@ -164,7 +164,11 @@ describe "The PHP Platform Installer" do
 						stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 						expect(status.exitstatus).to eq(0), "dry run install failed, stderr: #{stderr}, stdout: #{stdout}"
 						
-						expect(stderr).to include("heroku-sys/php (8.0.8)")
+						if ["composer-duplicate.json"].include? testcase
+							expect(stderr).to include("heroku-sys/php (8.0.8+otherbuild)")
+						else
+							expect(stderr).to include("heroku-sys/php (8.0.8)")
+						end
 						expect(stderr).to include("heroku-sys/ext-igbinary (3.2.7)")
 						if ["composer-default.json"].include? testcase
 							expect(stderr).to include("heroku-sys/ext-redis (5.3.4)") # packages from the custom repo (listed first) are authoritative; the newer package version from the default repo is not selected

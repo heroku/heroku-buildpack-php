@@ -10,11 +10,11 @@
     "minimum-stability": "stable",
     "prefer-stable": false,
     "provide": {
-        "heroku-sys\/heroku": "20.2021.08.03"
+        "heroku-sys\/heroku": "20.2025.04.03"
     },
     "replace": {},
     "require": {
-        "composer-only.json\/composer-only.lock": "dev-fc385a27e5169a169062c230878645d1"
+        "composer-duplicate.json\/composer-duplicate.lock": "dev-fc385a27e5169a169062c230878645d1"
     },
     "require-dev": {},
     "repositories": [
@@ -35,6 +35,11 @@
         },
         {
             "type": "composer",
+            "url": "./packages-duplicate.json",
+            "canonical": false
+        },
+        {
+            "type": "composer",
             "url": "./packages.json"
         },
         {
@@ -42,10 +47,10 @@
             "package": [
                 {
                     "type": "metapackage",
-                    "name": "composer-only.json\/composer-only.lock",
+                    "name": "composer-duplicate.json\/composer-duplicate.lock",
                     "version": "dev-fc385a27e5169a169062c230878645d1",
                     "require": {
-                        "heroku-sys\/php": "8.*",
+                        "heroku-sys\/php": "8.0.*",
                         "heroku-sys\/ext-igbinary": "*",
                         "heroku-sys\/ext-redis": "*"
                     },

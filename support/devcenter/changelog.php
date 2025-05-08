@@ -10,7 +10,7 @@ $sync = file_get_contents("php://stdin");
 $sections = "(IGNORED|ADDED|UPDATED|REMOVED)";
 $splits = preg_split("/^The following packages will be $sections/m", $sync, 0, PREG_SPLIT_DELIM_CAPTURE);
 
-$package_pattern = "/^\s*-\s+(?P<name>(?P<ext>ext-)?[^-]+)-(?P<version>\d+(\.\d+)+)(?(2)_php-(?P<series>\d+\.\d))\s*$/m";
+$package_pattern = "/^\s*-\s+(?P<name>(?P<ext>ext-)?[^-]+)-((?P<version>\d+(\.\d+)+)(\+.+?)?)(?(2)_php-(?P<series>\d+\.\d))\s*$/m";
 
 // the result from the splitting is a list of section outputs and captured delimiters
 // think, roughly: ["maybe some prologue text", "IGNORED", "- (none)", "ADDED", "Blah Blah\n- php-8.9.10", "UPDATED", "- (none)", "REMOVED", "- (none)"]

@@ -129,12 +129,16 @@ jobs:
           path: /tmp/docker-cache.tar.gz
       - name: Load cached Docker image
         run: docker load -i /tmp/docker-cache.tar.gz
+      - name: Calculate formulae state Hash
+        run: |
+          echo -n "PLATFORM_REPO_SNAPSHOT_SHA256=" >> "$GITHUB_ENV"
+          support/build/_util/formulae-hash.sh >> "$GITHUB_ENV"
       - name: Re-generate platform package repository
-        run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} mkrepo.sh --upload
+        run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} mkrepo.sh -c "$PLATFORM_REPO_SNAPSHOT_SHA256" --upload
       - name: Dry-run sync.sh to show package changes available for syncing to production bucket
         run: |
           set -o pipefail
-          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh lang-php dist-${{inputs.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync.out
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh -c "$PLATFORM_REPO_SNAPSHOT_SHA256" lang-php dist-${{inputs.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync.out
       - name: Output job summary
         run: |
           echo '## Package changes available for syncing to production bucket' >> "$GITHUB_STEP_SUMMARY"
