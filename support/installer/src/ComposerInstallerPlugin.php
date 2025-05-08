@@ -3,7 +3,12 @@
 namespace Heroku\Buildpack\PHP;
 
 use Composer\Composer;
-use Composer\IO\IOInterface;
+use Composer\Factory;
+use Composer\IO\{IOInterface, ConsoleIO, NullIO};
+use Symfony\Component\Console\Formatter\OutputFormatter;
+use Symfony\Component\Console\Helper\HelperSet;
+use Symfony\Component\Console\Input\ArrayInput;
+use Symfony\Component\Console\Output\StreamOutput;
 use Composer\Plugin\PluginInterface;
 use Composer\EventDispatcher\EventSubscriberInterface;
 use Composer\Installer\PackageEvent;
@@ -19,6 +24,10 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	protected $io;
 	protected $ops;
 	
+	// caller can pass us a file descriptor number for "human-readable" install info via PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
+	// in that case, we make this a Composer ConsoleIO instance with a StreamOutput to that FD; otherwise, it'll be a NullIO
+	protected $displayIo;
+	
 	// profile.d/ and etc/php/conf.d/ files are written with incrementing numeric prefixes by us
 	// this ensures that the shell and PHP also load these files in the order we installed them
 	protected $profileCounter = 10;
@@ -30,6 +39,17 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	{
 		$this->composer = $composer;
 		$this->io = $io;
+		
+		if($fdno = getenv("PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO")) {
+			$styles = Factory::createAdditionalStyles();
+			$formatter = new OutputFormatter(false, $styles);
+			$input = new ArrayInput([]);
+			$input->setInteractive(false);
+			$output = new StreamOutput(fopen("php://fd/{$fdno}", "w"), StreamOutput::VERBOSITY_NORMAL, null, $formatter);
+			$this->displayIo = new ConsoleIO($input, $output, new HelperSet());
+		} else {
+			$this->displayIo = new NullIO();
+		}
 		
 		// check if there already are scripts in .profile.d, or INI files (because we got invoked before, e.g. because this is a `composer require` to add another package after the main install), then calculate new starting point for file names
 		foreach([
@@ -48,6 +68,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 			'heroku-sys-tar',
 			new Downloader(
 				$io,
+				$this->displayIo,
 				$composer->getConfig(),
 				$loop->getHttpDownloader(),
 				$composer->getEventDispatcher(),
@@ -61,7 +82,9 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 			'heroku-sys-php-bundled-extension',
 			new NoopDownloader(
 				$io,
-				function($package, $path) { return 'Enabling <info>'.$package->getPrettyName().'</info> (bundled with <comment>php</comment>)'; } // the suffix string we want after our bundled ext "install"
+				$this->displayIo,
+				function($package, $path) { return sprintf('Enabling <info>%s</info> (bundled with <comment>php</comment>)', $package->getPrettyName()); }, // the Composer progress info output string we want for our bundled ext "install"
+				function($package, $path) { return sprintf('<info>%s</info> (bundled with <comment>php</comment>)', ComposerInstaller::formatHerokuSysName($package->getPrettyName())); } // the human-readable message (printed by the buildpack) we want for our bundled ext "install"
 			)
 		);
 		$composer->getInstallationManager()->addInstaller(new ComposerInstaller($io, $composer));
@@ -198,7 +221,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 				// that ext is on by default or whatever
 				return;
 			}
-			
+			$this->displayIo->write(sprintf('- <info>%s</info> (bundled with <comment>%s</comment>)', ComposerInstaller::formatHerokuSysName($prettyName), $parent->getPrettyName()));
 			$this->io->writeError(sprintf('  - Enabling <info>%s</info> (bundled with <comment>%s</comment>)', $prettyName, $parent->getPrettyName()));
 			$this->io->writeError('');
 			
