@@ -93,7 +93,15 @@ describe "The PHP Platform Installer" do
 			@profiled_tmpdir = Dir.mktmpdir("profile.d")
 			FileUtils.cp("#{generator_fixtures_subdir}/base/expected_platform_composer.json", "#{@install_tmpdir}/composer.json")
 			Dir.chdir(@install_tmpdir) do
-				cmd = "exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}> #{@humanlog_tmpfile.path}; export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO; export_file_path=#{@export_tmpfile.path} profile_dir_path=#{@profiled_tmpdir} composer install --no-dev"
+				cmd = <<~EOF
+					exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}> #{Shellwords.escape(@humanlog_tmpfile.path)}
+					export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
+					export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=4
+					export export_file_path=#{Shellwords.escape(@export_tmpfile.path)}
+					export profile_dir_path=#{Shellwords.escape(@profiled_tmpdir)}
+					composer install --no-dev
+				EOF
+				
 				@stdout, @stderr, @status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 			end
 		end
@@ -102,6 +110,7 @@ describe "The PHP Platform Installer" do
 			FileUtils.remove_entry(@install_tmpdir)
 			FileUtils.remove_entry(@profiled_tmpdir)
 			@export_tmpfile.unlink
+			@humanlog_tmpfile.unlink
 		end
 		
 		it "performs an installation successfully" do
@@ -144,23 +153,29 @@ describe "The PHP Platform Installer" do
 			expect(Dir.entries("#{@install_tmpdir}/etc/php/conf.d").any? {|f| f.include?("ext-mbstring.ini")}).to eq(true)
 		end
 		
-		it "writes a human-readable log to a given file descriptor" do
+		it "writes a human-readable log (with the expected indentation) to a given file descriptor" do
 			version_triple = /\(\d+\.\d+\.\d+(\+[^)]+)?\)/ # 1.2.3 or 1.2.3+build2
 			bundled = /\(bundled with php\)/
+			# the download progress indicator is written using ANSI cursors:
+			# "    Downloaded 0/8 [>---------------------------]   0%\e[1G\e[2K    Downloaded 1/8 [===>------------------------]  12%\e[1G\e[2K    Downloaded 2/8 [=======>--------------------]  25%\e[1G\e[2K    Downloaded 4/8 [==============>-------------]  50%\e[1G\e[2K    Downloaded 5/8 [=================>----------]  62%\e[1G\e[2K    Downloaded 6/8 [=====================>------]  75%\e[1G\e[2K    Downloaded 7/8 [========================>---]  87%\e[1G\e[2K    Downloaded 8/8 [============================] 100%\e[1G\e[2K    - php (8.4.6)\n    - ext-sqlite3 (bundled with php)\n..."
+			# we want to check that the download progress is actually printed, and then removed using ANSI codes
+			# so we just match on the last progress report (since we're not always guaranteed to get one for every step depending on speed)
 			expect(@humanlog_tmpfile.read).to match Regexp.new(<<~EOF)
-			^- php #{version_triple.source}$
-			^- ext-sqlite3 #{bundled.source}$
-			^- ext-redis #{version_triple.source}$
-			^- ext-mbstring #{bundled.source}$
-			^- ext-ldap #{bundled.source}$
-			^- ext-intl #{bundled.source}$
-			^- ext-imap #{version_triple.source}$
-			^- ext-gmp #{bundled.source}$
-			^- blackfire #{version_triple.source}$
-			^- ext-blackfire #{version_triple.source}$
-			^- apache #{version_triple.source}$
-			^- composer #{version_triple.source}$
-			^- nginx #{version_triple.source}$
+				    Downloaded 8/8 \\[============================\\] 100%\
+				\\e\\[1G\\e\\[2K\
+				    - php #{version_triple.source}
+				    - ext-sqlite3 #{bundled.source}
+				    - ext-redis #{version_triple.source}
+				    - ext-mbstring #{bundled.source}
+				    - ext-ldap #{bundled.source}
+				    - ext-intl #{bundled.source}
+				    - ext-imap #{version_triple.source}
+				    - ext-gmp #{bundled.source}
+				    - blackfire #{version_triple.source}
+				    - ext-blackfire #{version_triple.source}
+				    - apache #{version_triple.source}
+				    - composer #{version_triple.source}
+				    - nginx #{version_triple.source}
 			EOF
 
 		end

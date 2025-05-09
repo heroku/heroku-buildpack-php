@@ -5,14 +5,12 @@ namespace Heroku\Buildpack\PHP;
 use Composer\Composer;
 use Composer\Factory;
 use Composer\IO\{IOInterface, ConsoleIO, NullIO};
-use Symfony\Component\Console\Formatter\OutputFormatter;
-use Symfony\Component\Console\Helper\HelperSet;
+use Symfony\Component\Console\Helper\{HelperSet,ProgressBar};
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\StreamOutput;
-use Composer\Plugin\PluginInterface;
+use Composer\Plugin\{PluginEvents,PluginInterface,PreFileDownloadEvent,PostFileDownloadEvent};
 use Composer\EventDispatcher\EventSubscriberInterface;
-use Composer\Installer\PackageEvent;
-use Composer\Installer\PackageEvents;
+use Composer\Installer\{PackageEvent,PackageEvents};
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
 
@@ -35,17 +33,37 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	
 	protected $allPlatformRequirements = null;
 	
+	protected $progressBar;
+	
 	public function activate(Composer $composer, IOInterface $io)
 	{
 		$this->composer = $composer;
 		$this->io = $io;
 		
+		// we were supplied with a file descriptor to write "display output" to
+		// this can be used by a calling buildpack to get a clean progress bar for downloads, followed by a list of package installs as they happen
+		// for this, we make a ConsoleIO instance to be passed to the downloaders for install() output, and a progress bar for our download event listeners
 		if($fdno = getenv("PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO")) {
-			$styles = Factory::createAdditionalStyles();
-			$formatter = new OutputFormatter(false, $styles);
+			// a new <indent> tag that can be used in output to prefix a line using the specified indentation
+			// this way the progress bar, downloaders, etc, do not have to handle the indentation each
+			$styles = [
+				'indent' => new IndentedOutputFormatterStyle(intval(getenv('PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT')))
+			];
+			// special formatter that ignores colors if false is passed as first arg, we want that initially
+			$formatter = new NoColorsOutputFormatter(false, $styles);
 			$input = new ArrayInput([]);
 			$input->setInteractive(false);
-			$output = new StreamOutput(fopen("php://fd/{$fdno}", "w"), StreamOutput::VERBOSITY_NORMAL, null, $formatter);
+			// obey NO_COLOR to control whether or not we want a progress bar
+			// (unfortunately, we cannot get e.g. the --no-progress or --no-ansi options from the Composer command invocation)
+			// (using $io->isDecorated() does not help either, as regular stdout/stderr might be redirected, but not our display output FD)
+			$output = new StreamOutput(fopen("php://fd/{$fdno}", "w"), StreamOutput::VERBOSITY_NORMAL, !getenv('NO_COLOR'), $formatter);
+			if($output->isDecorated()) {
+				$this->progressBar = new ProgressBar($output);
+				$progressBarFormat = ProgressBar::getFormatDefinition('normal');
+				$this->progressBar->setFormat(sprintf("<indent>Downloaded%s</indent>", $progressBarFormat));
+			}
+			// we force ANSI output to on here for the indentation output formatter style to work
+			$output->setDecorated(true);
 			$this->displayIo = new ConsoleIO($input, $output, new HelperSet());
 		} else {
 			$this->displayIo = new NullIO();
@@ -102,7 +120,66 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	
 	public static function getSubscribedEvents()
 	{
-		return [PackageEvents::POST_PACKAGE_INSTALL => 'onPostPackageInstall'];
+		return [
+			PluginEvents::PRE_FILE_DOWNLOAD => 'onPreFileDownload',
+			PluginEvents::POST_FILE_DOWNLOAD => 'onPostFileDownload',
+			PackageEvents::PRE_PACKAGE_INSTALL => 'onPrePackageInstall',
+			PackageEvents::POST_PACKAGE_INSTALL => 'onPostPackageInstall',
+		];
+	}
+	
+	// this fires when a download starts
+	public function onPreFileDownload(PreFileDownloadEvent $event)
+	{
+		$package = $event->getContext();
+		if($event->getType() != 'package' || $package->getDistType() != 'heroku-sys-tar') {
+			return;
+		}
+		// downloads happen in parallel, so marking progress here already would be useless
+		// but we can update the number of expected downloads on the progress bar
+		if($this->progressBar) {
+			$downloadCount = $this->progressBar->getMaxSteps();
+			if(!$downloadCount++) { // post-increment operator
+				// first invocation, we want to initialize the progress bar with a start time
+				$this->progressBar->start($downloadCount);
+				// however, our maximum step count will now increase with each onPreFileDownload
+				// that looks a little confusing if we print every time, so we clear the progress bar again immediately
+				// also useful in case our caller printed something on the same line, before the install
+				$this->progressBar->clear();
+			} else {
+				$this->progressBar->setMaxSteps($downloadCount);
+			}
+		}
+	}
+	
+	// this fires when a download finishes, so we can output progress info
+	// (Downloader::download returns a promise for parallel downloads, so would be as useless as onPreFileDownload above)
+	public function onPostFileDownload(PostFileDownloadEvent $event)
+	{
+		if($event->getType() != 'package' || $event->getContext()->getDistType() != 'heroku-sys-tar') {
+			return;
+		}
+		if($this->progressBar) {
+			$this->progressBar->advance(); // this will re-draw for us
+		}
+	}
+	
+	// this fires for every package install
+	// nothing to do for us here except to clear a progress bar if it exists
+	public function onPrePackageInstall(PackageEvent $event)
+	{
+		// clear our progress bar, since we're done with downloads
+		// the actual package installs are printed via the Downloaders, just like Composer does it
+		if($this->progressBar) {
+			if($this->displayIo->isDecorated()) {
+				// display output is ANSI capable, we can clear the progress bar
+				$this->progressBar->clear();
+			} else {
+				// display output is not ANSI capable, we need a line break after the progress bar
+				$this->displayIo->write("");
+			}
+			$this->progressBar = null;
+		}
 	}
 	
 	public function onPostPackageInstall(PackageEvent $event)

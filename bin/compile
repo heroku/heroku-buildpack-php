@@ -429,12 +429,14 @@ status "Installing platform packages..."
 export export_file_path=$bp_dir/export
 export profile_dir_path=$build_dir/.profile.d
 export providedextensionslog_file_path=$(mktemp -t "provided-extensions.log.XXXXXX" -u)
-# we make a new file descriptor for the installer plugin to log "human readable" display output to, duplicated to stdout (via indent)
-exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}> >(indent)
+# we make a new file descriptor for the installer plugin to log "human readable" display output to, duplicated to stdout
+exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&1
 # the installer picks up the FD number in this env var, and writes a "display output" log to it
 # meanwhile, the "raw" output of 'composer install' goes to install.log in case we need it later
 export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
-if composer install -d "$build_dir/.heroku/php" ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} > $build_dir/.heroku/php/install.log 2>&1; then
+export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=7
+# NO_COLOR=1 suppresses the download progress meter whose ANSI cursor codes trip up output in Heroku Dashboard
+if NO_COLOR=1 composer install -d "$build_dir/.heroku/php" ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} > $build_dir/.heroku/php/install.log 2>&1; then
 	:
 else
 	code=$?
@@ -528,18 +530,16 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 		for extension in "${provides[@]:1}"; do # remaining words in line are native extensions it declares "provide"d
 			ext_package=$(cut -d":" -f1 <<< "$extension") # extract name from "ext-foo:1.2.3" string
 			ext_name=${ext_package#"heroku-sys/"} # no "heroku-sys/" prefix for human output
-			echo -n "- ${ext_name}... " | indent
 			# run a `composer require`, confined to the package we're attempting, allowing any version
 			# we're appending to install.log using tee, and using another new "display output" FD to redirect to a new single-step log (tee truncates for us)
 			# this log is checked later to see if a package install actually happened, or if it was already enabled (since both exit status 0)
-			# we're letting the indents begin the line with a \r character, so that the above `echo -n` gets overwritten
-			exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}> >(tee "$current_install_log" | indent "" $'\r       ')
-			if composer require -d "$build_dir/.heroku/php" "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
+			exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}> >(tee "$current_install_log")
+			# NO_COLOR=1 suppresses the download progress meter whose ANSI cursor codes trip up output in Heroku Dashboard
+			if NO_COLOR=1 composer require -d "$build_dir/.heroku/php" "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
 				# package added successfully
-				[[ -s "$current_install_log" ]] || { echo -e "- ${ext_name} (already enabled)" | indent "" $'\r       '; } # if nothing was actually installed above, that means the dependency was already satisfied (i.e. extension is statically built into PHP); we need to echo something to that effect
+				[[ -s "$current_install_log" ]] || { echo "- ${ext_name} (already enabled)" | indent; } # if nothing was actually installed above, that means the dependency was already satisfied (i.e. extension is statically built into PHP); we need to echo something to that effect
 			else
 				# composer did not succeed; this means no package that matches all existing package's requirements was found
-				echo -n -e "\r" # reset the line
 				notice_inline "no suitable native version of ${ext_name} available"
 			fi
 			exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&-
@@ -549,7 +549,7 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 	exec {fd_num}>&-
 fi
 
-unset PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
+unset PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT
 
 # log number of installed platform packages
 mmeasure "platform.count" $(composer show -d "$build_dir/.heroku/php" --installed "heroku-sys/*" 2> /dev/null | wc -l)
