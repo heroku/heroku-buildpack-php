@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.3.21 [David Zuelke]
+
 ### CHG
 
 - Remove support for heroku-20 [David Zuelke]
