@@ -235,6 +235,10 @@ s3_url="https://lang-php.s3.us-east-1.amazonaws.com/dist-${stack_locator}-stable
 # hash the list of "declared" build formulae, this is the "snapshot" of a fixed repo state
 platform_repo_url="${s3_url}packages-$("$bp_dir"/support/build/_util/formulae-hash.sh).json"
 if ! curl_retry_on_18  --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent -I "$platform_repo_url" > /dev/null; then
+	echo "=========="
+	echo "$platform_repo_url"
+	echo "$HEROKU_PHP_PLATFORM_REPOSITORY_SNAPSHOT_FALLBACK"
+
 	notice_inline "Default platform repository snapshot not available."
 	export_env_dir "$env_dir" '^HEROKU_PHP_PLATFORM_REPOSITORY_SNAPSHOT_FALLBACK$'
 	# let's check if a fallback to the non-snapshot URL is allowed
@@ -264,10 +268,11 @@ mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 
 curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-8.3.21.tar.gz" || {
+	echo "${s3_url}php-min-8.3.21.tar.gz"
 	mcount "failures.bootstrap.download.php-min"
 	error <<-EOF
 		Failed to download minimal PHP for bootstrapping!
-		
+
 		This is most likely a temporary internal error. If the problem
 		persists, make sure that you are not running a custom or forked
 		version of the Heroku PHP buildpack which may need updating.
