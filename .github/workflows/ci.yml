@@ -24,6 +24,7 @@ env:
   HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
   GIT_HTTP_LOW_SPEED_LIMIT: 1000
   GIT_HTTP_LOW_SPEED_TIME: 60
+  HEROKU_DEBUG_EXPENSIVE: 1
 
 jobs:
   integration-test:
@@ -73,6 +74,8 @@ jobs:
         run: |
           if [[ $STACK != heroku-22 ]]; then STACK="${STACK}-amd64"; fi
           echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}" >> "$GITHUB_ENV"
+      - name: Debugging
+        run: echo "$HEROKU_PHP_PLATFORM_REPOSITORIES"
       - name: Calculate number of parallel_rspec processes (half of num of lines in runtime log)
         run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat test/var/log/parallel_runtime_rspec.${STACK}.log | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"
       - name: Execute tests
