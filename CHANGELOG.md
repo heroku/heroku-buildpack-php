@@ -16,6 +16,7 @@
 - Default to stable "snapshots" of platform package repositories [David Zuelke]
 - librdkafka/2.10.0 [David Zuelke]
 - Nginx/1.28.0 [David Zuelke]
+- Composer/2.8.9 [David Zuelke]
 
 ## [v265] - 2025-04-11
 
