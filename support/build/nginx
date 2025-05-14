@@ -32,37 +32,38 @@ fi
 
 patch -p1 < $(dirname $BASH_SOURCE)/_patches/nginx-ignoresigterm.patch
 
-ETC=${OUT_PREFIX}/etc
-VAR=${OUT_PREFIX}/var
+# exclamation point makes the prefix "dynamic":
+# relative to cwd at runtime, but can be overridden using -p
+# we want that for relocatability
 ./configure \
-	--prefix=${OUT_PREFIX} \
-	--conf-path=${ETC}/nginx/nginx.conf \
-	--pid-path=${VAR}/run/nginx.pid \
-	--lock-path=${VAR}/run/nginx.lock \
-	--http-client-body-temp-path=${VAR}/run/nginx/client_body_temp \
-	--http-proxy-temp-path=${VAR}/run/nginx/proxy_temp \
-	--http-fastcgi-temp-path=${VAR}/run/nginx/fastcgi_temp \
-	--http-uwsgi-temp-path=${VAR}/run/nginx/uwsgi_temp \
-	--http-scgi-temp-path=${VAR}/run/nginx/scgi_temp \
-	--http-log-path=${VAR}/log/nginx/access.log \
+	--prefix='!' \
+	--conf-path=etc/nginx/nginx.conf \
+	--pid-path=var/run/nginx.pid \
+	--lock-path=var/run/nginx.lock \
+	--http-client-body-temp-path=var/run/nginx/client_body_temp \
+	--http-proxy-temp-path=var/run/nginx/proxy_temp \
+	--http-fastcgi-temp-path=var/run/nginx/fastcgi_temp \
+	--http-uwsgi-temp-path=var/run/nginx/uwsgi_temp \
+	--http-scgi-temp-path=var/run/nginx/scgi_temp \
+	--http-log-path=var/log/nginx/access.log \
 	--error-log-path=stderr \
 	--with-http_auth_request_module \
 	--with-http_realip_module \
 	--with-http_ssl_module \
 	--with-http_stub_status_module
 make -s -j $(($(nproc)+1))
-make install -s
+make install -s DESTDIR=${OUT_PREFIX}
 find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|(pie-)?executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 popd
 
-# this doesn't get created
-mkdir -p ${VAR}/run/nginx
+# this doesn't get created by make install
+mkdir -p ${OUT_PREFIX}/var/run/nginx
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.nginx.sh\",\"profile\":\"bin/profile.nginx.sh\"}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.nginx.sh\",\"install\":\"bin/install.nginx.sh\",\"profile\":\"bin/profile.nginx.sh\"}"}"
 
 mkdir -p ${OUT_PREFIX}/bin
 # this gets sourced after package install, so that the buildpack and following buildpacks can invoke
@@ -73,6 +74,33 @@ EOF
 cat > ${OUT_PREFIX}/bin/profile.nginx.sh <<'EOF'
 export PATH="$HOME/.heroku/php/sbin:$PATH"
 EOF
+
+# this is the post-install script for CNBs; it produces LayerEnv data
+cat > ${OUT_PREFIX}/bin/install.nginx.sh <<'EOFX'
+#!/usr/bin/env bash
+set -eu
+
+package_root=$(cd $(dirname $0); cd ..; pwd)
+dest_root=$1
+
+cat <<-EOF
+[
+	{
+		"scope": "all",
+		"modification_behavior": "prepend",
+		"name": "PATH",
+		"value": "${dest_root}/sbin"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "delimiter",
+		"name": "PATH",
+		"value": ":"
+	}
+]
+EOF
+EOFX
+chmod a+x ${OUT_PREFIX}/bin/install.nginx.sh
 
 python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
