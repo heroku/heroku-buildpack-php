@@ -8,9 +8,9 @@ use Composer\IO\{IOInterface, ConsoleIO, NullIO};
 use Symfony\Component\Console\Helper\{HelperSet,ProgressBar};
 use Symfony\Component\Console\Input\ArrayInput;
 use Symfony\Component\Console\Output\StreamOutput;
-use Composer\Plugin\{PluginEvents,PluginInterface,PreFileDownloadEvent,PostFileDownloadEvent};
+use Composer\Plugin\{PluginEvents,PluginInterface,PreFileDownloadEvent,PostFileDownloadEvent,PrePoolCreateEvent};
 use Composer\EventDispatcher\EventSubscriberInterface;
-use Composer\Installer\{PackageEvent,PackageEvents};
+use Composer\Installer\{InstallerEvent,InstallerEvents,PackageEvent,PackageEvents};
 use Composer\Package\PackageInterface;
 use Composer\Util\Filesystem;
 
@@ -31,6 +31,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	protected $profileCounter = 10;
 	protected $configCounter = 10;
 	
+	protected $requestedPackages = [];
 	protected $allPlatformRequirements = null;
 	
 	protected $progressBar;
@@ -121,6 +122,8 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 	public static function getSubscribedEvents()
 	{
 		return [
+			PluginEvents::PRE_POOL_CREATE => 'onPrePoolCreate',
+			InstallerEvents::PRE_OPERATIONS_EXEC => 'onPreOperationsExec',
 			PluginEvents::PRE_FILE_DOWNLOAD => 'onPreFileDownload',
 			PluginEvents::POST_FILE_DOWNLOAD => 'onPostFileDownload',
 			PackageEvents::PRE_PACKAGE_INSTALL => 'onPrePackageInstall',
@@ -128,7 +131,48 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		];
 	}
 	
-	// this fires when a download starts
+	// This does not fire on initial install, as the plugin gets installed as part of that, but the event fires before the plugin install.
+	// Just what we want, since the logic in here is for the "ext-foobar.native" install attempts after the main packages installation.
+	// For those invocations, the plugin is already enabled, and this event handler fires.
+	public function onPrePoolCreate(PrePoolCreateEvent $event)
+	{
+		// the list of explicitly requested packages from e.g. a 'composer require ext-foobar.native:*'
+		// we remember this for later, so we can output a message about already-enabled extensions
+		// this will be e.g. ["heroku-sys/ext-mbstring.native"]
+		$this->requestedPackages = $event->getRequest()->getUpdateAllowList();
+	}
+	
+	// This does not fire on initial install, as the plugin gets installed as part of that, but the event fires before the plugin install.
+	// Just what we want, since the logic in here is for the "ext-foobar.native" install attempts after the main packages installation.
+	// For those invocations, the plugin is already enabled, and this event handler fires.
+	public function onPreOperationsExec(InstallerEvent $event)
+	{
+		// From the list of operations, we are getting all packages due for install.
+		// For each package, we check the "replaces" declarations.
+		// For instance, "heroku-sys/ext-mbstring" will declare that it replaces "heroku-sys/ext-mbstring.native".
+		// The "replaces" array is keyed by "replacement destination", so it's e.g.:
+		//   {"heroku-sys/ext-mbstring.native": {Composer\Package\Link(source="heroku-sys/ext-mbstring",target="heroku-sys/ext-mbstring.native")}}
+		// For any package found here that is in the requestAllowList made in onPrePoolCreate, this means a regular installation,
+		// the Downloader will print install progress in this case.
+		// What we are really looking for, though, is packages in requestAllowList that are not in our list of operations,
+		// that means the extension is already enabled (either installed previously, or enabled in PHP by default).
+		// Because no installer event will fire in that case (nothing gets installed, after all), we want to output a message here.
+		$installs = [];
+		foreach($event->getTransaction()->getOperations() as $operation) {
+			// add the package itself, just for completeness
+			if ($operation->getOperationType() == "install") {
+				$installs[] = $operation->getPackage()->getPrettyName();
+			}
+			// add all "replace" declarations from the package
+			$installs = array_merge($installs, array_keys($operation->getPackage()->getReplaces()));
+		}
+		foreach(array_diff($this->requestedPackages, $installs) as $requestedPackageNotInstalled) {
+			$this->displayIo->write(sprintf('<indent>-</indent> <info>%s</info> (already enabled)', ComposerInstaller::formatHerokuSysName($requestedPackageNotInstalled)));
+		}
+	}
+	
+	// Because our plugin declares "plugin-modifies-downloads", Composer installs it first.
+	// After that, all other package downloads trigger this event.
 	public function onPreFileDownload(PreFileDownloadEvent $event)
 	{
 		$package = $event->getContext();
@@ -152,7 +196,9 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		}
 	}
 	
-	// this fires when a download finishes, so we can output progress info
+	// Because our plugin declares "plugin-modifies-downloads", Composer installs it first.
+	// After that, all other package downloads trigger this event.
+	// We use it to output progress info when a download finishes
 	// (Downloader::download returns a promise for parallel downloads, so would be as useless as onPreFileDownload above)
 	public function onPostFileDownload(PostFileDownloadEvent $event)
 	{
@@ -164,8 +210,9 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		}
 	}
 	
-	// this fires for every package install
-	// nothing to do for us here except to clear a progress bar if it exists
+	// Because our plugin declares "plugin-modifies-install-path", Composer installs it first.
+	// After that, all other package installs trigger this event.
+	// Nothing to do for us here except to clear a progress bar if it exists
 	public function onPrePackageInstall(PackageEvent $event)
 	{
 		// clear our progress bar, since we're done with downloads
@@ -182,6 +229,9 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		}
 	}
 	
+	// Because our plugin declares "plugin-modifies-install-path", Composer installs it first.
+	// After that, all other package installs trigger this event.
+	// Here we do a lot of the "heavy lifting"
 	public function onPostPackageInstall(PackageEvent $event)
 	{
 		// first, load all platform requirements from all operations

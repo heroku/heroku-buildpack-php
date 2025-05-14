@@ -512,14 +512,10 @@ else
 	EOF
 fi
 
-# close display output FD (we make new ones for each iteration next)
-exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&-
-
 export -n providedextensionslog_file_path # export no longer needed
 if [[ -s "$providedextensionslog_file_path" ]]; then
 	notice_inline "detected userland polyfill packages for PHP extensions"
 	notice_inline "now attempting to install native extension packages"
-	current_install_log=$(mktemp -t "currentinstall.log.XXXXXX" -u) # for capturing the single "composer install" output
 	# the platform installer recorded userland packages that "provide" a PHP extension
 	# for each occurrence (source package providing other package(s)) in the list,
 	# we will now attempt to install the real native extension packages (rest of the line)
@@ -531,21 +527,14 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 			ext_package=$(cut -d":" -f1 <<< "$extension") # extract name from "ext-foo:1.2.3" string
 			ext_name=${ext_package#"heroku-sys/"} # no "heroku-sys/" prefix for human output
 			# run a `composer require`, confined to the package we're attempting, allowing any version
-			# we're appending to install.log using tee, and using another new "display output" FD to redirect to a new single-step log (tee truncates for us)
-			# this log is checked later to see if a package install actually happened, or if it was already enabled (since both exit status 0)
-			exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}> >(tee "$current_install_log")
+			#   (the .native "replace"d variant in each extension matches the regular version, so the constraint for that regular version is enough)
 			# NO_COLOR=1 suppresses the download progress meter whose ANSI cursor codes trip up output in Heroku Dashboard
-			if NO_COLOR=1 composer require -d "$build_dir/.heroku/php" "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
-				# package added successfully
-				[[ -s "$current_install_log" ]] || { echo "- ${ext_name} (already enabled)" | indent; } # if nothing was actually installed above, that means the dependency was already satisfied (i.e. extension is statically built into PHP); we need to echo something to that effect
-			else
+			if ! NO_COLOR=1 composer require -d "$build_dir/.heroku/php" "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
 				# composer did not succeed; this means no package that matches all existing package's requirements was found
 				notice_inline "no suitable native version of ${ext_name} available"
 			fi
-			exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&-
 		done
 	done {fd_num}< "$providedextensionslog_file_path" # use bash 4.1+ automatic file descriptor allocation (better than hardcoding e.g. "3<"), otherwise this loop's stdin (the lines of the file) will be consumed by programs called inside the loop
-	rm "$current_install_log"
 	exec {fd_num}>&-
 fi
 

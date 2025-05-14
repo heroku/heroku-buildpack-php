@@ -16,7 +16,9 @@ class ComposerInstaller extends LibraryInstaller
 	
 	public static function formatHerokuSysName(string $name): string
 	{
-		return sscanf($name, "heroku-sys/%s")[0] ?? $name;
+		// strip a "heroku-sys/" prefix if it exists, and in that case, also a ".native" postfix
+		// this turns our internal "heroku-sys/ext-foobar.native" or "heroku-sys/php" names into "ext-foobar" or "php" for display output
+		return preg_replace('#^(heroku-sys/)(.+?)(?(1).native)?$#', '$2', $name);
 	}
 	
 	/**
