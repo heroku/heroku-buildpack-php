@@ -2,9 +2,22 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.3.21 [David Zuelke]
+- PHP/8.4.7 [David Zuelke]
+- ext-phalcon/5.9.3 [David Zuelke]
+- ext-grpc/1.72.0 [David Zuelke]
+- ext-newrelic/11.9.0.23 [David Zuelke]
+- ext-uuid/1.3.0 [David Zuelke]
+
 ### CHG
 
 - Remove support for heroku-20 [David Zuelke]
+- Default to stable "snapshots" of platform package repositories [David Zuelke]
+- librdkafka/2.10.0 [David Zuelke]
+- Nginx/1.28.0 [David Zuelke]
+- Composer/2.8.9 [David Zuelke]
 
 ## [v265] - 2025-04-11
 
