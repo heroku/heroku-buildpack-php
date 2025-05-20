@@ -299,13 +299,13 @@ describe "The PHP Platform Installer" do
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")
 					out_before_polyfills, out_after_polyfills = app.output.split("detected userland polyfill packages for PHP extensions", 2)
-					expect(out_before_polyfills).to include("- php (8")
+					expect(out_before_polyfills).to include("- php (8.4.")
 					expect(out_after_polyfills).to include("- ext-ctype (already enabled)")
 					expect(out_after_polyfills).to include("- ext-raphf (") # ext-pq, which we required, depends on it
 					expect(out_after_polyfills).to include("- ext-pq (")
 					expect(out_after_polyfills).to include("- ext-uuid (")
-					expect(out_after_polyfills).not_to include("- ext-xmlrpc (")
-					expect(out_after_polyfills).to include("no suitable native version of ext-xmlrpc available")
+					expect(out_after_polyfills).not_to include("- ext-newrelic (")
+					expect(out_after_polyfills).to include("no suitable native version of ext-newrelic available")
 				end
 			end
 			it "ignores a polyfill for an extension that another extension depends upon" do
