@@ -512,7 +512,7 @@ else
 	EOF
 fi
 
-export -n providedextensionslog_file_path # export no longer needed
+export -n providedextensionslog_file_path # export no longer needed (and we don't want more entries written by the plugin even if it encounters them)
 if [[ -s "$providedextensionslog_file_path" ]]; then
 	notice_inline "detected userland polyfill packages for PHP extensions"
 	notice_inline "now attempting to install native extension packages"
@@ -538,6 +538,10 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 	exec {fd_num}>&-
 fi
 
+# clean up installer variables and files
+# we want to keep export_file_path and profile_dir_path for newrelic and blackfire attempts at the end though
+rm -f "$providedextensionslog_file_path"
+unset providedextensionslog_file_path
 unset PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT
 
 # log number of installed platform packages
