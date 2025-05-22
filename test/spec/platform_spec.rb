@@ -87,12 +87,29 @@ describe "The PHP Platform Installer" do
 	
 	describe "Composer Plugin" do
 		before(:all) do
-			@install_tmpdir = Dir.mktmpdir(nil, generator_fixtures_subdir) # this needs to be on the same level as the source fixture so the relative path references to the installer plugin inside composer.json work
+			fixture = "test/fixtures/platform/installer/polyfills"
+			stack_with_arch = stack = ENV["STACK"] || "heroku-24"
+			stack_with_arch = "#{stack}-amd64" unless stack == "heroku-22"
+			
+			@install_tmpdir = Dir.mktmpdir("install")
+			Dir.chdir(fixture) do |cwd|
+				bp_root = File.expand_path([".."].cycle(fixture.count("/")+1).to_a.join("/")) # use right "../.." sequence to get us back to the root of the buildpack
+				stdout, status = Open3.capture2(
+					{"STACK" => stack}, # env vars
+					"php",
+					"#{bp_root}/bin/util/platform.php",
+					"#{bp_root}/support/installer",
+					"https://lang-php.s3.us-east-1.amazonaws.com/dist-#{stack_with_arch}-stable/packages.json"
+				)
+				raise unless status.success?
+				File.open("#{@install_tmpdir}/composer.json", "w") { |file| file.write(stdout) }
+			end
+			
 			@export_tmpfile = Tempfile.new("export")
 			@humanlog_tmpfile = Tempfile.new("humanlog")
 			@profiled_tmpdir = Dir.mktmpdir("profile.d")
-			FileUtils.cp("#{generator_fixtures_subdir}/base/expected_platform_composer.json", "#{@install_tmpdir}/composer.json")
 			Dir.chdir(@install_tmpdir) do
+				# regular install first
 				cmd = <<~EOF
 					exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}> #{Shellwords.escape(@humanlog_tmpfile.path)}
 					export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
@@ -101,20 +118,34 @@ describe "The PHP Platform Installer" do
 					export profile_dir_path=#{Shellwords.escape(@profiled_tmpdir)}
 					composer install --no-dev
 				EOF
-				
 				@stdout, @stderr, @status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
+				
+				# the fixture has polyfill packages, where a userland package "provide"s a native extension
+				# emulate a force-install for such a native extension, like bin/compile would
+				@humanlog_native_tmpfile = Tempfile.new("humanlog_native")
+				cmd = <<~EOF
+					exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}> #{Shellwords.escape(@humanlog_native_tmpfile.path)}
+					export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
+					export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=4
+					export export_file_path=#{Shellwords.escape(@export_tmpfile.path)}
+					export profile_dir_path=#{Shellwords.escape(@profiled_tmpdir)}
+					composer require 'heroku-sys/ext-pq.native:*'
+				EOF
+				@stdout_native, @stderr_native, @status_native = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 			end
 		end
 		
 		after(:all) do
-			FileUtils.remove_entry(@install_tmpdir)
-			FileUtils.remove_entry(@profiled_tmpdir)
-			@export_tmpfile.unlink
-			@humanlog_tmpfile.unlink
+			FileUtils.remove_entry(@install_tmpdir) if @install_tmpdir
+			FileUtils.remove_entry(@profiled_tmpdir) if @profiled_tmpdir
+			@export_tmpfile.unlink if @export_tmpfile
+			@humanlog_tmpfile.unlink if @humanlog_tmpfile
+			@humanlog_native_tmpfile.unlink if @humanlog_native_tmpfile
 		end
 		
 		it "performs an installation successfully" do
 			expect(@status.exitstatus).to eq(0), "composer install failed, stderr: #{@stderr}, stdout: #{@stdout}"
+			expect(@status_native.exitstatus).to eq(0), "composer require ext-pq.native failed, stderr: #{@stderr_native}, stdout: #{@stdout_native}"
 		end
 		
 		it "installs multiple packages into the same directory structure" do
@@ -142,40 +173,43 @@ describe "The PHP Platform Installer" do
 		it "writes extension configs so they get loaded in the order of package installs" do
 			# fetch all extension INI files and sort them (PHP reads them in alnum sort order on startup, but Ruby's Dir has no guaranteed order)
 			extensionconfigs = Dir.each_child("#{@install_tmpdir}/etc/php/conf.d").sort
-			# remember from installer outout if ext-blackfire was installed first or ext-redis
-			order_to_check = @stderr.index("Installing heroku-sys/ext-blackfire ") > @stderr.index("Installing heroku-sys/ext-redis ")
+			# remember from installer output if ext-gd was installed first or ext-newrelic
+			order_to_check = @stderr.index("Enabling heroku-sys/ext-gd ") > @stderr.index("Installing heroku-sys/ext-newrelic ")
 			# now expect the same order in `conf.d/` for the two extensions' configs
-			expect(extensionconfigs.index {|f| f.include?("ext-blackfire.ini")} > extensionconfigs.index {|f| f.include?("ext-redis.ini")}).to eq(order_to_check)
+			expect(extensionconfigs.index {|f| f.include?("ext-gd.ini")} > extensionconfigs.index {|f| f.include?("ext-newrelic.ini")}).to eq(order_to_check)
+			# also check ext-raphf came before ext-pq
+			expect(@stderr_native.index("Installing heroku-sys/ext-raphf ")).to be < @stderr_native.index("Installing heroku-sys/ext-pq ")
+			expect(extensionconfigs.index {|f| f.include?("ext-raphf.ini")}).to be < extensionconfigs.index {|f| f.include?("ext-pq.ini")}
 		end
 		
 		it "enables shared extensions bundled with PHP if necessary" do
-			expect(@stderr).to match("Enabling heroku-sys/ext-mbstring")
-			expect(Dir.entries("#{@install_tmpdir}/etc/php/conf.d").any? {|f| f.include?("ext-mbstring.ini")}).to eq(true)
+			expect(@stderr).to match("Enabling heroku-sys/ext-gd")
+			expect(Dir.entries("#{@install_tmpdir}/etc/php/conf.d").any? {|f| f.include?("ext-gd.ini")}).to eq(true)
 		end
 		
 		it "writes a human-readable log (with the expected indentation) to a given file descriptor" do
-			version_triple = /\(\d+\.\d+\.\d+(\+[^)]+)?\)/ # 1.2.3 or 1.2.3+build2
+			version_triple = /\(\d+\.\d+\.\d+(\.\d+)?(\+[^)]+)?\)/ # 1.2.3 or 1.2.3+build2, optionally a fourth version dot
 			bundled = /\(bundled with php\)/
 			# the download progress indicator is written using ANSI cursors:
 			# "    Downloaded 0/8 [>---------------------------]   0%\e[1G\e[2K    Downloaded 1/8 [===>------------------------]  12%\e[1G\e[2K    Downloaded 2/8 [=======>--------------------]  25%\e[1G\e[2K    Downloaded 4/8 [==============>-------------]  50%\e[1G\e[2K    Downloaded 5/8 [=================>----------]  62%\e[1G\e[2K    Downloaded 6/8 [=====================>------]  75%\e[1G\e[2K    Downloaded 7/8 [========================>---]  87%\e[1G\e[2K    Downloaded 8/8 [============================] 100%\e[1G\e[2K    - php (8.4.6)\n    - ext-sqlite3 (bundled with php)\n..."
 			# we want to check that the download progress is actually printed, and then removed using ANSI codes
 			# so we just match on the last progress report (since we're not always guaranteed to get one for every step depending on speed)
 			expect(@humanlog_tmpfile.read).to match Regexp.new(<<~EOF)
-				    Downloaded 8/8 \\[============================\\] 100%\
+				    Downloaded 5/5 \\[============================\\] 100%\
 				\\e\\[1G\\e\\[2K\
 				    - php #{version_triple.source}
-				    - ext-sqlite3 #{bundled.source}
-				    - ext-redis #{version_triple.source}
-				    - ext-mbstring #{bundled.source}
-				    - ext-ldap #{bundled.source}
-				    - ext-intl #{bundled.source}
-				    - ext-imap #{version_triple.source}
-				    - ext-gmp #{bundled.source}
-				    - blackfire #{version_triple.source}
-				    - ext-blackfire #{version_triple.source}
+				    - ext-newrelic #{version_triple.source}
+				    - ext-gd #{bundled.source}
 				    - apache #{version_triple.source}
 				    - composer #{version_triple.source}
 				    - nginx #{version_triple.source}
+			EOF
+
+			expect(@humanlog_native_tmpfile.read).to match Regexp.new(<<~EOF)
+				    Downloaded 2/2 \\[============================\\] 100%\
+				\\e\\[1G\\e\\[2K\
+				    - ext-raphf #{version_triple.source}
+				    - ext-pq #{version_triple.source}
 			EOF
 
 		end
