@@ -377,7 +377,7 @@ The version of a package must conform to [Composer's version specification](http
 
 When updating the build for an existing, published version of a package (e.g. with updated compile options), it is recommended to use *build metadata* in the version string of the updated package in order to distinguish it from the existing, published version. For example, `php-8.4.6` would become `php-8.4.6+build2`.
 
-Per Semver specifications, any build metadata in a version string is ignored during version comparison. This means it could not be guaranteed that `php-8.4.6+build2` is picked, if it exists in the same repository as `php-8.4.6`. For this reason, when [(Re-)generating Repositories](re-generating-repositories), only the package/version combination with the "highest" (compared using lenient version string comparison) build metadata will be included, meaning that in the example above, `php-8.4.6` would not be included in the generated repository, only `php-8.4.6+build2`.
+Per Semver specifications, any build metadata in a version string is ignored during version comparison. This means it could not be guaranteed that `php-8.4.6+build2` is picked, if it exists in the same repository as `php-8.4.6`. For this reason, when [(Re-)generating Repositories](#re-generating-repositories), only the package/version combination with the "highest" (compared using lenient version string comparison) build metadata will be included, meaning that in the example above, `php-8.4.6` would not be included in the generated repository, only `php-8.4.6+build2`.
 
 #### Package Type
 
