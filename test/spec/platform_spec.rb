@@ -108,6 +108,7 @@ describe "The PHP Platform Installer" do
 			@export_tmpfile = Tempfile.new("export")
 			@humanlog_tmpfile = Tempfile.new("humanlog")
 			@profiled_tmpdir = Dir.mktmpdir("profile.d")
+			@providedextensionslog_tmpfile = Tempfile.new("providedextensionslog")
 			Dir.chdir(@install_tmpdir) do
 				# regular install first
 				cmd = <<~EOF
@@ -116,6 +117,7 @@ describe "The PHP Platform Installer" do
 					export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=4
 					export export_file_path=#{Shellwords.escape(@export_tmpfile.path)}
 					export profile_dir_path=#{Shellwords.escape(@profiled_tmpdir)}
+					export providedextensionslog_file_path=#{Shellwords.escape(@providedextensionslog_tmpfile.path)}
 					composer install --no-dev
 				EOF
 				@stdout, @stderr, @status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
@@ -141,6 +143,7 @@ describe "The PHP Platform Installer" do
 			@export_tmpfile.unlink if @export_tmpfile
 			@humanlog_tmpfile.unlink if @humanlog_tmpfile
 			@humanlog_native_tmpfile.unlink if @humanlog_native_tmpfile
+			@providedextensionslog_tmpfile.unlink if @providedextensionslog_tmpfile
 		end
 		
 		it "performs an installation successfully" do
@@ -185,6 +188,14 @@ describe "The PHP Platform Installer" do
 		it "enables shared extensions bundled with PHP if necessary" do
 			expect(@stderr).to match("Enabling heroku-sys/ext-gd")
 			expect(Dir.entries("#{@install_tmpdir}/etc/php/conf.d").any? {|f| f.include?("ext-gd.ini")}).to eq(true)
+		end
+		
+		it "writes a log of userland polyfills that provide native extensions for subsequent install attempts" do
+			expect(@providedextensionslog_tmpfile.read)
+				.to include("symfony/polyfill-uuid heroku-sys/ext-uuid:*")
+				.and include("dummypak/ext-pq-polyfill heroku-sys/ext-pq:*")
+				.and include("dummypak/ext-imap-polyfill heroku-sys/ext-imap:8.3.0")
+				.and include("symfony/polyfill-ctype heroku-sys/ext-ctype:*")
 		end
 		
 		it "writes a human-readable log (with the expected indentation) to a given file descriptor" do
