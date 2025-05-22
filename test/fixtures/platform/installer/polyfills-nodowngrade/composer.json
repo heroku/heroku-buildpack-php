@@ -3,14 +3,14 @@
 		{
 			"type": "package",
 			"package": {
-				"name": "dummypak/ext-xmlrpc-polyfill",
-				"version": "1.0.3",
+				"name": "dummypak/ext-newrelic10-polyfill",
+				"version": "10.22.0.12",
 				"type": "metapackage",
 				"require": {
-					"php": "^7.0 | ^8.0"
+					"php": "^8.0"
 				},
 				"provide": {
-					"ext-xmlrpc": "8.1.0"
+					"ext-newrelic": "10.22.0.12"
 				}
 			}
 		},
@@ -32,13 +32,13 @@
 	"require": {
 		"php": "*",
 		"dummypak/ext-pq-polyfill": "^1.0",
-		"dummypak/ext-xmlrpc-polyfill": "^1.0",
+		"dummypak/ext-newrelic10-polyfill": "^10.0",
 		"symfony/polyfill-ctype": "^1.24.0",
 		"symfony/polyfill-mbstring": "^1.24.0",
 		"symfony/polyfill-uuid": "^1.24.0",
 		"ext-ctype": "*",
 		"ext-pq": "*",
 		"ext-uuid": "*",
-		"ext-xmlrpc": "*"
+		"ext-newrelic": "10.*"
 	}
 }

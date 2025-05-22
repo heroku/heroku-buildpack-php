@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "dabf63f39109eba8917b8358fbaca9a0",
+    "content-hash": "ebd1349869856ecd6ad0896df768f7b0",
     "packages": [
         {
             "name": "dummypak/ext-imap-polyfill",
@@ -277,7 +277,9 @@
     "platform": {
         "php": "8.3.*",
         "ext-ctype": "*",
+        "ext-gd": "*",
         "ext-imap": "*",
+        "ext-newrelic": "*",
         "ext-pq": "*",
         "ext-uuid": "*"
     },

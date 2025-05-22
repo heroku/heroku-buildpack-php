@@ -59,7 +59,8 @@ class Downloader extends TarDownloader
 		$fn = str_replace('/', '$', $package->getPrettyName());
 		$marker = "$path/$fn.extracted";
 		$this->addCleanupPath($package, $marker);
-		$this->displayIo->write(sprintf('- <info>%s</info> (<comment>%s</comment>)', ComposerInstaller::formatHerokuSysName($package->getPrettyName()), $package->getFullPrettyVersion()));
+		# our indent style can't be nested together with other styling tags
+		$this->displayIo->write(sprintf("<indent>-</indent> <info>%s</info> (<comment>%s</comment>)", ComposerInstaller::formatHerokuSysName($package->getPrettyName()), $package->getFullPrettyVersion()));
 		return parent::install($package, $path, $output);
 	}
 }
