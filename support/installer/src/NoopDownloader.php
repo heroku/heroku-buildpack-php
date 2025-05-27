@@ -40,7 +40,8 @@ class NoopDownloader implements DownloaderInterface
 	
 	public function install(PackageInterface $package, string $path): PromiseInterface
 	{
-		$this->displayIo->write(sprintf("- %s", ($this->humanMessageFormatter)($package, $path)));
+		# our indent style can't be nested together with other styling tags
+		$this->displayIo->write(sprintf("<indent>-</indent> %s", ($this->humanMessageFormatter)($package, $path)));
 		$this->io->writeError(sprintf("  - %s", ($this->installMessageFormatter)($package, $path)));
 		return \React\Promise\resolve(null);
 	}
