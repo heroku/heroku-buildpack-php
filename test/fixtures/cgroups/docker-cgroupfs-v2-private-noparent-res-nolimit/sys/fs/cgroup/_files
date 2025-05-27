@@ -1,0 +1,226 @@
+/sys/fs/cgroup/cgroup.controllers:
+cpuset cpu io memory hugetlb pids rdma
+/sys/fs/cgroup/cgroup.events:
+populated 1
+frozen 0
+/sys/fs/cgroup/cgroup.freeze:
+0
+/sys/fs/cgroup/cgroup.kill:
+cat: /sys/fs/cgroup/cgroup.kill: Permission denied
+/sys/fs/cgroup/cgroup.max.depth:
+max
+/sys/fs/cgroup/cgroup.max.descendants:
+max
+/sys/fs/cgroup/cgroup.procs:
+1
+24
+36
+/sys/fs/cgroup/cgroup.stat:
+nr_descendants 0
+nr_dying_descendants 0
+/sys/fs/cgroup/cgroup.subtree_control:
+/sys/fs/cgroup/cgroup.threads:
+1
+24
+39
+/sys/fs/cgroup/cgroup.type:
+domain
+/sys/fs/cgroup/cpu.idle:
+0
+/sys/fs/cgroup/cpu.max:
+max 100000
+/sys/fs/cgroup/cpu.max.burst:
+0
+/sys/fs/cgroup/cpu.stat:
+usage_usec 17777
+user_usec 4938
+system_usec 12839
+nr_periods 0
+nr_throttled 0
+throttled_usec 0
+nr_bursts 0
+burst_usec 0
+/sys/fs/cgroup/cpu.stat.local:
+throttled_usec 0
+/sys/fs/cgroup/cpu.weight:
+100
+/sys/fs/cgroup/cpu.weight.nice:
+0
+/sys/fs/cgroup/cpuset.cpus:
+1-2
+/sys/fs/cgroup/cpuset.cpus.effective:
+1-2
+/sys/fs/cgroup/cpuset.cpus.partition:
+member
+/sys/fs/cgroup/cpuset.mems:
+
+/sys/fs/cgroup/cpuset.mems.effective:
+0
+/sys/fs/cgroup/hugetlb.1GB.current:
+0
+/sys/fs/cgroup/hugetlb.1GB.events:
+max 0
+/sys/fs/cgroup/hugetlb.1GB.events.local:
+max 0
+/sys/fs/cgroup/hugetlb.1GB.max:
+max
+/sys/fs/cgroup/hugetlb.1GB.numa_stat:
+total=0 N0=0
+/sys/fs/cgroup/hugetlb.1GB.rsvd.current:
+0
+/sys/fs/cgroup/hugetlb.1GB.rsvd.max:
+max
+/sys/fs/cgroup/hugetlb.2MB.current:
+0
+/sys/fs/cgroup/hugetlb.2MB.events:
+max 0
+/sys/fs/cgroup/hugetlb.2MB.events.local:
+max 0
+/sys/fs/cgroup/hugetlb.2MB.max:
+max
+/sys/fs/cgroup/hugetlb.2MB.numa_stat:
+total=0 N0=0
+/sys/fs/cgroup/hugetlb.2MB.rsvd.current:
+0
+/sys/fs/cgroup/hugetlb.2MB.rsvd.max:
+max
+/sys/fs/cgroup/hugetlb.32MB.current:
+0
+/sys/fs/cgroup/hugetlb.32MB.events:
+max 0
+/sys/fs/cgroup/hugetlb.32MB.events.local:
+max 0
+/sys/fs/cgroup/hugetlb.32MB.max:
+max
+/sys/fs/cgroup/hugetlb.32MB.numa_stat:
+total=0 N0=0
+/sys/fs/cgroup/hugetlb.32MB.rsvd.current:
+0
+/sys/fs/cgroup/hugetlb.32MB.rsvd.max:
+max
+/sys/fs/cgroup/hugetlb.64KB.current:
+0
+/sys/fs/cgroup/hugetlb.64KB.events:
+max 0
+/sys/fs/cgroup/hugetlb.64KB.events.local:
+max 0
+/sys/fs/cgroup/hugetlb.64KB.max:
+max
+/sys/fs/cgroup/hugetlb.64KB.numa_stat:
+total=0 N0=0
+/sys/fs/cgroup/hugetlb.64KB.rsvd.current:
+0
+/sys/fs/cgroup/hugetlb.64KB.rsvd.max:
+max
+/sys/fs/cgroup/io.max:
+/sys/fs/cgroup/io.stat:
+/sys/fs/cgroup/memory.current:
+4005888
+/sys/fs/cgroup/memory.events:
+low 0
+high 0
+max 0
+oom 0
+oom_kill 0
+oom_group_kill 0
+/sys/fs/cgroup/memory.events.local:
+low 0
+high 0
+max 0
+oom 0
+oom_kill 0
+oom_group_kill 0
+/sys/fs/cgroup/memory.high:
+max
+/sys/fs/cgroup/memory.low:
+838860800
+/sys/fs/cgroup/memory.max:
+max
+/sys/fs/cgroup/memory.min:
+0
+/sys/fs/cgroup/memory.oom.group:
+0
+/sys/fs/cgroup/memory.peak:
+5967872
+/sys/fs/cgroup/memory.reclaim:
+cat: /sys/fs/cgroup/memory.reclaim: Permission denied
+/sys/fs/cgroup/memory.stat:
+anon 602112
+file 0
+kernel 4210688
+kernel_stack 32768
+pagetables 106496
+sec_pagetables 0
+percpu 17408
+sock 0
+vmalloc 0
+shmem 0
+zswap 0
+zswapped 0
+file_mapped 0
+file_dirty 0
+file_writeback 0
+swapcached 0
+anon_thp 0
+file_thp 0
+shmem_thp 0
+inactive_anon 0
+active_anon 589824
+inactive_file 0
+active_file 0
+unevictable 0
+slab_reclaimable 158336
+slab_unreclaimable 635960
+slab 794296
+workingset_refault_anon 0
+workingset_refault_file 0
+workingset_activate_anon 0
+workingset_activate_file 0
+workingset_restore_anon 0
+workingset_restore_file 0
+workingset_nodereclaim 0
+pgscan 0
+pgsteal 0
+pgscan_kswapd 0
+pgscan_direct 0
+pgscan_khugepaged 0
+pgsteal_kswapd 0
+pgsteal_direct 0
+pgsteal_khugepaged 0
+pgfault 9275
+pgmajfault 0
+pgrefill 0
+pgactivate 0
+pgdeactivate 0
+pglazyfree 0
+pglazyfreed 0
+zswpin 0
+zswpout 0
+thp_fault_alloc 1
+thp_collapse_alloc 0
+/sys/fs/cgroup/memory.swap.current:
+0
+/sys/fs/cgroup/memory.swap.events:
+high 0
+max 0
+fail 0
+/sys/fs/cgroup/memory.swap.high:
+max
+/sys/fs/cgroup/memory.swap.max:
+max
+/sys/fs/cgroup/memory.swap.peak:
+0
+/sys/fs/cgroup/memory.zswap.current:
+0
+/sys/fs/cgroup/memory.zswap.max:
+max
+/sys/fs/cgroup/pids.current:
+3
+/sys/fs/cgroup/pids.events:
+max 0
+/sys/fs/cgroup/pids.max:
+max
+/sys/fs/cgroup/pids.peak:
+7
+/sys/fs/cgroup/rdma.current:
+/sys/fs/cgroup/rdma.max:
