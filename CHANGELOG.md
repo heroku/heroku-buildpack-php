@@ -13,6 +13,7 @@
 ### CHG
 
 - blackfire/2.28.26 [David Zuelke]
+- librdkafka/2.10.1 [David Zuelke]
 
 ## [v267] - 2025-05-15
 
