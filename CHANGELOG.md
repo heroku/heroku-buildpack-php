@@ -8,6 +8,7 @@
 - PHP/8.4.8 [David Zuelke]
 - ext-mongodb/2.1.0 [David Zuelke]
 - ext-grpc/1.73.0 [David Zuelke]
+- ext-blackfire/1.92.38 [David Zuelke]
 
 ## [v267] - 2025-05-15
 
