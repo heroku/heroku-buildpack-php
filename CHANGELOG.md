@@ -10,6 +10,10 @@
 - ext-grpc/1.73.0 [David Zuelke]
 - ext-blackfire/1.92.38 [David Zuelke]
 
+### CHG
+
+- blackfire/2.28.26 [David Zuelke]
+
 ## [v267] - 2025-05-15
 
 ### CHG
