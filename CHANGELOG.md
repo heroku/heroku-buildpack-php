@@ -2,9 +2,24 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.3.22 [David Zuelke]
+- PHP/8.4.8 [David Zuelke]
+- ext-mongodb/2.1.0 [David Zuelke]
+- ext-grpc/1.73.0 [David Zuelke]
+- ext-blackfire/1.92.38 [David Zuelke]
+
+### CHG
+
+- blackfire/2.28.26 [David Zuelke]
+- librdkafka/2.10.1 [David Zuelke]
 
 ## [v267] - 2025-05-15
 
+### CHG
+
+- No-change re-package [David Zuelke]
 
 ## [v266] - 2025-05-15
 
