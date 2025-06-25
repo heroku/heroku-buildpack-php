@@ -804,6 +804,7 @@ export COMPOSER=composer.json
 
 # unless we're running a CI build...
 if [[ "${HEROKU_PHP_INSTALL_DEV+CI}" != "CI" ]]; then
+	export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
 	status "Checking for additional extensions to install..."
 	# special treatment for Blackfire; we enable it if we detect a server id and a server token for it
 	install_blackfire_ext
