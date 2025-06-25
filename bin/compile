@@ -834,6 +834,9 @@ fi
 
 # unless we're running a CI build...
 if [[ "${HEROKU_PHP_INSTALL_DEV+CI}" != "CI" ]]; then
+	# see if we want to auto-enable blackfire and newrelic extensions
+	# we do this at the end because even with our apm ext "do not start" overrides via PHP_INI_SCAN_DIR,
+	# there can still be startup messages that clobber output during userland composer install etc
 	status "Checking for additional extensions to install..."
 	# special treatment for Blackfire; we enable it if we detect a server id and a server token for it
 	install_blackfire_ext
