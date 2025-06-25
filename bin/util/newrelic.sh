@@ -5,9 +5,7 @@ install_newrelic_ext() {
 	# otherwise users would have to have it in their require section, which is annoying in development environments
 	NEW_RELIC_LICENSE_KEY=${NEW_RELIC_LICENSE_KEY:-}
 	if [[ -n "$NEW_RELIC_LICENSE_KEY" ]] && ! platform-composer show --installed --quiet heroku-sys/ext-newrelic 2>/dev/null; then
-		if platform-composer require --update-no-dev -- "heroku-sys/ext-newrelic:*" "heroku-sys/ext-newrelic.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
-			echo "- New Relic detected, installed ext-newrelic" | indent
-		else
+		if ! platform-composer require --update-no-dev -- "heroku-sys/ext-newrelic:*" "heroku-sys/ext-newrelic.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
 			mcount "warnings.addons.newrelic.extension_missing"
 			warning_inline "New Relic detected, but no suitable extension available"
 		fi

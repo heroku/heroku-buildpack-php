@@ -18,7 +18,7 @@ describe "A PHP application using ext-blackfire and, as its agent, buildpack" do
 			)
 			app.deploy do |app|
 				expect(app.output).to match(/Blackfire detected, but no suitable extension available/)
-				expect(app.output).not_to match(/Blackfire detected, installed ext-blackfire/)
+				expect(app.output).not_to match(/- ext-blackfire \(\d+\.\d+\.\d+/)
 			end
 		end
 	end
@@ -36,7 +36,7 @@ describe "A PHP application using ext-blackfire and, as its agent, buildpack" do
 			)
 			app.deploy do |app|
 				expect(app.output).not_to match(/Blackfire detected, but no suitable extension available/)
-				expect(app.output).to match(/Blackfire detected, installed ext-blackfire/)
+				expect(app.output).to match(/- ext-blackfire \(\d+\.\d+\.\d+/)
 			end
 		end
 	end
