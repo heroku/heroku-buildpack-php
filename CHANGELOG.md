@@ -5,6 +5,7 @@
 ### CHG
 
 - Use bootstrapped Composer and minimal PHP for internal operations even after platform packages installation [David Zuelke]
+- Ensure auto-installation of ext-blackfire and ext-newrelic even if userland polyfills are present [David Zuelke]
 
 ## [v269] - 2025-07-04
 

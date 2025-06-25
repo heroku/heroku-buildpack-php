@@ -22,4 +22,22 @@ describe "A PHP application using ext-blackfire and, as its agent, buildpack" do
 			end
 		end
 	end
+	
+	context "with dependencies that polyfill the extension" do
+		it "gets the native extension auto-installed despite the polyfill" do
+			app = new_app_with_stack_and_platrepo(
+				"test/fixtures/apm/blackfire-polyfill",
+				config: {
+					"BLACKFIRE_CLIENT_ID": ENV["BLACKFIRE_CLIENT_ID"],
+					"BLACKFIRE_CLIENT_TOKEN": ENV["BLACKFIRE_CLIENT_TOKEN"],
+					"BLACKFIRE_SERVER_ID": ENV["BLACKFIRE_SERVER_ID"],
+					"BLACKFIRE_SERVER_TOKEN": ENV["BLACKFIRE_SERVER_TOKEN"],
+				}
+			)
+			app.deploy do |app|
+				expect(app.output).not_to match(/Blackfire detected, but no suitable extension available/)
+				expect(app.output).to match(/Blackfire detected, installed ext-blackfire/)
+			end
+		end
+	end
 end

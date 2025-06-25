@@ -123,4 +123,19 @@ describe "A PHP application using New Relic" do
 			end
 		end
 	end
+	
+	context "with dependencies that polyfill the extension" do
+		it "gets the native extension auto-installed despite the polyfill" do
+			app = new_app_with_stack_and_platrepo(
+				"test/fixtures/apm/newrelic-polyfill",
+				config: {
+					"NEW_RELIC_LICENSE_KEY": "somethingfake",
+				}
+			)
+			app.deploy do |app|
+				expect(app.output).not_to match(/New Relic detected, but no suitable extension available/)
+				expect(app.output).to match(/New Relic detected, installed ext-newrelic/)
+			end
+		end
+	end
 end
