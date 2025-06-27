@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### FIX
+
+- Spawned background processes (e.g. ScoutAPM core-agent) may cause builds to hang forever [David Zuelke]
 
 ## [v268] - 2025-06-13
 
