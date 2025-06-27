@@ -542,6 +542,9 @@ fi
 # we want to keep export_file_path and profile_dir_path for newrelic and blackfire attempts at the end though
 rm -f "$providedextensionslog_file_path"
 unset providedextensionslog_file_path
+# We must close this file descriptor, or any spawned child processes may inherit it.
+# If such a child process daemonizes itself (e.g. as ScoutAPM's core-agent does during Laravel framework startup in a post-install-cmd hook), either this bash process, or PID 1, will then wait forever for that FD to be closed, which the child process will not do because it is not aware of the inherited FD.
+exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&-
 unset PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT
 
 # log number of installed platform packages
