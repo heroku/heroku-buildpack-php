@@ -47,14 +47,17 @@ describe "A PHP application" do
 	end
 	
 	context "that during a build spawns a background process" do
-		it "does not hang at the end of the build due to file descriptors inherited by the background process" do
-			buildpacks = [
-				:default,
-				"https://github.com/weibeld/heroku-buildpack-run"
-			]
-			app = new_app_with_stack_and_platrepo("test/fixtures/bugs/child-process-fd-build-hang", buildpacks: buildpacks)
+		# app.deploy already re-tries for us three times, so we don't need rspec-retry to do the same
+		it "does not hang at the end of the build due to file descriptors inherited by the background process", :retry => 1 do
+			app = new_app_with_stack_and_platrepo("test/fixtures/bugs/child-process-fd-build-hang")
 			app.deploy do |app|
-				expect(app.output).to match("hello world")
+				# This test case ensures that bin/compile does not leave open file descriptors around that children would inherit.
+				# If those children are long-lived, like some background process that gets spawned during install (e.g. scoutapm-agent),
+				# they would inherit such an FD, and unless they explicitly close it, the parent (bin/compile) will wait before terminating
+				# if the issue were to occur, the build would never finish, causing a test error
+				# testing that app.deploy does not raise isn't possible, because it might genuinely hit a build timeout
+				# in that case, we want to retry, but we cannot tell the two cases apart
+				expect(app.output).to match("Verifying deploy")
 			end
 		end
 	end
