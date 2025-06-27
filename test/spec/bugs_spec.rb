@@ -13,6 +13,7 @@ describe "A PHP application" do
 			end
 		end
 	end
+	
 	context "that is built twice" do
 		# sometimes, customers download a slug for an existing app and check that into a new repo
 		# that means the source includes the binaries in .heroku/php/, which blows up the size by 100s of MB
@@ -41,6 +42,25 @@ describe "A PHP application" do
 				app.deploy do |app|
 					expect(app.output).to match("Your app source code contains artifacts from a previous build")
 				end
+			end
+		end
+	end
+	
+	context "that during a build spawns a background process" do
+		# app.deploy already re-tries for us three times, so we don't need rspec-retry to do the same
+		it "does not hang at the end of the build due to file descriptors inherited by the background process", :retry => 1 do
+			app = new_app_with_stack_and_platrepo("test/fixtures/bugs/child-process-fd-build-hang")
+			app.deploy do |app|
+				# This test case ensures that bin/compile does not leave open file descriptors around that children would inherit.
+				# If those children are long-lived, like some background process that gets spawned during install (e.g. scoutapm-agent),
+				# they would inherit such an FD, and unless they explicitly close it, the parent (bin/compile) will wait before terminating.
+				# If the issue were to occur, the build would never finish, causing a test error.
+				# Testing that app.deploy does not raise isn't possible, because it might genuinely hit a build timeout.
+				# In a legitimate timeout case, we want to retry, but we cannot tell the two cases apart.
+				# If the bug were to occur for all of app.deploy's retries, the next expect() will not execute, and the test will error.
+				# For completeness' sake, verify that our test started the NR daemon via a composer 'compile' script
+				_, out_after_compile = app.output.split("Running 'composer compile'", 2)
+				expect(out_after_compile).to match(/listen="@newrelic-daemon"[^\n]+?startup=init/)
 			end
 		end
 	end
