@@ -13,6 +13,7 @@ describe "A PHP application" do
 			end
 		end
 	end
+	
 	context "that is built twice" do
 		# sometimes, customers download a slug for an existing app and check that into a new repo
 		# that means the source includes the binaries in .heroku/php/, which blows up the size by 100s of MB
@@ -41,6 +42,19 @@ describe "A PHP application" do
 				app.deploy do |app|
 					expect(app.output).to match("Your app source code contains artifacts from a previous build")
 				end
+			end
+		end
+	end
+	
+	context "that during a build spawns a background process" do
+		it "does not hang at the end of the build due to file descriptors inherited by the background process" do
+			buildpacks = [
+				:default,
+				"https://github.com/weibeld/heroku-buildpack-run"
+			]
+			app = new_app_with_stack_and_platrepo("test/fixtures/bugs/child-process-fd-build-hang", buildpacks: buildpacks)
+			app.deploy do |app|
+				expect(app.output).to match("hello world")
 			end
 		end
 	end
