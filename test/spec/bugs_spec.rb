@@ -53,10 +53,11 @@ describe "A PHP application" do
 			app.deploy do |app|
 				# This test case ensures that bin/compile does not leave open file descriptors around that children would inherit.
 				# If those children are long-lived, like some background process that gets spawned during install (e.g. scoutapm-agent),
-				# they would inherit such an FD, and unless they explicitly close it, the parent (bin/compile) will wait before terminating
-				# if the issue were to occur, the build would never finish, causing a test error
-				# testing that app.deploy does not raise isn't possible, because it might genuinely hit a build timeout
-				# in that case, we want to retry, but we cannot tell the two cases apart
+				# they would inherit such an FD, and unless they explicitly close it, the parent (bin/compile) will wait before terminating.
+				# If the issue were to occur, the build would never finish, causing a test error.
+				# Testing that app.deploy does not raise isn't possible, because it might genuinely hit a build timeout.
+				# In a legitimate timeout case, we want to retry, but we cannot tell the two cases apart.
+				# If the bug were to occur for all of app.deploy's retries, the next expect() will not execute, and the test will error.
 				expect(app.output).to match("Verifying deploy")
 			end
 		end
