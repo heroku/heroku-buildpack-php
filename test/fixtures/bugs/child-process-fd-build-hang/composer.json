@@ -1,0 +1,9 @@
+{
+	"require": {
+		"php": "*",
+		"ext-newrelic": "*"
+	},
+	"scripts": {
+		"compile": "/app/.heroku/php/bin/newrelic-daemon --port '@newrelic-daemon' --logfile 'stderr' --loglevel 'info'"
+	}
+}
