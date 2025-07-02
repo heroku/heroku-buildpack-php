@@ -7,3 +7,5 @@ The common use case is to prevent APM extensions such as new relic from instrume
 The alternative approach, `php -n`, does not work, since many environments load even default extensions such as `ext-json` as shared libraries through their INIs, or otherwise would be stripped of necessary settings (e.g. a global `pcre.jit=0`, needed for Composer to work on certain platforms).
 
 This directory is also used by bin/compile to prevent the same APM startup, and a suitable `PHP_INI_SCAN_DIR` value is written into the `export` script, so that other buildpacks running after this one can call `php` or `composer` without getting the APM extension startup as well.
+
+The `export` file in this directory is used during builds to set env vars that prevent startup of APM agents that do not need an extension, such as ScoutAPM's core-agent, which would otherwise be downloaded and installed by an integration package like `scoutapp/scout-apm-laravel`.

@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Disable ScoutAPM monitoring during builds [David Zuelke]
+
 ### FIX
 
 - Spawned background processes (e.g. ScoutAPM core-agent) may cause builds to hang forever [David Zuelke]
