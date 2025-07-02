@@ -1,0 +1,12 @@
+{
+    "require": {
+        "php": "^8.2",
+        "laravel/framework": "^11.31"
+    },
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ]
+    }
+}
