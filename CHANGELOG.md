@@ -16,6 +16,7 @@
 ### CHG
 
 - Disable ScoutAPM monitoring during builds [David Zuelke]
+- blackfire/2.28.28 [David Zuelke]
 
 ### FIX
 
