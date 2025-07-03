@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.1.33 [David Zuelke]
+
 ### CHG
 
 - Disable ScoutAPM monitoring during builds [David Zuelke]
