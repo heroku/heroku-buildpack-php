@@ -17,6 +17,7 @@
 
 - Disable ScoutAPM monitoring during builds [David Zuelke]
 - blackfire/2.28.28 [David Zuelke]
+- librdkafka/2.11.0 [David Zuelke]
 
 ### FIX
 
