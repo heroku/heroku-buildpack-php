@@ -9,6 +9,7 @@
 - PHP/8.3.23 [David Zuelke]
 - PHP/8.4.10 [David Zuelke]
 - ext-mongodb/2.1.1 [David Zuelke]
+- ext-mongodb/1.21.1 [David Zuelke]
 
 ### CHG
 
