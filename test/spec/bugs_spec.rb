@@ -64,4 +64,29 @@ describe "A PHP application" do
 			end
 		end
 	end
+	
+	context "that uses the ScoutAPM integration for Laravel" do
+		it "does not download and start the ScoutAPM agent during a build" do
+			app = new_app_with_stack_and_platrepo(
+				"test/fixtures/bugs/scoutapm",
+				config: {
+					# for the minimal Laravel to work correctly
+					"LOG_CHANNEL": "stderr",
+					"CACHE_STORE": "array",
+					# to trigger ScoutAPM
+					"SCOUT_KEY": "test",
+					"SCOUT_MONITOR": true,
+					"SCOUT_NAME": "test"
+				}
+			)
+			app.deploy do |app|
+				expect(app.output).to include("[Scout] Laravel Scout Agent is starting")
+				expect(app.output).not_to match(/\[Scout\] Scout Core Agent .+ not connected yet, attempting to start/)
+				expect(app.output).not_to include("[Scout] Downloading package")
+				expect(app.output).not_to include("[Scout] Launching core agent")
+				expect(app.output).to include("[Scout] Connection skipped, since monitoring is disabled")
+				expect(app.output).to include("[Scout] Not sending payload, monitoring is not enabled")
+			end
+		end
+	end
 end

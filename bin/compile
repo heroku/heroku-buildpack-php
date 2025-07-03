@@ -560,10 +560,23 @@ rm -rf /app/.heroku/php-min $build_dir/.heroku/php-min
 unset -f composer
 
 # export our "do not auto.start APM extensions" magic INI directory to PHP_INI_SCAN_DIR for ourself and for later buildpacks (but not for runtime)
+# but first, there might be a user-supplied scan dir we have to take into account, so load that config var
 export_env_dir "$env_dir" '^PHP_INI_SCAN_DIR$'
 echo "export PHP_INI_SCAN_DIR=\${PHP_INI_SCAN_DIR-}:$bp_dir/conf/php/apm-nostart-overrides/" >> $bp_dir/export
+# later when we load all other user config vars, we need to ignore this one, or our apm-nostart-overrides addition would get re-set
+ignore_config_vars=("PHP_INI_SCAN_DIR")
+# env var based disabling for e.g. ScoutAPM (which would otherwise download and start its core-agent)
+# we have to do three things here:
+# 1. remember the names of the variables so we can prevent them from getting set by export_env_dir later
+# 2. export each variable into the current scope
+# 3. put export statements for each into $bp_dir/export
+# Number 1 we do in a subshell, by sourcing the file and comparing (via comm) the list of exported variable names, appending additions to the list of config vars we have to ignore later
+# (process substitution instead of pipe into readarray (subhell!); -t removes trailing newlines; -O sets start of array index to write to, since we want to append to the array; sort variable names to ensure comm does not complain about Bash outputting all uppercase variables before all lowercase variables)
+readarray -t -O ${#ignore_config_vars[@]} ignore_config_vars < <(vars=$(compgen -e | sort -f); source "$bp_dir/conf/php/apm-nostart-overrides/export"; comm -3 <(echo "$vars") <(compgen -e | sort -f) | cut -f2)
+# Numbers 2 and 3 are easy (same as above for PHP_INI_SCAN_DIR, we append to $bp_dir/export, plus we source it later anyway)
+cat "$bp_dir/conf/php/apm-nostart-overrides/export" >> $bp_dir/export
 
-# earlier we wrote at least one $PATH entry that we'll need now (and just above we added a PHP_INI_SCAN_DIR export), and installed packages will likely have added to it too
+# earlier we wrote at least one $PATH entry that we'll need now (and just above we added PHP_INI_SCAN_DIR etc exports), and installed packages will likely have added to it too
 source $bp_dir/export
 
 # from here onwards we're using the composer we installed via platform install with the PHP runtime that we installed via platform install
@@ -691,8 +704,11 @@ fi
 # no need for the token to stay around in the env
 unset COMPOSER_GITHUB_OAUTH_TOKEN
 
+# turn ignore_config_vars into an empty string, or a pipe-separated list with a leading pipe, for easy insertion into the regex
+ignore_config_vars=$(IFS="|"; echo -n "${ignore_config_vars:+"|"}${ignore_config_vars[*]}")
+# export config vars, except those we do not want to clobber our environment
+export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV|BPLOG_PREFIX|BUILDPACK_LOG_FILE'"${ignore_config_vars}"')$'
 # install dependencies unless composer.json is completely empty (in which case it'd talk to packagist.org which may be slow and is unnecessary)
-export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV|BPLOG_PREFIX|BUILDPACK_LOG_FILE|PHP_INI_SCAN_DIR)$'
 if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit(not json.load(sys.stdin));'; then
 	install_log=$(mktemp -t heroku-buildpack-php-composer-install-log-XXXX)
 	composer install ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --prefer-dist --optimize-autoloader --no-progress --no-interaction 2>&1 | tee "$install_log" | indent || {
