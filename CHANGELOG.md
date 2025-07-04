@@ -2,9 +2,22 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.1.33 [David Zuelke]
+- PHP/8.2.29 [David Zuelke]
+- PHP/8.3.23 [David Zuelke]
+- PHP/8.4.10 [David Zuelke]
+- ext-mongodb/2.1.1 [David Zuelke]
+- ext-mongodb/1.21.1 [David Zuelke]
+- ext-blackfire/1.92.40 [David Zuelke]
+- ext-newrelic/11.10.0.24 [David Zuelke]
+
 ### CHG
 
 - Disable ScoutAPM monitoring during builds [David Zuelke]
+- blackfire/2.28.28 [David Zuelke]
+- librdkafka/2.11.0 [David Zuelke]
 
 ### FIX
 
