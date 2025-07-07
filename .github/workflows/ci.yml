@@ -43,4 +43,9 @@ jobs:
         uses: actions/checkout@v4
       - name: Info
         run: |
-          echo "Ref: ${{ steps.checkout.outputs.ref }}"
+          echo "Checkout outputs.ref: ${{ steps.checkout.outputs.ref }}"
+          echo "Checkout outputs.commit: ${{ steps.checkout.outputs.commit }}"
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.ref_name: ${{ github.ref_name }}"
+          echo "\$GITHUB_REF: $GITHUB_REF"
+          echo "\$GITHUB_REF_NAME: $GITHUB_REF_NAME"
