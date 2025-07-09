@@ -41,10 +41,21 @@ jobs:
       - name: Checkout
         id: checkout
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
       - name: Info
         run: |
           echo "Checkout outputs.ref: ${{ steps.checkout.outputs.ref }}"
           echo "Checkout outputs.commit: ${{ steps.checkout.outputs.commit }}"
+          echo "github.ref: ${{ github.ref }}"
+          echo "github.ref_name: ${{ github.ref_name }}"
+          echo "\$GITHUB_REF: $GITHUB_REF"
+          echo "\$GITHUB_REF_NAME: $GITHUB_REF_NAME"
+      - name: Test overwriting of GITHUB_REF
+        run: |
+          echo "GITHUB_REF='${{ steps.checkout.outputs.ref }}'" >> "$GITHUB_ENV"
+      - name: See if that worked
+        run: |
           echo "github.ref: ${{ github.ref }}"
           echo "github.ref_name: ${{ github.ref_name }}"
           echo "\$GITHUB_REF: $GITHUB_REF"
