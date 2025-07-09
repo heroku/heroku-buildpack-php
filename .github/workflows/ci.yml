@@ -42,7 +42,7 @@ jobs:
         id: checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.pull_request.head.sha }}
+          ref: ${{ github.event.pull_request.head.ref }}
       - name: Info
         run: |
           echo "Checkout outputs.ref: ${{ steps.checkout.outputs.ref }}"
