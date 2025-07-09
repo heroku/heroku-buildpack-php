@@ -9,6 +9,9 @@ set -eu
 # move hidden files too, just in case
 shopt -s dotglob
 
+# some basic config vars we never want to export
+ignore_config_vars=("IFS" "HOME" "PATH" "CPATH" "CPPATH" "LD_PRELOAD" "LIBRARY_PATH" "LD_LIBRARY_PATH" "STACK" "REQUEST_ID" "HEROKU_PHP_INSTALL_DEV" "OLDPWD" "PWD" "DYNO")
+
 STACK=${STACK:-heroku-22} # Anvil has none
 build_dir=$1
 cache_dir=$2/php
@@ -18,6 +21,7 @@ bp_dir=$(cd $(dirname $0); cd ..; pwd)
 
 export BPLOG_PREFIX="buildpack.php"
 export BUILDPACK_LOG_FILE=${BUILDPACK_LOG_FILE:-/dev/null}
+ignore_config_vars+=("BPLOG_PREFIX" "BUILDPACK_LOG_FILE")
 
 # convenience functions
 source $bp_dir/bin/util/common.sh
@@ -35,6 +39,7 @@ source $bp_dir/bin/util/blackfire.sh
 
 # if this is set it prevents Git clones (e.g. for Composer installs from source) during the build in some circumstances, and it is set in SSH Git deploys to Heroku
 unset GIT_DIR
+ignore_config_vars+=("GIT_DIR")
 
 cd $build_dir
 
@@ -564,7 +569,7 @@ unset -f composer
 export_env_dir "$env_dir" '^PHP_INI_SCAN_DIR$'
 echo "export PHP_INI_SCAN_DIR=\${PHP_INI_SCAN_DIR-}:$bp_dir/conf/php/apm-nostart-overrides/" >> $bp_dir/export
 # later when we load all other user config vars, we need to ignore this one, or our apm-nostart-overrides addition would get re-set
-ignore_config_vars=("PHP_INI_SCAN_DIR")
+ignore_config_vars+=("PHP_INI_SCAN_DIR")
 # env var based disabling for e.g. ScoutAPM (which would otherwise download and start its core-agent)
 # we have to do three things here:
 # 1. remember the names of the variables so we can prevent them from getting set by export_env_dir later
@@ -703,11 +708,12 @@ else
 fi
 # no need for the token to stay around in the env
 unset COMPOSER_GITHUB_OAUTH_TOKEN
+ignore_config_vars+=("COMPOSER_GITHUB_OAUTH_TOKEN")
 
-# turn ignore_config_vars into an empty string, or a pipe-separated list with a leading pipe, for easy insertion into the regex
-ignore_config_vars=$(IFS="|"; echo -n "${ignore_config_vars:+"|"}${ignore_config_vars[*]}")
+# turn ignore_config_vars into a pipe-separated list, for easy insertion into the regex
+ignore_config_vars=$(IFS="|"; echo -n "${ignore_config_vars[*]}")
 # export config vars, except those we do not want to clobber our environment
-export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV|BPLOG_PREFIX|BUILDPACK_LOG_FILE'"${ignore_config_vars}"')$'
+export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' "^(${ignore_config_vars})$"
 # install dependencies unless composer.json is completely empty (in which case it'd talk to packagist.org which may be slow and is unnecessary)
 if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit(not json.load(sys.stdin));'; then
 	install_log=$(mktemp -t heroku-buildpack-php-composer-install-log-XXXX)
