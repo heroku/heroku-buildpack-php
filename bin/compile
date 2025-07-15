@@ -325,7 +325,7 @@ platform-composer() {
 	profile_dir_path="${build_dir}/.profile.d" \
 	${providedextensionslog_file_path:+"providedextensionslog_file_path=${providedextensionslog_file_path}"} \
 	${PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO:+"PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO=${PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}"} \
-	PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=7 \
+	PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT="${PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT:-7}" \
 	NO_COLOR=1 \
 	/app/.heroku/php-min/bin/php /app/.heroku/php-min/bin/composer -d "${build_dir}/.heroku/php" "$@"
 }
