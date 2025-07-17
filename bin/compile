@@ -550,15 +550,15 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 	# this isolated install will not change anything else about the existing dependency graph
 	while read -r -u "$fd_num" line; do # $fd_num comes from the end of the loop
 		read -r -a provides <<< "$line" # read words of line into array
-		echo "Installing extensions provided by ${provides[0]}:" | indent # first "word" is userland package name
+		echo "- Installing extensions provided by ${provides[0]}..." | indent # first "word" is userland package name
 		for extension in "${provides[@]:1}"; do # remaining words in line are native extensions it declares "provide"d
 			ext_package=$(cut -d":" -f1 <<< "$extension") # extract name from "ext-foo:1.2.3" string
 			ext_name=${ext_package#"heroku-sys/"} # no "heroku-sys/" prefix for human output
 			# run a `composer require`, confined to the package we're attempting, allowing any version
 			#   (the .native "replace"d variant in each extension matches the regular version, so the constraint for that regular version is enough)
-			if ! platform-composer require "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
+			if ! PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=9 platform-composer require "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
 				# composer did not succeed; this means no package that matches all existing package's requirements was found
-				notice_inline "no suitable native version of ${ext_name} available"
+				notice_inline -i9 "no suitable native version of ${ext_name} available"
 			fi
 		done
 	done {fd_num}< "$providedextensionslog_file_path" # use bash 4.1+ automatic file descriptor allocation (better than hardcoding e.g. "3<"), otherwise this loop's stdin (the lines of the file) will be consumed by programs called inside the loop

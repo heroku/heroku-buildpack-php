@@ -41,6 +41,7 @@ describe "A PHP application using New Relic" do
 				platform_installs, apm_installs = @app.output.split("Checking for additional extensions to install", 2)
 				if mode == "implicitly"
 					expect(@app.output).not_to match(/New Relic PHP Agent globally disabled/) # NR daemon should never start, since NR is installed at the very end
+					expect(apm_installs).to match(/New Relic config var detected, installing ext-newrelic/)
 					expect(apm_installs).to match(/- ext-newrelic \(\d+\.\d+\.\d+/) # auto-install at the end
 				else
 					expect(platform_installs).to match(/- ext-newrelic \(\d+\.\d+\.\d+/)
@@ -118,7 +119,8 @@ describe "A PHP application using New Relic" do
 				}
 			)
 			app.deploy do |app|
-				expect(app.output).to match(/New Relic detected, but no suitable extension available/)
+				expect(app.output).to match(/New Relic config var detected, installing ext-newrelic/)
+				expect(app.output).to match(/no suitable version of ext-newrelic available/)
 				expect(app.output).not_to match(/- ext-newrelic \(\d+\.\d+\.\d+/)
 			end
 		end
@@ -133,7 +135,8 @@ describe "A PHP application using New Relic" do
 				}
 			)
 			app.deploy do |app|
-				expect(app.output).not_to match(/New Relic detected, but no suitable extension available/)
+				expect(app.output).to match(/New Relic config var detected, installing ext-newrelic/)
+				expect(app.output).not_to match(/no suitable version of ext-newrelic available/)
 				expect(app.output).to match(/- ext-newrelic \(\d+\.\d+\.\d+/)
 			end
 		end
