@@ -51,36 +51,38 @@ shared_examples "A PHP application using ext-blackfire and" do |agent|
 					@app.teardown!
 				end
 				
-				it "installs Blackfire" do
+				it "detects Blackfire CLI from the blackfireio/integration-heroku buildpack" do
 					if agent == "our blackfire package"
 						expect(@app.output).not_to match(/Blackfire CLI version \d+\.\d+\.\d+ detected/)
+						# This is the CLI package, not the extension
+						# We do not have to check at what point during the build this gets installed
+						# The tests for the extension (which pulls in this package) further down do that
+						expect(@app.output).to match(/- blackfire \(\d+\.\d+\.\d+/)
 					else
 						expect(@app.output).to match(/Blackfire CLI version \d+\.\d+\.\d+ detected/)
+						expect(@app.output).not_to match(/- blackfire \(\d+\.\d+\.\d+/)
 					end
-					
+				end
+				
+				it "installs Blackfire" do
 					platform_installs, apm_installs = @app.output.split("Checking for additional extensions to install", 2)
 					if mode == "implicitly"
+						# auto-install at the end of the build
 						expect(apm_installs).to match(/Blackfire config vars detected, installing ext-blackfire/)
-						expect(apm_installs).to match(/- ext-blackfire \(\d+\.\d+\.\d+/) # auto-install at the end
-						if agent == "our blackfire package"
-							expect(apm_installs).to match(/- blackfire \(\d+\.\d+\.\d+/)
-						else
-							expect(apm_installs).not_to match(/- blackfire \(\d+\.\d+\.\d+/)
-						end
+					end
+					expect(mode == "implicitly" ? apm_installs : platform_installs).to match(/- ext-blackfire \(\d+\.\d+\.\d+/)
+				end
+				
+				it "does not start agent or extension during build" do
+					if mode == "implicitly" or mode == "with default BLACKFIRE_LOG_LEVEL"
+						# either blackfire should never start, since it is installed at the very end
+						# or the default log level should prevent any messages from appearing
+						expect(@app.output).not_to match(/\[Debug\] APM: disabled/)
 					else
-						if agent == "our blackfire package"
-							expect(platform_installs).to match(/- blackfire \(\d+\.\d+\.\d+/)
-						else
-							expect(platform_installs).not_to match(/- blackfire \(\d+\.\d+\.\d+/)
-						end
-						
-						expect(platform_installs).to match(/- ext-blackfire \(\d+\.\d+\.\d+/)
-						
-						if mode == "with default BLACKFIRE_LOG_LEVEL"
-							expect(@app.output).not_to match(/\[Debug\] APM: disabled/) # this message should not occur if defaults are applied correctly at build time
-						else
-							expect(@app.output).to match(/\[Debug\] APM: disabled/)  # extension disabled during builds
-						end
+						# this will be printed during composer install:
+						# - the extension is loaded into PHP at that point
+						# - the set log level allows printing
+						expect(@app.output).to match(/\[Debug\] APM: disabled/)
 					end
 				end
 				
