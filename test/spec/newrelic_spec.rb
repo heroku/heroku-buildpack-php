@@ -108,4 +108,19 @@ describe "A PHP application using New Relic" do
 			end
 		end
 	end
+	
+	context "with dependencies that prevent automatic installation of the extension" do
+		it "receives a warning but completes the build" do
+			app = new_app_with_stack_and_platrepo(
+				"test/fixtures/apm/newrelic-conflict",
+				config: {
+					"NEW_RELIC_LICENSE_KEY": "somethingfake",
+				}
+			)
+			app.deploy do |app|
+				expect(app.output).to match(/New Relic detected, but no suitable extension available/)
+				expect(app.output).not_to match(/New Relic detected, installed ext-newrelic/)
+			end
+		end
+	end
 end

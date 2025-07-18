@@ -1,0 +1,22 @@
+{
+	"repositories": [
+		{
+			"type": "package",
+			"package": {
+				"name": "my-conflict/newrelic",
+				"version": "1.0.0",
+				"type": "metapackage",
+				"require": {
+					"php": "*"
+				},
+				"conflict": {
+					"ext-newrelic": "*"
+				}
+			}
+		}
+	],
+	"require": {
+		"php": "*",
+		"my-conflict/newrelic": "1.0.0"
+	}
+}
