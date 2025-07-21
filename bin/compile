@@ -520,7 +520,12 @@ else
 		)
 		For reference, the following runtimes are currently available:
 		
-		PHP:  $(platform-composer show --available heroku-sys/php 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
+		PHP: $(
+			platform-composer show --available heroku-sys/php 2>&1 |
+			sed -n 's/^versions : //p' | # composer lists them like "versions : 1.2.3, 1.2.4"
+			fold -b -s -w 59 | # 59 characters at a time, wrap on whitespace
+			indent -i5 --no-first-line-indent || true # indent all lines except first to line up with "PHP: "
+		)
 		
 		Please verify that all requirements for runtime versions in
 		'$COMPOSER_LOCK' are compatible with the list above, and ensure
