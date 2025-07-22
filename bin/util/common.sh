@@ -5,18 +5,20 @@ _captured_warnings_file=$(mktemp -t heroku-buildpack-php-captured-warnings-XXXX)
 # Get config from caller's args ("$@") and set results into return variables.
 # The following flags and options can be given:
 # --no-first-line-indent
+# --rjust (to right-justify the computed prefix, i.e. pad with spaces on left)
 # -p PREFIXSTRING (e.g. " !", defaults to "")
 # -i INDENTWIDTH (e.g. 7, defaults to 7)
 # It populates the following variables, if non-empty at call time:
 # - OPTIND (for re-setting "$@" using 'shift')
 # - no_first_line_indent (set to '--no-first-line-indent' if present)
+# - rjust (set to '--rjust' if present)
 # - indent (the indent width as given in the -i argument)
-# - prefix (the final computed prefix of PREFIXSTRING padded to INDENT width)
+# - prefix (the computed prefix: PREFIXSTRING left-/right-padded to INDENT width)
 # To call from another function, pass "$@" and declare at least OPTIND and
 # any of the other return variables beforehand as not null, and any non-desired
 # return variables as null, e.g.:
 # > local OPTIND=1 prefix=""
-# > local indent no_first_line_indent # prevent outside scope interference
+# > local indent no_first_line_indent rjust # prevent outside scope interference
 # > get_message_config "$@"
 # > shift ((OPTIND-1))
 # > echo "prefix is: '${prefix}'" # "prefix is: '       '"
@@ -24,17 +26,21 @@ _captured_warnings_file=$(mktemp -t heroku-buildpack-php-captured-warnings-XXXX)
 # It is possible to pass e.g. a default value for the prefix that the user of
 # the calling function can still override, e.g. 'mywarning -p " !" ...':
 # > local OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-# > local indent no_first_line_indent # prevent outside scope interference
+# > local indent no_first_line_indent rjust # prevent outside scope interference
 # > get_message_config -p " !" "$@"
 # > shift ((OPTIND-1-2)) # two fewer args to shift due to -p above
 # > echo "prefix is: '${prefix}'" # "prefix is: ' !     '"
 get_message_config() {
 	local optstring=":-:i:p:"
 	local prefix_arg
+	local ljust="--ljust" # really just a dummy for later, any value works
 	if [[ -z "${OPTIND+isset}" ]]; then
 		local OPTIND # caller does not have it set, do not leak it outside
 	fi
 	OPTIND=1 # (re-)set the value to what it needs to be for the next getopts call
+	if [[ -z "${rjust+isset}" ]]; then
+		local rjust # caller does not have it set, do not leak it outside
+	fi
 	if [[ -z "${indent+isset}" ]]; then
 		local indent # caller does not have it set, do not leak it outside
 	fi
@@ -48,6 +54,10 @@ get_message_config() {
 						if [[ "${no_first_line_indent+isset}" == "isset" ]]; then
 							no_first_line_indent="--${OPTARG}" # available in the caller
 						fi
+						;;
+					rjust)
+						rjust="--${OPTARG}" # available in the caller
+						ljust="" # for "+" parameter expansion later
 						;;
 					*)
 						echo "Invalid option: --$OPTARG" >&2
@@ -88,14 +98,14 @@ get_message_config() {
 	# finally, assign the computed prefix
 	# this also has to be a "return variable", because echo would require $() by the caller
 	# that resulting subshell then would prevent reading the other variables above
-	printf -v prefix "%-${indent}s" "${prefix_arg-""}"
+	printf -v prefix "%${ljust:+"-"}${indent}s" "${prefix_arg-""}"
 }
 
 # indent width can be changed from default 7 using -i
 # prefix can be changed from default " !" using -p
 error() {
 	local OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-	local indent no_first_line_indent # prevent outside scope interference
+	local indent no_first_line_indent rjust # prevent outside scope interference
 	get_message_config -p " !" "$@"
 	shift $((OPTIND-1-2)) # two fewer args to shift since we passed -p above
 	# send all of our output to stderr
@@ -124,7 +134,7 @@ error() {
 # prefix can be changed from default " !" using -p
 warning() {
 	local OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-	local indent no_first_line_indent # prevent outside scope interference
+	local indent no_first_line_indent rjust # prevent outside scope interference
 	get_message_config -p " !" "$@"
 	shift $((OPTIND-1-2)) # two fewer args to shift since we passed -p above
 	# send all of our output to stderr
@@ -148,7 +158,7 @@ warning() {
 # prefix can be changed from default " !" using -p
 warning_inline() {
 	local OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-	local indent no_first_line_indent # prevent outside scope interference
+	local indent no_first_line_indent rjust # prevent outside scope interference
 	get_message_config -p " !" "$@"
 	shift $((OPTIND-1-2)) # two fewer args to shift since we passed -p above
 	# send all of our output to stderr
@@ -181,7 +191,7 @@ status() {
 # prefix can be changed from default "" using -p
 notice() {
 	local OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-	local indent no_first_line_indent # prevent outside scope interference
+	local indent no_first_line_indent rjust # prevent outside scope interference
 	get_message_config "$@"
 	shift $((OPTIND-1))
 	# send all of our output to stderr
@@ -200,7 +210,7 @@ notice() {
 # prefix can be changed from default "" using -p
 notice_inline() {
 	local OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-	local indent no_first_line_indent # prevent outside scope interference
+	local indent no_first_line_indent rjust # prevent outside scope interference
 	get_message_config "$@"
 	shift $((OPTIND-1))
 	# send all of our output to stderr
@@ -221,7 +231,7 @@ notice_inline() {
 # pass --no-first-line-indent as a flag to skip indentation of first line
 indent() {
 	local no_first_line_indent="" OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-	local indent # prevent outside scope interference
+	local indent rjust # prevent outside scope interference
 	get_message_config "$@"
 	shift $((OPTIND-1))
 	# if we were given a flag --no-first-line-indent, that indicates we shouldn't indent the first line
