@@ -302,6 +302,7 @@ rm $build_dir/.heroku/composer.tar.gz
 # this alias function is for installing platform packages
 # it passes the expected env vars for the installer plugin,
 # and executes the bootstrapped composer using the bootstrapped minimal php
+# (with the platform installation dir of .heroku/php/ as the cwd)
 platform-composer() {
 	# set PHPRC and PHP_INI_SCAN_DIR to ensure we don't use a user-supplied config
 	# export_file_path and profile_dir_path will be used by the installer plugin
@@ -316,7 +317,7 @@ platform-composer() {
 	profile_dir_path="${build_dir}/.profile.d" \
 	PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=7 \
 	NO_COLOR=1 \
-	/app/.heroku/php-min/bin/php /app/.heroku/php-min/bin/composer "$@"
+	/app/.heroku/php-min/bin/php -d "${build_dir}/.heroku/php" /app/.heroku/php-min/bin/composer "$@"
 }
 export -f platform-composer
 
@@ -324,7 +325,7 @@ mkdir -p $build_dir/.profile.d
 
 # we perform this check early so people with stale lock files are reminded why if their lock file errors in the next step
 composer_lock_outdated=false
-platform-composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPOSER" 2>/dev/null || {
+platform-composer validate --no-plugins --no-check-publish --no-check-all --quiet "$(realpath "$COMPOSER")" 2>/dev/null || {
 	mcount "warnings.composer_lock.outdated"
 	composer_lock_outdated=true
 	warning <<-EOF
@@ -447,7 +448,7 @@ exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&1
 # the installer picks up the FD number in this env var, and writes a "display output" log to it
 # meanwhile, the "raw" output of 'composer install' goes to install.log in case we need it later
 export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
-if platform-composer install -d "$build_dir/.heroku/php" ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} > $build_dir/.heroku/php/install.log 2>&1; then
+if platform-composer install ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} > $build_dir/.heroku/php/install.log 2>&1; then
 	:
 else
 	code=$?
@@ -508,7 +509,7 @@ else
 		)
 		For reference, the following runtimes are currently available:
 		
-		PHP:  $(platform-composer show -d "$build_dir/.heroku/php" --available heroku-sys/php 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
+		PHP:  $(platform-composer show --available heroku-sys/php 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
 		
 		Please verify that all requirements for runtime versions in
 		'$COMPOSER_LOCK' are compatible with the list above, and ensure
@@ -539,7 +540,7 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 			ext_name=${ext_package#"heroku-sys/"} # no "heroku-sys/" prefix for human output
 			# run a `composer require`, confined to the package we're attempting, allowing any version
 			#   (the .native "replace"d variant in each extension matches the regular version, so the constraint for that regular version is enough)
-			if ! platform-composer require -d "$build_dir/.heroku/php" "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
+			if ! platform-composer require "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
 				# composer did not succeed; this means no package that matches all existing package's requirements was found
 				notice_inline "no suitable native version of ${ext_name} available"
 			fi
@@ -557,7 +558,7 @@ exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&-
 unset PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
 
 # log number of installed platform packages
-mmeasure "platform.count" $(platform-composer show -d "$build_dir/.heroku/php" --installed "heroku-sys/*" 2> /dev/null | wc -l)
+mmeasure "platform.count" $(platform-composer show --installed "heroku-sys/*" 2> /dev/null | wc -l)
 
 # export our "do not auto.start APM extensions" magic INI directory to PHP_INI_SCAN_DIR for ourself and for later buildpacks (but not for runtime)
 # but first, there might be a user-supplied scan dir we have to take into account, so load that config var
