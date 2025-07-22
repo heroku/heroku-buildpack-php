@@ -176,15 +176,23 @@ warning_inline() {
 	indent --no-first-line-indent -p "$prefix" | tee >(head -n1 >> "$_captured_warnings_file"; cat > /dev/null)
 }
 
+# indent width can be changed from default 7 using -i
 status() {
+	local OPTIND=1 indent=0 # visible to get_message_config, which will set "return" values
+	local no_first_line_indent prefix rjust # prevent outside scope interference
+	get_message_config "$@"
+	shift $((OPTIND-1))
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
-	echo -n "-----> "
+	local arrow="-> " # first character gets repeated below
+	# print $indent-2 zeroes, which get replaced with dashes, followed by "> "
+	printf "%0*d${arrow:1}" $((indent-2)) | tr 0 "${arrow:0:1}"
+	# any remaining lines only get "> " as a right-justified prefix
 	# this will be fed from stdin
-	cat
+	indent --no-first-line-indent --rjust -i "$indent" -p "${arrow:1}"
 }
 
 # indent width can be changed from default 7 using -i
