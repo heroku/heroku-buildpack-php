@@ -304,20 +304,30 @@ rm $build_dir/.heroku/composer.tar.gz
 # and executes the bootstrapped composer using the bootstrapped minimal php
 # (with the platform installation dir of .heroku/php/ as the cwd)
 platform-composer() {
-	# set PHPRC and PHP_INI_SCAN_DIR to ensure we don't use a user-supplied config
+	# we use env -i to ensure a clean environment with only the vars we want
+	# some are forwarded (like PATH or COMPOSER_HOME)
+	# some are static
+	# some are forwarded only if they exist (like PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO)
+	# -- n.b. the quoted string in the unquoted "+" parameter expansion ensures that nothing (and not an empty string) is passed if absent
+	# -- n.b. can't use the "@A" parameter expansion since that would produce "declare -x ..." for exported vars, and "@Q" would double-quote
 	# export_file_path and profile_dir_path will be used by the installer plugin
 	# they are also used in later install attempts for add-on extensions (blackfire, newrelic, ...)
+	# providedextensionslog_file_path is only passed during the main platform install step
 	# the PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT value does nothing without PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
 	# we will leave passing that variable up to the caller for now
 	# NO_COLOR=1 suppresses the download progress meter whose ANSI cursor codes trip up output in Heroku Dashboard
-	PHPRC= \
-	PHP_INI_SCAN_DIR=":" \
-	COMPOSER=composer.json \
+	env -i \
+	PATH="$PATH" \
+	COMPOSER_NO_INTERACTION=1 \
+	COMPOSER_HOME="${COMPOSER_HOME}" \
+	COMPOSER_CACHE_DIR="${COMPOSER_CACHE_DIR}" \
 	export_file_path="${bp_dir}/export" \
 	profile_dir_path="${build_dir}/.profile.d" \
+	${providedextensionslog_file_path:+"providedextensionslog_file_path=${providedextensionslog_file_path}"} \
+	${PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO:+"PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO=${PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}"} \
 	PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=7 \
 	NO_COLOR=1 \
-	/app/.heroku/php-min/bin/php -d "${build_dir}/.heroku/php" /app/.heroku/php-min/bin/composer "$@"
+	/app/.heroku/php-min/bin/php /app/.heroku/php-min/bin/composer -d "${build_dir}/.heroku/php" "$@"
 }
 export -f platform-composer
 
