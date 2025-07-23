@@ -666,10 +666,6 @@ status "Installing dependencies..."
 composer_vendordir=$(composer config --no-plugins vendor-dir 2> /dev/null)
 composer_bindir=$(composer config --no-plugins bin-dir 2> /dev/null)
 
-# echo composer version for info purposes
-# tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
-composer --no-plugins --version 2> /dev/null | tail -n 1 | indent
-
 # throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
 if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer" ]]; then
 	# we should not do this check separately; there is no reliable way of telling whether or not it really is the real Composer bin dir or if it comes from somewhere else

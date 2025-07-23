@@ -5,7 +5,6 @@ describe "A PHP application intended for Composer 2" do
 		it "builds using Composer 2.2" do
 			new_app_with_stack_and_platrepo('test/fixtures/composer/basic_lock_v2lts').deploy do |app|
 				expect(app.output).to match(/- composer \(2\.2\./)
-				expect(app.output).to match(/Composer version 2\.2\./)
 			end
 		end
 	end
@@ -21,7 +20,6 @@ describe "A PHP application intended for Composer 2" do
 		
 		it "builds using Composer 2.3 or later" do
 			expect(@app.output).to match(/- composer \(2\.([3-9]|\d{2,})\./)
-			expect(@app.output).to match(/Composer version 2\.([3-9]|\d{2,}\.)/)
 		end
 		
 		context "with a malformed COMPOSER_AUTH env var" do
@@ -38,7 +36,6 @@ describe "A PHP application intended for Composer 2" do
 		it "builds using Composer 2.3 or later" do
 			new_app_with_stack_and_platrepo('test/fixtures/composer/basic_lock_v2.999').deploy do |app|
 				expect(app.output).to match(/- composer \(2\.([3-9]|\d{2,})\./)
-				expect(app.output).to match(/Composer version 2\.([3-9]|\d{2,}\.)/)
 			end
 		end
 	end
@@ -46,7 +43,6 @@ describe "A PHP application intended for Composer 2" do
 		it "builds using Composer 2.2" do
 			new_app_with_stack_and_platrepo('test/fixtures/default').deploy do |app|
 				expect(app.output).to match(/- composer \(2\.2\./)
-				expect(app.output).to match(/Composer version 2\.2\./)
 			end
 		end
 	end
