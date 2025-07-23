@@ -43,7 +43,7 @@ describe "A PHP application using New Relic" do
 					expect(@app.output).not_to match(/New Relic PHP Agent globally disabled/) # NR daemon should never start, since NR is installed at the very end
 					expect(apm_installs).to match(/New Relic detected, installed ext-newrelic/) # auto-install at the end
 				else
-					expect(platform_installs).to match(/- ext-newrelic/)
+					expect(platform_installs).to match(/- ext-newrelic \(\d+\.\d+\.\d+/)
 					if mode == "with default NEW_RELIC_LOG_LEVEL"
 						expect(@app.output).not_to match(/New Relic PHP Agent globally disabled/) # this message should not occur if defaults are applied correctly even at build time
 					else
