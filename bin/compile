@@ -9,6 +9,9 @@ set -eu
 # move hidden files too, just in case
 shopt -s dotglob
 
+# some basic config vars we never want to export
+ignore_config_vars=("IFS" "HOME" "PATH" "CPATH" "CPPATH" "LD_PRELOAD" "LIBRARY_PATH" "LD_LIBRARY_PATH" "STACK" "REQUEST_ID" "HEROKU_PHP_INSTALL_DEV" "OLDPWD" "PWD" "DYNO")
+
 STACK=${STACK:-heroku-22} # Anvil has none
 build_dir=$1
 cache_dir=$2/php
@@ -18,6 +21,7 @@ bp_dir=$(cd $(dirname $0); cd ..; pwd)
 
 export BPLOG_PREFIX="buildpack.php"
 export BUILDPACK_LOG_FILE=${BUILDPACK_LOG_FILE:-/dev/null}
+ignore_config_vars+=("BPLOG_PREFIX" "BUILDPACK_LOG_FILE")
 
 # convenience functions
 source $bp_dir/bin/util/common.sh
@@ -35,6 +39,7 @@ source $bp_dir/bin/util/blackfire.sh
 
 # if this is set it prevents Git clones (e.g. for Composer installs from source) during the build in some circumstances, and it is set in SSH Git deploys to Heroku
 unset GIT_DIR
+ignore_config_vars+=("GIT_DIR")
 
 cd $build_dir
 
@@ -45,6 +50,7 @@ else
 	export COMPOSER="composer.json"
 fi
 export COMPOSER_LOCK=$(basename "$COMPOSER" ".json")".lock" # replace .json with .lock if it exists, append .lock otherwise
+ignore_config_vars+=("COMPOSER_LOCK")
 
 # we're using this error message in two places
 composer_lock_parse_error=$(
@@ -219,7 +225,11 @@ mkdir $build_dir/.heroku/php || {
 }
 # set up Composer
 export COMPOSER_HOME=$cache_dir/.composer
-mkdir -p $COMPOSER_HOME
+# $COMPOSER_HOME/cache is the default, but we want to be explicit
+export COMPOSER_CACHE_DIR=$COMPOSER_HOME/cache
+mkdir -p $COMPOSER_CACHE_DIR
+export COMPOSER_NO_INTERACTION=1
+ignore_config_vars+=("COMPOSER_(CACHE_DIR|HOME|NO_INTERACTION)")
 
 # if the build dir is not "/app", we symlink in the .heroku/php subdir (and only that, to avoid problems with other buildpacks) so that PHP correctly finds its INI files etc
 [[ $build_dir == '/app' ]] || ln -s $build_dir/.heroku/php /app/.heroku/php
@@ -286,25 +296,46 @@ curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --sil
 		version of the Heroku PHP buildpack which may need updating.
 	EOF
 }
-tar xzf $build_dir/.heroku/composer.tar.gz -C $build_dir/.heroku/php bin/composer
+tar xzf $build_dir/.heroku/composer.tar.gz -C $build_dir/.heroku/php-min bin/composer
 rm $build_dir/.heroku/composer.tar.gz
-mv $build_dir/.heroku/php/bin/composer{,2} # we will need this at the end in case user installs happen with Composer v1
 
-# this alias is just for now while we install platform packages
-composer() {
-	/app/.heroku/php-min/bin/php /app/.heroku/php/bin/composer2 "$@"
+# this alias function is for installing platform packages
+# it passes the expected env vars for the installer plugin,
+# and executes the bootstrapped composer using the bootstrapped minimal php
+# (with the platform installation dir of .heroku/php/ as the cwd)
+platform-composer() {
+	# we use env -i to ensure a clean environment with only the vars we want
+	# some are forwarded (like PATH or COMPOSER_HOME)
+	# some are static
+	# some are forwarded only if they exist (like PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO)
+	# -- n.b. the quoted string in the unquoted "+" parameter expansion ensures that nothing (and not an empty string) is passed if absent
+	# -- n.b. can't use the "@A" parameter expansion since that would produce "declare -x ..." for exported vars, and "@Q" would double-quote
+	# export_file_path and profile_dir_path will be used by the installer plugin
+	# they are also used in later install attempts for add-on extensions (blackfire, newrelic, ...)
+	# providedextensionslog_file_path is only passed during the main platform install step
+	# the PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT value does nothing without PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
+	# we will leave passing that variable up to the caller for now
+	# NO_COLOR=1 suppresses the download progress meter whose ANSI cursor codes trip up output in Heroku Dashboard
+	env -i \
+	PATH="$PATH" \
+	COMPOSER_NO_INTERACTION=1 \
+	COMPOSER_HOME="${COMPOSER_HOME}" \
+	COMPOSER_CACHE_DIR="${COMPOSER_CACHE_DIR}" \
+	export_file_path="${bp_dir}/export" \
+	profile_dir_path="${build_dir}/.profile.d" \
+	${providedextensionslog_file_path:+"providedextensionslog_file_path=${providedextensionslog_file_path}"} \
+	${PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO:+"PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO=${PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}"} \
+	PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=7 \
+	NO_COLOR=1 \
+	/app/.heroku/php-min/bin/php /app/.heroku/php-min/bin/composer -d "${build_dir}/.heroku/php" "$@"
 }
-export -f composer
-
-# we use --no-plugins just in case the vendor dir is there, see e.g. https://github.com/Ocramius/PackageVersions/issues/64
-composer_vendordir=$(composer config --no-plugins vendor-dir)
-composer_bindir=$(composer config --no-plugins bin-dir)
+export -f platform-composer
 
 mkdir -p $build_dir/.profile.d
 
 # we perform this check early so people with stale lock files are reminded why if their lock file errors in the next step
 composer_lock_outdated=false
-composer validate --no-plugins --no-check-publish --no-check-all --quiet "$COMPOSER" 2>/dev/null || {
+platform-composer validate --no-plugins --no-check-publish --no-check-all --quiet "$(realpath "$COMPOSER")" 2>/dev/null || {
 	mcount "warnings.composer_lock.outdated"
 	composer_lock_outdated=true
 	warning <<-EOF
@@ -418,25 +449,16 @@ export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 	fi
 }
 
-# reset $COMPOSER for the platform install step
-COMPOSER_bak="$COMPOSER"
-export COMPOSER=composer.json
-
 status "Installing platform packages..."
 
-# pass export_file_path, profile_dir_path and providedextensionslog_file_path (used to record packages that provide native extensions) to composer install; they will be used by the installer plugin
-# they are also used in later install attempts for add-on extensions (blackfire, newrelic, ...)
-export export_file_path=$bp_dir/export
-export profile_dir_path=$build_dir/.profile.d
+# providedextensionslog_file_path is used to record packages that provide native extensions for this one install step only
 export providedextensionslog_file_path=$(mktemp -t "provided-extensions.log.XXXXXX" -u)
 # we make a new file descriptor for the installer plugin to log "human readable" display output to, duplicated to stdout
 exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&1
 # the installer picks up the FD number in this env var, and writes a "display output" log to it
 # meanwhile, the "raw" output of 'composer install' goes to install.log in case we need it later
 export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
-export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=7
-# NO_COLOR=1 suppresses the download progress meter whose ANSI cursor codes trip up output in Heroku Dashboard
-if NO_COLOR=1 composer install -d "$build_dir/.heroku/php" ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} > $build_dir/.heroku/php/install.log 2>&1; then
+if platform-composer install ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} > $build_dir/.heroku/php/install.log 2>&1; then
 	:
 else
 	code=$?
@@ -497,7 +519,7 @@ else
 		)
 		For reference, the following runtimes are currently available:
 		
-		PHP:  $(composer show -d "$build_dir/.heroku/php" --available heroku-sys/php 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
+		PHP:  $(platform-composer show --available heroku-sys/php 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
 		
 		Please verify that all requirements for runtime versions in
 		'$COMPOSER_LOCK' are compatible with the list above, and ensure
@@ -528,8 +550,7 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 			ext_name=${ext_package#"heroku-sys/"} # no "heroku-sys/" prefix for human output
 			# run a `composer require`, confined to the package we're attempting, allowing any version
 			#   (the .native "replace"d variant in each extension matches the regular version, so the constraint for that regular version is enough)
-			# NO_COLOR=1 suppresses the download progress meter whose ANSI cursor codes trip up output in Heroku Dashboard
-			if ! NO_COLOR=1 composer require -d "$build_dir/.heroku/php" "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
+			if ! platform-composer require "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
 				# composer did not succeed; this means no package that matches all existing package's requirements was found
 				notice_inline "no suitable native version of ${ext_name} available"
 			fi
@@ -539,32 +560,22 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 fi
 
 # clean up installer variables and files
-# we want to keep export_file_path and profile_dir_path for newrelic and blackfire attempts at the end though
 rm -f "$providedextensionslog_file_path"
 unset providedextensionslog_file_path
 # We must close this file descriptor, or any spawned child processes may inherit it.
 # If such a child process daemonizes itself (e.g. as ScoutAPM's core-agent does during Laravel framework startup in a post-install-cmd hook), either this bash process, or PID 1, will then wait forever for that FD to be closed, which the child process will not do because it is not aware of the inherited FD.
 exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&-
-unset PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT
+unset PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
 
 # log number of installed platform packages
-mmeasure "platform.count" $(composer show -d "$build_dir/.heroku/php" --installed "heroku-sys/*" 2> /dev/null | wc -l)
-
-# done with platform installs; restore COMPOSER from previous value
-export COMPOSER="$COMPOSER_bak"
-unset COMPOSER_bak
-
-# clean up
-rm -rf /app/.heroku/php-min $build_dir/.heroku/php-min
-# unset composer function that used php-min for invocation
-unset -f composer
+mmeasure "platform.count" $(platform-composer show --installed "heroku-sys/*" 2> /dev/null | wc -l)
 
 # export our "do not auto.start APM extensions" magic INI directory to PHP_INI_SCAN_DIR for ourself and for later buildpacks (but not for runtime)
 # but first, there might be a user-supplied scan dir we have to take into account, so load that config var
 export_env_dir "$env_dir" '^PHP_INI_SCAN_DIR$'
 echo "export PHP_INI_SCAN_DIR=\${PHP_INI_SCAN_DIR-}:$bp_dir/conf/php/apm-nostart-overrides/" >> $bp_dir/export
 # later when we load all other user config vars, we need to ignore this one, or our apm-nostart-overrides addition would get re-set
-ignore_config_vars=("PHP_INI_SCAN_DIR")
+ignore_config_vars+=("PHP_INI_SCAN_DIR")
 # env var based disabling for e.g. ScoutAPM (which would otherwise download and start its core-agent)
 # we have to do three things here:
 # 1. remember the names of the variables so we can prevent them from getting set by export_env_dir later
@@ -646,6 +657,9 @@ fi
 
 status "Installing dependencies..."
 
+composer_vendordir=$(composer config --no-plugins vendor-dir 2> /dev/null)
+composer_bindir=$(composer config --no-plugins bin-dir 2> /dev/null)
+
 # echo composer version for info purposes
 # tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 composer --no-plugins --version 2> /dev/null | tail -n 1 | indent
@@ -703,11 +717,12 @@ else
 fi
 # no need for the token to stay around in the env
 unset COMPOSER_GITHUB_OAUTH_TOKEN
+ignore_config_vars+=("COMPOSER_GITHUB_OAUTH_TOKEN")
 
-# turn ignore_config_vars into an empty string, or a pipe-separated list with a leading pipe, for easy insertion into the regex
-ignore_config_vars=$(IFS="|"; echo -n "${ignore_config_vars:+"|"}${ignore_config_vars[*]}")
+# turn ignore_config_vars into a pipe-separated list, for easy insertion into the regex
+ignore_config_vars=$(IFS="|"; echo -n "${ignore_config_vars[*]}")
 # export config vars, except those we do not want to clobber our environment
-export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' '^(HOME|PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|LD_LIBRARY_PATH|STACK|REQUEST_ID|IFS|HEROKU_PHP_INSTALL_DEV|BPLOG_PREFIX|BUILDPACK_LOG_FILE'"${ignore_config_vars}"')$'
+export_env_dir "$env_dir" '^[A-Z_][A-Z0-9_]*$' "^(${ignore_config_vars})$"
 # install dependencies unless composer.json is completely empty (in which case it'd talk to packagist.org which may be slow and is unnecessary)
 if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit(not json.load(sys.stdin));'; then
 	install_log=$(mktemp -t heroku-buildpack-php-composer-install-log-XXXX)
@@ -817,10 +832,6 @@ fi
 # write empty WEB_CONCURRENCY.sh to overwrite the defaults logic from a prior buildpack, e.g. Node (all buildpacks use the same filename to allow this)
 > $build_dir/.profile.d/WEB_CONCURRENCY.sh
 
-# reset COMPOSER for the platform install step
-COMPOSER_bak="$COMPOSER"
-export COMPOSER=composer.json
-
 # unless we're running a CI build...
 if [[ "${HEROKU_PHP_INSTALL_DEV+CI}" != "CI" ]]; then
 	status "Checking for additional extensions to install..."
@@ -831,8 +842,5 @@ if [[ "${HEROKU_PHP_INSTALL_DEV+CI}" != "CI" ]]; then
 	install_newrelic_userini
 fi
 
-# done with platform installs; restore COMPOSER from previous value
-export COMPOSER="$COMPOSER_bak"
-unset COMPOSER_bak
-# and remove the composer2 program we needed for platform installs
-rm $build_dir/.heroku/php/bin/composer2
+# clean up our bootstrapped PHP and Composer
+rm -rf /app/.heroku/php-min $build_dir/.heroku/php-min

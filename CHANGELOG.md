@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Use bootstrapped Composer and minimal PHP for internal operations even after platform packages installation [David Zuelke]
 
 ## [v269] - 2025-07-04
 
