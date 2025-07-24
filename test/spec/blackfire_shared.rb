@@ -58,16 +58,17 @@ shared_examples "A PHP application using ext-blackfire and" do |agent|
 						expect(@app.output).to match(/Blackfire CLI version \d+\.\d+\.\d+ detected/)
 					end
 					
+					platform_installs, apm_installs = @app.output.split("Checking for additional extensions to install", 2)
 					if mode == "implicitly"
-						expect(@app.output).to match(/Blackfire detected, installed ext-blackfire/) # auto-install at the end
+						expect(apm_installs).to match(/Blackfire detected, installed ext-blackfire/) # auto-install at the end
 					else
 						if agent == "our blackfire package"
-							expect(@app.output).to match(/- blackfire/)
+							expect(platform_installs).to match(/- blackfire \(\d+\.\d+\.\d+/)
 						else
-							expect(@app.output).not_to match(/- blackfire/)
+							expect(platform_installs).not_to match(/- blackfire \(\d+\.\d+\.\d+/)
 						end
 						
-						expect(@app.output).to match(/- ext-blackfire/)
+						expect(platform_installs).to match(/- ext-blackfire \(\d+\.\d+\.\d+/)
 						
 						if mode == "with default BLACKFIRE_LOG_LEVEL"
 							expect(@app.output).not_to match(/\[Debug\] APM: disabled/) # this message should not occur if defaults are applied correctly at build time

@@ -38,11 +38,12 @@ describe "A PHP application using New Relic" do
 			end
 			
 			it "installs New Relic" do
+				platform_installs, apm_installs = @app.output.split("Checking for additional extensions to install", 2)
 				if mode == "implicitly"
 					expect(@app.output).not_to match(/New Relic PHP Agent globally disabled/) # NR daemon should never start, since NR is installed at the very end
-					expect(@app.output).to match(/New Relic detected, installed ext-newrelic/) # auto-install at the end
+					expect(apm_installs).to match(/New Relic detected, installed ext-newrelic/) # auto-install at the end
 				else
-					expect(@app.output).to match(/- ext-newrelic/)
+					expect(platform_installs).to match(/- ext-newrelic \(\d+\.\d+\.\d+/)
 					if mode == "with default NEW_RELIC_LOG_LEVEL"
 						expect(@app.output).not_to match(/New Relic PHP Agent globally disabled/) # this message should not occur if defaults are applied correctly even at build time
 					else
@@ -104,6 +105,36 @@ describe "A PHP application using New Relic" do
 						expect(out_after_fpm).to match(/daemon='@newrelic-daemon'[^\n]+?startup=agent/m) # extension connects to daemon when FPM starts
 					end
 				end
+			end
+		end
+	end
+	
+	context "with dependencies that prevent automatic installation of the extension" do
+		it "receives a warning but completes the build" do
+			app = new_app_with_stack_and_platrepo(
+				"test/fixtures/apm/newrelic-conflict",
+				config: {
+					"NEW_RELIC_LICENSE_KEY": "somethingfake",
+				}
+			)
+			app.deploy do |app|
+				expect(app.output).to match(/New Relic detected, but no suitable extension available/)
+				expect(app.output).not_to match(/New Relic detected, installed ext-newrelic/)
+			end
+		end
+	end
+	
+	context "with dependencies that polyfill the extension" do
+		it "gets the native extension auto-installed despite the polyfill" do
+			app = new_app_with_stack_and_platrepo(
+				"test/fixtures/apm/newrelic-polyfill",
+				config: {
+					"NEW_RELIC_LICENSE_KEY": "somethingfake",
+				}
+			)
+			app.deploy do |app|
+				expect(app.output).not_to match(/New Relic detected, but no suitable extension available/)
+				expect(app.output).to match(/New Relic detected, installed ext-newrelic/)
 			end
 		end
 	end

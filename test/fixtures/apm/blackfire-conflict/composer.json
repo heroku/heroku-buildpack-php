@@ -1,0 +1,22 @@
+{
+	"repositories": [
+		{
+			"type": "package",
+			"package": {
+				"name": "my-conflict/blackfire",
+				"version": "1.0.0",
+				"type": "metapackage",
+				"require": {
+					"php": "*"
+				},
+				"conflict": {
+					"ext-blackfire": "*"
+				}
+			}
+		}
+	],
+	"require": {
+		"php": "*",
+		"my-conflict/blackfire": "1.0.0"
+	}
+}

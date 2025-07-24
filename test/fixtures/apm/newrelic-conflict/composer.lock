@@ -1,0 +1,32 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "cc46e47397663aff978393939fd953f7",
+    "packages": [
+        {
+            "name": "my-conflict/newrelic",
+            "version": "1.0.0",
+            "require": {
+                "php": "*"
+            },
+            "conflict": {
+                "ext-newrelic": "*"
+            },
+            "type": "metapackage"
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {
+        "php": "*"
+    },
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
+}

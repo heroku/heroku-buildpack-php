@@ -1,0 +1,22 @@
+{
+	"repositories": [
+		{
+			"type": "package",
+			"package": {
+				"name": "my-polyfill/blackfire",
+				"version": "1.0.0",
+				"type": "metapackage",
+				"require": {
+					"php": "*"
+				},
+				"provide": {
+					"ext-blackfire": "1.99.0"
+				}
+			}
+		}
+	],
+	"require": {
+		"php": "*",
+		"my-polyfill/blackfire": "1.0.0"
+	}
+}

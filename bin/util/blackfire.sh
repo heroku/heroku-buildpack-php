@@ -6,7 +6,7 @@ install_blackfire_ext() {
 	BLACKFIRE_SERVER_ID=${BLACKFIRE_SERVER_ID:-}
 	BLACKFIRE_SERVER_TOKEN=${BLACKFIRE_SERVER_TOKEN:-}
 	if [[ -n "$BLACKFIRE_SERVER_TOKEN" && -n "$BLACKFIRE_SERVER_ID" ]] && ! platform-composer show --installed --quiet heroku-sys/ext-blackfire 2>/dev/null; then
-		if platform-composer require --update-no-dev -- "heroku-sys/ext-blackfire:*" >> $build_dir/.heroku/php/install.log 2>&1; then
+		if platform-composer require --update-no-dev -- "heroku-sys/ext-blackfire:*" "heroku-sys/ext-blackfire.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
 			echo "- Blackfire detected, installed ext-blackfire" | indent
 		else
 			mcount "warnings.addons.blackfire.extension_missing"
