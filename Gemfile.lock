@@ -1,10 +1,10 @@
 GIT
   remote: https://github.com/heroku/hatchet.git
-  revision: 4dff977ab2cd0db87230c448503b1472d369ba37
-  branch: timeouts-etc
+  revision: 84067720505c289fb64e9ba8839514b13d140ce1
+  branch: timeouts-etc-with-gitref
   specs:
-    heroku_hatchet (8.0.4)
-      excon (~> 0)
+    heroku_hatchet (8.0.6)
+      excon (< 2)
       platform-api (~> 3)
       rrrretry (~> 1)
       thor (~> 1)
@@ -14,10 +14,11 @@ GEM
   remote: https://rubygems.org/
   specs:
     ansi (1.5.0)
-    base64 (0.2.0)
+    base64 (0.3.0)
     diff-lcs (1.6.2)
     erubis (2.7.0)
-    excon (0.112.0)
+    excon (1.2.8)
+      logger
     heroics (0.1.3)
       base64
       erubis (~> 2.0)
@@ -25,8 +26,9 @@ GEM
       moneta
       multi_json (>= 1.9.2)
       webrick
+    logger (1.7.0)
     moneta (1.0.0)
-    multi_json (1.15.0)
+    multi_json (1.17.0)
     parallel (1.27.0)
     parallel_tests (5.3.0)
       parallel
@@ -46,7 +48,7 @@ GEM
       rspec-core (> 3.3)
     rspec-support (3.13.4)
     sem_version (2.0.1)
-    thor (1.3.2)
+    thor (1.4.0)
     threaded (0.0.4)
     webrick (1.9.1)
 
