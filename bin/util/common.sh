@@ -105,7 +105,7 @@ error() {
 	(( $# )) && exec <<< "$@"
 	local color=$'\033[1;31m'
 	prefix="${color}${prefix}" # bold and red
-	echo
+	echo "" | indent -p "$prefix"
 	echo -n "ERROR: " | indent -p "$prefix"
 	echo -n "$color" # turn color on again for rest of line (auto-disabled at end of every line by indent function)
 	# this will be fed from stdin
@@ -116,7 +116,7 @@ error() {
 		echo "check the details above, as they may be related to this error:" | indent -p "$prefix"
 		cat "$_captured_warnings_file" | indent -p "$prefix"$'\033[1;33m-\033[1;31m '
 	fi
-	echo
+	echo "" | indent -p "$prefix"
 	exit 1
 }
 
@@ -134,14 +134,14 @@ warning() {
 	(( $# )) && exec <<< "$@"
 	local color=$'\033[1;33m' # bold and yellow
 	prefix="${color}${prefix}"
-	echo
+	echo "" | indent -p "$prefix"
 	echo -n "WARNING: " | indent -p "$prefix"
 	echo -n "$color" # turn color on again for rest of line (auto-disabled at end of every line by indent function)
 	# indent will be fed from stdin
 	# we tee to FD 5, which is linked to STDOUT, and capture the real stdout into the warnings array
 	# we must cat in the process substitution to read the remaining lines, because head only reads one line, and then the pipe would close, leading tee to fail
 	indent --no-first-line-indent -p "$prefix" | tee >(head -n1 >> "$_captured_warnings_file"; cat > /dev/null)
-	echo
+	echo "" | indent -p "$prefix"
 }
 
 # indent width can be changed from default 7 using -i
@@ -189,11 +189,11 @@ notice() {
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
-	echo
+	echo "" | indent -p "$prefix"
 	echo -n -e "\033[1;33mNOTICE: \033[0m" | indent -p "$prefix" # bold; yellow
 	# this will be fed from stdin
 	indent --no-first-line-indent -p "$prefix"
-	echo
+	echo "" | indent -p "$prefix"
 }
 
 # indent width can be changed from default 7 using -i
