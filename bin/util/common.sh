@@ -225,10 +225,10 @@ indent() {
 	get_message_config "$@"
 	shift $((OPTIND-1))
 	# if we were given a flag --no-first-line-indent, that indicates we shouldn't indent the first line
-	# we use :+ to tell SED accordingly if that parameter is set, otherwise null string for no range selector prefix (it selects from line 2 onwards and then every 1st line, meaning all lines)
+	# when that is set, we specify a range filter, starting at line 2, ending when regex "!^" matches, which is never (nothing can precede a ^)
 	# option -p can be used to pass a prefix, we default to option -i (or 7 if not given) space characters
 	# with -p, this can be set to e.g. " !     " to decorate each line of an error message
-	local c="${no_first_line_indent:+"2,999"} s/^/$prefix/"
+	local c="${no_first_line_indent:+"2,/!^/"} s/^/$prefix/"
 	local r=$'s/$/\033[0m/' # end of line color/style reset
 	case $(uname) in
 		Darwin) sed -l -e "$c" -e "$r";; # mac/bsd sed: -l buffers on line boundaries
