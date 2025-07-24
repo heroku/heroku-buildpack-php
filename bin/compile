@@ -496,30 +496,36 @@ else
 		
 		$install_log
 		$(
-			$composer_lock_outdated && cat <<-EOF2
-				$(echo -e "\033[1;33m")
+			# via sed, make every line yellow at the start and re-set to red at the end
+			$composer_lock_outdated && cat <<-EOF2 | sed -e $'s/^/\033[1;33m/' -e $'s/$/\033[1;31m/'
+				
 				A possible cause for this error is your '$COMPOSER_LOCK' file,
 				which is currently out of date, as changes have been made to
 				your '$COMPOSER' that are not yet reflected in the lock file.
-		
+				
 				In order to guarantee reliable installation of system packages,
 				Heroku uses information from '$COMPOSER_LOCK'.
-		
+				
 				If you already attempted to fix the error above by updating the
 				requirements in '$COMPOSER', remember to also update the
 				lock file by running 'composer update', followed by a 'git add'
 				and 'git commit' of the changes. The warning message further
 				above contains step-by-step instructions.
-		
+				
 				Please remember to always keep your '$COMPOSER_LOCK' updated in
 				lockstep with '$COMPOSER' to avoid common problems related
 				to dependencies during collaboration and deployment.
-				$(echo -e "\033[1;31m")
+				
 			EOF2
 		)
 		For reference, the following runtimes are currently available:
 		
-		PHP:  $(platform-composer show --available heroku-sys/php 2>&1 | sed -n 's/^versions : //p' | fold -s -w 58 || true)
+		PHP: $(
+			platform-composer show --available heroku-sys/php 2>&1 |
+			sed -n 's/^versions : //p' | # composer lists them like "versions : 1.2.3, 1.2.4"
+			fold -b -s -w 59 | # 59 characters at a time, wrap on whitespace
+			indent -i5 --no-first-line-indent || true # indent all lines except first to line up with "PHP: "
+		)
 		
 		Please verify that all requirements for runtime versions in
 		'$COMPOSER_LOCK' are compatible with the list above, and ensure

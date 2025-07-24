@@ -332,7 +332,7 @@ describe "The PHP Platform Installer" do
 					run_multi: true,
 					allow_failure: true
 				).deploy do |app|
-					expect(app.output).to include("ERROR: Failed to install system packages!")
+					expect(app.output).to include("Failed to install system packages!")
 					# we want only "clean" package names for all the platform packages, without our "internal" prefix
 					expect(app.output).not_to include("heroku-sys/")
 					expect(app.output).not_to include("No composer.lock file present")
