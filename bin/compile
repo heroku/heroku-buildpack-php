@@ -325,7 +325,7 @@ platform-composer() {
 	profile_dir_path="${build_dir}/.profile.d" \
 	${providedextensionslog_file_path:+"providedextensionslog_file_path=${providedextensionslog_file_path}"} \
 	${PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO:+"PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO=${PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}"} \
-	PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=7 \
+	PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT="${PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT:-7}" \
 	NO_COLOR=1 \
 	/app/.heroku/php-min/bin/php /app/.heroku/php-min/bin/composer -d "${build_dir}/.heroku/php" "$@"
 }
@@ -550,15 +550,15 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 	# this isolated install will not change anything else about the existing dependency graph
 	while read -r -u "$fd_num" line; do # $fd_num comes from the end of the loop
 		read -r -a provides <<< "$line" # read words of line into array
-		echo "Installing extensions provided by ${provides[0]}:" | indent # first "word" is userland package name
+		echo "- Installing extensions provided by ${provides[0]}..." | indent # first "word" is userland package name
 		for extension in "${provides[@]:1}"; do # remaining words in line are native extensions it declares "provide"d
 			ext_package=$(cut -d":" -f1 <<< "$extension") # extract name from "ext-foo:1.2.3" string
 			ext_name=${ext_package#"heroku-sys/"} # no "heroku-sys/" prefix for human output
 			# run a `composer require`, confined to the package we're attempting, allowing any version
 			#   (the .native "replace"d variant in each extension matches the regular version, so the constraint for that regular version is enough)
-			if ! platform-composer require "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
+			if ! PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=9 platform-composer require "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
 				# composer did not succeed; this means no package that matches all existing package's requirements was found
-				notice_inline "no suitable native version of ${ext_name} available"
+				notice_inline -i9 "no suitable native version of ${ext_name} available"
 			fi
 		done
 	done {fd_num}< "$providedextensionslog_file_path" # use bash 4.1+ automatic file descriptor allocation (better than hardcoding e.g. "3<"), otherwise this loop's stdin (the lines of the file) will be consumed by programs called inside the loop
@@ -665,10 +665,6 @@ status "Installing dependencies..."
 
 composer_vendordir=$(composer config --no-plugins vendor-dir 2> /dev/null)
 composer_bindir=$(composer config --no-plugins bin-dir 2> /dev/null)
-
-# echo composer version for info purposes
-# tail to get rid of outdated version warnings (Composer sends those to STDOUT instead of STDERR)
-composer --no-plugins --version 2> /dev/null | tail -n 1 | indent
 
 # throw a notice if people have added their vendor dir to Git; that's bad practice and makes everything slow and cluttered
 if [[ -f "$composer_vendordir/autoload.php" && -d "$composer_vendordir/composer" ]]; then
@@ -844,11 +840,17 @@ if [[ "${HEROKU_PHP_INSTALL_DEV+CI}" != "CI" ]]; then
 	# we do this at the end because even with our apm ext "do not start" overrides via PHP_INI_SCAN_DIR,
 	# there can still be startup messages that clobber output during userland composer install etc
 	status "Checking for additional extensions to install..."
+	# again make a FD for display output and export env var for the installer plugin
+	exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&1
+	export PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
 	# special treatment for Blackfire; we enable it if we detect a server id and a server token for it
 	install_blackfire_ext
 	# special treatment for New Relic; we enable it if we detect a license key for it
 	install_newrelic_ext
 	install_newrelic_userini
+	# final FD cleanup so nothing after us can inherit it for any reason
+	exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&-
+	unset PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
 fi
 
 # clean up our bootstrapped PHP and Composer

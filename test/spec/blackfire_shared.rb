@@ -60,7 +60,13 @@ shared_examples "A PHP application using ext-blackfire and" do |agent|
 					
 					platform_installs, apm_installs = @app.output.split("Checking for additional extensions to install", 2)
 					if mode == "implicitly"
-						expect(apm_installs).to match(/Blackfire detected, installed ext-blackfire/) # auto-install at the end
+						expect(apm_installs).to match(/Blackfire config vars detected, installing ext-blackfire/)
+						expect(apm_installs).to match(/- ext-blackfire \(\d+\.\d+\.\d+/) # auto-install at the end
+						if agent == "our blackfire package"
+							expect(apm_installs).to match(/- blackfire \(\d+\.\d+\.\d+/)
+						else
+							expect(apm_installs).not_to match(/- blackfire \(\d+\.\d+\.\d+/)
+						end
 					else
 						if agent == "our blackfire package"
 							expect(platform_installs).to match(/- blackfire \(\d+\.\d+\.\d+/)

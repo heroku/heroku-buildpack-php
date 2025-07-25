@@ -6,6 +6,9 @@
 
 - Use bootstrapped Composer and minimal PHP for internal operations even after platform packages installation [David Zuelke]
 - Ensure auto-installation of ext-blackfire and ext-newrelic even if userland polyfills are present [David Zuelke]
+- Print full package/version details on auto-installation of ext-blackfire and ext-newrelic [David Zuelke]
+- Streamline formatting and indentation for userland polyfill and ext-blackfire/ext-newrelic installation steps [David Zuelke]
+- Remove redundant printing of Composer version before userland dependency installation [David Zuelke]
 
 ## [v269] - 2025-07-04
 
