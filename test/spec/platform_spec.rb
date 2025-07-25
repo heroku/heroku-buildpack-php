@@ -19,8 +19,10 @@ describe "The PHP Platform Installer" do
 				bp_root = [".."].cycle("#{generator_fixtures_subdir}/#{testcase}".count("/")+1).to_a.join("/") # right "../.." sequence to get us back to the root of the buildpack
 				Dir.chdir("#{generator_fixtures_subdir}/#{testcase}") do |cwd|
 					cmd = ""
+					is_dev_install = false
 					begin
 						cmd << File.read("ENV") # any env vars (e.g. `HEROKU_PHP_INSTALL_DEV=`), or function declarations
+						is_dev_install = cmd.match?(/\bHEROKU_PHP_INSTALL_DEV=(""|''|$|\s)/) # if it's a dev install (empty HEROKU_PHP_INSTALL_DEV variable)
 					rescue Errno::ENOENT
 					end
 					cmd << " STACK=heroku-24 " # that's the stack all the tests are written for
@@ -77,7 +79,7 @@ describe "The PHP Platform Installer" do
 					
 					# and finally check if it's installable in a dry run
 					cmd = "COMPOSER=expected_platform_composer.json composer install --dry-run"
-					cmd << " --no-dev" unless testcase == "complex"
+					cmd << " --no-dev" unless is_dev_install
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 					expect(status.exitstatus).to eq(0), "dry run install failed, stderr: #{stderr}, stdout: #{stdout}"
 				end

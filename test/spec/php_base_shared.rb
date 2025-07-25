@@ -7,7 +7,7 @@ shared_examples "A basic PHP application" do |series|
 		
 		before(:all) do
 			@app = new_app_with_stack_and_platrepo('test/fixtures/default',
-				before_deploy: -> { system("composer require --quiet --ignore-platform-reqs php '#{series}.*'") or raise "Failed to require PHP version" }
+				before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install php '#{series}.*'") or raise "Failed to require PHP version" }
 			)
 			@app.deploy
 			
