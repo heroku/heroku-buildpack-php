@@ -4,59 +4,58 @@ _captured_warnings_file=$(mktemp -t heroku-buildpack-php-captured-warnings-XXXX)
 
 # Get config from caller's args ("$@") and set results into return variables.
 # The following flags and options can be given:
-# --no-first-line-indent
-# --rjust (to right-justify the computed prefix, i.e. pad with spaces on left)
-# -p PREFIXSTRING (e.g. " !", defaults to "")
+# -n/--no-first-line-indent
+# -r/--rjust (to right-justify the computed prefix, i.e. pad with spaces on left)
 # -i INDENTWIDTH (e.g. 7, defaults to 7)
+# -p PREFIXSTRING (e.g. " !", defaults to "")
 # It populates the following variables, if non-empty at call time:
 # - OPTIND (for re-setting "$@" using 'shift')
-# - no_first_line_indent (set to '--no-first-line-indent' if present)
-# - rjust (set to '--rjust' if present)
-# - indent (the indent width as given in the -i argument)
-# - prefix (the computed prefix: PREFIXSTRING left-/right-padded to INDENT width)
-# To call from another function, pass "$@" and declare at least OPTIND and
-# any of the other return variables beforehand as not null, and any non-desired
-# return variables as null, e.g.:
-# > local OPTIND=1 prefix=""
-# > local indent no_first_line_indent rjust # prevent outside scope interference
-# > get_message_config "$@"
-# > shift ((OPTIND-1))
+# The following flags and options can be used to pass the name of a return variable:
+# -N (set to '--no-first-line-indent' if that was present)
+# -R (set to '--rjust' if that was present)
+# -I (the indent width as given in the -i argument, or the default)
+# -P (the computed prefix: PREFIXSTRING left-/right-padded to INDENT width)
+# To call from another function, pass "$@" and declare OPTIND as local before,
+# and pass any desired return variable names using the uppercase options, e.g.:
+# > local OPTIND=1 prefix
+# > get_message_config -P prefix "$@"
+# > shift ((OPTIND-1-2)) # remove two fewer args from "$@" due to -P
 # > echo "prefix is: '${prefix}'" # "prefix is: '       '"
 # The user of that function can then still e.g. pass an indent: 'mywarning -i3 ...'
 # It is possible to pass e.g. a default value for the prefix that the user of
 # the calling function can still override, e.g. 'mywarning -p " !" ...':
-# > local OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-# > local indent no_first_line_indent rjust # prevent outside scope interference
-# > get_message_config -p " !" "$@"
-# > shift ((OPTIND-1-2)) # two fewer args to shift due to -p above
+# > local OPTIND=1 prefix
+# > get_message_config -p " !" -P prefix "$@"
+# > shift ((OPTIND-1-4)) # four fewer args to shift due to -p and -P above
 # > echo "prefix is: '${prefix}'" # "prefix is: ' !     '"
 get_message_config() {
-	local optstring=":-:i:p:"
-	local prefix_arg
+	local optstring=":-:i:I:p:P:N:R:"
 	local ljust="--ljust" # really just a dummy for later, any value works
-	if [[ -z "${OPTIND+isset}" ]]; then
-		local OPTIND # caller does not have it set, do not leak it outside
-	fi
+	# arg values - these are populated from getopts below
+	local indent_arg=7
+	local no_first_line_indent_arg
+	local prefix_arg
+	local rjust_arg
+	# what follows are return variables (if their names are passed to us, see above)
+	# we use declare instead of local just for semantic distintion
+	# double underscore prefixes to avoid collisions with outside variables
+	# (these can still happen despite namerefs, e.g. with declare -n prefix=prefix)
+	declare __indent_ret
+	declare __no_first_line_indent_ret
+	declare __prefix_ret
+	declare __rjust_ret
 	OPTIND=1 # (re-)set the value to what it needs to be for the next getopts call
-	if [[ -z "${rjust+isset}" ]]; then
-		local rjust # caller does not have it set, do not leak it outside
-	fi
-	if [[ -z "${indent+isset}" ]]; then
-		local indent # caller does not have it set, do not leak it outside
-	fi
-	indent=7 # (re-)set to our default value
 	# process flags first
+	local opt
 	while getopts "$optstring" opt; do
 		case $opt in
 			-)
 				case "$OPTARG" in
 					no-first-line-indent)
-						if [[ "${no_first_line_indent+isset}" == "isset" ]]; then
-							no_first_line_indent="--${OPTARG}" # available in the caller
-						fi
+						no_first_line_indent_arg="--${OPTARG}"
 						;;
 					rjust)
-						rjust="--${OPTARG}" # available in the caller
+						rjust_arg="--${OPTARG}"
 						ljust="" # for "+" parameter expansion later
 						;;
 					*)
@@ -75,10 +74,46 @@ get_message_config() {
 					echo "Option -$opt requires a numeric value" >&2
 					return 2
 				fi
-				indent=$OPTARG
+				indent_arg=$OPTARG
+				;;
+			I)
+				if [[ -R __indent_ret ]]; then
+					# already a nameref, so caller's caller passed this opt, too; reject
+					echo "Cannot pass '-${opt}' multiple times" >&2
+					return 2
+				fi
+				# re-declare output variable as a nameref
+				declare -n __indent_ret="$OPTARG"
+				;;
+			N)
+				if [[ -R __no_first_line_indent_ret ]]; then
+					# already a nameref, so caller's caller passed this opt, too; reject
+					echo "Cannot pass '-${opt}' multiple times" >&2
+					return 2
+				fi
+				# re-declare output variable as a nameref
+				declare -n __no_first_line_indent_ret="$OPTARG"
 				;;
 			p)
 				prefix_arg="$OPTARG"
+				;;
+			P)
+				if [[ -R __prefix_ret ]]; then
+					# already a nameref, so caller's caller passed this opt, too; reject
+					echo "Cannot pass '-${opt}' multiple times" >&2
+					return 2
+				fi
+				# re-declare output variable as a nameref
+				declare -n __prefix_ret="$OPTARG"
+				;;
+			R)
+				if [[ -R __rjust_ret ]]; then
+					# already a nameref, so caller's caller passed this opt, too; reject
+					echo "Cannot pass '-${opt}' multiple times" >&2
+					return 2
+				fi
+				# re-declare output variable as a nameref
+				declare -n __rjust_ret="$OPTARG"
 				;;
 			\?)
 				echo "Invalid option: -$OPTARG" >&2
@@ -90,24 +125,21 @@ get_message_config() {
 				;;
 		esac
 	done
-	if [[ -z "${prefix+isset}" ]]; then
-		# caller does not have this set, do not leak it outside
-		# we did not bail out earlier in case they wanted to know just the indent
-		return
-	fi
+	__indent_ret=$indent_arg
+	__no_first_line_indent_ret=$no_first_line_indent_arg
 	# finally, assign the computed prefix
 	# this also has to be a "return variable", because echo would require $() by the caller
 	# that resulting subshell then would prevent reading the other variables above
-	printf -v prefix "%${ljust:+"-"}${indent}s" "${prefix_arg-""}"
+	printf -v __prefix_ret "%${ljust:+"-"}${indent_arg}s" "${prefix_arg-""}"
+	__rjust_ret=$rjust_arg
 }
 
 # indent width can be changed from default 7 using -i
 # prefix can be changed from default " !" using -p
 error() {
-	local OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-	local indent no_first_line_indent rjust # prevent outside scope interference
-	get_message_config -p " !" "$@"
-	shift $((OPTIND-1-2)) # two fewer args to shift since we passed -p above
+	local OPTIND=1 prefix
+	get_message_config -p " !" -P prefix "$@"
+	shift $((OPTIND-1-4)) # four fewer args to shift since we hand-passed -p/-P above
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
@@ -133,10 +165,9 @@ error() {
 # indent width can be changed from default 7 using -i
 # prefix can be changed from default " !" using -p
 warning() {
-	local OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-	local indent no_first_line_indent rjust # prevent outside scope interference
-	get_message_config -p " !" "$@"
-	shift $((OPTIND-1-2)) # two fewer args to shift since we passed -p above
+	local OPTIND=1 prefix
+	get_message_config -p " !" -P prefix "$@"
+	shift $((OPTIND-5)) # four fewer args to shift since we passed -p above
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
@@ -157,10 +188,9 @@ warning() {
 # indent width can be changed from default 7 using -i
 # prefix can be changed from default " !" using -p
 warning_inline() {
-	local OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-	local indent no_first_line_indent rjust # prevent outside scope interference
-	get_message_config -p " !" "$@"
-	shift $((OPTIND-1-2)) # two fewer args to shift since we passed -p above
+	local OPTIND=1 prefix
+	get_message_config -p " !" -P prefix "$@"
+	shift $((OPTIND-1-4)) # four fewer args to shift since we passed -p/-P above
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
@@ -178,10 +208,9 @@ warning_inline() {
 
 # indent width can be changed from default 7 using -i
 status() {
-	local OPTIND=1 indent=0 # visible to get_message_config, which will set "return" values
-	local no_first_line_indent prefix rjust # prevent outside scope interference
-	get_message_config "$@"
-	shift $((OPTIND-1))
+	local OPTIND=1 indent
+	get_message_config -I indent "$@"
+	shift $((OPTIND-1-2)) # since we passed -I
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
@@ -198,10 +227,9 @@ status() {
 # indent width can be changed from default 7 using -i
 # prefix can be changed from default "" using -p
 notice() {
-	local OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-	local indent no_first_line_indent rjust # prevent outside scope interference
-	get_message_config "$@"
-	shift $((OPTIND-1))
+	local OPTIND=1 prefix # visible to get_message_config, which will set "return" values
+	get_message_config -P prefix "$@"
+	shift $((OPTIND-1-2)) # since we passed -P
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
@@ -217,10 +245,9 @@ notice() {
 # indent width can be changed from default 7 using -i
 # prefix can be changed from default "" using -p
 notice_inline() {
-	local OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-	local indent no_first_line_indent rjust # prevent outside scope interference
-	get_message_config "$@"
-	shift $((OPTIND-1))
+	local OPTIND=1 prefix
+	get_message_config -P prefix "$@"
+	shift $((OPTIND-1-2))
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
@@ -238,10 +265,9 @@ notice_inline() {
 # prefix can be changed from default "" using -p
 # pass --no-first-line-indent as a flag to skip indentation of first line
 indent() {
-	local no_first_line_indent="" OPTIND=1 prefix="" # visible to get_message_config, which will set "return" values
-	local indent rjust # prevent outside scope interference
-	get_message_config "$@"
-	shift $((OPTIND-1))
+	local no_first_line_indent OPTIND=1 prefix
+	get_message_config -N no_first_line_indent -P prefix "$@"
+	shift $((OPTIND-1-4))
 	# if we were given a flag --no-first-line-indent, that indicates we shouldn't indent the first line
 	# when that is set, we specify a range filter, starting at line 2, ending when regex "!^" matches, which is never (nothing can precede a ^)
 	# option -p can be used to pass a prefix, we default to option -i (or 7 if not given) space characters
