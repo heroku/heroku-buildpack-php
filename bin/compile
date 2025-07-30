@@ -528,8 +528,8 @@ else
 		For reference, the following runtimes are currently available:
 		
 		PHP: $(
-			platform-composer show --available heroku-sys/php 2>&1 |
-			sed -n 's/^versions : //p' | # composer lists them like "versions : 1.2.3, 1.2.4"
+			platform-composer show -f json --available heroku-sys/php |
+			jq -r '.versions | join(", ")' |
 			fold -b -s -w 59 | # 59 characters at a time, wrap on whitespace
 			indent -i5 --no-first-line-indent || true # indent all lines except first to line up with "PHP: "
 		)
@@ -581,7 +581,8 @@ exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&-
 unset PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
 
 # log number of installed platform packages
-mmeasure "platform.count" $(platform-composer show --installed "heroku-sys/*" 2> /dev/null | wc -l)
+# if there are no packages, 'composer show -f json' returns an empty array instead of empty object
+mmeasure "platform.count" $(platform-composer show -f json "heroku-sys/*" | jq -r 'if type == "array" then {} else . end | .installed | length')
 
 # export our "do not auto.start APM extensions" magic INI directory to PHP_INI_SCAN_DIR for ourself and for later buildpacks (but not for runtime)
 # but first, there might be a user-supplied scan dir we have to take into account, so load that config var
@@ -790,7 +791,8 @@ if [[ -z "${HEROKU_PHP_INSTALL_DEV+are-we-running-in-ci}" ]]; then
 fi
 
 # log number of installed dependencies
-mmeasure "dependencies.count" $(composer show --installed 2> /dev/null | wc -l)
+# if there are no packages, 'composer show -f json' returns an empty array instead of empty object
+mmeasure "dependencies.count" $(composer show -f json | jq -r 'if type == "array" then {} else . end | .installed | length')
 
 if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
 	status "Running 'composer compile'..."
