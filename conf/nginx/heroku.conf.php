@@ -12,8 +12,9 @@ http {
 	sendfile        on;
 	#tcp_nopush     on;
 
-	#keepalive_timeout  0;
-	keepalive_timeout  65;
+	# Heroku Router 2.0 idle timeout for KeepAlive connections to dynos is 90 seconds
+	# We must pick a slightly higher value to avoid race conditions where we close a connection just as the router begins to use it
+	keepalive_timeout 95;
 
 	#gzip  on;
 

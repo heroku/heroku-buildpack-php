@@ -9,6 +9,7 @@
 - Print full package/version details on auto-installation of ext-blackfire and ext-newrelic [David Zuelke]
 - Streamline formatting and indentation for userland polyfill and ext-blackfire/ext-newrelic installation steps [David Zuelke]
 - Remove redundant printing of Composer version before userland dependency installation [David Zuelke]
+- Increase Apache HTTPD and Nginx keep-alive timeouts to 95 seconds for compatibility with Heroku Router 2.0 idle timeout of 90 seconds [David Zuelke]
 
 ## [v269] - 2025-07-04
 
