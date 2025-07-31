@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.3.24 [David Zuelke]
+- PHP/8.4.11 [David Zuelke]
+- ext-grpc/1.74.0 [David Zuelke]
+- ext-apcu/5.1.25 [David Zuelke]
+
+### CHG
+
+- blackfire/2.28.29 [David Zuelke]
+- Composer/2.8.10 [David Zuelke]
+- Apache/2.4.65 [David Zuelke]
 
 ## [v270] - 2025-07-30
 
