@@ -145,7 +145,7 @@ error() {
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
-	local color=$'\033[1;31m'
+	local color=$'\e[1;31m'
 	prefix="${color}${prefix}" # bold and red
 	echo "" | indent -p "$prefix"
 	echo -n "ERROR: " | indent -p "$prefix"
@@ -154,9 +154,9 @@ error() {
 	indent --no-first-line-indent -p "$prefix"
 	if [[ -s "$_captured_warnings_file" ]]; then
 		echo "" | indent -p "$prefix"
-		echo -e "\033[1;33mREMINDER:\033[1;31m the following \033[1;33mwarnings\033[1;31m were emitted during the build;" | indent -p "$prefix"
+		echo $'\e[1;33mREMINDER:\e[1;31m the following \e[1;33mwarnings\e[1;31m were emitted during the build;' | indent -p "$prefix"
 		echo "check the details above, as they may be related to this error:" | indent -p "$prefix"
-		cat "$_captured_warnings_file" | indent -p "${prefix}- "$'\033[1;33m' # print warning messages in yellow
+		cat "$_captured_warnings_file" | indent -p "${prefix}- "$'\e[1;33m' # print warning messages in yellow
 	fi
 	echo "" | indent -p "$prefix"
 	exit 1
@@ -173,7 +173,7 @@ warning() {
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
-	local color=$'\033[1;33m' # bold and yellow
+	local color=$'\e[1;33m' # bold and yellow
 	prefix="${color}${prefix}"
 	echo "" | indent -p "$prefix"
 	echo -n "WARNING: " | indent -p "$prefix"
@@ -196,7 +196,7 @@ warning_inline() {
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
-	local color=$'\033[1;33m' # bold and yellow
+	local color=$'\e[1;33m' # bold and yellow
 	prefix="${color}${prefix}"
 	echo -n "WARNING: " | indent -p "$prefix"
 	echo -n "$color" # turn color on again for rest of line (auto-disabled at end of every line by indent function)
@@ -236,7 +236,7 @@ notice() {
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
 	echo "" | indent -p "$prefix"
-	echo -n -e "\033[1;33mNOTICE: \033[0m" | indent -p "$prefix" # bold; yellow
+	echo -n $'\e[1;33mNOTICE: \e[0m' | indent -p "$prefix" # bold; yellow
 	# this will be fed from stdin
 	indent --no-first-line-indent -p "$prefix"
 	echo "" | indent -p "$prefix"
@@ -253,7 +253,7 @@ notice_inline() {
 	# if arguments are given, redirect them to stdin
 	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
-	echo -n -e "\033[1;33mNOTICE: \033[0m" | indent -p "$prefix" # bold; yellow
+	echo -n $'\e[1;33mNOTICE: \e[0m' | indent -p "$prefix" # bold; yellow
 	# this will be fed from stdin
 	indent --no-first-line-indent -p "$prefix"
 }
@@ -273,7 +273,7 @@ indent() {
 	# option -p can be used to pass a prefix, we default to option -i (or 7 if not given) space characters
 	# with -p, this can be set to e.g. " !     " to decorate each line of an error message
 	local c="${no_first_line_indent:+"2,/!^/"} s/^/$prefix/"
-	local r=$'s/$/\033[0m/' # end of line color/style reset
+	local r=$'s/$/\e[0m/' # end of line color/style reset
 	case $(uname) in
 		Darwin) sed -l -e "$c" -e "$r";; # mac/bsd sed: -l buffers on line boundaries
 		*)      sed -u -e "$c" -e "$r";; # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
