@@ -274,9 +274,11 @@ indent() {
 	# with -p, this can be set to e.g. " !     " to decorate each line of an error message
 	local c="${no_first_line_indent:+"2,/!^/"} s/^/$prefix/"
 	local r=$'s/$/\e[0m/' # end of line color/style reset
+	local r=$'/\e\\[[[:digit:];]+m/s/$/\e[0m/' # end of line color/style reset if there are any color ANSI codes on the line (could be in prefix!)
+	local s=$'s/(\e\\[[[:digit:];]+m)\\1+/\\1/'
 	case $(uname) in
-		Darwin) sed -l -e "$c" -e "$r";; # mac/bsd sed: -l buffers on line boundaries
-		*)      sed -u -e "$c" -e "$r";; # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
+		Darwin) sed -l -E -e "$c" -e "$r" -e "$s";; # mac/bsd sed: -l buffers on line boundaries
+		*)      sed -u -E -e "$c" -e "$r" -e "$s";; # unix/gnu sed: -u unbuffered (arbitrary) chunks of data
 	esac
 }
 
