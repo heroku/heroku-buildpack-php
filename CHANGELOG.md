@@ -9,6 +9,10 @@
 - ext-grpc/1.74.0 [David Zuelke]
 - ext-apcu/5.1.25 [David Zuelke]
 
+### CHG
+
+- Apache/2.4.65 [David Zuelke]
+
 ## [v270] - 2025-07-30
 
 ### CHG
