@@ -13,6 +13,7 @@
 
 - blackfire/2.28.29 [David Zuelke]
 - Composer/2.8.10 [David Zuelke]
+- Apache/2.4.65 [David Zuelke]
 
 ## [v270] - 2025-07-30
 
