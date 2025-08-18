@@ -287,20 +287,16 @@ export_env_dir() {
 	for e in "$env_dir"/*; do
 		# handle no matches case (then the glob would be literally produce "${env_dir}/*")
 		[[ -e "$e" ]] || break
-		# drop existing nameref from previous loop iteration
-		unset -n f
-		# assign name to standard variable first (for || branch below)
-		local f=$(basename "$e") # file name in dir is var name
-		# turn variable into nameref
-		declare -n f=$f 2>/dev/null || { echo "Illegal environment variable name: $f" >&2; continue; }
+		f=$(basename "$e") # file name in dir is var name
 		# check if var already exists, but is anything other than a plain, already-exported variable
 		# (could be a non-exported global var, or an array, or readonly, or an integer, or...)
-		# (could be ?(x) instead to allow overwriting of existing, non-exported env vars)
-		[[ -v f && "${f@a}" != "x" ]] && { echo "Environment variable not permitted: ${!f}" >&2; continue; }
-		grep -E "$whitelist_regex" <<<"${!f}" | grep -vqE "$blacklist_regex" || continue
+		# (if the comparison used ?(x) instead of "x", it would allow overwriting of existing, non-exported env vars)
+		[[ -v "$f" && "${!f@a}" != "x" ]] && { echo "Environment variable not permitted: ${f}" >&2; continue; }
+		grep -E "$whitelist_regex" <<<"${f}" | grep -vqE "$blacklist_regex" || continue
+		# declare as exported (also needs -g to work); if that fails, the name is illegal
+		declare -gx "$f" 2>/dev/null || { echo "Illegal environment variable name: ${f}" >&2; continue; }
 		# using v=$(<"$e") or similar would trim trailing newlines, so we use read with no delimiter
-		IFS= read -rd '' f <"$e" || true # the read always returns 1 because it hits EOF
-		export f # declare -x does not work
+		IFS= read -rd '' "$f" <"$e" || true # the read always returns 1 because it hits EOF
 	done
 }
 
