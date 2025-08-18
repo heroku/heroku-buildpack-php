@@ -1,3 +1,5 @@
+#!/usr/bin/env bash
+
 # a file to write captured warnings to
 # it cannot be a variable, because the warnings function may be used in a pipeline, which causes a subshell, which can't modify parent scope variables
 _captured_warnings_file=$(mktemp -t heroku-buildpack-php-captured-warnings-XXXX)
