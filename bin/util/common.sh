@@ -3,7 +3,8 @@
 # a file to write captured warnings to
 # it cannot be a variable, because the warnings function may be used in a pipeline, which causes a subshell, which can't modify parent scope variables
 _captured_warnings_file=$(mktemp)
-trap 'rm "$_captured_warnings_file"' EXIT
+_err_trap_marker_file=$(mktemp)
+trap 'rm "$_captured_warnings_file" "$_err_trap_marker_file"' EXIT
 
 # Get config from caller's args ("$@") and set results into return variables.
 # The following flags and options can be given:
@@ -303,6 +304,13 @@ curl_retry_on_18() {
 }
 
 err_trap() {
+	# with set -E (a.k.a. set -o errtrace), this would be inherited by subshells
+	# we do not want to fire several times, just on the first occasion
+	if [[ -v _err_trap_marker_file ]]; then
+		[[ -s "$_err_trap_marker_file" ]] && return
+		echo "x" > "$_err_trap_marker_file"
+	fi
+
 	local trace=$(
 		local frame=0
 		while caller "$frame"; do

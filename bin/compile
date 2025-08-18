@@ -36,7 +36,8 @@ ignore_config_vars+=("BPLOG_PREFIX" "BUILDPACK_LOG_FILE")
 source $bp_dir/bin/util/common.sh
 
 # use err_trap from common.sh on error to log and output a call stack
-# we do not 'set -o errtrace', because that would cause subshell failures to fire the trap twice, e.g. with someval=$(func_that_fails)
+# we let subshells inherit this via errtrace (it will only print on first invocation)
+set -o errtrace
 trap 'err_trap' ERR
 
 # use exit_trap from common.sh on exit to stop all open timers and, on non-zero exit, log a failure reason and call stack, if not already present
