@@ -283,13 +283,25 @@ export_env_dir() {
 	local env_dir=$1
 	local whitelist_regex=${2:-''}
 	local blacklist_regex=${3:-'^(PATH|GIT_DIR|CPATH|CPPATH|LD_PRELOAD|LIBRARY_PATH|IFS)$'}
-	if [ -d "$env_dir" ]; then
-		for e in $(ls $env_dir); do
-			echo "$e" | grep -E "$whitelist_regex" | grep -qvE "$blacklist_regex" &&
-			export "$e=$(cat $env_dir/$e)"
-			:
-		done
-	fi
+	local e f
+	for e in "$env_dir"/*; do
+		# handle no matches case (then the glob would be literally produce "${env_dir}/*")
+		[[ -e "$e" ]] || break
+		# drop existing nameref from previous loop iteration
+		unset -n f
+		# assign name to standard variable first (for || branch below)
+		local f=$(basename "$e") # file name in dir is var name
+		# turn variable into nameref
+		declare -n f=$f 2>/dev/null || { echo "Illegal environment variable name: $f" >&2; continue; }
+		# check if var already exists, but is anything other than a plain, already-exported variable
+		# (could be a non-exported global var, or an array, or readonly, or an integer, or...)
+		# (could be ?(x) instead to allow overwriting of existing, non-exported env vars)
+		[[ -v f && "${f@a}" != "x" ]] && { echo "Environment variable not permitted: ${!f}" >&2; continue; }
+		grep -E "$whitelist_regex" <<<"${!f}" | grep -vqE "$blacklist_regex" || continue
+		# using v=$(<"$e") or similar would trim trailing newlines, so we use read with no delimiter
+		IFS= read -rd '' f <"$e" || true # the read always returns 1 because it hits EOF
+		export f # declare -x does not work
+	done
 }
 
 curl_retry_on_18() {
