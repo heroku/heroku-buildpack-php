@@ -151,7 +151,7 @@ error() {
 		echo "" | indent -p "$prefix"
 		echo $'\e[1;33mREMINDER:\e[1;31m the following \e[1;33mwarnings\e[1;31m were emitted during the build;' | indent -p "$prefix"
 		echo "check the details above, as they may be related to this error:" | indent -p "$prefix"
-		cat "$_captured_warnings_file" | indent -p "${prefix}- "$'\e[1;33m' # print warning messages in yellow
+		indent < "$_captured_warnings_file" -p "${prefix}- "$'\e[1;33m' # print warning messages in yellow
 	fi
 	echo "" | indent -p "$prefix"
 	exit 1
