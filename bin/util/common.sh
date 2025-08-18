@@ -138,7 +138,7 @@ error() {
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
-	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
+	# this allows the function to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
 	local color=$'\e[1;31m'
 	prefix="${color}${prefix}" # bold and red
@@ -166,7 +166,7 @@ warning() {
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
-	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
+	# this allows the function to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
 	local color=$'\e[1;33m' # bold and yellow
 	prefix="${color}${prefix}"
@@ -189,7 +189,7 @@ warning_inline() {
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
-	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
+	# this allows the function to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
 	local color=$'\e[1;33m' # bold and yellow
 	prefix="${color}${prefix}"
@@ -209,7 +209,7 @@ status() {
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
-	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
+	# this allows the function to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
 	local arrow="-> " # first character gets repeated below
 	# print $indent-2 zeroes, which get replaced with dashes, followed by "> "
@@ -228,7 +228,7 @@ notice() {
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
-	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
+	# this allows the function to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
 	echo "" | indent -p "$prefix"
 	echo -n $'\e[1;33mNOTICE: \e[0m' | indent -p "$prefix" # bold; yellow
@@ -246,7 +246,7 @@ notice_inline() {
 	# send all of our output to stderr
 	exec 1>&2
 	# if arguments are given, redirect them to stdin
-	# this allows the funtion to be invoked with a string argument, or with stdin, e.g. via <<-EOF
+	# this allows the function to be invoked with a string argument, or with stdin, e.g. via <<-EOF
 	(( $# )) && exec <<< "$@"
 	echo -n $'\e[1;33mNOTICE: \e[0m' | indent -p "$prefix" # bold; yellow
 	# this will be fed from stdin
