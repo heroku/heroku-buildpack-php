@@ -577,7 +577,7 @@ else
 			platform-composer show -f json --available heroku-sys/php |
 			jq -r '.versions | join(", ")' |
 			fold -b -s -w 59 | # 59 characters at a time, wrap on whitespace
-			indent -i5 --no-first-line-indent || true # indent all lines except first to line up with "PHP: "
+			indent -i5 -n || true # indent all lines except first to line up with "PHP: "
 		)
 		
 		Please verify that all requirements for runtime versions in

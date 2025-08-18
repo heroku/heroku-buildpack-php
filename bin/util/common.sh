@@ -4,33 +4,37 @@ _captured_warnings_file=$(mktemp -t heroku-buildpack-php-captured-warnings-XXXX)
 
 # Get config from caller's args ("$@") and set results into return variables.
 # The following flags and options can be given:
-# -n/--no-first-line-indent
-# -r/--rjust (to right-justify the computed prefix, i.e. pad with spaces on left)
-# -i INDENTWIDTH (e.g. 7, defaults to 7)
-# -p PREFIXSTRING (e.g. " !", defaults to "")
+#   -n (to avoid indenting the first line)
+#   -r (to right-justify the computed prefix, i.e. pad with spaces on left)
+#   -i INDENTWIDTH (e.g. 7, defaults to 7)
+#   -p PREFIXSTRING (e.g. " !", defaults to "")
 # It populates the following variables, if non-empty at call time:
-# - OPTIND (for re-setting "$@" using 'shift')
+#   - OPTIND (for re-setting "$@" using 'shift' in the caller, to get rid of parsed flags/options)
 # The following flags and options can be used to pass the name of a return variable:
-# -N (set to '--no-first-line-indent' if that was present)
-# -R (set to '--rjust' if that was present)
-# -I (the indent width as given in the -i argument, or the default)
-# -P (the computed prefix: PREFIXSTRING left-/right-padded to INDENT width)
-# To call from another function, pass "$@" and declare OPTIND as local before,
-# and pass any desired return variable names using the uppercase options, e.g.:
-# > local OPTIND=1 prefix
-# > get_message_config -P prefix "$@"
-# > shift ((OPTIND-1-2)) # remove two fewer args from "$@" due to -P
-# > echo "prefix is: '${prefix}'" # "prefix is: '       '"
-# The user of that function can then still e.g. pass an indent: 'mywarning -i3 ...'
-# It is possible to pass e.g. a default value for the prefix that the user of
-# the calling function can still override, e.g. 'mywarning -p " !" ...':
-# > local OPTIND=1 prefix
-# > get_message_config -p " !" -P prefix "$@"
-# > shift ((OPTIND-1-4)) # four fewer args to shift due to -p and -P above
-# > echo "prefix is: '${prefix}'" # "prefix is: ' !     '"
+#   -N (will be set to '-n' if -n was present)
+#   -R (will be set to '-R' if -r was present)
+#   -I (the indent width as given in the -i argument, or the default)
+#   -P (the computed prefix: PREFIXSTRING left-/right-padded to INDENT width)
+# To call from another function, declare OPTIND as local, and pass "$@";
+# provide any desired return variable names using the uppercase options, e.g.:
+#   > local OPTIND=1 prefix
+#   > get_message_config -P prefix "$@"
+#   > shift ((OPTIND-1-2)) # remove two fewer args from "$@" due to -P
+#   > echo "prefix is: '${prefix}'" # "prefix is: '       '"
+# As shown, 'shift' is used in the calling function to re-set the argument index.
+# The value of OPTIND must be reduced by 1 as with normal getopts use, and for
+# any argument (option or option value) passed before "$@", the index must also
+# be reduced by 1 - in the example above, that means OPTIND-1-2 due to '-P' and 'prefix'.
+# The caller of that function can then still e.g. pass an indent: 'mywarning -i3 ...'.
+# Options can be provided multiple times, and the last value read is used, which
+# makes it possible to pass default values for options that the caller of the
+# calling function can still override, e.g. 'mywarning -p " !" ...':
+#   > local OPTIND=1 prefix
+#   > get_message_config -p " !" -P prefix "$@"
+#   > shift ((OPTIND-1-4)) # four fewer args to shift due to -p and -P above
+#   > echo "prefix is: '${prefix}'" # "prefix is: ' !     '"
 get_message_config() {
-	local optstring=":-:i:I:p:P:N:R:"
-	local ljust="--ljust" # really just a dummy for later, any value works
+	local ljust="-l" # really just a dummy for later, any value works
 	# arg values - these are populated from getopts below
 	local indent_arg=7
 	local no_first_line_indent_arg
@@ -44,30 +48,10 @@ get_message_config() {
 	declare __no_first_line_indent_ret
 	declare __prefix_ret
 	declare __rjust_ret
-	OPTIND=1 # (re-)set the value to what it needs to be for the next getopts call
-	# process flags first
+	# (re-)set the value to what it needs to be for the next getopts call
+	OPTIND=1 # explicitly not local so it "leaks" to the caller, where it's needed
 	local opt
-	while getopts "$optstring" opt; do
-		case $opt in
-			-)
-				case "$OPTARG" in
-					no-first-line-indent)
-						no_first_line_indent_arg="--${OPTARG}"
-						;;
-					rjust)
-						rjust_arg="--${OPTARG}"
-						ljust="" # for "+" parameter expansion later
-						;;
-					*)
-						echo "Invalid option: --$OPTARG" >&2
-						return 2
-						;;
-				esac
-				;;
-		esac
-	done
-	OPTIND=1 # start over with options parsing
-	while getopts "$optstring" opt; do
+	while getopts ":i:I:p:P:nN:rR:" opt; do
 		case $opt in
 			i)
 				if [[ $OPTARG != +([0-9]) ]]; then
@@ -85,6 +69,10 @@ get_message_config() {
 				# re-declare output variable as a nameref
 				declare -n __indent_ret="$OPTARG"
 				;;
+			n)
+				# we just want "-n" back in there
+				no_first_line_indent_arg="-${opt}"
+				;;
 			N)
 				if [[ -R __no_first_line_indent_ret ]]; then
 					# already a nameref, so caller's caller passed this opt, too; reject
@@ -95,7 +83,7 @@ get_message_config() {
 				declare -n __no_first_line_indent_ret="$OPTARG"
 				;;
 			p)
-				prefix_arg="$OPTARG"
+				prefix_arg=$OPTARG
 				;;
 			P)
 				if [[ -R __prefix_ret ]]; then
@@ -105,6 +93,11 @@ get_message_config() {
 				fi
 				# re-declare output variable as a nameref
 				declare -n __prefix_ret="$OPTARG"
+				;;
+			r)
+				# we just want "-r" back in there
+				rjust_arg="-${opt}"
+				ljust="" # for "+" parameter expansion later
 				;;
 			R)
 				if [[ -R __rjust_ret ]]; then
@@ -151,7 +144,7 @@ error() {
 	echo -n "ERROR: " | indent -p "$prefix"
 	echo -n "$color" # turn color on again for rest of line (auto-disabled at end of every line by indent function)
 	# this will be fed from stdin
-	indent --no-first-line-indent -p "$prefix"
+	indent -n -p "$prefix"
 	if [[ -s "$_captured_warnings_file" ]]; then
 		echo "" | indent -p "$prefix"
 		echo $'\e[1;33mREMINDER:\e[1;31m the following \e[1;33mwarnings\e[1;31m were emitted during the build;' | indent -p "$prefix"
@@ -181,7 +174,7 @@ warning() {
 	# indent will be fed from stdin
 	# we tee to FD 5, which is linked to STDOUT, and capture the real stdout into the warnings array
 	# we must cat in the process substitution to read the remaining lines, because head only reads one line, and then the pipe would close, leading tee to fail
-	indent --no-first-line-indent -p "$prefix" | tee >(head -n1 >> "$_captured_warnings_file"; cat > /dev/null)
+	indent -n -p "$prefix" | tee >(head -n1 >> "$_captured_warnings_file"; cat > /dev/null)
 	echo "" | indent -p "$prefix"
 }
 
@@ -203,7 +196,7 @@ warning_inline() {
 	# indent will be fed from stdin
 	# we tee to FD 5, which is linked to STDOUT, and capture the real stdout into the warnings array
 	# we must cat in the process substitution to read the remaining lines, because head only reads one line, and then the pipe would close, leading tee to fail
-	indent --no-first-line-indent -p "$prefix" | tee >(head -n1 >> "$_captured_warnings_file"; cat > /dev/null)
+	indent -n -p "$prefix" | tee >(head -n1 >> "$_captured_warnings_file"; cat > /dev/null)
 }
 
 # indent width can be changed from default 7 using -i
@@ -221,7 +214,7 @@ status() {
 	printf "%0*d${arrow:1}" $((indent-2)) | tr 0 "${arrow:0:1}"
 	# any remaining lines only get "> " as a right-justified prefix
 	# this will be fed from stdin
-	indent --no-first-line-indent --rjust -i "$indent" -p "${arrow:1}"
+	indent -n -r -i "$indent" -p "${arrow:1}"
 }
 
 # indent width can be changed from default 7 using -i
@@ -238,7 +231,7 @@ notice() {
 	echo "" | indent -p "$prefix"
 	echo -n $'\e[1;33mNOTICE: \e[0m' | indent -p "$prefix" # bold; yellow
 	# this will be fed from stdin
-	indent --no-first-line-indent -p "$prefix"
+	indent -n -p "$prefix"
 	echo "" | indent -p "$prefix"
 }
 
@@ -255,7 +248,7 @@ notice_inline() {
 	(( $# )) && exec <<< "$@"
 	echo -n $'\e[1;33mNOTICE: \e[0m' | indent -p "$prefix" # bold; yellow
 	# this will be fed from stdin
-	indent --no-first-line-indent -p "$prefix"
+	indent -n -p "$prefix"
 }
 
 # sed -l basically makes sed replace and buffer through stdin to stdout
@@ -263,12 +256,12 @@ notice_inline() {
 # e.g. npm install | indent
 # indent width can be changed from default 7 using -i
 # prefix can be changed from default "" using -p
-# pass --no-first-line-indent as a flag to skip indentation of first line
+# pass -n to skip indentation of first line
 indent() {
 	local no_first_line_indent OPTIND=1 prefix
 	get_message_config -N no_first_line_indent -P prefix "$@"
 	shift $((OPTIND-1-4))
-	# if we were given a flag --no-first-line-indent, that indicates we shouldn't indent the first line
+	# if we were given option -n, that indicates we shouldn't indent the first line
 	# when that is set, we specify a range filter, starting at line 2, ending when regex "!^" matches, which is never (nothing can precede a ^)
 	# option -p can be used to pass a prefix, we default to option -i (or 7 if not given) space characters
 	# with -p, this can be set to e.g. " !     " to decorate each line of an error message
