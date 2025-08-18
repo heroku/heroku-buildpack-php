@@ -2,7 +2,8 @@
 
 # a file to write captured warnings to
 # it cannot be a variable, because the warnings function may be used in a pipeline, which causes a subshell, which can't modify parent scope variables
-_captured_warnings_file=$(mktemp -t heroku-buildpack-php-captured-warnings-XXXX)
+_captured_warnings_file=$(mktemp)
+trap 'rm "$_captured_warnings_file"' EXIT
 
 # Get config from caller's args ("$@") and set results into return variables.
 # The following flags and options can be given:
