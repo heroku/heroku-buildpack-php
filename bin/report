@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+# Usage: bin/report <build-dir> <cache-dir> <env-dir>
+
+# Produces a build report emitted to stdout, containing metadata about the build, that's
+# consumed by the build system.
+#
+# This script is run for both successful and failing builds, so it should not assume the
+# build ran to completion (e.g. PHP or other tools may not even have been installed).
+#
+# Failures in this script don't cause the overall build to fail (and won't appear in user
+# facing build logs) to avoid breaking builds unnecessarily / causing confusion. To debug
+# issues check the internal build system logs for `buildpack.report.failed` events.
+#
+# Note: The build system doesn't source the `export` script before running this script.
+
+set -euo pipefail
+shopt -s inherit_errexit
+
+cache_dir="${2}"
+
+# The absolute path to the root of the buildpack.
+BUILDPACK_DIR=$(cd "$(dirname "$(dirname "${BASH_SOURCE[0]}")")" && pwd)
+
+source "${BUILDPACK_DIR}/bin/util/build_report.sh"
+
+build_report::print_bin_report_json

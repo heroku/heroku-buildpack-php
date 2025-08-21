@@ -14,11 +14,18 @@ ignore_config_vars=("IFS" "HOME" "PATH" "CPATH" "CPPATH" "LD_PRELOAD" "LIBRARY_P
 
 STACK=${STACK:-heroku-22} # Anvil has none
 build_dir=$1
-cache_dir=$2/php
-mkdir -p "$cache_dir"
+cache_dir=$2
+php_cache_dir="$cache_dir/php"
+mkdir -p "$php_cache_dir"
 env_dir=${3:-} # Anvil has none
 bp_dir=$(cd $(dirname $0); cd ..; pwd)
 
+# Initialise the build report data store. We do this first to ensure the data store from the previous
+# build is still reset if the build fails due to an internal error when importing other modules.
+source "$bp_dir/bin/util/build_report.sh"
+build_report::setup
+
+# TODO: Remove these and the mcount/... utils in common.sh once all consumers are converted to `build_report::*`.
 export BPLOG_PREFIX="buildpack.php"
 export BUILDPACK_LOG_FILE=${BUILDPACK_LOG_FILE:-/dev/null}
 ignore_config_vars+=("BPLOG_PREFIX" "BUILDPACK_LOG_FILE")
@@ -224,7 +231,7 @@ mkdir $build_dir/.heroku/php || {
 	EOF
 }
 # set up Composer
-export COMPOSER_HOME=$cache_dir/.composer
+export COMPOSER_HOME=$php_cache_dir/.composer
 # $COMPOSER_HOME/cache is the default, but we want to be explicit
 export COMPOSER_CACHE_DIR=$COMPOSER_HOME/cache
 mkdir -p $COMPOSER_CACHE_DIR
