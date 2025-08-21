@@ -606,7 +606,8 @@ source $bp_dir/export
 # from here onwards we're using the composer we installed via platform install with the PHP runtime that we installed via platform install
 
 # log runtime version
-mcount "platform.packages.php.$(php -r "echo PHP_VERSION;")"
+php_version=$(php -r "echo PHP_VERSION;")
+build_report::set_string "php_version" "${php_version}"
 
 if eoldate=$(php $bp_dir/bin/util/eol.php); then
 	:
