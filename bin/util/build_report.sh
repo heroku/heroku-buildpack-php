@@ -1,0 +1,117 @@
+#!/usr/bin/env bash
+
+BUILD_DATA_FILE="${cache_dir:?}/build-data/php.json"
+
+# Initializes the build data store, overwriting the file from the previous build if it exists.
+# Call this at the start of `bin/compile` before using any other functions from this file.
+#
+# Usage:
+# ```
+# build_report::setup
+# ```
+function build_report::setup() {
+	mkdir -p "$(dirname "${BUILD_DATA_FILE}")"
+	echo "{}" >"${BUILD_DATA_FILE}"
+}
+
+# Sets a string build data value. The value will be wrapped in double quotes and escaped for JSON.
+#
+# Usage:
+# ```
+# build_report::set_string "python_version" "1.2.3"
+# build_report::set_string "failure_reason" "install-dependencies::pip"
+# ```
+function build_report::set_string() {
+	local key="${1}"
+	local value="${2}"
+	build_report::_set "${key}" "${value}" "true"
+}
+
+# Sets a build data value for the elapsed time in seconds between the provided start time and the
+# current time, represented as a float with milliseconds precision.
+#
+# Usage:
+# ```
+# local dependencies_install_start_time=$(build_report::current_unix_time_ms)
+# # ... some operation ...
+# build_report::set_duration "dependencies_install_duration" "${dependencies_install_start_time}"
+# ```
+function build_report::set_duration() {
+	local key="${1}"
+	local start_time="${2}"
+	local end_time duration
+	end_time="$(build_report::current_unix_time_ms)"
+	duration="$(awk -v start="${start_time}" -v end="${end_time}" 'BEGIN { printf "%.3f", (end - start)/1000 }')"
+	build_report::set_raw "${key}" "${duration}"
+}
+
+# Sets a build data value as raw JSON data. The value parameter must be valid JSON value, that's also
+# a supported Honeycomb data type (string, integer, float, or boolean only; no arrays or objects).
+# For strings, use `build_report::set_string` instead since it will handle the escaping/quoting for you.
+# And for durations, use `build_report::set_duration`.
+#
+# Usage:
+# ```
+# build_report::set_raw "python_version_outdated" "true"
+# build_report::set_raw "foo_size_mb" "42.5"
+# ```
+function build_report::set_raw() {
+	local key="${1}"
+	local value="${2}"
+	build_report::_set "${key}" "${value}" "false"
+}
+
+# Internal helper to write a key/value pair to the build data store. The buildpack shouldn't call this directly.
+# Takes a key, value, and a boolean flag indicating whether the value needs to be quoted.
+#
+# Usage:
+# ```
+# build_report::_set "foo_string" "quote me" "true"
+# build_report::_set "bar_number" "99" "false"
+# ```
+function build_report::_set() {
+	local key="${1}"
+	# Truncate the value to an arbitrary 200 characters since it will sometimes contain user-provided
+	# inputs which may be unbounded in size. Ideally individual call sites will perform more aggressive
+	# truncation themselves based on the expected value size, however this is here as a fallback.
+	# (Honeycomb supports string fields up to 64KB in size, however, it's not worth filling up the
+	# build data store or bloating the payload passed back to Vacuole/submitted to Honeycomb given the
+	# extra content in those cases is not normally useful.)
+	local value="${2:0:200}"
+	local needs_quoting="${3}"
+
+	if [[ "${needs_quoting}" == "true" ]]; then
+		# Values passed using `--arg` are treated as strings, and so have double quotes added and any JSON
+		# special characters (such as newlines, carriage returns, double quotes, backslashes) are escaped.
+		local jq_args=(--arg value "${value}")
+	else
+		# Values passed using `--argjson` are treated as raw JSON values, and so aren't escaped or quoted.
+		local jq_args=(--argjson value "${value}")
+	fi
+
+	local new_data_file_contents
+	new_data_file_contents="$(jq --arg key "${key}" "${jq_args[@]}" '. + { ($key): ($value) }' "${BUILD_DATA_FILE}")"
+	echo "${new_data_file_contents}" >"${BUILD_DATA_FILE}"
+}
+
+# Returns the current time in milliseconds since the UNIX Epoch.
+#
+# Usage:
+# ```
+# local dependencies_install_start_time=$(build_report::current_unix_time_ms)
+# # ... some operation ...
+# build_report::set_duration "dependencies_install_duration" "${dependencies_install_start_time}"
+# ```
+function build_report::current_unix_time_ms() {
+	date +%s%3N
+}
+
+# Prints the contents of the build data store in sorted JSON format.
+#
+# Usage:
+# ```
+# build_report::print_bin_report_json
+# ```
+function build_report::print_bin_report_json() {
+	jq --sort-keys '.' "${BUILD_DATA_FILE}"
+}
