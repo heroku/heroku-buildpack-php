@@ -28,11 +28,11 @@ function build_report::set_string() {
 }
 
 # Sets a build data value for the elapsed time in seconds between the provided start time and the
-# current time, represented as a float with milliseconds precision.
+# current time, represented as a float with microseconds precision.
 #
 # Usage:
 # ```
-# local dependencies_install_start_time=$(build_report::current_unix_time_ms)
+# local dependencies_install_start_time=$(build_report::current_unix_realtime)
 # # ... some operation ...
 # build_report::set_duration "dependencies_install_duration" "${dependencies_install_start_time}"
 # ```
@@ -40,8 +40,8 @@ function build_report::set_duration() {
 	local key="${1}"
 	local start_time="${2}"
 	local end_time duration
-	end_time="$(build_report::current_unix_time_ms)"
-	duration="$(awk -v start="${start_time}" -v end="${end_time}" 'BEGIN { printf "%.3f", (end - start)/1000 }')"
+	end_time="$(build_report::current_unix_realtime)"
+	duration="$(awk -v start="${start_time}" -v end="${end_time}" 'BEGIN { printf "%f", (end - start) }')"
 	build_report::set_raw "${key}" "${duration}"
 }
 
@@ -94,16 +94,20 @@ function build_report::_set() {
 	echo "${new_data_file_contents}" >"${BUILD_DATA_FILE}"
 }
 
-# Returns the current time in milliseconds since the UNIX Epoch.
+# Returns the current time since the UNIX Epoch, as a float with microseconds precision.
 #
 # Usage:
 # ```
-# local dependencies_install_start_time=$(build_report::current_unix_time_ms)
+# local dependencies_install_start_time=$(build_report::current_unix_realtime)
 # # ... some operation ...
 # build_report::set_duration "dependencies_install_duration" "${dependencies_install_start_time}"
 # ```
-function build_report::current_unix_time_ms() {
-	date +%s%3N
+function build_report::current_unix_realtime() {
+	# We use a subshell with `LC_ALL=C` to ensure the output format isn't affected by system locale.
+	(
+		LC_ALL=C
+		echo "${EPOCHREALTIME}"
+	)
 }
 
 # Prints the contents of the build data store in sorted JSON format.
