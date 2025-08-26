@@ -581,8 +581,8 @@ exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&-
 unset PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
 
 # log number of installed platform packages
-# if there are no packages, 'composer show -f json' returns an empty array instead of empty object
-mmeasure "platform.count" $(platform-composer show -f json "heroku-sys/*" | jq -r 'if type == "array" then {} else . end | .installed | length')
+# if there are no packages, 'composer show -f json' returns an empty array instead of an object with empty "installed" key
+build_report::set_raw platform.packages.installed_count "$(platform-composer show -f json "heroku-sys/*" | jq -r '.installed? // {} | length')"
 
 # export our "do not auto.start APM extensions" magic INI directory to PHP_INI_SCAN_DIR for ourself and for later buildpacks (but not for runtime)
 # but first, there might be a user-supplied scan dir we have to take into account, so load that config var
@@ -792,8 +792,8 @@ if [[ -z "${HEROKU_PHP_INSTALL_DEV+are-we-running-in-ci}" ]]; then
 fi
 
 # log number of installed dependencies
-# if there are no packages, 'composer show -f json' returns an empty array instead of empty object
-mmeasure "dependencies.count" $(composer show -f json | jq -r 'if type == "array" then {} else . end | .installed | length')
+# if there are no packages, 'composer show -f json' returns an empty array instead of an object with empty "installed" key
+build_report::set_raw dependencies.packages.installed_count "$(composer show -f json | jq -r '.installed? // {} | length')"
 
 if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
 	status "Running 'composer compile'..."
