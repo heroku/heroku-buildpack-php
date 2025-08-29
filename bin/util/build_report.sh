@@ -12,6 +12,14 @@ BUILD_DATA_FILE="${cache_dir:?}/build-data/php.json"
 function build_report::setup() {
 	mkdir -p "$(dirname "${BUILD_DATA_FILE}")"
 	echo "{}" >"${BUILD_DATA_FILE}"
+	# just a simple check, sometimes there are broken old versions from unmaintained buildpacks
+	if ! jq --version >/dev/null; then
+		echo >&2 "ERROR: 'jq' not found or incompatible."
+		echo >&2 "Ensure you aren't running outdated buildpacks or overriding PATH."
+		echo >&2 "For reference, the lookup result for command 'jq' follows:"
+		type -a jq # writes success list and failure message to stderr
+		return 1
+	fi
 }
 
 # Sets a string build data value. The value will be wrapped in double quotes and escaped for JSON.
