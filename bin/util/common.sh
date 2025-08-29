@@ -291,10 +291,10 @@ export_env_dir() {
 		# check if var already exists, but is anything other than a plain, already-exported variable
 		# (could be a non-exported global var, or an array, or readonly, or an integer, or...)
 		# (if the comparison used ?(x) instead of "x", it would allow overwriting of existing, non-exported env vars)
-		[[ -v "$f" && "${!f@a}" != "x" ]] && { echo "Environment variable not permitted: ${f}" >&2; continue; }
+		[[ -v "$f" && "${!f@a}" != "x" ]] && { warning_inline "Environment variable not permitted: ${f}" >&2; continue; }
 		grep -E "$whitelist_regex" <<<"${f}" | grep -vqE "$blacklist_regex" || continue
 		# declare as exported (also needs -g to work); if that fails, the name is illegal
-		declare -gx "$f" 2>/dev/null || { echo "Illegal environment variable name: ${f}" >&2; continue; }
+		declare -gx "$f" 2>/dev/null || { warning_inline "Illegal environment variable name: ${f}" >&2; continue; }
 		# using v=$(<"$e") or similar would trim trailing newlines, so we use read with no delimiter
 		IFS= read -rd '' "$f" <"$e" || true # the read always returns 1 because it hits EOF
 	done
