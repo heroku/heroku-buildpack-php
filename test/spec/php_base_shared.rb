@@ -6,8 +6,11 @@ shared_examples "A basic PHP application" do |series|
 		have_bundled_imap = series.match?(/^(7\.|8\.[0-3]$)/)
 		
 		before(:all) do
-			@app = new_app_with_stack_and_platrepo('test/fixtures/default',
-				before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install php '#{series}.*'") or raise "Failed to require PHP version" }
+			@app = new_app_with_stack_and_platrepo_and_bin_report_dumper(
+				"test/fixtures/default",
+				before_deploy: -> {
+					system("composer require --quiet --ignore-platform-reqs --no-install php '#{series}.*'") or raise "Failed to require PHP version"
+				}
 			)
 			@app.deploy
 			
@@ -42,6 +45,13 @@ shared_examples "A basic PHP application" do |series|
 		it "picks a version from the desired series" do
 			expect(@app.output).to match(/- php \(#{Regexp.escape(series)}\./)
 			expect(@run[0]).to match(/#{Regexp.escape(series)}\./)
+		end
+		
+		it "captures information about the build" do
+			expect(@app.bin_report_dump).to match(
+				"platform.php.version" => a_string_matching(/^#{Regexp.escape(series)}\.\d+$/),
+				"platform.php.series" => series,
+			)
 		end
 		
 		it "has Heroku php.ini defaults" do
