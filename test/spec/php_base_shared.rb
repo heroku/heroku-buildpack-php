@@ -49,8 +49,10 @@ shared_examples "A basic PHP application" do |series|
 		
 		it "captures information about the build" do
 			expect(@app.bin_report_dump).to match(
+				"platform.packages.installed_count" => 4,
 				"platform.php.version" => a_string_matching(/^#{Regexp.escape(series)}\.\d+$/),
 				"platform.php.series" => series,
+				"dependencies.packages.installed_count" => 0,
 			)
 		end
 		
