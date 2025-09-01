@@ -22,6 +22,53 @@ function build_report::setup() {
 	fi
 }
 
+# Gets a value from the build data store. This value will be encoded as valid JSON and terminated with a newline.
+# Exit status is 5 if the key was not found.
+#
+# Usage:
+# ```
+# build_report::get "some_key"
+# ```
+function build_report::get() {
+	JQ_EXTRA_OPTS= build_report::_get "$1"
+}
+
+# Gets a value from the build data store. This value will be printed "raw" and not terminated with a newline.
+# Exit status is 5 if the key was not found.
+#
+# Usage:
+# ```
+# build_report::get "some_key"
+# ```
+function build_report::get_raw() {
+	JQ_EXTRA_OPTS=j build_report::_get "$1"
+}
+
+# Internal helper to fetch a value from the build data store.
+# Exit status is 5 if the key was not found.
+# Pass env var JQ_EXTRA_OPTS to supply additional jq options such as "j" for raw output.
+# 
+# Usage:
+# ```
+# JQ_EXTRA_OPTS= build_report::_get "some_key"
+# JQ_EXTRA_OPTS=j build_report::_get "some_key"
+# ```
+function build_report::_get() {
+	jq -cM"${JQ_EXTRA_OPTS-}" --arg key "$1" 'if(has($key)) then .[$key] else "" | halt_error end' "${BUILD_DATA_FILE}"
+}
+
+# Checks whether a key is set in the build data store.
+# Exit status is 5 if the key was not found.
+#
+# Usage:
+# ```
+# build_report::has "some_key"
+# ```
+function build_report::has() {
+	build_report::_get "$1" > /dev/null
+}
+
+
 # Sets a string build data value. The value will be wrapped in double quotes and escaped for JSON.
 #
 # Usage:
