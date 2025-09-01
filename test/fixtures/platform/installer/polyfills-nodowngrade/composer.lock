@@ -4,13 +4,13 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "090f8ec868590f10707b2acfc875e899",
+    "content-hash": "d9c69451dc7d9b000b608b446f56ec8b",
     "packages": [
         {
             "name": "dummypak/ext-newrelic10-polyfill",
             "version": "10.22.0.12",
             "require": {
-                "php": "^7.0 | ^8.0"
+                "php": "^8.0"
             },
             "provide": {
                 "ext-newrelic": "10.22.0.12"
