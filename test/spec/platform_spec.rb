@@ -419,6 +419,7 @@ describe "The PHP Platform Installer" do
 						"platform.install.polyfill_replacement.duration" => a_kind_of(Float),
 						"platform.install.polyfill_replacement.packages.attempted_count" => 4,
 						"platform.install.polyfill_replacement.packages.succeeded_count" => 3,
+						"platform.install.polyfill_replacement.packages.unavailable" => "ext-newrelic",
 						"platform.install.polyfill_replacement.packages.installed_count" => 3,
 						"platform.polyfill_count" => 4,
 						"platform.packages.installed_count" => 7,
