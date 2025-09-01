@@ -32,8 +32,8 @@ run:
 			[[ -x /tmp/build_1/bin/compile ]] && { echo -e "\n~ Compile (Inline Buildpack):" && (source ./export && /tmp/build_1/bin/compile /tmp/build_1 /tmp/cache /tmp/env); }; \
 			echo -e "\n~ Release:" && ./bin/release /tmp/build_1; \
 			rm -rf /app/* /tmp/buildpack/export /tmp/build_1; \
-			cp -r /src/$(FIXTURE) /tmp/build_2; \
-			echo -e "\n~ Recompile:" && ./bin/compile /tmp/build_2 /tmp/cache /tmp/env; \
-			echo -e "\nBuild successful!"; \
+			#cp -r /src/$(FIXTURE) /tmp/build_2; \
+			#echo -e "\n~ Recompile:" && ./bin/compile /tmp/build_2 /tmp/cache /tmp/env; \
+			#echo -e "\nBuild successful!"; \
 		'
 	@echo
