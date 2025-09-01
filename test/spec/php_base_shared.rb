@@ -49,10 +49,17 @@ shared_examples "A basic PHP application" do |series|
 		
 		it "captures information about the build" do
 			expect(@app.bin_report_dump).to match(
+				"bootstrap.duration" => a_kind_of(Float),
+				"platform.prepare.duration" => a_kind_of(Float),
+				"platform.install.main.duration" => a_kind_of(Float),
 				"platform.packages.installed_count" => 4,
 				"platform.php.version" => a_string_matching(/^#{Regexp.escape(series)}\.\d+$/),
 				"platform.php.series" => series,
+				"platform.install.duration" => a_kind_of(Float),
+				"dependencies.install.duration" => a_kind_of(Float),
 				"dependencies.packages.installed_count" => 0,
+				"apm.automagic.duration" => a_kind_of(Float),
+				"duration" => a_kind_of(Float),
 			)
 		end
 		

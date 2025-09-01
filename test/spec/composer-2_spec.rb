@@ -62,5 +62,11 @@ describe "A PHP application intended for Composer 2" do
 				 .to include("Running 'composer compile'...")
 				.and include("echo hi")
 		end
+		
+		it "captures the duration of the script run as part of the information about the build" do
+			expect(@app.bin_report_dump).to include(
+				"scripts.compile.duration" => a_kind_of(Float).and(a_value > 5),
+			)
+		end
 	end
 end
