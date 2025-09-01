@@ -23,4 +23,4 @@ BUILDPACK_DIR=$(cd "$(dirname "$(dirname "${BASH_SOURCE[0]}")")" && pwd)
 
 source "${BUILDPACK_DIR}/bin/util/build_report.sh"
 
-#build_report::print_bin_report_json
+build_report::print_bin_report_json
