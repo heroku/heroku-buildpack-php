@@ -576,6 +576,7 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 	start_times[platform.install.polyfill_replacement]=$(build_report::current_unix_realtime)
 	declare -i polyfill_replacement_attempted_count=0
 	declare -i polyfill_replacement_succeeded_count=0
+	declare -a polyfill_replacement_unavailable=()
 	notice_inline "detected userland polyfill packages for PHP extensions"
 	notice_inline "now attempting to install native extension packages"
 	# the platform installer recorded userland packages that "provide" a PHP extension
@@ -593,6 +594,7 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 			# run a `composer require`, confined to the package we're attempting, allowing any version
 			#   (the .native "replace"d variant in each extension matches the regular version, so the constraint for that regular version is enough)
 			if ! PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_INDENT=9 platform-composer require "${ext_package}.native:*" >> $build_dir/.heroku/php/install.log 2>&1; then
+				polyfill_replacement_unavailable+=("$ext_name")
 				# composer did not succeed; this means no package that matches all existing package's requirements was found
 				notice_inline -i9 "no suitable native version of ${ext_name} available"
 			else
@@ -606,6 +608,13 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 	build_report::set_raw platform.install.polyfill_replacement.packages.attempted_count "$polyfill_replacement_attempted_count"
 	# the number of successful native installs - this can also mean an ext was already enabled in PHP, or only had to be enabled
 	build_report::set_raw platform.install.polyfill_replacement.packages.succeeded_count "$polyfill_replacement_succeeded_count"
+	if (( ${#polyfill_replacement_unavailable[@]} )); then
+		# the list of unsuccessful native installs (because package not available or conflicting)
+		# sort names into a new array (sort -z and mapfile -d '' for NUL byte separator handling)
+		mapfile -td '' polyfill_replacement_unavailable_sorted < <(printf '%s\0' "${polyfill_replacement_unavailable[@]}" | sort -z)
+		# log names as comma-separated list (the "*" array expansion uses the first character from IFS, which is what we want)
+		build_report::set_string platform.install.polyfill_replacement.packages.unavailable "$(IFS=,; echo "${polyfill_replacement_unavailable_sorted[*]}")"
+	fi
 	# the number of actual packages we installed - "real" download/installs, possibly in turn with dependencies to pull in first
 	# back up the count of installed packages from the previous step
 	platform_packages_installed_count_previous=$platform_packages_installed_count
