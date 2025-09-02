@@ -14,7 +14,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     ansi (1.5.0)
-    base64 (0.2.0)
+    base64 (0.3.0)
     diff-lcs (1.6.2)
     erubis (2.7.0)
     excon (0.112.0)
@@ -26,9 +26,9 @@ GEM
       multi_json (>= 1.9.2)
       webrick
     moneta (1.0.0)
-    multi_json (1.15.0)
+    multi_json (1.17.0)
     parallel (1.27.0)
-    parallel_tests (5.3.1)
+    parallel_tests (5.4.0)
       parallel
     platform-api (3.8.0)
       heroics (~> 0.1.1)
@@ -37,14 +37,14 @@ GEM
     rake (13.3.0)
     rate_throttle_client (0.1.2)
     rrrretry (1.0.0)
-    rspec-core (3.13.3)
+    rspec-core (3.13.5)
       rspec-support (~> 3.13.0)
     rspec-expectations (3.13.5)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
     rspec-retry (0.6.2)
       rspec-core (> 3.3)
-    rspec-support (3.13.4)
+    rspec-support (3.13.5)
     sem_version (2.0.1)
     thor (1.4.0)
     threaded (0.0.4)
