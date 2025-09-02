@@ -1,0 +1,8 @@
+{
+    "require": {
+        "php": "*"
+    },
+    "scripts": {
+        "compile": "echo hi; sleep 5"
+    }
+}
