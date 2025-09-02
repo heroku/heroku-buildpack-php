@@ -39,7 +39,7 @@ jobs:
       BLACKFIRE_SERVER_TOKEN: ${{ secrets.BLACKFIRE_SERVER_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install Ruby and Bundler
         uses: ruby/setup-ruby@v1
         with:

@@ -62,7 +62,7 @@ jobs:
         stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Cache Docker build
         id: cache-docker
         uses: actions/cache@v4
@@ -91,7 +91,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Restore cached Docker build
         uses: actions/cache/restore@v4
         with:
@@ -140,7 +140,7 @@ jobs:
       diff_result: ${{ steps.diff.outputs.diff_result }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install dos2unix
         run: |
           sudo apt-get update
@@ -269,7 +269,7 @@ jobs:
       HEROKU_DEVCENTER_API_TOKEN:  ${{ secrets.HEROKU_DEVCENTER_API_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install dos2unix
         run: |
           sudo apt-get update
@@ -330,7 +330,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install PHP and Composer
         uses: shivammathur/setup-php@ccf2c627fe61b1b4d924adfcbd19d661a18133a0 # 2.35.2
         with:
