@@ -23,8 +23,10 @@ describe "A PHP application" do
 	end
 
 	context "with just an index.php" do
+		let(:series) { expected_default_php(ENV["STACK"]) }
+		
 		before(:all) do
-			@app = new_app_with_stack_and_platrepo('test/fixtures/default')
+			@app = new_app_with_stack_and_platrepo_and_bin_report_dumper("test/fixtures/default")
 			@app.deploy
 			
 			delimiter = SecureRandom.uuid
@@ -49,9 +51,17 @@ describe "A PHP application" do
 		end
 		
 		it "picks a default version from the expected series" do
-			series = expected_default_php(ENV["STACK"])
 			expect(@app.output).to match(/- php \(#{Regexp.escape(series)}\./)
 			expect(@run[0]).to match(/#{Regexp.escape(series)}\./)
+		end
+		
+		it "captures information about the build" do
+			expect(@app.bin_report_dump).to match(
+				"platform.packages.installed_count" => 4,
+				"platform.php.version" => a_string_matching(/^#{Regexp.escape(series)}\.\d+$/),
+				"platform.php.series" => series,
+				"dependencies.packages.installed_count" => 0,
+			)
 		end
 		
 		it "serves traffic" do

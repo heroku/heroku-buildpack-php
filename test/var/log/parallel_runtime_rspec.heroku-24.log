@@ -1,6 +1,6 @@
-test/spec/blackfire-buildpackagent_spec.rb:100
-test/spec/blackfire-herokuagent_spec.rb:120
-test/spec/bugs_spec.rb:40
+test/spec/blackfire-buildpackagent_spec.rb:130
+test/spec/blackfire-herokuagent_spec.rb:110
+test/spec/bugs_spec.rb:90
 test/spec/ci_frameworks-a_spec.rb:120
 test/spec/ci_frameworks-k_spec.rb:120
 test/spec/ci_spec.rb:140
@@ -8,7 +8,7 @@ test/spec/composer-1_spec.rb:30
 test/spec/composer-2_spec.rb:90
 test/spec/devcenter_spec.rb:5
 test/spec/httpd_spec.rb:18
-test/spec/newrelic_spec.rb:115
+test/spec/newrelic_spec.rb:130
 test/spec/nginx_spec.rb:25
 test/spec/php-8.2_base_spec.rb:30
 test/spec/php-8.2_boot-apache2_spec.rb:65

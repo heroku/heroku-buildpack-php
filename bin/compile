@@ -14,11 +14,18 @@ ignore_config_vars=("IFS" "HOME" "PATH" "CPATH" "CPPATH" "LD_PRELOAD" "LIBRARY_P
 
 STACK=${STACK:-heroku-22} # Anvil has none
 build_dir=$1
-cache_dir=$2/php
-mkdir -p "$cache_dir"
+cache_dir=$2
+php_cache_dir="$cache_dir/php"
+mkdir -p "$php_cache_dir"
 env_dir=${3:-} # Anvil has none
 bp_dir=$(cd $(dirname $0); cd ..; pwd)
 
+# Initialise the build report data store. We do this first to ensure the data store from the previous
+# build is still reset if the build fails due to an internal error when importing other modules.
+source "$bp_dir/bin/util/build_report.sh"
+build_report::setup
+
+# TODO: Remove these and the mcount/... utils in common.sh once all consumers are converted to `build_report::*`.
 export BPLOG_PREFIX="buildpack.php"
 export BUILDPACK_LOG_FILE=${BUILDPACK_LOG_FILE:-/dev/null}
 ignore_config_vars+=("BPLOG_PREFIX" "BUILDPACK_LOG_FILE")
@@ -224,7 +231,7 @@ mkdir $build_dir/.heroku/php || {
 	EOF
 }
 # set up Composer
-export COMPOSER_HOME=$cache_dir/.composer
+export COMPOSER_HOME=$php_cache_dir/.composer
 # $COMPOSER_HOME/cache is the default, but we want to be explicit
 export COMPOSER_CACHE_DIR=$COMPOSER_HOME/cache
 mkdir -p $COMPOSER_CACHE_DIR
@@ -521,8 +528,8 @@ else
 		For reference, the following runtimes are currently available:
 		
 		PHP: $(
-			platform-composer show --available heroku-sys/php 2>&1 |
-			sed -n 's/^versions : //p' | # composer lists them like "versions : 1.2.3, 1.2.4"
+			platform-composer show -f json --available heroku-sys/php |
+			jq -r '.versions | join(", ")' |
 			fold -b -s -w 59 | # 59 characters at a time, wrap on whitespace
 			indent -i5 --no-first-line-indent || true # indent all lines except first to line up with "PHP: "
 		)
@@ -574,7 +581,8 @@ exec {PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO}>&-
 unset PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
 
 # log number of installed platform packages
-mmeasure "platform.count" $(platform-composer show --installed "heroku-sys/*" 2> /dev/null | wc -l)
+# if there are no packages, 'composer show -f json' returns an empty array instead of an object with empty "installed" key
+build_report::set_raw platform.packages.installed_count "$(platform-composer show -f json "heroku-sys/*" | jq -r '.installed? // {} | length')"
 
 # export our "do not auto.start APM extensions" magic INI directory to PHP_INI_SCAN_DIR for ourself and for later buildpacks (but not for runtime)
 # but first, there might be a user-supplied scan dir we have to take into account, so load that config var
@@ -598,8 +606,10 @@ source $bp_dir/export
 
 # from here onwards we're using the composer we installed via platform install with the PHP runtime that we installed via platform install
 
-# log runtime version
-mcount "platform.packages.php.$(php -r "echo PHP_VERSION;")"
+# log runtime version and series
+php_version=($(php -r 'printf("%s\n%d.%d", PHP_VERSION, PHP_MAJOR_VERSION, PHP_MINOR_VERSION);'))
+build_report::set_string platform.php.version "${php_version[0]}"
+build_report::set_string platform.php.series "${php_version[1]}"
 
 if eoldate=$(php $bp_dir/bin/util/eol.php); then
 	:
@@ -782,7 +792,8 @@ if [[ -z "${HEROKU_PHP_INSTALL_DEV+are-we-running-in-ci}" ]]; then
 fi
 
 # log number of installed dependencies
-mmeasure "dependencies.count" $(composer show --installed 2> /dev/null | wc -l)
+# if there are no packages, 'composer show -f json' returns an empty array instead of an object with empty "installed" key
+build_report::set_raw dependencies.packages.installed_count "$(composer show -f json | jq -r '.installed? // {} | length')"
 
 if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
 	status "Running 'composer compile'..."
