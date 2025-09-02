@@ -45,7 +45,7 @@ jobs:
       formulae: ${{ steps.expand-formulae.outputs.matrix }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install jq tool
         run: |
           sudo apt-get update
@@ -64,7 +64,7 @@ jobs:
     runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Cache Docker build
         id: cache-docker
         uses: actions/cache@v4
@@ -95,7 +95,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Restore cached Docker build
         uses: actions/cache/restore@v4
         with:
@@ -121,7 +121,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Restore cached Docker build
         uses: actions/cache/restore@v4
         with:
