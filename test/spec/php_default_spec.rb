@@ -59,7 +59,9 @@ describe "A PHP application" do
 			expect(@app.bin_report_dump).to match(
 				"bootstrap.duration" => a_kind_of(Float),
 				"platform.prepare.duration" => a_kind_of(Float),
+				"platform.install.main.packages.installed_count" => 4,
 				"platform.install.main.duration" => a_kind_of(Float),
+				"platform.polyfill_count" => 0,
 				"platform.packages.installed_count" => 4,
 				"platform.php.version" => a_string_matching(/^#{Regexp.escape(series)}\.\d+$/),
 				"platform.php.series" => series,

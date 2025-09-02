@@ -355,10 +355,14 @@ describe "The PHP Platform Installer" do
 		end
 		
 		context "of a project that uses polyfills providing both bundled-with-PHP and third-party extensions" do
-			# we set an invalid COMPOSER_AUTH on all of these to stop and fail the build on userland dependency install
-			# we only need to check what happened during the platform install step, so that speeds things up
+			# config var FAIL_THIS_BUILD causes the inline bin/report dumper to abort for us
+			# (failed build shaves off a few seconds, and does not end up in a created release that scales up etc)
 			it "treats polyfills for bundled-with-PHP and third-party extensions the same" do
-				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills', config: { "COMPOSER_AUTH" => "broken" }, allow_failure: true).deploy do |app|
+				new_app_with_stack_and_platrepo_and_bin_report_dumper(
+					"test/fixtures/platform/installer/polyfills",
+					config: { "FAIL_THIS_BUILD" => "1" },
+					allow_failure: true
+				).deploy do |app|
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")
 					out_before_polyfills, out_after_polyfills = app.output.split("detected userland polyfill packages for PHP extensions", 2)
@@ -368,10 +372,34 @@ describe "The PHP Platform Installer" do
 					expect(out_after_polyfills).to include("- ext-pq (")
 					expect(out_after_polyfills).to include("- ext-uuid (")
 					expect(out_after_polyfills).to include("- ext-imap (bundled with php)")
+					
+					expect(app.bin_report_dump).to match(
+						"bootstrap.duration" => a_kind_of(Float),
+						"platform.prepare.duration" => a_kind_of(Float),
+						"platform.install.main.packages.installed_count" => 6,
+						"platform.install.main.duration" => a_kind_of(Float),
+						"platform.install.polyfill_replacement.duration" => a_kind_of(Float),
+						"platform.install.polyfill_replacement.packages.attempted_count" => 4,
+						"platform.install.polyfill_replacement.packages.succeeded_count" => 4,
+						"platform.install.polyfill_replacement.packages.installed_count" => 4,
+						"platform.polyfill_count" => 4,
+						"platform.packages.installed_count" => 10,
+						"platform.php.version" => a_string_matching(/^\d+\.\d+\.\d+$/),
+						"platform.php.series" => a_string_matching(/^\d+\.\d+$/),
+						"platform.install.duration" => a_kind_of(Float),
+						"dependencies.install.duration" => a_kind_of(Float),
+						"dependencies.packages.installed_count" => 5,
+						"apm.automagic.duration" => a_kind_of(Float),
+						"duration" => a_kind_of(Float),
+					)
 				end
 			end
 			it "solves using the polyfills first and does not downgrade installed packages in the later native install step" do
-				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-nodowngrade', config: { "COMPOSER_AUTH" => "broken" }, allow_failure: true).deploy do |app|
+				new_app_with_stack_and_platrepo_and_bin_report_dumper(
+					"test/fixtures/platform/installer/polyfills-nodowngrade",
+					config: { "FAIL_THIS_BUILD" => "1" },
+					allow_failure: true
+				).deploy do |app|
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")
 					out_before_polyfills, out_after_polyfills = app.output.split("detected userland polyfill packages for PHP extensions", 2)
@@ -382,10 +410,35 @@ describe "The PHP Platform Installer" do
 					expect(out_after_polyfills).to include("- ext-uuid (")
 					expect(out_after_polyfills).not_to include("- ext-newrelic (")
 					expect(out_after_polyfills).to include("no suitable native version of ext-newrelic available")
+					
+					expect(app.bin_report_dump).to match(
+						"bootstrap.duration" => a_kind_of(Float),
+						"platform.prepare.duration" => a_kind_of(Float),
+						"platform.install.main.packages.installed_count" => 4,
+						"platform.install.main.duration" => a_kind_of(Float),
+						"platform.install.polyfill_replacement.duration" => a_kind_of(Float),
+						"platform.install.polyfill_replacement.packages.attempted_count" => 4,
+						"platform.install.polyfill_replacement.packages.succeeded_count" => 3,
+						"platform.install.polyfill_replacement.packages.unavailable" => "ext-newrelic",
+						"platform.install.polyfill_replacement.packages.installed_count" => 3,
+						"platform.polyfill_count" => 4,
+						"platform.packages.installed_count" => 7,
+						"platform.php.version" => a_string_matching(/^\d+\.\d+\.\d+$/),
+						"platform.php.series" => a_string_matching(/^\d+\.\d+$/),
+						"platform.install.duration" => a_kind_of(Float),
+						"dependencies.install.duration" => a_kind_of(Float),
+						"dependencies.packages.installed_count" => 5,
+						"apm.automagic.duration" => a_kind_of(Float),
+						"duration" => a_kind_of(Float),
+					)
 				end
 			end
 			it "ignores a polyfill for an extension that another extension depends upon" do
-				new_app_with_stack_and_platrepo('test/fixtures/platform/installer/polyfills-nointernaldeps', config: { "COMPOSER_AUTH" => "broken" }, allow_failure: true).deploy do |app|
+				new_app_with_stack_and_platrepo_and_bin_report_dumper(
+					"test/fixtures/platform/installer/polyfills-nointernaldeps",
+					config: { "FAIL_THIS_BUILD" => "1" },
+					allow_failure: true
+				).deploy do |app|
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					# ext-pq got installed...
 					expect(app.output).to include("- ext-pq (")
@@ -394,6 +447,26 @@ describe "The PHP Platform Installer" do
 					expect(out_before_pq).to include("- ext-raphf (")
 					# ... so the subsequent polyfill "override" attempt is a no-op
 					expect(out_after_pq).to include("- ext-raphf (already enabled)")
+					
+					expect(app.bin_report_dump).to match(
+						"bootstrap.duration" => a_kind_of(Float),
+						"platform.prepare.duration" => a_kind_of(Float),
+						"platform.install.main.packages.installed_count" => 6,
+						"platform.install.main.duration" => a_kind_of(Float),
+						"platform.install.polyfill_replacement.duration" => a_kind_of(Float),
+						"platform.install.polyfill_replacement.packages.attempted_count" => 1,
+						"platform.install.polyfill_replacement.packages.succeeded_count" => 1,
+						"platform.install.polyfill_replacement.packages.installed_count" => 0,
+						"platform.polyfill_count" => 1,
+						"platform.packages.installed_count" => 6,
+						"platform.php.version" => a_string_matching(/^\d+\.\d+\.\d+$/),
+						"platform.php.series" => a_string_matching(/^\d+\.\d+$/),
+						"platform.install.duration" => a_kind_of(Float),
+						"dependencies.install.duration" => a_kind_of(Float),
+						"dependencies.packages.installed_count" => 1,
+						"apm.automagic.duration" => a_kind_of(Float),
+						"duration" => a_kind_of(Float),
+					)
 				end
 			end
 		end
