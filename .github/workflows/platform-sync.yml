@@ -62,7 +62,7 @@ jobs:
         stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Cache Docker build
         id: cache-docker
         uses: actions/cache@v4
@@ -91,7 +91,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Restore cached Docker build
         uses: actions/cache/restore@v4
         with:
@@ -140,13 +140,13 @@ jobs:
       diff_result: ${{ steps.diff.outputs.diff_result }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install dos2unix
         run: |
           sudo apt-get update
           sudo apt-get install dos2unix
       - name: Install PHP and Composer
-        uses: shivammathur/setup-php@ccf2c627fe61b1b4d924adfcbd19d661a18133a0 # 2.35.2
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4 # 2.35.4
         with:
           php-version: "8.2"
           tools: "composer:2.8"
@@ -269,7 +269,7 @@ jobs:
       HEROKU_DEVCENTER_API_TOKEN:  ${{ secrets.HEROKU_DEVCENTER_API_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install dos2unix
         run: |
           sudo apt-get update
@@ -291,7 +291,7 @@ jobs:
           # Then, we finally run the conversion (if needed) by passing the file name to dos2unix again via xargs.
           dos2unix --info=c0 php-support.md | tee have_crlf.txt | xargs -r0 dos2unix
       - name: Download diff artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: devcenter-diff
           path: devcenter-diffs
@@ -330,9 +330,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install PHP and Composer
-        uses: shivammathur/setup-php@ccf2c627fe61b1b4d924adfcbd19d661a18133a0 # 2.35.2
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4 # 2.35.4
         with:
           php-version: "8.2"
           tools: "composer:2.8"
@@ -340,7 +340,7 @@ jobs:
         run: |
           composer install -d support/devcenter/
       - name: Download all sync log artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           path: synclogs
           pattern: synclog-*

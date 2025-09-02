@@ -39,14 +39,14 @@ jobs:
       BLACKFIRE_SERVER_TOKEN: ${{ secrets.BLACKFIRE_SERVER_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install Ruby and Bundler
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
           ruby-version: "3.2"
       - name: Install PHP and Composer
-        uses: shivammathur/setup-php@ccf2c627fe61b1b4d924adfcbd19d661a18133a0 # 2.35.2
+        uses: shivammathur/setup-php@ec406be512d7077f68eed36e63f4d91bc006edc4 # 2.35.4
         with:
           php-version: "8.3"
           tools: "composer:2.8"
