@@ -46,4 +46,21 @@ describe "A PHP application intended for Composer 2" do
 			end
 		end
 	end
+	
+	context "with a 'compile' script" do
+		before(:all) do
+			@app = new_app_with_stack_and_platrepo_and_bin_report_dumper('test/fixtures/composer/compile_script')
+			@app.deploy
+		end
+		
+		after(:all) do
+			@app.teardown!
+		end
+		
+		it "runs 'composer compile' at the end of the build" do
+			expect(@app.output)
+				 .to include("Running 'composer compile'...")
+				.and include("echo hi")
+		end
+	end
 end
