@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Add new internal data store for capturing measurements at build time [Ed Morley]
+- Record basic measurements about the build (number of dependencies, PHP versions) and make them available for consumption by a build system via bin/report [David Zuelke]
 
 ## [v271] - 2025-07-31
 
