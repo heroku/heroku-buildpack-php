@@ -14,6 +14,7 @@
 ### CHG
 
 - librdkafka/2.11.1 [David Zuelke]
+- Composer/2.8.11 [David Zuelke]
 
 ## [v272] - 2025-09-02
 
