@@ -11,6 +11,10 @@
 - ext-raphf/2.0.2 [David Zuelke]
 - ext-blackfire/1.92.42 [David Zuelke]
 
+### CHG
+
+- librdkafka/2.11.1 [David Zuelke]
+
 ## [v272] - 2025-09-02
 
 ### CHG
