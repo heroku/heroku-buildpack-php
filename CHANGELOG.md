@@ -9,6 +9,7 @@
 - ext-newrelic/12.0.0.25 [David Zuelke]
 - ext-apcu/5.1.27 [David Zuelke]
 - ext-raphf/2.0.2 [David Zuelke]
+- ext-blackfire/1.92.42 [David Zuelke]
 
 ## [v272] - 2025-09-02
 
