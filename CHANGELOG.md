@@ -7,6 +7,7 @@
 - PHP/8.3.25 [David Zuelke]
 - PHP/8.4.12 [David Zuelke]
 - ext-newrelic/12.0.0.25 [David Zuelke]
+- ext-apcu/5.1.27 [David Zuelke]
 
 ## [v272] - 2025-09-02
 
