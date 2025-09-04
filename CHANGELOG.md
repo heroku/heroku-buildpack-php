@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.3.25 [David Zuelke]
+- PHP/8.4.12 [David Zuelke]
+- ext-newrelic/12.0.0.25 [David Zuelke]
+- ext-apcu/5.1.27 [David Zuelke]
+- ext-raphf/2.0.2 [David Zuelke]
+- ext-blackfire/1.92.42 [David Zuelke]
+
+### CHG
+
+- librdkafka/2.11.1 [David Zuelke]
+- Composer/2.8.11 [David Zuelke]
+- blackfire/2.29.0 [David Zuelke]
 
 ## [v272] - 2025-09-02
 
