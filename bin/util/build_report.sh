@@ -192,12 +192,12 @@ function build_report::get_newest_running_timer_name() {
 	build_report::get_running_timer_names | tail -n1
 }
 
-# Prints the contents of the build data store in sorted JSON format.
+# Prints the contents of the build data store in pretty-printed JSON format.
 #
 # Usage:
 # ```
 # build_report::print_bin_report_json
 # ```
 function build_report::print_bin_report_json() {
-	jq --sort-keys '.' "${BUILD_DATA_FILE}"
+	jq '.' "${BUILD_DATA_FILE}"
 }
