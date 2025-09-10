@@ -294,6 +294,15 @@ err_trap() {
 	EOF
 }
 
+exit_trap() {
+	build_report::has_running_timers && {
+		local open_timers
+		mapfile -t open_timers < <(build_report::get_running_timer_names)
+		build_report::set_string open_timers "$(IFS=","; echo "${open_timers[*]}")"
+		build_report::stop_timers
+	} || true
+}
+
 # Logging
 # -------
 
