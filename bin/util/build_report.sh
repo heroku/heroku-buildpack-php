@@ -58,24 +58,6 @@ function build_report::set_string() {
 	build_report::_set "${key}" "${value}" "true"
 }
 
-# Sets a build data value for the elapsed time in seconds between the provided start time and the
-# current time, represented as a float with microseconds precision.
-#
-# Usage:
-# ```
-# local dependencies_install_start_time=$(build_report::current_unix_realtime)
-# # ... some operation ...
-# build_report::set_duration "dependencies_install_duration" "${dependencies_install_start_time}"
-# ```
-function build_report::set_duration() {
-	local key="${1}"
-	local start_time="${2}"
-	local end_time duration
-	end_time="$(build_report::current_unix_realtime)"
-	duration="$(awk -v start="${start_time}" -v end="${end_time}" 'BEGIN { printf "%f", (end - start) }')"
-	build_report::set_raw "${key}" "${duration}"
-}
-
 # Sets a build data value as raw JSON data. The value parameter must be valid JSON value, that's also
 # a supported Honeycomb data type (string, integer, float, or boolean only; no arrays or objects).
 # For strings, use `build_report::set_string` instead since it will handle the escaping/quoting for you.
@@ -139,6 +121,75 @@ function build_report::current_unix_realtime() {
 		LC_ALL=C
 		echo "${EPOCHREALTIME}"
 	)
+}
+
+function build_report::start_timer() {
+	declare -gA __build_report_start_times
+	__build_report_start_times["${1}"]=$(build_report::current_unix_realtime)
+}
+
+function build_report::get_timer() {
+	declare -gA __build_report_start_times
+	local key="${1}"
+	if [[ -v __build_report_start_times["${key}"] ]]; then
+		local start_time="${__build_report_start_times["${key}"]}"
+		local end_time="$(build_report::current_unix_realtime)"
+		awk -v start="${start_time}" -v end="${end_time}" 'BEGIN { printf "%f", (end - start) }'
+	else
+		echo "No such timer: ${key}" >&2
+		return 1
+	fi
+}
+
+function build_report::clear_timer() {
+	declare -gA __build_report_start_times
+	unset __build_report_start_times["${key}"]
+}
+
+function build_report::clear_timers() {
+	declare -gA __build_report_start_times=()
+}
+
+function build_report::stop_timer() {
+	local key="${1}"
+	local duration
+	duration=$(build_report::get_timer "${key}") && {
+		local key_to_log
+		if [[ "${key}" == "__main__" ]]; then
+			key_to_log="duration"
+		else
+			key_to_log="${key}.duration"
+		fi
+		build_report::set_raw "${key_to_log}" "${duration}"
+		build_report::clear_timer "${key}"
+	} || {
+		return 1
+	}
+}
+
+function build_report::stop_timers() {
+	declare -gA __build_report_start_times
+	local key
+	for key in "${!__build_report_start_times[@]}"; do
+		build_report::stop_timer "${key}"
+	done
+}
+
+function build_report::has_running_timers() {
+	declare -gA __build_report_start_times
+	(( ${#__build_report_start_times[@]} )) && return 0 || return 1
+}
+
+function build_report::get_running_timer_names() {
+	declare -gA __build_report_start_times
+	local key
+	for key in "${!__build_report_start_times[@]}"; do
+		printf "%s\t%s\n" "${key}" "${__build_report_start_times[$key]}"
+	done | LC_ALL=C sort -n -t $'\t' -k2 | cut -d $'\t' -f1
+}
+
+function build_report::get_newest_running_timer_name() {
+	build_report::get_running_timer_names | tail -n1
 }
 
 # Prints the contents of the build data store in sorted JSON format.
