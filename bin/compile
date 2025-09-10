@@ -98,7 +98,7 @@ composer_lock_parse_error=$(
 
 # a bunch of sanity checks first
 if [[ -s "$COMPOSER" ]]; then
-	cat "$COMPOSER" | python3 -mjson.tool &> /dev/null || {
+	composer_json_lint=$(python3 -mjson.tool "$COMPOSER" 2>&1 >/dev/null) || {
 		mcount "failures.composer_json.lint"
 		error <<-EOF
 			Basic validation for '$COMPOSER' failed!
@@ -108,6 +108,9 @@ if [[ -s "$COMPOSER" ]]; then
 			You most likely created or edited the file by hand, and it now
 			contains a syntax error. Please refer to the documentation at
 			https://getcomposer.org/doc/ for information on the format.
+			
+			The following syntax error was reported:
+			$(echo "${composer_json_lint}" | indent -i 2 -p "> ")
 			
 			You can run 'composer validate' locally on your computer for
 			further diagnosis. Remember to also always keep your lock file

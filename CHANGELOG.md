@@ -5,6 +5,7 @@
 ### CHG
 
 - Automatically finish recording durations of build steps for bin/report where needed (e.g. on build failure) [David Zuelke]
+- Show linter error message if composer.json is malformed [David Zuelke]
 
 ## [v275] - 2025-09-30
 
