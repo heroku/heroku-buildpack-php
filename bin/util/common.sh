@@ -279,18 +279,23 @@ curl_retry_on_18() {
 }
 
 err_trap() {
+	local trace=$(
+		local frame=0
+		while caller "$frame"; do
+			(( ++frame ));
+		done
+	)
+
+	build_report::set_string failure_reason errexit
+	build_report::set_string failure_detail "$trace"
+
 	error <<-EOF
 		An unknown internal error occurred.
 	
 		Contact Heroku Support for assistance if this problem persists.
 		
 		Stack trace follows for debugging purposes:
-		$(
-			local frame=0
-			while caller $frame; do
-				((frame++));
-			done
-		)
+		${trace}
 	EOF
 }
 
