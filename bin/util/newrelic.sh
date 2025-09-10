@@ -16,7 +16,8 @@ install_newrelic_ext() {
 install_newrelic_userini() {
 	if [[ -n "${NEW_RELIC_CONFIG_FILE:-}" ]]; then
 		if [[ ! -f "${NEW_RELIC_CONFIG_FILE}" ]]; then
-			mcount "failures.addons.newrelic.NEW_RELIC_CONFIG_FILE"
+			build_report::set_string failure_reason apm.automagic.newrelic.NEW_RELIC_CONFIG_FILE.missing
+			build_report::set_string failure_detail "$NEW_RELIC_CONFIG_FILE"
 			error <<-EOF
 				Config var 'NEW_RELIC_CONFIG_FILE' points to non existing file
 				'${NEW_RELIC_CONFIG_FILE}'
