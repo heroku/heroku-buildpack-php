@@ -24,7 +24,7 @@ run:
 			cp -r /src/{bin,conf,support,composer.json} /tmp/buildpack; \
 			cp -r /src/$(FIXTURE) /tmp/build_1; \
 			cd /tmp/buildpack; \
-			unset $$(printenv | cut -d '=' -f 1 | grep -vE "^(HOME|LANG|PATH|STACK)$$"); \
+			unset $$(printenv | cut -d '=' -f 1 | grep -vE "^(HOME|LANG|PATH|STACK|HEROKU_PHP_PLATFORM_REPOSITORIES)$$"); \
 			echo -en "\n~ Detect: " && ./bin/detect /tmp/build_1; \
 			echo -e "\n~ Compile:" && { ./bin/compile /tmp/build_1 /tmp/cache /tmp/env || COMPILE_FAILED=1; }; \
 			echo -e "\n~ Report:" && ./bin/report /tmp/build_1 /tmp/cache /tmp/env; \
