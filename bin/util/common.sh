@@ -286,6 +286,7 @@ err_trap() {
 		done
 	)
 
+	build_report::set_raw err_trap_was_here true
 	build_report::set_string failure_reason errexit
 	build_report::set_string failure_detail "$trace"
 
@@ -301,6 +302,7 @@ err_trap() {
 
 exit_trap() {
 	local exit_status=$?
+	build_report::set_raw exit_trap_was_here true
 
 	build_report::has_running_timers && {
 		local open_timers
