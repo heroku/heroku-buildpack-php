@@ -619,6 +619,7 @@ if [[ -s "$providedextensionslog_file_path" ]]; then
 	# back up the count of installed packages from the previous step
 	platform_packages_installed_count_previous=$platform_packages_installed_count
 	# set the new grand total (will be logged again further down) to what we have now
+	# if there are no packages, 'composer show -f json' returns an empty array instead of an object with empty "installed" key
 	platform_packages_installed_count=$(platform-composer show -f json "heroku-sys/*" | jq -r '.installed? // {} | length')
 	# log the difference between the two as the count for this step
 	build_report::set_raw platform.install.polyfill_replacement.packages.installed_count "$(( platform_packages_installed_count - platform_packages_installed_count_previous ))"
@@ -637,7 +638,6 @@ unset PHP_PLATFORM_INSTALLER_DISPLAY_OUTPUT_FDNO
 
 # log total number of installed platform packages (user deps, polyfill replacements, composer, web servers)
 # this variable may have been updated by the polyfill replacement step
-# if there are no packages, 'composer show -f json' returns an empty array instead of an object with empty "installed" key
 build_report::set_raw platform.packages.installed_count "$platform_packages_installed_count"
 
 # export our "do not auto.start APM extensions" magic INI directory to PHP_INI_SCAN_DIR for ourself and for later buildpacks (but not for runtime)
