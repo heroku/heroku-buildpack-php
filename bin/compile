@@ -855,7 +855,7 @@ build_report::set_duration dependencies.install.duration "${start_times[dependen
 
 # log number of installed dependencies
 # if there are no packages, 'composer show -f json' returns an empty array instead of an object with empty "installed" key
-build_report::set_raw dependencies.packages.installed_count "$(composer show -f json | jq -r '.installed? // {} | length')"
+build_report::set_raw dependencies.packages.installed_count "$(composer show --no-plugins -f json | jq -r '.installed? // {} | length')"
 
 if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit("compile" not in json.load(sys.stdin).get("scripts", {}));'; then
 	start_times[scripts.compile]=$(build_report::current_unix_realtime)

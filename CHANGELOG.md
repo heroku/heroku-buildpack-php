@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### FIX
+
+- Faulty Composer plugins printing to stdout during activation may cause build failures [David Zuelke]
 
 ## [v273] - 2025-09-04
 
