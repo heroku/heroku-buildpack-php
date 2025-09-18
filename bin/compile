@@ -830,7 +830,7 @@ fi
 
 # only perform the check for buildpack package if we're not running in Heroku CI
 if [[ -z "${HEROKU_PHP_INSTALL_DEV+are-we-running-in-ci}" ]]; then
-	composer show --installed heroku/heroku-buildpack-php &> /dev/null && {
+	composer show --quiet heroku/heroku-buildpack-php 2>/dev/null && {
 		mcount "failures.dependencies.buildpack_as_dependency"
 		error <<-EOF
 			Package 'heroku/heroku-buildpack-php' found!
