@@ -69,4 +69,29 @@ describe "A PHP application intended for Composer 2" do
 			)
 		end
 	end
+	
+	context "with a faulty Composer plugin that prints to stderr during activation" do
+		before(:all) do
+			@app = new_app_with_stack_and_platrepo_and_bin_report_dumper('test/fixtures/composer/faulty_plugin')
+			@app.deploy
+		end
+		
+		after(:all) do
+			@app.teardown!
+		end
+		
+		it "builds successfully" do
+			expect(@app.output).to include("Hello, I am FaultyPlugin, writing to stdout instead of stderr in PluginInterface::activate()")
+		end
+		
+		it "captures the number of dependencies that were installed as part of the information about the build" do
+			expect(@app.bin_report_dump).to include(
+				"dependencies.packages.installed_count" => 1,
+			)
+		end
+		
+		it "boots and serves traffic" do
+			expect(successful_body(@app))
+		end
+	end
 end
