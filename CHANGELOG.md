@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v274] - 2025-09-19
+
 ### FIX
 
 - Faulty Composer plugins printing to stdout during activation may cause build failures [David Zuelke]
@@ -2994,7 +2997,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v273...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v274...main
+[v274]: https://github.com/heroku/heroku-buildpack-php/compare/v273...v274
 [v273]: https://github.com/heroku/heroku-buildpack-php/compare/v272...v273
 [v272]: https://github.com/heroku/heroku-buildpack-php/compare/v271...v272
 [v271]: https://github.com/heroku/heroku-buildpack-php/compare/v270...v271
