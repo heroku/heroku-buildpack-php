@@ -1,0 +1,16 @@
+{
+	"name": "my/faulty-plugin",
+	"version": "1.0.0",
+	"type": "composer-plugin",
+	"require": {
+		"composer-plugin-api": "^2.0"
+	},
+	"extra": {
+		"class": "My\\FaultyPlugin"
+	},
+	"autoload": {
+		"psr-4": {
+			"My\\": "./"
+		}
+	}
+}

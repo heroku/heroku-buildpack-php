@@ -1,0 +1,43 @@
+{
+    "_readme": [
+        "This file locks the dependencies of your project to a known state",
+        "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
+        "This file is @generated automatically"
+    ],
+    "content-hash": "5982d92cbfac83e54bc9c615e1f96d82",
+    "packages": [
+        {
+            "name": "my/faulty-plugin",
+            "version": "1.0.0",
+            "dist": {
+                "type": "path",
+                "url": "./faulty-plugin",
+                "reference": "d1db4374a0c4c36bf468af7b79c756b62bbde0b0"
+            },
+            "require": {
+                "composer-plugin-api": "^2.0"
+            },
+            "type": "composer-plugin",
+            "extra": {
+                "class": "My\\FaultyPlugin"
+            },
+            "autoload": {
+                "psr-4": {
+                    "My\\": "./"
+                }
+            },
+            "transport-options": {
+                "relative": true
+            }
+        }
+    ],
+    "packages-dev": [],
+    "aliases": [],
+    "minimum-stability": "stable",
+    "stability-flags": {},
+    "prefer-stable": false,
+    "prefer-lowest": false,
+    "platform": {},
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
+}

@@ -1,0 +1,16 @@
+{
+	"config": {
+		"allow-plugins": {
+			"my/faulty-plugin": true
+		}
+	},
+	"repositories": [
+		{
+			"type": "path",
+			"url": "./faulty-plugin/"
+		}
+	],
+	"require": {
+		"my/faulty-plugin": "*"
+	}
+}
