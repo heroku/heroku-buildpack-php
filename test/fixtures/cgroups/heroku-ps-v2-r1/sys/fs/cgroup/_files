@@ -1,0 +1,218 @@
+/sys/fs/cgroup/cgroup.controllers:
+cpuset cpu io memory hugetlb pids rdma misc
+/sys/fs/cgroup/cgroup.events:
+populated 1
+frozen 0
+/sys/fs/cgroup/cgroup.freeze:
+0
+/sys/fs/cgroup/cgroup.kill:
+cat: /sys/fs/cgroup/cgroup.kill: Permission denied
+/sys/fs/cgroup/cgroup.max.depth:
+max
+/sys/fs/cgroup/cgroup.max.descendants:
+max
+/sys/fs/cgroup/cgroup.procs:
+1
+10
+36
+/sys/fs/cgroup/cgroup.stat:
+nr_descendants 0
+nr_dying_descendants 0
+/sys/fs/cgroup/cgroup.subtree_control:
+/sys/fs/cgroup/cgroup.threads:
+1
+6
+7
+8
+9
+10
+11
+26
+39
+/sys/fs/cgroup/cgroup.type:
+domain
+/sys/fs/cgroup/cpu.idle:
+0
+/sys/fs/cgroup/cpu.max:
+max 100000
+/sys/fs/cgroup/cpu.max.burst:
+0
+/sys/fs/cgroup/cpu.pressure:
+some avg10=0.00 avg60=0.00 avg300=0.00 total=6817
+full avg10=0.00 avg60=0.00 avg300=0.00 total=6067
+/sys/fs/cgroup/cpu.stat:
+usage_usec 254626
+user_usec 65470
+system_usec 189156
+nr_periods 0
+nr_throttled 0
+throttled_usec 0
+/sys/fs/cgroup/cpu.uclamp.max:
+max
+/sys/fs/cgroup/cpu.uclamp.min:
+0.00
+/sys/fs/cgroup/cpu.weight:
+100
+/sys/fs/cgroup/cpu.weight.nice:
+0
+/sys/fs/cgroup/cpuset.cpus:
+
+/sys/fs/cgroup/cpuset.cpus.effective:
+0-1
+/sys/fs/cgroup/cpuset.cpus.partition:
+member
+/sys/fs/cgroup/cpuset.mems:
+
+/sys/fs/cgroup/cpuset.mems.effective:
+0
+/sys/fs/cgroup/hugetlb.1GB.current:
+0
+/sys/fs/cgroup/hugetlb.1GB.events:
+max 0
+/sys/fs/cgroup/hugetlb.1GB.events.local:
+max 0
+/sys/fs/cgroup/hugetlb.1GB.max:
+max
+/sys/fs/cgroup/hugetlb.1GB.rsvd.current:
+0
+/sys/fs/cgroup/hugetlb.1GB.rsvd.max:
+max
+/sys/fs/cgroup/hugetlb.2MB.current:
+0
+/sys/fs/cgroup/hugetlb.2MB.events:
+max 0
+/sys/fs/cgroup/hugetlb.2MB.events.local:
+max 0
+/sys/fs/cgroup/hugetlb.2MB.max:
+max
+/sys/fs/cgroup/hugetlb.2MB.rsvd.current:
+0
+/sys/fs/cgroup/hugetlb.2MB.rsvd.max:
+max
+/sys/fs/cgroup/io.max:
+/sys/fs/cgroup/io.pressure:
+some avg10=0.02 avg60=6.50 avg300=4.53 total=18377081
+full avg10=0.02 avg60=6.50 avg300=4.53 total=18374903
+/sys/fs/cgroup/io.prio.class:
+no-change
+/sys/fs/cgroup/io.stat:
+259:1 rbytes=0 wbytes=8192 rios=0 wios=2 dbytes=0 dios=0
+259:0 rbytes=63803392 wbytes=0 rios=1245 wios=0 dbytes=0 dios=0
+7:7 rbytes=25812992 wbytes=0 rios=863 wios=0 dbytes=0 dios=0
+/sys/fs/cgroup/io.weight:
+default 100
+/sys/fs/cgroup/memory.current:
+93306880
+/sys/fs/cgroup/memory.events:
+low 0
+high 0
+max 0
+oom 0
+oom_kill 0
+/sys/fs/cgroup/memory.events.local:
+low 0
+high 0
+max 0
+oom 0
+oom_kill 0
+/sys/fs/cgroup/memory.high:
+max
+/sys/fs/cgroup/memory.low:
+0
+/sys/fs/cgroup/memory.max:
+2684354560
+/sys/fs/cgroup/memory.min:
+0
+/sys/fs/cgroup/memory.numa_stat:
+anon N0=1945600
+file N0=89640960
+kernel_stack N0=147456
+pagetables N0=221184
+shmem N0=0
+file_mapped N0=10203136
+file_dirty N0=0
+file_writeback N0=0
+swapcached N0=0
+anon_thp N0=0
+file_thp N0=0
+shmem_thp N0=0
+inactive_anon N0=1921024
+active_anon N0=12288
+inactive_file N0=73678848
+active_file N0=15962112
+unevictable N0=0
+slab_reclaimable N0=872656
+slab_unreclaimable N0=276152
+workingset_refault_anon N0=0
+workingset_refault_file N0=0
+workingset_activate_anon N0=0
+workingset_activate_file N0=0
+workingset_restore_anon N0=0
+workingset_restore_file N0=0
+workingset_nodereclaim N0=0
+/sys/fs/cgroup/memory.oom.group:
+0
+/sys/fs/cgroup/memory.pressure:
+some avg10=0.00 avg60=0.00 avg300=0.00 total=0
+full avg10=0.00 avg60=0.00 avg300=0.00 total=0
+/sys/fs/cgroup/memory.stat:
+anon 1949696
+file 89640960
+kernel_stack 147456
+pagetables 217088
+percpu 72
+sock 0
+shmem 0
+file_mapped 10240000
+file_dirty 0
+file_writeback 0
+swapcached 0
+anon_thp 0
+file_thp 0
+shmem_thp 0
+inactive_anon 1925120
+active_anon 12288
+inactive_file 73678848
+active_file 15962112
+unevictable 0
+slab_reclaimable 872656
+slab_unreclaimable 314696
+slab 1187352
+workingset_refault_anon 0
+workingset_refault_file 0
+workingset_activate_anon 0
+workingset_activate_file 0
+workingset_restore_anon 0
+workingset_restore_file 0
+workingset_nodereclaim 0
+pgfault 16272
+pgmajfault 157
+pgrefill 0
+pgscan 0
+pgsteal 0
+pgactivate 3449
+pgdeactivate 0
+pglazyfree 0
+pglazyfreed 0
+thp_fault_alloc 0
+thp_collapse_alloc 0
+/sys/fs/cgroup/memory.swap.current:
+0
+/sys/fs/cgroup/memory.swap.events:
+high 0
+max 0
+fail 0
+/sys/fs/cgroup/memory.swap.high:
+max
+/sys/fs/cgroup/memory.swap.max:
+0
+/sys/fs/cgroup/misc.current:
+/sys/fs/cgroup/misc.max:
+/sys/fs/cgroup/pids.current:
+9
+/sys/fs/cgroup/pids.events:
+max 0
+/sys/fs/cgroup/pids.max:
+4578
+/sys/fs/cgroup/rdma.current:
+/sys/fs/cgroup/rdma.max:
