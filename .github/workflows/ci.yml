@@ -16,7 +16,6 @@ env:
   HATCHET_RETRIES: 3
   IS_RUNNING_ON_CI: true
   HATCHET_APP_LIMIT: 300
-  HATCHET_APP_PREFIX: ${{ format('htcht-{0}-', github.run_id) }}
   HATCHET_EXPENSIVE_MODE: 1
   HATCHET_BUILDPACK_BASE: https://github.com/heroku/heroku-buildpack-php
   HATCHET_BUILDPACK_BRANCH: ${{ github.head_ref || github.ref_name }}

@@ -14,7 +14,6 @@ jobs:
   hatchet-app-cleaner:
     runs-on: ubuntu-24.04
     env:
-      HATCHET_APP_PREFIX: "htcht-"
       HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
       HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
       HEROKU_DISABLE_AUTOUPDATE: 1
