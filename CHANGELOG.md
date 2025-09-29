@@ -8,6 +8,7 @@
 - PHP/8.4.13 [David Zuelke]
 - ext-newrelic/12.1.0.26 [David Zuelke]
 - ext-grpc/1.75.0 [David Zuelke]
+- ext-blackfire/1.92.44 [David Zuelke]
 
 ## [v274] - 2025-09-19
 
