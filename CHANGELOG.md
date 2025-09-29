@@ -6,6 +6,7 @@
 
 - PHP/8.3.26 [David Zuelke]
 - PHP/8.4.13 [David Zuelke]
+- ext-newrelic/12.1.0.26 [David Zuelke]
 
 ## [v274] - 2025-09-19
 
