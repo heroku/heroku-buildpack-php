@@ -6,6 +6,7 @@
 
 - Support non-`heroku-sys-…` type packages in platform repositories [David Zuelke]
 - Make Composer Installer Plugin a package in platform repository (for use by the PHP CNB) [David Zuelke]
+- Make web server boot scripts (`heroku-php-apache2` and `heroku-php-nginx`) and configs a package in platform repository (for use by the PHP CNB) [David Zuelke]
 
 ## [v284] - 2026-03-17
 
