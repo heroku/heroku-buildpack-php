@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Support non-`heroku-sys-…` type packages in platform repositories [David Zuelke]
 
 ## [v284] - 2026-03-17
 
