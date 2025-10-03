@@ -327,13 +327,15 @@ describe "The PHP Platform Installer" do
 	describe "during a build" do
 		context "of a project that has invalid platform dependencies" do
 			it "fails the build and outputs cleaned up info from Composer" do
-				new_app_with_stack_and_platrepo('test/fixtures/platform/generator/mycomposer.json',
+				new_app_with_stack_and_platrepo_and_bin_report_dumper('test/fixtures/platform/generator/mycomposer.json',
 					config: { "COMPOSER" => "mycomposer.json" },
 					# add ext-foo to lock file, ext-bar only to mycomposer.json (so we get a warning about outdated lock file to assert against)
 					before_deploy: -> { system("touch index.php; export COMPOSER=mycomposer.json; composer require --quiet --ignore-platform-reqs --no-install 'ext-foo:*' && composer require --quiet --ignore-platform-reqs --no-update 'ext-bar:*'") or raise "Failed to require dummy extensions" },
 					run_multi: true,
 					allow_failure: true
 				).deploy do |app|
+					errmsg = "mycomposer.json/mycomposer.lock requires ext-foo * -> could not be found in any version, there may be a typo in the package name"
+					
 					expect(app.output).to include("Failed to install system packages!")
 					# we want only "clean" package names for all the platform packages, without our "internal" prefix
 					expect(app.output).not_to include("heroku-sys/")
@@ -345,11 +347,22 @@ describe "The PHP Platform Installer" do
 					expect(app.output).not_to include("Potential causes:")
 					# our internal intermediate package, we hide messages about that to avoid confusion
 					expect(app.output).not_to include("satisfiable by mycomposer.json/mycomposer.lock")
-					expect(app.output).to include("mycomposer.json/mycomposer.lock requires ext-foo * -> could not be found in any version, there may be a typo in the package name")
+					expect(app.output).to include(errmsg)
 					# if composer.lock is out of date, there should be a reminder
 					expect(app.output).to include("A possible cause for this error is your 'mycomposer.lock' file,")
 					expect(app.output).to include("which is currently out of date, as changes have been made to")
 					expect(app.output).to include("your 'mycomposer.json' that are not yet reflected in the lock file")
+					
+					expect(app.bin_report_dump).to match(
+						"bootstrap.duration" => a_kind_of(Float),
+						"platform.prepare.duration" => a_kind_of(Float),
+						"failure_reason" => "platform.install.main.solving",
+						"failure_detail" => a_string_including(errmsg),
+						"open_timers" => "__main__,platform.install,platform.install.main",
+						"duration" => a_kind_of(Float),
+						"platform.install.duration" => a_kind_of(Float),
+						"platform.install.main.duration" => a_kind_of(Float),
+					)
 				end
 			end
 		end
