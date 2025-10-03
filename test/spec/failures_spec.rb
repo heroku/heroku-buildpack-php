@@ -78,4 +78,41 @@ describe "A PHP application failing to build" do
 			)
 		end
 	end
+	
+	context "because composer.lock is malformed" do
+		before(:all) do
+			@app = new_app_with_stack_and_platrepo_and_bin_report_dumper(
+				"test/fixtures/platform/generator/base",
+				allow_failure: true,
+				before_deploy: -> {
+					File.open("composer.lock", "w+") do |f|
+						f.write <<~EOF
+						{
+						  "foo": {
+						    false
+						  }
+						}
+						EOF
+					end
+				}
+			)
+			@app.deploy
+		end
+		
+		after(:all) do
+			@app.teardown!
+		end
+		
+		it "throws an error" do
+			expect(@app.output).to include("Failed to parse 'composer.lock'!")
+			expect(@app.output).to include("> Expecting property name enclosed in double quotes: line 3 column 5 (char 17)")
+		end
+		
+		it "captures information about the build" do
+			expect(@app.bin_report_dump).to match(
+				"open_timers" => "__main__",
+				"duration" => a_kind_of(Float),
+			)
+		end
+	end
 end
