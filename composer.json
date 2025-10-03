@@ -14,5 +14,14 @@
 	"bin": [
 		"bin/heroku-php-apache2",
 		"bin/heroku-php-nginx"
-	]
+	],
+	"archive": {
+		"exclude": [
+			"*",
+			".*",
+			"!/bin/heroku-php-*",
+			"!/bin/util/autotune.php",
+			"!/conf/"
+		]
+	}
 }
