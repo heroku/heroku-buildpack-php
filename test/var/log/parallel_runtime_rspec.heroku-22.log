@@ -7,6 +7,7 @@ test/spec/ci_spec.rb:140
 test/spec/composer-1_spec.rb:30
 test/spec/composer-2_spec.rb:110
 test/spec/devcenter_spec.rb:5
+test/spec/failures_spec.rb:15
 test/spec/httpd_spec.rb:18
 test/spec/newrelic_spec.rb:130
 test/spec/nginx_spec.rb:25

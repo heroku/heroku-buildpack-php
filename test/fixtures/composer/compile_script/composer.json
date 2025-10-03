@@ -3,6 +3,6 @@
         "php": "*"
     },
     "scripts": {
-        "compile": "echo hi; sleep 5"
+        "compile": "echo \"${COMPILE_SCRIPT_ECHO:-hi}\"; sleep \"${COMPILE_SCRIPT_SLEEP:-0}\"; exit \"${COMPILE_SCRIPT_EXIT:-0}\""
     }
 }

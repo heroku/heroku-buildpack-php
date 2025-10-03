@@ -49,7 +49,13 @@ describe "A PHP application intended for Composer 2" do
 	
 	context "with a 'compile' script" do
 		before(:all) do
-			@app = new_app_with_stack_and_platrepo_and_bin_report_dumper('test/fixtures/composer/compile_script')
+			@app = new_app_with_stack_and_platrepo_and_bin_report_dumper(
+				'test/fixtures/composer/compile_script',
+				config: {
+					"COMPILE_SCRIPT_ECHO" => "hi from compile script",
+					"COMPILE_SCRIPT_SLEEP" => 5
+				}
+			)
 			@app.deploy
 		end
 		
@@ -60,7 +66,7 @@ describe "A PHP application intended for Composer 2" do
 		it "runs 'composer compile' at the end of the build" do
 			expect(@app.output)
 				 .to include("Running 'composer compile'...")
-				.and include("echo hi")
+				.and include("hi from compile script")
 		end
 		
 		it "captures the duration of the script run as part of the information about the build" do
