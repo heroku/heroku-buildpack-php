@@ -1,0 +1,17 @@
+{
+  "conflict": {},
+  "dist": {
+    "type": "tar",
+    "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-develop/heroku-installer-plugin-1.0.0.tar.gz"
+  },
+  "extra": {},
+  "name": "heroku/installer-plugin",
+  "provide": {},
+  "replace": {},
+  "require": {
+    "heroku-sys/heroku": "^20.0.0"
+  },
+  "time": "2025-09-27 14:13:22",
+  "type": "composer-plugin",
+  "version": "1.0.0"
+}

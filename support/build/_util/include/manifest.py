@@ -4,7 +4,12 @@ require = json.loads(sys.argv[5]) if len(sys.argv) > 5 else {}
 stack=re.match(r"^([^-]+)(?:-([0-9]+))?$", os.getenv("STACK", "heroku-22"))
 require["heroku-sys/"+stack.group(1)] = "^{}.0.0".format(stack.group(2) or "1")
 
-require["heroku/installer-plugin"] = "^1.2.0"
+if sys.argv[1].startswith("heroku-sys-"):
+	dist_type = "heroku-sys-tar"
+	require["heroku/installer-plugin"] = "^1.2.0"
+else:
+	dist_type = "tar"
+
 if sys.argv[1] == 'heroku-sys-php':
 	require["heroku/installer-plugin"] = "^1.6.0"
 elif sys.argv[1] == 'heroku-sys-php-extension':
@@ -25,7 +30,7 @@ manifest = {
 	"name": sys.argv[2],
 	"version": sys.argv[3],
 	"dist": {
-		"type": "heroku-sys-tar",
+		"type": dist_type,
 		"url": "https://"+os.getenv("S3_BUCKET")+"."+s3_region_string+".amazonaws.com/"+os.getenv("S3_PREFIX")+sys.argv[4]
 	},
 	"require": require,
