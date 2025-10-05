@@ -108,13 +108,13 @@ function build_report::set_raw() {
 # ```
 function build_report::_set() {
 	local key="${1}"
-	# Truncate the value to an arbitrary 200 characters since it will sometimes contain user-provided
+	# Truncate the value to an arbitrary 500 characters since it will sometimes contain user-provided
 	# inputs which may be unbounded in size. Ideally individual call sites will perform more aggressive
 	# truncation themselves based on the expected value size, however this is here as a fallback.
 	# (Honeycomb supports string fields up to 64KB in size, however, it's not worth filling up the
 	# build data store or bloating the payload passed back to Vacuole/submitted to Honeycomb given the
 	# extra content in those cases is not normally useful.)
-	local value="${2:0:200}"
+	local value="${2:0:500}"
 	local needs_quoting="${3}"
 
 	if [[ "${needs_quoting}" == "true" ]]; then
