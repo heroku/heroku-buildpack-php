@@ -84,7 +84,7 @@ end
 
 def new_app_with_stack_and_platrepo_and_bin_report_dumper(*args, **kwargs)
 	kwargs[:buildpacks] ||= [:default]
-	kwargs[:buildpacks].append("heroku-community/inline")
+	kwargs[:buildpacks].prepend("heroku-community/inline")
 	app = new_app_with_stack_and_platrepo(*args, **kwargs)
 	app.before_deploy(:append) do
 		FileUtils.mkdir("bin")
@@ -97,10 +97,26 @@ def new_app_with_stack_and_platrepo_and_bin_report_dumper(*args, **kwargs)
 		File.open("bin/compile", "w", 0755) do |f|
 			f.write <<~EOF
 				#!/usr/bin/env bash
-				echo -n "__BIN_REPORT_DUMP_MARKER_START__"
-				jq -cjM < "$2/build-data/php.json"
-				echo -n "__BIN_REPORT_DUMP_MARKER_END__"
-				! test -s "$3/FAIL_THIS_BUILD" # if config var set, abort
+				# find inline buildpack location (for writing export file) from process table
+				# (we got exec'd by the inline buildpack, so we have to look it up in the buildpacks dir)
+				read -a parent_args < <(ps -p "$PPID" -o args --no-headers)
+				bp_dir="${parent_args[5]}/$(
+					for arg in "${parent_args[@]:6}"; do
+						if grep '^--buildpack=' <<<"$arg" | grep -q "heroku-community/inline"; then
+							# compute SHA1 from the URL that was used, that's the subdir name
+							echo -n "${arg/#--buildpack=/}" | sha1sum | cut -d" " -f1
+						fi
+					done
+				)"
+				# define EXIT trap that dumps the data ($2/$3 are expanded now)
+				cat > "${bp_dir}/export" <<-EOX
+					trap "
+						echo -n '__BIN_REPORT_DUMP_MARKER_START__'
+						jq -cjM < '$2/build-data/php.json'
+						echo -n '__BIN_REPORT_DUMP_MARKER_END__'
+						test -s '$3/FAIL_THIS_BUILD' && exit 1 # if config var set, abort
+					" EXIT
+				EOX
 			EOF
 		end
 	end
@@ -139,9 +155,9 @@ end
 module AdditionalAppMethods
 	module AppWithBinReportDumper
 		def bin_report_dump
-			splits = output.split(/__BIN_REPORT_DUMP_MARKER_(START|END)__/, 3)
-			raise IndexError, "Could not find bin/report dump in output", caller if splits.length != 5
-			JSON.parse(splits[2])
+			splits = output.split(/__BIN_REPORT_DUMP_MARKER_(START|END)__/)
+			raise IndexError, "Could not find bin/report dump in output", caller if splits.length < 5
+			JSON.parse(splits[-3]) # use the last dump - there might be multiple, since a trap prints them
 		end
 	end
 end
