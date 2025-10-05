@@ -35,6 +35,10 @@ describe "A PHP application failing to build" do
 				"platform.install.duration" => a_kind_of(Float),
 				"dependencies.install.duration" => a_kind_of(Float),
 				"dependencies.packages.installed_count" => 0,
+				"failure_reason" => "scripts.compile",
+				"open_timers" => "__main__,scripts.compile",
+				"duration" => a_kind_of(Float),
+				"scripts.compile.duration" => a_kind_of(Float).and(a_value > 1),
 				"open_timers" => "__main__,scripts.compile",
 				"duration" => a_kind_of(Float),
 				"scripts.compile.duration" => a_kind_of(Float).and(a_value > 1),
@@ -43,6 +47,7 @@ describe "A PHP application failing to build" do
 	end
 	
 	context "because composer.json is malformed" do
+		let(:lint_errmsg) { "Expecting property name enclosed in double quotes: line 3 column 5 (char 17)" }
 		before(:all) do
 			@app = new_app_with_stack_and_platrepo_and_bin_report_dumper(
 				"test/fixtures/platform/generator/base",
@@ -68,11 +73,13 @@ describe "A PHP application failing to build" do
 		
 		it "throws an error" do
 			expect(@app.output).to include("Basic validation for 'composer.json' failed!")
-			expect(@app.output).to include("> Expecting property name enclosed in double quotes: line 3 column 5 (char 17)")
+			expect(@app.output).to include("> #{lint_errmsg}")
 		end
 		
 		it "captures information about the build" do
 			expect(@app.bin_report_dump).to match(
+				"failure_reason" => "composer_json.lint",
+				"failure_detail" => lint_errmsg,
 				"open_timers" => "__main__",
 				"duration" => a_kind_of(Float),
 			)
@@ -80,6 +87,7 @@ describe "A PHP application failing to build" do
 	end
 	
 	context "because composer.lock is malformed" do
+		let(:lint_errmsg) { "Expecting property name enclosed in double quotes: line 3 column 5 (char 17)" }
 		before(:all) do
 			@app = new_app_with_stack_and_platrepo_and_bin_report_dumper(
 				"test/fixtures/platform/generator/base",
@@ -105,11 +113,13 @@ describe "A PHP application failing to build" do
 		
 		it "throws an error" do
 			expect(@app.output).to include("Failed to parse 'composer.lock'!")
-			expect(@app.output).to include("> Expecting property name enclosed in double quotes: line 3 column 5 (char 17)")
+			expect(@app.output).to include("> #{lint_errmsg}")
 		end
 		
 		it "captures information about the build" do
 			expect(@app.bin_report_dump).to match(
+				"failure_reason" => "composer_lock.lint",
+				"failure_detail" => lint_errmsg,
 				"open_timers" => "__main__",
 				"duration" => a_kind_of(Float),
 			)

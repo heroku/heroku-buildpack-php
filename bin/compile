@@ -99,7 +99,8 @@ composer_lock_parse_error=$(
 # a bunch of sanity checks first
 if [[ -s "$COMPOSER" ]]; then
 	composer_json_lint=$(python3 -mjson.tool "$COMPOSER" 2>&1 >/dev/null) || {
-		mcount "failures.composer_json.lint"
+		build_report::set_string failure_reason composer_json.lint
+		build_report::set_string failure_detail "$composer_json_lint"
 		error <<-EOF
 			Basic validation for '$COMPOSER' failed!
 			
@@ -119,8 +120,8 @@ if [[ -s "$COMPOSER" ]]; then
 		EOF
 	}
 	if [[ ! -f "$COMPOSER_LOCK" ]]; then
-		cat "$COMPOSER" | python3 -c 'import sys, json; sys.exit(bool(json.load(sys.stdin).get("require", {})))' 2> /dev/null || {
-			mcount "failures.composer_lock.missing"
+		python3 -c 'import sys, json; sys.exit(bool(json.load(sys.stdin).get("require", {})))' 2>/dev/null < "$COMPOSER" || {
+			build_report::set_string failure_reason composer_lock.missing
 			error <<-EOF
 				No '$COMPOSER_LOCK' found!
 				
@@ -152,7 +153,8 @@ if [[ -s "$COMPOSER" ]]; then
 		}
 	else
 		composer_lock_lint=$(python3 -mjson.tool "$COMPOSER_LOCK" 2>&1 >/dev/null) || {
-			mcount "failures.composer_lock.lint"
+			build_report::set_string failure_reason composer_lock.lint
+			build_report::set_string failure_detail "$composer_lock_lint"
 			printf -v composer_lock_lint_message "\n\nThe following syntax error was reported:\n%s" "$(echo "${composer_lock_lint}" | indent -i 2 -p "> ")"
 			error "$(printf "$composer_lock_parse_error" "$composer_lock_lint_message")"
 		}
@@ -204,7 +206,7 @@ mkdir $build_dir/.heroku/php || {
 	# looks like platform packages are already there
 	# this can happen if the buildpack is set twice, or if a user is trying to build an already built app
 	# (e.g. by downloading a slug from Heroku and checking it into Git)
-	mcount "failures.platform.slug_as_source"
+	build_report::set_string failure_reason slug_as_source
 	error <<-EOF
 		Your app source code contains artifacts from a previous build!
 		
@@ -292,7 +294,8 @@ mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 
 curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-8.3.26.tar.gz" || {
-	mcount "failures.bootstrap.download.php-min"
+	build_report::set_string failure_reason bootstrap.download
+	build_report::set_string failure_detail php-min
 	error <<-EOF
 		Failed to download minimal PHP for bootstrapping!
 		
@@ -305,7 +308,8 @@ tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
 curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-2.8.12.tar.gz" || {
-	mcount "failures.bootstrap.download.composer"
+	build_report::set_string failure_reason bootstrap.download
+	build_report::set_string failure_detail composer
 	error <<-EOF
 		Failed to download Composer for bootstrapping!
 		
@@ -436,10 +440,11 @@ status "Preparing platform package installation..."
 HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^8.1.0 <8.5"
 export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # extract requirements from composer.lock
-/app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php ${have_custom_platform_repos:+"--list-repositories"} "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | indent || {
+{ platform_stderr=$(/app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php ${have_custom_platform_repos:+"--list-repositories"} "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | tee >(indent > /dev/stderr)); } || {
 	code=$?
 	if (( code == 3 )); then
-		mcount "failures.platform.composer_lock.runtime_only_in_dev"
+		build_report::set_string failure_reason platform.prepare.runtime_only_in_dev
+		build_report::set_string failure_detail "$platform_stderr"
 		error <<-EOF
 			Runtime specified in 'require-dev' but not in 'require'!
 			
@@ -463,10 +468,12 @@ export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 			https://devcenter.heroku.com/articles/php-support
 		EOF
 	elif (( code == 4 )); then
-		mcount "failures.platform.repositories_url_invalid"
+		build_report::set_string failure_reason platform.repositories.url_invalid
+		build_report::set_string failure_detail "$platform_stderr"
 		error 'Invalid $HEROKU_PHP_PLATFORM_REPOSITORIES value'
 	else
-		mcount "failures.platform.composer_lock.parse"
+		build_report::set_string failure_reason composer_lock.parse
+		build_report::set_string failure_detail "$platform_stderr"
 		error "$(printf "$composer_lock_parse_error" "")" # printf placeholder not used here
 	fi
 }
@@ -491,7 +498,7 @@ if platform-composer install ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} > $build_dir/.
 else
 	code=$?
 	install_log=$(
-		cat $build_dir/.heroku/php/install.log | sed -E \
+		sed -E \
 			-e 's/heroku-sys\///g' \
 			-e 's/^Loading composer repositories with package information/Loading repositories with available runtimes and extensions/' \
 			-e 's/^Installing dependencies.*//' \
@@ -499,14 +506,18 @@ else
 			-e '/^Potential causes:/,$d' \
 			-e "\#satisfiable by ${COMPOSER}/${COMPOSER_LOCK}#d" \
 			-e "s#(${COMPOSER}/${COMPOSER_LOCK}) dev-[0-9a-f]+#\1#" \
-			-e 's/^/> /'
+			"$build_dir/.heroku/php/install.log"
 	)
 	if [[ $code -eq 2 ]]; then
 		# dependency solving failed
 		mcount "failures.platform.solving.$(detect_platform_solving_failures <<< "$install_log")"
+		build_report::set_string failure_reason platform.install.main.solving
+		build_report::set_string failure_detail "$(sed -e '1,/Your requirements could not be resolved to an installable set of packages/d' -e '/^\s*$/d' <<< "$install_log")"
 	else
 		# something else
 		mcount "failures.platform.install.$(detect_platform_install_failures <<< "$install_log")"
+		build_report::set_string failure_reason platform.install.main.install
+		build_report::set_string failure_detail "${install_log:0:1000}"
 	fi
 	
 	error <<-EOF
@@ -522,7 +533,7 @@ else
 		
 		The following is the full output from the installation attempt:
 		
-		$install_log
+		$(echo "$install_log" | indent -i 2 -p ">")
 		$(
 			# via sed, make every line yellow at the start and re-set to red at the end
 			$composer_lock_outdated && cat <<-EOF2 | sed -e $'s/^/\033[1;33m/' -e $'s/$/\033[1;31m/'
@@ -779,7 +790,7 @@ if [[ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ]]; then
 		composer config --no-plugins -g github-oauth.github.com "$COMPOSER_GITHUB_OAUTH_TOKEN" &> /dev/null # redirect outdated version warnings (Composer sends those to STDOUT instead of STDERR)
 		notice_inline 'Using $COMPOSER_GITHUB_OAUTH_TOKEN for GitHub OAuth.'
 	else
-		mcount "failures.dependencies.auth.COMPOSER_GITHUB_OAUTH_TOKEN"
+		build_report::set_string failure_reason composer.config.auth.COMPOSER_GITHUB_OAUTH_TOKEN.missing
 		error <<-EOF
 			Invalid token for GitHub OAuth!
 			
@@ -809,8 +820,12 @@ if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit(not json.load(sys.std
 		if [[ $code -eq 2 ]]; then
 			# dependency solving failed, which should only ever happen if people have platform overrides in their config
 			mcount "failures.dependencies.solving.$(detect_dependencies_solving_failures < "$install_log")"
+			build_report::set_string failure_reason dependencies.install.solving
+			build_report::set_string failure_detail "$(head -c 1000 "$install_log")"
 		else
 			mcount "failures.dependencies.install.$(detect_dependencies_install_failures < "$install_log")"
+			build_report::set_string failure_reason dependencies.install.install
+			build_report::set_string failure_detail "$(head -c 1000 "$install_log")"
 		fi
 		# FIXME: can we provide more advice depending on the error?
 		error <<-EOF
@@ -837,7 +852,7 @@ fi
 # only perform the check for buildpack package if we're not running in Heroku CI
 if [[ -z "${HEROKU_PHP_INSTALL_DEV+are-we-running-in-ci}" ]]; then
 	composer show --quiet heroku/heroku-buildpack-php 2>/dev/null && {
-		mcount "failures.dependencies.buildpack_as_dependency"
+		build_report::set_string failure_reason dependencies.install.buildpack_as_dependency
 		error <<-EOF
 			Package 'heroku/heroku-buildpack-php' found!
 			
@@ -868,7 +883,7 @@ if cat "$COMPOSER" | python3 -c 'import sys,json; sys.exit("compile" not in json
 	
 	status "Running 'composer compile'..."
 	composer run-script ${HEROKU_PHP_INSTALL_DEV-"--no-dev"} --no-interaction compile 2>&1 | indent || {
-		mcount "failures.compile_step"
+		build_report::set_string failure_reason scripts.compile
 		error <<-EOF
 			Compile step failed!
 			

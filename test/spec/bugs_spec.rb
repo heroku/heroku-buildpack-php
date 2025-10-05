@@ -20,7 +20,7 @@ describe "A PHP application" do
 		# it also causes the platform install to fail because Composer sees everything is there and no post-install hooks to set up $PATH etc will be run
 		context "because of a slug getting used as the app source" do
 			it "fails the build" do
-				app = new_app_with_stack_and_platrepo("test/fixtures/default", allow_failure: true).tap do |app|
+				app = new_app_with_stack_and_platrepo_and_bin_report_dumper("test/fixtures/default", allow_failure: true).tap do |app|
 					app.before_deploy(:append) do
 						FileUtils.mkdir_p(".heroku/php")
 						FileUtils.touch(".heroku/php/composer.lock")
@@ -28,6 +28,9 @@ describe "A PHP application" do
 				end
 				app.deploy do |app|
 					expect(app.output).to match("Your app source code contains artifacts from a previous build")
+					expect(app.bin_report_dump).to include(
+						"failure_reason" => "slug_as_source",
+					)
 				end
 			end
 		end
@@ -38,9 +41,12 @@ describe "A PHP application" do
 					:default,
 					:default
 				]
-				app = new_app_with_stack_and_platrepo("test/fixtures/default", buildpacks: buildpacks, allow_failure: true)
+				app = new_app_with_stack_and_platrepo_and_bin_report_dumper("test/fixtures/default", buildpacks: buildpacks, allow_failure: true)
 				app.deploy do |app|
 					expect(app.output).to match("Your app source code contains artifacts from a previous build")
+					expect(app.bin_report_dump).to include(
+						"failure_reason" => "slug_as_source",
+					)
 				end
 			end
 		end
