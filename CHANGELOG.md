@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v276] - 2025-10-05
+
 ### CHG
 
 - Automatically finish recording durations of build steps for bin/report where needed (e.g. on build failure) [David Zuelke]
@@ -3019,7 +3022,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v275...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v276...main
+[v276]: https://github.com/heroku/heroku-buildpack-php/compare/v275...v276
 [v275]: https://github.com/heroku/heroku-buildpack-php/compare/v274...v275
 [v274]: https://github.com/heroku/heroku-buildpack-php/compare/v273...v274
 [v273]: https://github.com/heroku/heroku-buildpack-php/compare/v272...v273
