@@ -7,6 +7,8 @@
 - Automatically finish recording durations of build steps for bin/report where needed (e.g. on build failure) [David Zuelke]
 - Show linter error message if composer.json or composer.lock is malformed [David Zuelke]
 - Log reason and details for bin/report on build failure [David Zuelke]
+- Automatically log details about failures for bin/report if not handled explicitly [David Zuelke]
+- Log details about unhandled internal errors for bin/report [David Zuelke]
 
 ## [v275] - 2025-09-30
 

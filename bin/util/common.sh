@@ -279,28 +279,49 @@ curl_retry_on_18() {
 }
 
 err_trap() {
+	local trace=$(
+		local frame=0
+		while caller "$frame"; do
+			(( ++frame ));
+		done
+	)
+
+	build_report::set_string failure_reason errexit
+	build_report::set_string failure_detail "$trace"
+
 	error <<-EOF
 		An unknown internal error occurred.
 	
 		Contact Heroku Support for assistance if this problem persists.
 		
 		Stack trace follows for debugging purposes:
-		$(
-			local frame=0
-			while caller $frame; do
-				((frame++));
-			done
-		)
+		${trace}
 	EOF
 }
 
 exit_trap() {
+	local exit_status=$?
+
 	build_report::has_running_timers && {
 		local open_timers
 		mapfile -t open_timers < <(build_report::get_running_timer_names)
 		build_report::set_string open_timers "$(IFS=","; echo "${open_timers[*]}")"
 		build_report::stop_timers
-	} || true
+	}
+
+	# if exit status was 0, or if a failure_reason is already set, skip the rest
+	(( exit_status )) || return
+	build_report::has failure_reason && return
+
+	local trace=$(
+		local frame=0
+		while caller "$frame"; do
+			(( ++frame ));
+		done
+	)
+
+	build_report::set_string failure_reason unknown
+	build_report::set_string failure_detail "$trace"
 }
 
 # Logging
