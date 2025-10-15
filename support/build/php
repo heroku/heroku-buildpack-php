@@ -25,6 +25,12 @@ if [[ $dep_version == *alpha* ]] || [[ $dep_version == *beta* ]] || [[ $dep_vers
 		dep_url=https://downloads.php.net/~eric/${dep_archive_name}
 	elif [[ $dep_version == 8.4.* ]]; then
 		dep_url=https://downloads.php.net/~calvinb/${dep_archive_name}
+	elif [[ $dep_version == 8.5.* ]]; then
+		# two release managers, gotta try both for a download
+		dep_url=(
+			"https://downloads.php.net/~daniels/${dep_archive_name}"
+			"https://downloads.php.net/~edorian/${dep_archive_name}"
+		)
 	fi
 else
 	dep_url=https://www.php.net/distributions/${dep_archive_name}
