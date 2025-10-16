@@ -9,6 +9,10 @@
 - ext-imagick/3.8.1 [David Zuelke]
 - PHP/8.5.0 [David Zuelke]
 
+### CHG
+
+- Use PHP 8.4 for bootstrapping [David Zuelke]
+
 ## [v278] - 2025-11-22
 
 ### ADD
