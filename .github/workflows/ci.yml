@@ -39,5 +39,7 @@ jobs:
     steps:
       - name: Disable mandb updates
         run: sudo rm /var/lib/man-db/auto-update
+      - name: Force unsafe I/O for dpkg
+        run: echo "force-unsafe-io" | sudo tee -a /etc/dpkg/dpkg.cfg.d/force-unsafe-io
       - name: Install musl-tools
         run: sudo apt-get install -y --no-install-recommends musl-tools
