@@ -37,5 +37,10 @@ jobs:
       BLACKFIRE_SERVER_ID: ${{ secrets.BLACKFIRE_SERVER_ID }}
       BLACKFIRE_SERVER_TOKEN: ${{ secrets.BLACKFIRE_SERVER_TOKEN }}
     steps:
+      - name: Dump dkpg configs
+        run: cat /etc/dpkg/dpkg.cfg /etc/dpkg/dpkg.cfg.d/* || true
+      - name: Disable mandb updates
+        run: |
+          printf 'path-exclude=/usr/share/%s/*\n' doc man info | sudo tee /etc/dpkg/dpkg.cfg.d/no-man-db-updates > /dev/null 
       - name: Install musl-tools
         run: sudo apt-get install -y --no-install-recommends musl-tools
