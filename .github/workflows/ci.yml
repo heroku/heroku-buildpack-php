@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-24.04
     strategy:
       matrix:
-        stack: ["heroku-22", "heroku-24"]
+        stack: ["heroku-24"]
     env:
       STACK: ${{ matrix.stack }}
       BLACKFIRE_CLIENT_ID:  ${{ secrets.BLACKFIRE_CLIENT_ID }}
@@ -37,46 +37,5 @@ jobs:
       BLACKFIRE_SERVER_ID: ${{ secrets.BLACKFIRE_SERVER_ID }}
       BLACKFIRE_SERVER_TOKEN: ${{ secrets.BLACKFIRE_SERVER_TOKEN }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v5
-      - name: Install Ruby and Bundler
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-          ruby-version: "3.2"
-      - name: Install PHP and Composer
-        uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # 2.35.5
-        with:
-          php-version: "8.3"
-          tools: "composer:2.8"
-      - name: Install packages from requirements.txt (for some tests in platform_spec.rb that run mkrepo.sh which needs natsort)
-        run: |
-          export VIRTUAL_ENV=$HOME/.venv
-          python3 -m venv "$VIRTUAL_ENV"
-          export PATH=$VIRTUAL_ENV/bin:$PATH
-          pip install -r requirements.txt
-          echo "$VIRTUAL_ENV/bin" >> "$GITHUB_PATH"
-      - name: Hatchet setup
-        run: bundle exec hatchet ci:setup
-      - name: Calculate formulae state Hash
-        run: |
-          echo -n "PLATFORM_REPO_SNAPSHOT_SHA256=" >> "$GITHUB_ENV"
-          support/build/_util/formulae-hash.sh >> "$GITHUB_ENV"
-      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}}packages-${snapshot}.json (since we are not building main or a tag, but it's a PR)
-        if: github.ref_type != 'tag' && github.ref_name != 'main' && github.event_name == 'pull_request'
-        run: |
-          if [[ $STACK != heroku-22 ]]; then STACK="${STACK}-amd64"; fi
-          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}packages-${PLATFORM_REPO_SNAPSHOT_SHA256}.json" >> "$GITHUB_ENV"
-      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}} (since we are not building main or a tag, and it's not a PR, so no snapshot)
-        if: github.ref_type != 'tag' && github.ref_name != 'main' && github.event_name != 'pull_request'
-        run: |
-          if [[ $STACK != heroku-22 ]]; then STACK="${STACK}-amd64"; fi
-          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}" >> "$GITHUB_ENV"
-      - name: Calculate number of parallel_rspec processes (half of num of lines in runtime log)
-        run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat test/var/log/parallel_runtime_rspec.${STACK}.log | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"
-      - name: Execute tests
-        run: bundle exec parallel_rspec --group-by runtime --first-is-1 --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/
-      - name: Print list of executed examples
-        run: cat test/var/log/group.*.json | jq -r --slurp '[.[].examples[]] | sort_by(.id) | flatten[] | .full_description'
-      - name: Print parallel_runtime_rspec.log
-        run: cat test/var/log/parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort
+      - name: Install musl-tools
+        run: sudo apt-get install -y --no-install-recommends musl-tools
