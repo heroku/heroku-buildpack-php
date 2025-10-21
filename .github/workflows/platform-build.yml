@@ -46,10 +46,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
-      - name: Install jq tool
-        run: |
-          sudo apt-get update
-          sudo apt-get install jq
       - id: expand-formulae
         name: Expand list of given formulae
         run: |

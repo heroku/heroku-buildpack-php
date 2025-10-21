@@ -141,10 +141,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+      # The dpkg man-db trigger is excessively slow on GHA runners, see e.g.:
+      # https://github.com/actions/runner-images/issues/10977
+      # https://github.com/actions/runner/issues/4030
+      # We disable it here so it does not fire at the end of the following apt-get install
+      - name: Disable man-db auto-update
+        run: sudo rm -f /var/lib/man-db/auto-update
       - name: Install dos2unix
-        run: |
-          sudo apt-get update
-          sudo apt-get install dos2unix
+        run: sudo apt-get install dos2unix
       - name: Install PHP and Composer
         uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # 2.35.5
         with:
@@ -270,10 +274,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+      # The dpkg man-db trigger is excessively slow on GHA runners, see e.g.:
+      # https://github.com/actions/runner-images/issues/10977
+      # https://github.com/actions/runner/issues/4030
+      # We disable it here so it does not fire at the end of the following apt-get install
+      - name: Disable man-db auto-update
+        run: sudo rm -f /var/lib/man-db/auto-update
       - name: Install dos2unix
-        run: |
-          sudo apt-get update
-          sudo apt-get install dos2unix
+        run: sudo apt-get install dos2unix
       - name: Download current Dev Center article markdown
         run: |
           set -o pipefail
