@@ -148,9 +148,7 @@ jobs:
       - name: Disable man-db auto-update
         run: sudo rm -f /var/lib/man-db/auto-update
       - name: Install dos2unix
-        run: |
-          sudo apt-get update
-          sudo apt-get install dos2unix
+        run: sudo apt-get install dos2unix
       - name: Install PHP and Composer
         uses: shivammathur/setup-php@bf6b4fbd49ca58e4608c9c89fba0b8d90bd2a39f # 2.35.5
         with:
@@ -283,9 +281,7 @@ jobs:
       - name: Disable man-db auto-update
         run: sudo rm -f /var/lib/man-db/auto-update
       - name: Install dos2unix
-        run: |
-          sudo apt-get update
-          sudo apt-get install dos2unix
+        run: sudo apt-get install dos2unix
       - name: Download current Dev Center article markdown
         run: |
           set -o pipefail
