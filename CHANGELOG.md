@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### ADD
+
+- Read memory limits from cgroups (v1 or v2) in boot scripts (#699) [David Zuelke]
+- Read CPU core count from cgroups (v1 or v2) via `nproc` in boot scripts [David Zuelke]
 
 ## [v276] - 2025-10-05
 
