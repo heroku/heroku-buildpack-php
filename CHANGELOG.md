@@ -8,6 +8,7 @@
 - PHP/8.4.14 [David Zuelke]
 - ext-mongodb/1.21.2 [David Zuelke]
 - ext-mongodb/2.1.4 [David Zuelke]
+- ext-memcached/3.4.0 [David Zuelke]
 
 ## [v276] - 2025-10-05
 
