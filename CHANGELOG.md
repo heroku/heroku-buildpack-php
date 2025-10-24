@@ -12,6 +12,10 @@
 - ext-blackfire/1.92.48 [David Zuelke]
 - ext-grpc/1.76.0 [David Zuelke]
 
+### CHG
+
+- librdkafka/2.12.1 [David Zuelke]
+
 ## [v276] - 2025-10-05
 
 ### CHG
