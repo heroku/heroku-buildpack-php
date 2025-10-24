@@ -9,6 +9,7 @@
 - ext-mongodb/1.21.2 [David Zuelke]
 - ext-mongodb/2.1.4 [David Zuelke]
 - ext-memcached/3.4.0 [David Zuelke]
+- ext-blackfire/1.92.48 [David Zuelke]
 
 ## [v276] - 2025-10-05
 
