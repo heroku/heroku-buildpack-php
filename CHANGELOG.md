@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.3.27 [David Zuelke]
 
 ## [v276] - 2025-10-05
 
