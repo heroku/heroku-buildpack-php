@@ -24,6 +24,19 @@ This will use the officially published version. To use the default branch from G
 
 Please refer to [Dev Center](https://devcenter.heroku.com/categories/php) for further usage instructions.
 
+### Composer / GitHub authentication
+
+If you hit GitHub API rate limits during `composer install`, configure Composer using the `COMPOSER_AUTH` environment variable (preferred by Composer) rather than the legacy `COMPOSER_GITHUB_OAUTH_TOKEN`. For example:
+
+```bash
+heroku config:set   COMPOSER_AUTH='{"github-oauth":{"github.com":"<YOUR_GITHUB_TOKEN>"}}'
+```
+
+> **Note:**  
+> The buildpack emits a warning if `COMPOSER_GITHUB_OAUTH_TOKEN` is set without `COMPOSER_AUTH`, to encourage migration to the modern mechanism.  
+>  
+> **Docs:** [Composer Authentication for Private Packages](https://getcomposer.org/doc/articles/authentication-for-private-packages.md)
+
 ## Custom Platform Repositories
 
 The buildpack uses Composer repositories to resolve platform (`php`, `ext-something`, ...) dependencies.
