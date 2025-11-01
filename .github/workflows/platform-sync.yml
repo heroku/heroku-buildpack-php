@@ -299,7 +299,7 @@ jobs:
           # Then, we finally run the conversion (if needed) by passing the file name to dos2unix again via xargs.
           dos2unix --info=c0 php-support.md | tee have_crlf.txt | xargs -r0 dos2unix
       - name: Download diff artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           name: devcenter-diff
           path: devcenter-diffs
@@ -348,7 +348,7 @@ jobs:
         run: |
           composer install -d support/devcenter/
       - name: Download all sync log artifacts
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v6
         with:
           path: synclogs
           pattern: synclog-*
