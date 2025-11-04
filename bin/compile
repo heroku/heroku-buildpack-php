@@ -4,19 +4,6 @@
 
 # fail hard
 set -o pipefail
-# Normalize commonly used env vars
-COMPOSER_GITHUB_OAUTH_TOKEN=${COMPOSER_GITHUB_OAUTH_TOKEN:-}
-COMPOSER_AUTH=${COMPOSER_AUTH:-}
-
-# Warn about deprecated Composer token env var
-# Keeping this as a warning avoids breaking users while nudging migration.
-if [ -n "$COMPOSER_GITHUB_OAUTH_TOKEN" ] && [ -z "$COMPOSER_AUTH" ]; then
-  printf "-----> Warning: COMPOSER_GITHUB_OAUTH_TOKEN is deprecated.\n" >&2
-  printf "       Please set COMPOSER_AUTH with your GitHub token, e.g.:\n" >&2
-  printf "       heroku config:set \\\n" >&2
-  printf "         COMPOSER_AUTH='{\"github-oauth\":{\"github.com\":\"<TOKEN>\"}}'\n" >&2
-  printf "       See: https://getcomposer.org/doc/articles/authentication-for-private-packages.md\n" >&2
-fi
 # fail harder
 set -eu
 # move hidden files too, just in case
@@ -77,6 +64,14 @@ else
 fi
 export COMPOSER_LOCK=$(basename "$COMPOSER" ".json")".lock" # replace .json with .lock if it exists, append .lock otherwise
 ignore_config_vars+=("COMPOSER_LOCK")
+
+# COMPOSER_AUTH migration notice (must run after COMPOSER env is loaded)
+if [[ -n "${COMPOSER_GITHUB_OAUTH_TOKEN:-}" && -z "${COMPOSER_AUTH:-}" ]]; then
+	warning "COMPOSER_GITHUB_OAUTH_TOKEN is deprecated. Please set COMPOSER_AUTH instead."
+	warning "Example:"
+	warning "  heroku config:set COMPOSER_AUTH='{\"github-oauth\":{\"github.com\":\"<TOKEN>\"}}'"
+	warning "Docs: https://getcomposer.org/doc/articles/authentication-for-private-packages.md"
+fi
 
 # we're using this error message in two places
 composer_lock_parse_error=$(
