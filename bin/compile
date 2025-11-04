@@ -65,6 +65,14 @@ fi
 export COMPOSER_LOCK=$(basename "$COMPOSER" ".json")".lock" # replace .json with .lock if it exists, append .lock otherwise
 ignore_config_vars+=("COMPOSER_LOCK")
 
+# COMPOSER_AUTH migration notice (must run after COMPOSER env is loaded)
+if [[ -n "${COMPOSER_GITHUB_OAUTH_TOKEN:-}" && -z "${COMPOSER_AUTH:-}" ]]; then
+	warning "COMPOSER_GITHUB_OAUTH_TOKEN is deprecated. Please set COMPOSER_AUTH instead."
+	warning "Example:"
+	warning "  heroku config:set COMPOSER_AUTH='{\"github-oauth\":{\"github.com\":\"<TOKEN>\"}}'"
+	warning "Docs: https://getcomposer.org/doc/articles/authentication-for-private-packages.md"
+fi
+
 # we're using this error message in two places
 composer_lock_parse_error=$(
 	cat <<-EOF
