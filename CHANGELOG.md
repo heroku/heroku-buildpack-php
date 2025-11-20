@@ -9,6 +9,7 @@
 - ext-ev/1.2.2 [David Zuelke]
 - ext-redis/6.3.0 [David Zuelke]
 - ext-blackfire/1.92.50 [David Zuelke]
+- ext-newrelic/12.2.0.27 [David Zuelke]
 
 ## [v277] - 2025-10-24
 
