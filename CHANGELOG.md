@@ -6,6 +6,7 @@
 
 - PHP/8.3.28 [David Zuelke]
 - PHP/8.4.15 [David Zuelke]
+- ext-ev/1.2.2 [David Zuelke]
 
 ## [v277] - 2025-10-24
 
