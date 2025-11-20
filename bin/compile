@@ -294,7 +294,7 @@ fi
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 
-curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-8.3.27.tar.gz" || {
+curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-8.3.28.tar.gz" || {
 	build_report::set_string failure_reason bootstrap.download
 	build_report::set_string failure_detail php-min
 	error <<-EOF
@@ -308,7 +308,7 @@ curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --sil
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
-curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-2.8.12.tar.gz" || {
+curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-2.9.2.tar.gz" || {
 	build_report::set_string failure_reason bootstrap.download
 	build_report::set_string failure_detail composer
 	error <<-EOF
