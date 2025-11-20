@@ -8,6 +8,7 @@
 - PHP/8.4.15 [David Zuelke]
 - ext-ev/1.2.2 [David Zuelke]
 - ext-redis/6.3.0 [David Zuelke]
+- ext-blackfire/1.92.50 [David Zuelke]
 
 ## [v277] - 2025-10-24
 
