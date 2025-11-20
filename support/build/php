@@ -33,7 +33,10 @@ dep_manifest=${dep_package}.composer.json
 
 echo "-----> Building ${dep_name} (${dep_version})..."
 
-curl -L ${dep_url} | tar xz
+for url in "${dep_url[@]}"; do
+	echo "Trying download from $url..."
+	curl -fL "${url}" | tar xz && break
+done || { echo "Download failed for ${dep_archive_name}"; exit 1; }
 
 pushd ${dep_dirname}
 
