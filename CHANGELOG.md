@@ -12,6 +12,7 @@
 ### CHG
 
 - Use PHP 8.4 for bootstrapping [David Zuelke]
+- Use default value (Off) for short_open_tag PHP INI directive for 8.5+ [David Zuelke]
 
 ## [v278] - 2025-11-22
 
