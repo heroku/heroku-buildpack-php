@@ -6,6 +6,7 @@
 
 - ext-oauth/2.0.10 [David Zuelke]
 - ext-blackfire/1.92.51 [David Zuelke]
+- ext-imagick/3.8.1 [David Zuelke]
 
 ## [v278] - 2025-11-22
 
