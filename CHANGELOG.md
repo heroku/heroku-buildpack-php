@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### ADD
+
+- ext-oauth/2.0.10 [David Zuelke]
 
 ## [v278] - 2025-11-22
 
