@@ -4,28 +4,28 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "b5621725de529f5a691d7cc43e353a65",
+    "content-hash": "29551a93d0cb292d0e434bd97d45ba5d",
     "packages": [],
     "packages-dev": [
         {
             "name": "kahlan/kahlan",
-            "version": "5.2.8",
+            "version": "6.0.2",
             "source": {
                 "type": "git",
                 "url": "https://github.com/kahlan/kahlan.git",
-                "reference": "8a403d35bd564a2a315a7c4544e73827ef56c540"
+                "reference": "2cb353e5faa505328bef00abcc1eb5f82790ff20"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/kahlan/kahlan/zipball/8a403d35bd564a2a315a7c4544e73827ef56c540",
-                "reference": "8a403d35bd564a2a315a7c4544e73827ef56c540",
+                "url": "https://api.github.com/repos/kahlan/kahlan/zipball/2cb353e5faa505328bef00abcc1eb5f82790ff20",
+                "reference": "2cb353e5faa505328bef00abcc1eb5f82790ff20",
                 "shasum": ""
             },
             "require": {
-                "php": ">=7.2"
+                "php": ">=7.4"
             },
             "require-dev": {
-                "rector/rector": "^1.1.1",
+                "rector/rector": "^2.0",
                 "squizlabs/php_codesniffer": "^3.10.1"
             },
             "bin": [
@@ -62,9 +62,9 @@
             ],
             "support": {
                 "issues": "https://github.com/kahlan/kahlan/issues",
-                "source": "https://github.com/kahlan/kahlan/tree/5.2.8"
+                "source": "https://github.com/kahlan/kahlan/tree/6.0.2"
             },
-            "time": "2024-10-18T19:01:44+00:00"
+            "time": "2025-02-22T16:04:53+00:00"
         }
     ],
     "aliases": [],
