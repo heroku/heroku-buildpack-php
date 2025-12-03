@@ -9,16 +9,16 @@
     "packages-dev": [
         {
             "name": "atoum/atoum",
-            "version": "4.2.0",
+            "version": "4.4.1",
             "source": {
                 "type": "git",
                 "url": "https://github.com/atoum/atoum.git",
-                "reference": "fd9a339de252ea774ab755b3fd25dd19be2dbefb"
+                "reference": "4b465e938e1efb44f2407067ed42cbf953d626b3"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/atoum/atoum/zipball/fd9a339de252ea774ab755b3fd25dd19be2dbefb",
-                "reference": "fd9a339de252ea774ab755b3fd25dd19be2dbefb",
+                "url": "https://api.github.com/repos/atoum/atoum/zipball/4b465e938e1efb44f2407067ed42cbf953d626b3",
+                "reference": "4b465e938e1efb44f2407067ed42cbf953d626b3",
                 "shasum": ""
             },
             "require": {
@@ -32,7 +32,7 @@
                 "mageekguy/atoum": "*"
             },
             "require-dev": {
-                "friendsofphp/php-cs-fixer": "^3.2"
+                "friendsofphp/php-cs-fixer": "^3.86"
             },
             "suggest": {
                 "atoum/stubs": "Provides IDE support (like autocompletion) for atoum",
@@ -90,19 +90,19 @@
             ],
             "support": {
                 "issues": "https://github.com/atoum/atoum/issues",
-                "source": "https://github.com/atoum/atoum/tree/4.2.0"
+                "source": "https://github.com/atoum/atoum/tree/4.4.1"
             },
-            "time": "2023-07-30T12:52:23+00:00"
+            "time": "2025-10-14T16:50:36+00:00"
         }
     ],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
         "php": "8.3.*"
     },
-    "platform-dev": [],
+    "platform-dev": {},
     "plugin-api-version": "2.6.0"
 }
