@@ -3,6 +3,6 @@
         "php": "*"
     },
     "require-dev": {
-        "phpspec/phpspec": "^7.2.0"
+        "phpspec/phpspec": "^8.0"
     }
 }
