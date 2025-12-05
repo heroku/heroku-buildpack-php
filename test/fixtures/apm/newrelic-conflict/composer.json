@@ -16,7 +16,7 @@
 		}
 	],
 	"require": {
-		"php": "*",
+		"php": "8.4.*",
 		"my-conflict/newrelic": "1.0.0"
 	}
 }

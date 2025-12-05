@@ -26,6 +26,10 @@ if composer run-script -l 2> /dev/null | grep -- "^\s*test\b" > /dev/null; then
 	composer run-script test
 elif composer exec -l | grep -- "^-\s*codecept\b" > /dev/null; then
 	echo "Codeception found, executing 'codecept run'..." >&2
+	# register_argc_argv is off by default on PHP 8.5, but Codeception needs it
+	php_ini_path=$(PHP_INI_SCAN_DIR= php -r 'echo get_cfg_var("cfg_file_path");')
+	echo "" >> "$php_ini_path"
+	echo "register_argc_argv = On" >> "$php_ini_path"
 	composer exec -v codecept run # without -v, no stderr output is printed
 elif composer exec -l | grep -- "^-\s*behat\b" > /dev/null; then
 	echo "Behat found, executing 'behat'..." >&2

@@ -47,8 +47,8 @@ jobs:
       - name: Install PHP and Composer
         uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
         with:
-          php-version: "8.3"
-          tools: "composer:2.8"
+          php-version: "8.4"
+          tools: "composer:2.9"
       - name: Install packages from requirements.txt (for some tests in platform_spec.rb that run mkrepo.sh which needs natsort)
         run: |
           export VIRTUAL_ENV=$HOME/.venv

@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "322d0d1010d436c1f49911e1d0705bb5",
+    "content-hash": "8e411012695c63ac7eb7e37b2d9af657",
     "packages": [
         {
             "name": "my-polyfill/newrelic",
@@ -25,7 +25,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "*"
+        "php": "8.4.*"
     },
     "platform-dev": {},
     "plugin-api-version": "2.6.0"
