@@ -3,6 +3,6 @@
         "php": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "^10.0"
+        "phpunit/phpunit": "^12.0"
     }
 }

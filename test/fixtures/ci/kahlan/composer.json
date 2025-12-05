@@ -3,6 +3,6 @@
         "php": "*"
     },
     "require-dev": {
-        "kahlan/kahlan": "^5.0"
+        "kahlan/kahlan": "^6.0"
     }
 }

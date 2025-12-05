@@ -1,6 +1,6 @@
 # Heroku buildpack: PHP [![CI](https://github.com/heroku/heroku-buildpack-php/actions/workflows/ci.yml/badge.svg)](https://github.com/heroku/heroku-buildpack-php/actions/workflows/ci.yml)
 
-![php](https://cloud.githubusercontent.com/assets/51578/13712789/9569dce4-e793-11e5-9147-1fe28dc802d6.png)
+![php](https://raw.githubusercontent.com/heroku/buildpacks/refs/heads/main/assets/images/buildpack-banner-php.png)
 
 This is the official [Heroku buildpack](http://devcenter.heroku.com/articles/buildpacks) for PHP applications.
 

@@ -1,6 +1,6 @@
 {
     "require": {
-        "php": "8.3.*"
+        "php": "*"
     },
     "require-dev": {
         "atoum/atoum": "^4.0"
