@@ -143,14 +143,14 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 				# if that happens, the last stderr line(s) from the program might get picked up after the next thing we echo
 				# for that reason, we redirect stderr to stdout
 				run_cmds = [<<~CMD1, <<~CMD2, <<~CMD3].map { |cmd| cmd.strip }.map { |cmd| "#{cmd} 2>&1" }.join("; echo -n '#{delimiter}'; ")
-					getconf() { echo '_NPROCESSORS_ONLN                  1'; }
-					export -f getconf
+					nproc() { echo '1'; }
+					export -f nproc
 					heroku-php-#{server} -v -tt 2>&1
 				CMD1
-					getconf() { echo '_NPROCESSORS_ONLN                  16'; }
+					nproc() { echo '16'; }
 					heroku-php-#{server} -v -tt 2>&1
 				CMD2
-					getconf() { echo '_NPROCESSORS_ONLN                  1'; }
+					nproc() { echo '1'; }
 					heroku-php-#{server} -v -tt -F conf/fpm.admin.conf 2>&1
 				CMD3
 				retry_until retry: 3, sleep: 5 do
