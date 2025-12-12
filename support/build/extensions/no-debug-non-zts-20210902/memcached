@@ -27,11 +27,4 @@ fi
 
 CONFIGURE_EXTRA="--with-zstd"
 
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/memcached.ini-dist\"}"}"
-
 source $(dirname $BASH_SOURCE)/../pecl
-
-mkdir -p ${OUT_PREFIX}/etc/php/conf.d
-cat > ${OUT_PREFIX}/etc/php/conf.d/memcached.ini-dist <<'EOF'
-extension = memcached.so
-EOF

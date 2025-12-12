@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+### ADD
+
+- ext-oauth/2.0.10 [David Zuelke]
+- ext-blackfire/1.92.51 [David Zuelke]
+- ext-imagick/3.8.1 [David Zuelke]
+- PHP/8.5.0 [David Zuelke]
+
+### CHG
+
+- Use PHP 8.4 for bootstrapping [David Zuelke]
+- Use default value (Off) for short_open_tag PHP INI directive for 8.5+ [David Zuelke]
 
 ## [v278] - 2025-11-22
 

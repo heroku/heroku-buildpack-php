@@ -32,5 +32,12 @@ test/spec/php-8.4_concurrency-apache2_spec.rb:70
 test/spec/php-8.4_concurrency-nginx_spec.rb:65
 test/spec/php-8.4_sigterm-apache2_spec.rb:70
 test/spec/php-8.4_sigterm-nginx_spec.rb:70
+test/spec/php-8.5_base_spec.rb:30
+test/spec/php-8.5_boot-apache2_spec.rb:65
+test/spec/php-8.5_boot-nginx_spec.rb:55
+test/spec/php-8.5_concurrency-apache2_spec.rb:70
+test/spec/php-8.5_concurrency-nginx_spec.rb:65
+test/spec/php-8.5_sigterm-apache2_spec.rb:70
+test/spec/php-8.5_sigterm-nginx_spec.rb:70
 test/spec/php_default_spec.rb:60
 test/spec/platform_spec.rb:80
