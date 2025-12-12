@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v279] - 2025-12-12
+
 ### ADD
 
 - ext-oauth/2.0.10 [David Zuelke]
@@ -3066,7 +3069,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v278...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v279...main
+[v279]: https://github.com/heroku/heroku-buildpack-php/compare/v278...v279
 [v278]: https://github.com/heroku/heroku-buildpack-php/compare/v277...v278
 [v277]: https://github.com/heroku/heroku-buildpack-php/compare/v276...v277
 [v276]: https://github.com/heroku/heroku-buildpack-php/compare/v275...v276
