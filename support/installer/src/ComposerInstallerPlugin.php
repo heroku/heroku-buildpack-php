@@ -420,7 +420,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		throw new \RuntimeException("Failed to execute '$command'\n\n" . $this->process->getErrorOutput());
 	}
 	
-	protected function appendLayerEnvData(array $data = null)
+	protected function appendLayerEnvData(?array $data)
 	{
 		if(!$data) return;
 		
