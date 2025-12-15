@@ -97,6 +97,7 @@ jobs:
         with:
           key: docker-cache-heroku-php-build-${{matrix.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
+          fail-on-cache-miss: true
       - name: Load cached Docker image
         run: docker load -i /tmp/docker-cache.tar.gz
       - name: Calculate formulae state Hash
