@@ -15,6 +15,7 @@
 ### CHG
 
 - Apache/2.4.66 [David Zuelke]
+- blackfire/2.29.9 [David Zuelke]
 
 ## [v279] - 2025-12-12
 
