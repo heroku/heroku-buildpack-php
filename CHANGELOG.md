@@ -10,6 +10,7 @@
 - PHP/8.4.16 [David Zuelke]
 - PHP/8.5.1 [David Zuelke]
 - ext-apcu/5.1.28 [David Zuelke]
+- ext-blackfire/1.92.53 [David Zuelke]
 
 ## [v279] - 2025-12-12
 
