@@ -9,6 +9,7 @@
 - PHP/8.3.29 [David Zuelke]
 - PHP/8.4.16 [David Zuelke]
 - PHP/8.5.1 [David Zuelke]
+- ext-apcu/5.1.28 [David Zuelke]
 
 ## [v279] - 2025-12-12
 
