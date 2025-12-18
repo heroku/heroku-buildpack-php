@@ -12,6 +12,10 @@
 - ext-apcu/5.1.28 [David Zuelke]
 - ext-blackfire/1.92.53 [David Zuelke]
 
+### CHG
+
+- Apache/2.4.66 [David Zuelke]
+
 ## [v279] - 2025-12-12
 
 ### ADD
