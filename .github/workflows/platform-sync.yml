@@ -113,7 +113,7 @@ jobs:
           # we need -i for Docker to accept input on stdin, but must not use -t for the pipeline to work
           (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh --no-remove -c "$PLATFORM_REPO_SNAPSHOT_SHA256" lang-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log
       - name: Upload sync log as artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: synclog-${{matrix.stack}}
           path: sync-${{matrix.stack}}.log
@@ -260,7 +260,7 @@ jobs:
           }
       - name: Upload diff as artifact
         if: steps.find-section-markers.outputs.num_sections > 0 && steps.diff.outputs.diff_result == 1
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: devcenter-diff
           path: |
