@@ -403,13 +403,6 @@ cores=$(getconf -a | grep -E '_?NPROCESSORS_ONLN' | head -n1 | tr -s ' ' | cut -
 	echo "Assuming number of CPU cores to be $cores" >&2
 }
 if [[ -z ${WEB_CONCURRENCY:-} ]]; then
-	if [[ -n ${DYNO:-} && $(ulimit -u) == "32768" && ( "$php_version" == 5.* || "$php_version" == 7.[0-3].* ) ]]; then
-		# on a Performance-L dyno, limit to 6 GB of RAM for backwards compatibility for PHP versions before 7.4
-		# this is to ensure that apps previously running on PX dynos (6 GB RAM) do not get a sudden jump in the number of worker processes
-		ram="6G"
-		echo "Limiting RAM usage to ${ram} Bytes" >&2
-	fi
-
 	[[ $verbose ]] && echo "Calculating WEB_CONCURRENCY..." >&2
 
 	# dump the FPM config and parse out memory_limit declarations
