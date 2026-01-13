@@ -437,7 +437,7 @@ if [[ -z ${WEB_CONCURRENCY-} || ${WEB_CONCURRENCY_SET_BY:+isset} ]]; then
 	export WEB_CONCURRENCY
 	export WEB_CONCURRENCY_SET_BY="heroku/php"
 else
-	echo '$WEB_CONCURRENCY env var is set, skipping automatic calculation' >&2
+	echo 'WEB_CONCURRENCY env var is set, skipping automatic calculation' >&2
 fi
 
 if ! [[ "$WEB_CONCURRENCY" =~ ^[1-9][0-9]*$ ]] || (( WEB_CONCURRENCY < 1 )); then
