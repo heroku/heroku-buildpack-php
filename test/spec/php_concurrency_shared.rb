@@ -95,22 +95,22 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 			context "an explicit WEB_CONCURRENCY var" do
 				it "uses the explicit value" do
 					expect(@run[8])
-						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("pm.max_children = 22")
 				end
 				it "overrides a .user.ini memory_limit" do
 					expect(@run[9])
-						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("pm.max_children = 22")
 				end
 				it "overrides an FPM config memory_limit" do
 					expect(@run[10])
-						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("pm.max_children = 22")
 				end
 				it "ignores an illegal value" do
 					expect(@run[11])
-						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and include("Setting WEB_CONCURRENCY=1 (was outside allowed range)")
 						.and match("pm.max_children = 1")
 				end
