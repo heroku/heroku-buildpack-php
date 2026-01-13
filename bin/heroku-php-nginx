@@ -434,7 +434,6 @@ if [[ -z ${WEB_CONCURRENCY-} || ${WEB_CONCURRENCY_SET_BY:+isset} ]]; then
 		autotune_verbose="-v" # only print a little more info on non-dynos
 	fi
 	WEB_CONCURRENCY=$(php ${php_config:+-c "$php_config"} -f "$bp_dir/bin/util/autotune.php" -- ${autotune_verbose} -t "$DOCUMENT_ROOT" "$ram" "$cores" <<<"$fpm_limits")
-	export WEB_CONCURRENCY
 	export WEB_CONCURRENCY_SET_BY="heroku/php"
 else
 	echo 'WEB_CONCURRENCY env var is set, skipping automatic calculation' >&2
