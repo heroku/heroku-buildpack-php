@@ -9,25 +9,25 @@ describe "A PHP application using New Relic" do
 					# ext-newrelic is listed as a dependency in composer.json, and a NEW_RELIC_LICENSE_KEY is provided
 					@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 						config: { "NEW_RELIC_LOG_LEVEL" => "info", "NEW_RELIC_LICENSE_KEY" => "somethingfake" },
-						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install 'php:8.4.*' 'ext-newrelic:*'") or raise "Failed to require PHP/ext-newrelic" }
+						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install 'php:*' 'ext-newrelic:*'") or raise "Failed to require PHP/ext-newrelic" }
 					)
 				elsif mode == "without NEW_RELIC_LICENSE_KEY"
 					# ext-newrelic is listed as a dependency in composer.json, but a NEW_RELIC_LICENSE_KEY is missing
 					@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 						config: { "NEW_RELIC_LOG_LEVEL" => "info" },
-						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install 'php:8.4.*' 'ext-newrelic:*'") or raise "Failed to require PHP/ext-newrelic" }
+						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install 'php:*' 'ext-newrelic:*'") or raise "Failed to require PHP/ext-newrelic" }
 					)
 				elsif mode == "with default NEW_RELIC_LOG_LEVEL"
 					# ext-newrelic is listed as a dependency in composer.json, and NEW_RELIC_LOG_LEVEL is the default (warning)
 					@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 						config: { "NEW_RELIC_LICENSE_KEY" => "somethingfake" },
-						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install 'php:8.4.*' 'ext-newrelic:*'") or raise "Failed to require PHP/ext-newrelic" }
+						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install 'php:*' 'ext-newrelic:*'") or raise "Failed to require PHP/ext-newrelic" }
 					)
 				else
 					# a NEW_RELIC_LICENSE_KEY triggers the automatic installation of ext-newrelic at the end of the build
 					@app = new_app_with_stack_and_platrepo('test/fixtures/bootopts',
 						config: { "NEW_RELIC_LOG_LEVEL" => "info", "NEW_RELIC_LICENSE_KEY" => "thiswilltriggernewrelic" },
-						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install 'php:8.4.*'") or raise "Failed to require PHP version" }
+						before_deploy: -> { system("composer require --quiet --ignore-platform-reqs --no-install 'php:*'") or raise "Failed to require PHP version" }
 					)
 				end
 				@app.deploy
