@@ -65,7 +65,7 @@ jobs:
         uses: actions/checkout@v6
       - name: Cache Docker build
         id: cache-docker
-        uses: actions/cache@v4
+        uses: actions/cache@v5
         with:
           key: docker-cache-heroku-php-build-${{matrix.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
@@ -93,7 +93,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v6
       - name: Restore cached Docker build
-        uses: actions/cache/restore@v4
+        uses: actions/cache/restore@v5
         with:
           key: docker-cache-heroku-php-build-${{matrix.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
@@ -113,7 +113,7 @@ jobs:
           # we need -i for Docker to accept input on stdin, but must not use -t for the pipeline to work
           (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh --no-remove -c "$PLATFORM_REPO_SNAPSHOT_SHA256" lang-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log
       - name: Upload sync log as artifact
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: synclog-${{matrix.stack}}
           path: sync-${{matrix.stack}}.log
@@ -261,7 +261,7 @@ jobs:
           }
       - name: Upload diff as artifact
         if: steps.find-section-markers.outputs.num_sections > 0 && steps.diff.outputs.diff_result == 1
-        uses: actions/upload-artifact@v5
+        uses: actions/upload-artifact@v6
         with:
           name: devcenter-diff
           path: |
@@ -301,7 +301,7 @@ jobs:
           # Then, we finally run the conversion (if needed) by passing the file name to dos2unix again via xargs.
           dos2unix --info=c0 php-support.md | tee have_crlf.txt | xargs -r0 dos2unix
       - name: Download diff artifact
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           name: devcenter-diff
           path: devcenter-diffs
@@ -351,7 +351,7 @@ jobs:
         run: |
           composer install -d support/devcenter/
       - name: Download all sync log artifacts
-        uses: actions/download-artifact@v6
+        uses: actions/download-artifact@v7
         with:
           path: synclogs
           pattern: synclog-*
