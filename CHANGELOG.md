@@ -15,6 +15,7 @@
 ### CHG
 
 - blackfire/2.30.1 [David Zuelke]
+- Nginx/1.28.1 [David Zuelke]
 
 ## [v280] - 2025-12-19
 
