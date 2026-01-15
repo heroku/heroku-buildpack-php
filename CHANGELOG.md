@@ -9,6 +9,7 @@
 - PHP/8.5.2 [David Zuelke]
 - ext-phalcon/5.10.0 [David Zuelke]
 - ext-blackfire/1.92.58 [David Zuelke]
+- ext-amqp/2.2.0 [David Zuelke]
 
 ## [v280] - 2025-12-19
 
