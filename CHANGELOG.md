@@ -10,6 +10,7 @@
 - ext-phalcon/5.10.0 [David Zuelke]
 - ext-blackfire/1.92.58 [David Zuelke]
 - ext-amqp/2.2.0 [David Zuelke]
+- ext-newrelic/12.4.0.29 [David Zuelke]
 
 ## [v280] - 2025-12-19
 
