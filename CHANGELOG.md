@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.3.30 [David Zuelke]
+- PHP/8.4.17 [David Zuelke]
+- PHP/8.5.2 [David Zuelke]
+- ext-phalcon/5.10.0 [David Zuelke]
+- ext-blackfire/1.92.58 [David Zuelke]
+- ext-amqp/2.2.0 [David Zuelke]
+- ext-newrelic/12.4.0.29 [David Zuelke]
+
+### CHG
+
+- blackfire/2.30.1 [David Zuelke]
+- Nginx/1.28.1 [David Zuelke]
+- Composer/2.2.26 [David Zuelke]
+- Composer/2.9.3 [David Zuelke]
+- librdkafka/2.13.0 [David Zuelke]
 
 ## [v280] - 2025-12-19
 

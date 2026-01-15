@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "f309712d9de570937a9b9e3c15513006",
+    "content-hash": "cc46e47397663aff978393939fd953f7",
     "packages": [
         {
             "name": "my-conflict/newrelic",
@@ -25,7 +25,7 @@
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": "8.4.*"
+        "php": "*"
     },
     "platform-dev": {},
     "plugin-api-version": "2.6.0"
