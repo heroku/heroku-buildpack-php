@@ -18,6 +18,7 @@
 - Nginx/1.28.1 [David Zuelke]
 - Composer/2.2.26 [David Zuelke]
 - Composer/2.9.3 [David Zuelke]
+- librdkafka/2.13.0 [David Zuelke]
 
 ## [v280] - 2025-12-19
 
