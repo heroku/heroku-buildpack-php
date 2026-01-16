@@ -32,7 +32,13 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 					"WEB_CONCURRENCY=22 heroku-php-#{server} -tt docroot/onegig/",
 					"WEB_CONCURRENCY=22 heroku-php-#{server} -tt -F conf/fpm.onegig.conf",
 					"WEB_CONCURRENCY=zomg heroku-php-#{server} -tt",
+					"WEB_CONCURRENCY= heroku-php-#{server} -tt",
 					"WEB_CONCURRENCY=1 WEB_CONCURRENCY_SET_BY=heroku/nodejs heroku-php-#{server} -tt",
+					"WEB_CONCURRENCY=1 WEB_CONCURRENCY_SET_BY= heroku-php-#{server} -tt",
+					"WEB_CONCURRENCY= WEB_CONCURRENCY_SET_BY=heroku/nodejs heroku-php-#{server} -tt",
+					"WEB_CONCURRENCY= WEB_CONCURRENCY_SET_BY= heroku-php-#{server} -tt",
+					"WEB_CONCURRENCY_SET_BY=heroku/nodejs heroku-php-#{server} -tt",
+					"WEB_CONCURRENCY_SET_BY= heroku-php-#{server} -tt",
 				]
 					# there are very rare cases of stderr and stdout getting read (by the dyno runner) slightly out of order
 					# if that happens, the last stderr line(s) from the program might get picked up after the next thing we echo
@@ -97,31 +103,63 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 					expect(@run[8])
 						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("pm.max_children = 22")
+					expect(@run[8]).not_to match("NOTICE: ignoring WEB_CONCURRENCY value set by")
 				end
 				it "overrides a .user.ini memory_limit" do
 					expect(@run[9])
 						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("pm.max_children = 22")
+					expect(@run[9]).not_to match("NOTICE: ignoring WEB_CONCURRENCY value set by")
 				end
 				it "overrides an FPM config memory_limit" do
 					expect(@run[10])
 						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("pm.max_children = 22")
+					expect(@run[10]).not_to match("NOTICE: ignoring WEB_CONCURRENCY value set by")
 				end
-				it "ignores an illegal value" do
+				it "catches an illegal value" do
 					expect(@run[11])
 						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and include("WARNING: Setting WEB_CONCURRENCY=1 (was outside allowed range)")
 						.and match("pm.max_children = 1")
+					expect(@run[11]).not_to match("NOTICE: ignoring WEB_CONCURRENCY value set by")
+				end
+				it "treats an empty value like an absence of the variable" do
+					expect(@run[12]).to match("pm.max_children = 4")
+					expect(@run[12]).not_to match("NOTICE: ignoring WEB_CONCURRENCY value set by")
 				end
 			end
 			
-			context "a WEB_CONCURRENCY value set by another buildpack" do
-				it "warns and discards the value" do
-					expect(@run[12])
+			context "WEB_CONCURRENCY, with WEB_CONCURRENCY_SET_BY indicating calculation by another buildpack" do
+				it "warns and ignores the WEB_CONCURRENCY value" do
+					expect(@run[13])
 						 .to match("NOTICE: ignoring WEB_CONCURRENCY value set by heroku/nodejs")
-						.and match("PHP memory_limit is 128M Bytes")
 						.and match("pm.max_children = 4")
+				end
+				it "accepts the WEB_CONCURRENCY value if WEB_CONCURRENCY_SET_BY is set but empty" do
+					expect(@run[14])
+						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						.and match("pm.max_children = 1")
+					expect(@run[14]).not_to match("NOTICE: ignoring WEB_CONCURRENCY value set by")
+				end
+				it "treats an empty WEB_CONCURRENCY with WEB_CONCURRENCY_SET_BY set and non-empty like an absence of WEB_CONCURRENCY" do
+					expect(@run[15]).to match("pm.max_children = 4")
+					expect(@run[15]).not_to match("NOTICE: ignoring WEB_CONCURRENCY value set by")
+				end
+				it "treats an empty WEB_CONCURRENCY with WEB_CONCURRENCY_SET_BY set but empty like an absence of WEB_CONCURRENCY" do
+					expect(@run[16]).to match("pm.max_children = 4")
+					expect(@run[16]).not_to match("NOTICE: ignoring WEB_CONCURRENCY value set by")
+				end
+			end
+			
+			context "only WEB_CONCURRENCY_SET_BY with WEB_CONCURRENCY missing" do
+				it "ignores a WEB_CONCURRENCY_SET_BY value" do
+					expect(@run[17]).to match("pm.max_children = 4")
+					expect(@run[17]).not_to match("NOTICE: ignoring WEB_CONCURRENCY value set by")
+				end
+				it "ignores an empty WEB_CONCURRENCY_SET_BY" do
+					expect(@run[18]).to match("pm.max_children = 4")
+					expect(@run[18]).not_to match("NOTICE: ignoring WEB_CONCURRENCY value set by")
 				end
 			end
 		end

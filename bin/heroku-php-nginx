@@ -402,8 +402,11 @@ cores=$(getconf -a | grep -E '_?NPROCESSORS_ONLN' | head -n1 | tr -s ' ' | cut -
 	cores=1
 	echo "Assuming number of CPU cores to be $cores" >&2
 }
-if [[ -z ${WEB_CONCURRENCY-} || ${WEB_CONCURRENCY_SET_BY:+isset} ]]; then
-	if [[ ${WEB_CONCURRENCY-} && ${WEB_CONCURRENCY_SET_BY:+isset} ]]; then
+# if WEB_CONCURRENCY is not set, or an empty string, we auto-calculate it
+# if WEB_CONCURRENCY_SET_BY is set to a non-empty value, we do the same
+if [[ -z ${WEB_CONCURRENCY:-} || ${WEB_CONCURRENCY_SET_BY:-} ]]; then
+	# only emit the notice if both WEB_CONCURRENCY and WEB_CONCURRENCY_SET_BY had a value
+	if [[ ${WEB_CONCURRENCY:-} && ${WEB_CONCURRENCY_SET_BY:-} ]]; then
 		echo "NOTICE: ignoring WEB_CONCURRENCY value set by ${WEB_CONCURRENCY_SET_BY}" >&2
 	fi
 
