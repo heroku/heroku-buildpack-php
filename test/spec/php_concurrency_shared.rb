@@ -32,6 +32,7 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 					"WEB_CONCURRENCY=22 heroku-php-#{server} -tt docroot/onegig/",
 					"WEB_CONCURRENCY=22 heroku-php-#{server} -tt -F conf/fpm.onegig.conf",
 					"WEB_CONCURRENCY=zomg heroku-php-#{server} -tt",
+					"WEB_CONCURRENCY=1 WEB_CONCURRENCY_SET_BY=heroku/nodejs heroku-php-#{server} -tt",
 				]
 					# there are very rare cases of stderr and stdout getting read (by the dyno runner) slightly out of order
 					# if that happens, the last stderr line(s) from the program might get picked up after the next thing we echo
@@ -94,39 +95,39 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 			context "an explicit WEB_CONCURRENCY var" do
 				it "uses the explicit value" do
 					expect(@run[8])
-						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("pm.max_children = 22")
 				end
 				it "overrides a .user.ini memory_limit" do
 					expect(@run[9])
-						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("pm.max_children = 22")
 				end
 				it "overrides an FPM config memory_limit" do
 					expect(@run[10])
-						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and match("pm.max_children = 22")
 				end
 				it "ignores an illegal value" do
 					expect(@run[11])
-						 .to match("\\$WEB_CONCURRENCY env var is set, skipping automatic calculation")
+						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
 						.and include("Setting WEB_CONCURRENCY=1 (was outside allowed range)")
 						.and match("pm.max_children = 1")
+				end
+			end
+			
+			context "a WEB_CONCURRENCY value set by another buildpack" do
+				it "warns and discards the value" do
+					expect(@run[12])
+						 .to match("NOTICE: ignoring WEB_CONCURRENCY value set by heroku/nodejs")
+						.and match("PHP memory_limit is 128M Bytes")
+						.and match("pm.max_children = 4")
 				end
 			end
 		end
 		
 		context "running on a Performance-L dyno" do
-			it "restricts the app to 6 GB of RAM", :if => series < "7.4" do
-				retry_until retry: 3, sleep: 5 do
-					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt", :return_obj => true, :heroku => {:size => "Performance-L"}) }.output)
-						 .to match("Available RAM is 6G Bytes")
-						.and match("Limiting RAM usage to 6G Bytes")
-						.and match("pm.max_children = 48")
-				end
-			end
-			
-			it "uses all available RAM for PHP-FPM workers", :unless => series < "7.4" do
+			it "uses all available RAM for PHP-FPM workers" do
 				retry_until retry: 3, sleep: 5 do
 					expect(expect_exit(code: 0) { @app.run("heroku-php-#{server} -tt", :return_obj => true, :heroku => {:size => "Performance-L"}) }.output)
 						 .to match("Available RAM is 14G Bytes")
