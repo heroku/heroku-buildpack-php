@@ -402,12 +402,12 @@ cores=$(getconf -a | grep -E '_?NPROCESSORS_ONLN' | head -n1 | tr -s ' ' | cut -
 	cores=1
 	echo "Assuming number of CPU cores to be $cores" >&2
 }
-if [[ -z ${WEB_CONCURRENCY:-} ]]; then
-	if [[ -n ${DYNO:-} && $(ulimit -u) == "32768" && ( "$php_version" == 5.* || "$php_version" == 7.[0-3].* ) ]]; then
-		# on a Performance-L dyno, limit to 6 GB of RAM for backwards compatibility for PHP versions before 7.4
-		# this is to ensure that apps previously running on PX dynos (6 GB RAM) do not get a sudden jump in the number of worker processes
-		ram="6G"
-		echo "Limiting RAM usage to ${ram} Bytes" >&2
+# if WEB_CONCURRENCY is not set, or an empty string, we auto-calculate it
+# if WEB_CONCURRENCY_SET_BY is set to a non-empty value, we do the same
+if [[ -z ${WEB_CONCURRENCY:-} || ${WEB_CONCURRENCY_SET_BY:-} ]]; then
+	# only emit the notice if both WEB_CONCURRENCY and WEB_CONCURRENCY_SET_BY had a value
+	if [[ ${WEB_CONCURRENCY:-} && ${WEB_CONCURRENCY_SET_BY:-} ]]; then
+		echo "NOTICE: ignoring WEB_CONCURRENCY value set by ${WEB_CONCURRENCY_SET_BY}" >&2
 	fi
 
 	[[ $verbose ]] && echo "Calculating WEB_CONCURRENCY..." >&2
@@ -437,14 +437,14 @@ if [[ -z ${WEB_CONCURRENCY:-} ]]; then
 		autotune_verbose="-v" # only print a little more info on non-dynos
 	fi
 	WEB_CONCURRENCY=$(php ${php_config:+-c "$php_config"} -f "$bp_dir/bin/util/autotune.php" -- ${autotune_verbose} -t "$DOCUMENT_ROOT" "$ram" "$cores" <<<"$fpm_limits")
-	export WEB_CONCURRENCY
+	export WEB_CONCURRENCY_SET_BY="heroku/php"
 else
-	echo '$WEB_CONCURRENCY env var is set, skipping automatic calculation' >&2
+	echo 'WEB_CONCURRENCY env var is set, skipping automatic calculation' >&2
 fi
 
 if ! [[ "$WEB_CONCURRENCY" =~ ^[1-9][0-9]*$ ]] || (( WEB_CONCURRENCY < 1 )); then
 	WEB_CONCURRENCY=1
-	echo "Setting WEB_CONCURRENCY=1 (was outside allowed range)" >&2;
+	echo "WARNING: Setting WEB_CONCURRENCY=1 (was outside allowed range)" >&2;
 fi
 
 if [[ $conftest ]]; then

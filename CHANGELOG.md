@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Ignore `$WEB_CONCURRENCY` on boot if variable `$WEB_CONCURRENCY_SET_BY` indicates it was calculated by another buildpack [David Zuelke]
+- Set `$WEB_CONCURRENCY_SET_BY` in the environment on web boot if we calculated a value for `$WEB_CONCURRENCY` [David Zuelke]
 
 ## [v281] - 2026-01-15
 
