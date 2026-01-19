@@ -111,7 +111,7 @@ shared_examples "A PHP application for testing WEB_CONCURRENCY behavior" do |ser
 				it "ignores an illegal value" do
 					expect(@run[11])
 						 .to match("WEB_CONCURRENCY env var is set, skipping automatic calculation")
-						.and include("Setting WEB_CONCURRENCY=1 (was outside allowed range)")
+						.and include("WARNING: Setting WEB_CONCURRENCY=1 (was outside allowed range)")
 						.and match("pm.max_children = 1")
 				end
 			end

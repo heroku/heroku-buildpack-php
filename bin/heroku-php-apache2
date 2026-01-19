@@ -441,7 +441,7 @@ fi
 
 if ! [[ "$WEB_CONCURRENCY" =~ ^[1-9][0-9]*$ ]] || (( WEB_CONCURRENCY < 1 )); then
 	WEB_CONCURRENCY=1
-	echo "Setting WEB_CONCURRENCY=1 (was outside allowed range)" >&2;
+	echo "WARNING: Setting WEB_CONCURRENCY=1 (was outside allowed range)" >&2;
 fi
 
 if [[ $conftest ]]; then
