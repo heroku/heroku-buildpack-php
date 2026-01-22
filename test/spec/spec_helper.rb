@@ -18,9 +18,7 @@ def product_hash(hash)
 end
 
 RSpec.configure do |config|
-	config.filter_run focused: true unless ENV['IS_RUNNING_ON_CI']
-	config.run_all_when_everything_filtered = true
-	config.alias_example_to :fit, focused: true
+	config.filter_run_when_matching :focus
 	config.filter_run_excluding :requires_php_on_stack => lambda { |series| !php_on_stack?(series) }
 	config.filter_run_excluding :stack => lambda { |stack| !stack.include?(ENV['STACK']) }
 

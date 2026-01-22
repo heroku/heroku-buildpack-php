@@ -76,7 +76,59 @@ jobs:
         run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat test/var/log/parallel_runtime_rspec.${STACK}.log | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"
       - name: Execute tests
         run: bundle exec parallel_rspec --group-by runtime --first-is-1 --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/
-      - name: Print list of executed examples
-        run: cat test/var/log/group.*.json | jq -r --slurp '[.[].examples[]] | sort_by(.id) | flatten[] | .full_description'
-      - name: Print parallel_runtime_rspec.log
-        run: cat test/var/log/parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort
+      - name: Clean up and store runtime log
+        run: cat test/var/log/parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort > "test/var/log/parallel_runtime_rspec.${{ matrix.stack }}.log"
+      - name: Print test run details to summary
+        if: ${{ !cancelled() }}
+        run: |
+          # from all RSpec JSON "logs", produce the input file name (1.json, 2.json...) and run duration and (-n)atural (-r)everse sort into an array via (-z)ero byte (-d)elimited list
+          readarray -d '' groups < <(jq --raw-output0 '"\(input_filename):\(.summary.duration)"' test/var/log/*.json | sort -znr -t ":" -k 2)
+          echo '## Executed test groups, from slowest to fastest' >> "$GITHUB_STEP_SUMMARY"
+          for entry in "${groups[@]}"; do
+            # get file name from "$name:$duration" list entry
+            json=$(cut -d ":" -f1 <<<"$entry")
+            # build the other file names for the same group number
+            group=$(basename "$json" .json)
+            log="$(dirname "$json")/${group}.txt"
+            profile="$(dirname "$json")/${group}.profile"
+            # remember if any examples failed/errored or may have been filtered out
+            failed=$(jq -r 'if(.summary.failure_count + .summary.errors_outside_of_examples_count > 0) then "1" else empty end' "$json")
+            filtered=$(jq -r 'if(.messages // [] | any(test("(?m)^(Run options:)?\\s+include\\s+{"))) then "1" else empty end' "$json")
+            echo "### TEST GROUP ${group}" >> "$GITHUB_STEP_SUMMARY"
+            if [[ "$failed" ]]; then
+              echo "> [!CAUTION]" >> "$GITHUB_STEP_SUMMARY"
+              echo "> Tests failed in this group." >> "$GITHUB_STEP_SUMMARY"
+              echo >> "$GITHUB_STEP_SUMMARY" # "alert" blockquotes are finicky with whitespace around them
+              # write out GHA error annotations for all failures in this group
+              jq -r '.examples[] | [select(.status == "failed")] | unique_by("\(.file_path):\(.line_number)")[] | "::error file=\(.file_path | sub("^\\./"; "")),line=\(.line_number)::\(.exception.class)"' "$json"
+            fi
+            # print summary and list of executed spec files
+            # file_path is the actual file with the test, which we do not want since we have a lot of _shared.rb base tests
+            # we want to show the spec that got executed instead, which we need to extract from the id field (looks like "foo_spec.rb[1:1:1]")
+            jq -r '"\(.summary_line) in **\(.summary.duration) seconds** from the following files:", (.examples | map(. + {spec_path: .id | sub("\\[.+"; "")}) | unique_by(.spec_path)[] | "- `\(.spec_path)`")' "$json" >> "$GITHUB_STEP_SUMMARY"
+            if [[ "$filtered" ]]; then
+              echo "> [!WARNING]" >> "$GITHUB_STEP_SUMMARY"
+              echo "> An inclusion filter was applied to this group.  " >> "$GITHUB_STEP_SUMMARY"
+              echo "> Any files in this group without the same inclusion filter will have had examples filtered out as a result." >> "$GITHUB_STEP_SUMMARY"
+              echo >> "$GITHUB_STEP_SUMMARY" # "alert" blockquotes are finicky with whitespace around them
+              # write out GHA warning annotation for all files in this group
+              jq -r '.examples | unique_by(.file_path)[] | "::warning file=\(.file_path | sub("^\\./"; ""))::Some or all examples may have been skipped due to an exclusion filter in this group."' "$json"
+            fi
+            # printf because we need a bunch of blank lines, notably after the closing summary and details tags
+            # details block gets auto-expanded for any failed groups via the "open" attribute
+            printf >> "$GITHUB_STEP_SUMMARY" \
+              '<details%s><summary>Full documentation style output</summary>\n\n```\n%s\n```\n</details>\n\n' \
+              "${failed:+" open"}" \
+              "$(<"$log")"
+            printf >> "$GITHUB_STEP_SUMMARY" \
+              '<details><summary>Profiler output of slowest examples/groups</summary>\n\n```\n%s\n```\n</details>\n\n' \
+              "$(<"$profile")"
+          done
+      - name: Print runtime log to summary
+        run: |
+          log="test/var/log/parallel_runtime_rspec.${{ matrix.stack }}.log"
+          # printf because we need a bunch of blank lines, notably after the closing summary and details tags
+          printf >> "$GITHUB_STEP_SUMMARY" \
+            '## Runtime log for `parallel_test` balancing\n<details><summary><code>%s</code></summary>\n\n```\n%s\n```\n</details>\n\n' \
+            "$log" \
+            "$(<"$log")"
