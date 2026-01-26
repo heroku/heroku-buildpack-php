@@ -36,6 +36,7 @@ jobs:
       BLACKFIRE_CLIENT_TOKEN: ${{ secrets.BLACKFIRE_CLIENT_TOKEN }}
       BLACKFIRE_SERVER_ID: ${{ secrets.BLACKFIRE_SERVER_ID }}
       BLACKFIRE_SERVER_TOKEN: ${{ secrets.BLACKFIRE_SERVER_TOKEN }}
+      PARALLEL_TEST_RUNTIME_LOG: test/var/log/parallel_runtime_rspec.${{ matrix.stack }}.log
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -73,11 +74,16 @@ jobs:
           if [[ $STACK != heroku-22 ]]; then STACK="${STACK}-amd64"; fi
           echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}" >> "$GITHUB_ENV"
       - name: Calculate number of parallel_rspec processes (half of num of lines in runtime log)
-        run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat test/var/log/parallel_runtime_rspec.${STACK}.log | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"
+        run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat "$PARALLEL_TEST_RUNTIME_LOG" | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"
       - name: Execute tests
-        run: bundle exec parallel_rspec --group-by runtime --first-is-1 --unknown-runtime 1 --allowed-missing 100 --runtime-log "test/var/log/parallel_runtime_rspec.${STACK}.log" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/
-      - name: Clean up and store runtime log
-        run: cat test/var/log/parallel_runtime_rspec.log | grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' | sort > "test/var/log/parallel_runtime_rspec.${{ matrix.stack }}.log"
+        run: bundle exec parallel_rspec --group-by runtime --first-is-1 --unknown-runtime 1 --allowed-missing 100 --runtime-log "$PARALLEL_TEST_RUNTIME_LOG" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/
+      - name: Clean up and (locally) store updated runtime log
+        run: grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' "${PARALLEL_TEST_RUNTIME_LOG}.last" | sort > "$PARALLEL_TEST_RUNTIME_LOG"
+      - name: Upload runtime log as artifact (for analysis across runs)
+        uses: actions/upload-artifact@v6
+        with:
+          name: parallel-test-runtime-log-${{ matrix.stack }}
+          path: ${{ env.PARALLEL_TEST_RUNTIME_LOG }}
       - name: Print test run details to summary
         if: ${{ !cancelled() }}
         run: |
@@ -126,9 +132,18 @@ jobs:
           done
       - name: Print runtime log to summary
         run: |
-          log="test/var/log/parallel_runtime_rspec.${{ matrix.stack }}.log"
           # printf because we need a bunch of blank lines, notably after the closing summary and details tags
           printf >> "$GITHUB_STEP_SUMMARY" \
             '## Runtime log for `parallel_test` balancing\n<details><summary><code>%s</code></summary>\n\n```\n%s\n```\n</details>\n\n' \
-            "$log" \
-            "$(<"$log")"
+            "$PARALLEL_TEST_RUNTIME_LOG" \
+            "$(<"$PARALLEL_TEST_RUNTIME_LOG")"
+  merge-runtime-logs:
+    runs-on: ubuntu-24.04
+    needs: integration-test
+    steps:
+      - name: Merge all runtime logs into a single artifact
+        uses: actions/upload-artifact/merge@v4
+        with:
+          name: parallel-test-runtime-logs
+          pattern: parallel-test-runtime-log-*
+          delete-merged: true

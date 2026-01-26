@@ -3,4 +3,4 @@
 --format documentation --out test/var/log/<%= ENV["TEST_ENV_NUMBER"] %>.txt
 --profile
 --format RSpec::Core::Formatters::ProfileFormatter --out test/var/log/<%= ENV["TEST_ENV_NUMBER"] %>.profile
---format ParallelTests::RSpec::RuntimeLogger --out test/var/log/parallel_runtime_rspec.log
+--format ParallelTests::RSpec::RuntimeLogger --out <%= ENV["PARALLEL_TEST_RUNTIME_LOG"] %>.last
