@@ -11,6 +11,7 @@ updates:
     labels:
       - "dependencies"
       - "ruby"
+      - "skip changelog"
   - package-ecosystem: "composer"
     directory: "/support/devcenter"
     schedule:
@@ -22,6 +23,7 @@ updates:
     labels:
       - "dependencies"
       - "php"
+      - "skip changelog"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -34,3 +36,4 @@ updates:
     labels:
       - "dependencies"
       - "github actions"
+      - "skip changelog"

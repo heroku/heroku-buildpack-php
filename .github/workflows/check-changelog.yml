@@ -1,0 +1,20 @@
+name: Check Changelog
+
+on:
+  pull_request:
+    types: [opened, reopened, labeled, unlabeled, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  check-changelog:
+    runs-on: ubuntu-24.04
+    if: (!contains(github.event.pull_request.labels.*.name, 'skip changelog'))
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Check that CHANGELOG is touched
+        run: |
+          git fetch origin ${{ github.base_ref }} --depth 1 && \
+          git diff remotes/origin/${{ github.base_ref }} --name-only | grep CHANGELOG.md
