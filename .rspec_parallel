@@ -1,3 +1,6 @@
 --format progress
---format json --out test/var/log/group.<%= "%02d" % ENV["TEST_ENV_NUMBER"] %>.json
---format ParallelTests::RSpec::RuntimeLogger --out test/var/log/parallel_runtime_rspec.log
+--format json --out test/var/log/<%= ENV["TEST_ENV_NUMBER"] %>.json
+--format documentation --out test/var/log/<%= ENV["TEST_ENV_NUMBER"] %>.txt
+--profile
+--format RSpec::Core::Formatters::ProfileFormatter --out test/var/log/<%= ENV["TEST_ENV_NUMBER"] %>.profile
+--format ParallelTests::RSpec::RuntimeLogger --out <%= ENV["PARALLEL_TEST_RUNTIME_LOG"] %>.last
