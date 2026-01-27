@@ -8,6 +8,10 @@ updates:
       test-dependencies:
         patterns:
         - "*"
+    labels:
+      - "dependencies"
+      - "ruby"
+      - "skip changelog"
   - package-ecosystem: "composer"
     directory: "/support/devcenter"
     schedule:
@@ -16,6 +20,10 @@ updates:
       devcenter-generator-dependencies:
         patterns: 
         - "*"
+    labels:
+      - "dependencies"
+      - "php"
+      - "skip changelog"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -25,3 +33,7 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    labels:
+      - "dependencies"
+      - "github actions"
+      - "skip changelog"
