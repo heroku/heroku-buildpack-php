@@ -80,10 +80,12 @@ jobs:
       - name: Clean up and (locally) store updated runtime log
         run: grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' "${PARALLEL_TEST_RUNTIME_LOG}.last" | sort > "$PARALLEL_TEST_RUNTIME_LOG"
       - name: Upload runtime log as artifact (for analysis across runs)
+        if: github.ref_name == 'main'
         uses: actions/upload-artifact@v6
         with:
           name: parallel-test-runtime-log-${{ matrix.stack }}
           path: ${{ env.PARALLEL_TEST_RUNTIME_LOG }}
+          retention-days: 1
       - name: Print test run details to summary
         if: ${{ !cancelled() }}
         run: |
@@ -139,6 +141,7 @@ jobs:
             "$(<"$PARALLEL_TEST_RUNTIME_LOG")"
   merge-runtime-logs:
     runs-on: ubuntu-24.04
+    if: github.ref_name == 'main'
     needs: integration-test
     steps:
       - name: Merge all runtime logs into a single artifact
@@ -147,3 +150,4 @@ jobs:
           name: parallel-test-runtime-logs
           pattern: parallel-test-runtime-log-*
           delete-merged: true
+          retention-days: 90
