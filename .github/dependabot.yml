@@ -8,6 +8,9 @@ updates:
       test-dependencies:
         patterns:
         - "*"
+    labels:
+      - "dependencies"
+      - "ruby"
   - package-ecosystem: "composer"
     directory: "/support/devcenter"
     schedule:
@@ -16,6 +19,9 @@ updates:
       devcenter-generator-dependencies:
         patterns: 
         - "*"
+    labels:
+      - "dependencies"
+      - "php"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -25,3 +31,6 @@ updates:
         update-types:
           - "minor"
           - "patch"
+    labels:
+      - "dependencies"
+      - "github actions"
