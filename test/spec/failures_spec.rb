@@ -39,9 +39,6 @@ describe "A PHP application failing to build" do
 				"open_timers" => "__main__,scripts.compile",
 				"duration" => a_kind_of(Float),
 				"scripts.compile.duration" => a_kind_of(Float).and(a_value > 1),
-				"open_timers" => "__main__,scripts.compile",
-				"duration" => a_kind_of(Float),
-				"scripts.compile.duration" => a_kind_of(Float).and(a_value > 1),
 			)
 		end
 	end
