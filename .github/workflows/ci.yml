@@ -145,7 +145,7 @@ jobs:
     needs: integration-test
     steps:
       - name: Merge all runtime logs into a single artifact
-        uses: actions/upload-artifact/merge@v4
+        uses: actions/upload-artifact/merge@v6
         with:
           name: parallel-test-runtime-logs
           pattern: parallel-test-runtime-log-*
