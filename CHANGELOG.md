@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v282] - 2026-02-16
+
 ### CHG
 
 - Ignore `$WEB_CONCURRENCY` on boot if variable `$WEB_CONCURRENCY_SET_BY` indicates it was calculated by another buildpack [David Zuelke]
@@ -3110,7 +3113,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v281...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v282...main
+[v282]: https://github.com/heroku/heroku-buildpack-php/compare/v281...v282
 [v281]: https://github.com/heroku/heroku-buildpack-php/compare/v280...v281
 [v280]: https://github.com/heroku/heroku-buildpack-php/compare/v279...v280
 [v279]: https://github.com/heroku/heroku-buildpack-php/compare/v278...v279
