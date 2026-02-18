@@ -33,6 +33,7 @@ describe "A PHP application" do
 			run_cmds = [
 				"php -v",
 				"env | grep COMPOSER_",
+				"cat Procfile",
 			]
 				# there are very rare cases of stderr and stdout getting read (by the dyno runner) slightly out of order
 				# if that happens, the last stderr line(s) from the program might get picked up after the next thing we echo
@@ -83,6 +84,10 @@ describe "A PHP application" do
 				.and match(/^COMPOSER_MIRROR_PATH_REPOS=1$/)
 				.and match(/^COMPOSER_NO_INTERACTION=1$/)
 				.and match(/^COMPOSER_PROCESS_TIMEOUT=0$/)
+		end
+		
+		it "writes a Procfile for the web process type" do
+			expect(@run[2]).to match("web: heroku-php-apache2")
 		end
 	end
 end
