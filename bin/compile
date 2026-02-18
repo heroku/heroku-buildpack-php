@@ -294,7 +294,7 @@ fi
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 
-curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-8.4.17.tar.gz" || {
+curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-8.4.18.tar.gz" || {
 	build_report::set_string failure_reason bootstrap.download
 	build_report::set_string failure_detail php-min
 	error <<-EOF
