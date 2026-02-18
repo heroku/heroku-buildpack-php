@@ -17,8 +17,6 @@ env:
   IS_RUNNING_ON_CI: true
   HATCHET_APP_LIMIT: 300
   HATCHET_EXPENSIVE_MODE: 1
-  HATCHET_BUILDPACK_BASE: https://github.com/heroku/heroku-buildpack-php
-  HATCHET_BUILDPACK_BRANCH: ${{ github.head_ref || github.ref_name }}
   HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
   HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
   GIT_HTTP_LOW_SPEED_LIMIT: 1000
