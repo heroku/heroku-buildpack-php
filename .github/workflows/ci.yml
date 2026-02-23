@@ -67,12 +67,12 @@ jobs:
         if: github.ref_type != 'tag' && github.ref_name != 'main' && github.event_name == 'pull_request'
         run: |
           if [[ $STACK != heroku-22 ]]; then STACK="${STACK}-amd64"; fi
-          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}packages-${PLATFORM_REPO_SNAPSHOT_SHA256}.json" >> "$GITHUB_ENV"
+          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}packages-${PLATFORM_REPO_SNAPSHOT_SHA256}.json" >> "$GITHUB_ENV"
       - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}} (since we are not building main or a tag, and it's not a PR, so no snapshot)
         if: github.ref_type != 'tag' && github.ref_name != 'main' && github.event_name != 'pull_request'
         run: |
           if [[ $STACK != heroku-22 ]]; then STACK="${STACK}-amd64"; fi
-          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}" >> "$GITHUB_ENV"
+          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}" >> "$GITHUB_ENV"
       - name: Calculate number of parallel_rspec processes (half of num of lines in runtime log)
         run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat "$PARALLEL_TEST_RUNTIME_LOG" | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"
       - name: Execute tests

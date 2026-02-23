@@ -262,7 +262,7 @@ if [[ $STACK == "heroku-22" ]]; then
 else
 	stack_locator="${STACK}-$(dpkg --print-architecture)"
 fi
-s3_url="https://lang-php.s3.us-east-1.amazonaws.com/dist-${stack_locator}-stable/"
+s3_url="https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-${stack_locator}-stable/"
 # hash the list of "declared" build formulae, this is the "snapshot" of a fixed repo state
 platform_repo_url="${s3_url}packages-$("$bp_dir"/support/build/_util/formulae-hash.sh).json"
 if ! curl_retry_on_18  --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent -I "$platform_repo_url" > /dev/null; then

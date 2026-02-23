@@ -383,7 +383,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/amqp-1.11.0beta.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/amqp-1.11.0beta.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-amqp",
@@ -404,7 +404,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/apcu-5.1.20.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/apcu-5.1.20.tar.gz"
         },
         "extra": {
           "config": "etc/php/conf.d/apcu.ini-dist"
@@ -427,7 +427,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/blackfire-1.64.0.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/blackfire-1.64.0.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-blackfire",
@@ -449,7 +449,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/ev-1.1.4.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/ev-1.1.4.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-ev",
@@ -470,7 +470,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/event-3.0.4.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/event-3.0.4.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-event",
@@ -491,7 +491,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/imagick-3.5.1.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/imagick-3.5.1.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-imagick",
@@ -514,7 +514,7 @@
         },
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/memcached-3.1.5.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/memcached-3.1.5.tar.gz"
         },
         "extra": {
           "config": "etc/php/conf.d/memcached.ini-dist"
@@ -537,7 +537,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/mongodb-1.9.1.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/mongodb-1.9.1.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-mongodb",
@@ -558,7 +558,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/newrelic-9.17.1.301.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/newrelic-9.17.1.301.tar.gz"
         },
         "extra": {
           "config": "etc/php/conf.d/newrelic.ini-dist",
@@ -585,7 +585,7 @@
         },
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/oauth-2.0.7.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/oauth-2.0.7.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-oauth",
@@ -606,7 +606,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/pcov-1.0.9.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/pcov-1.0.9.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-pcov",
@@ -629,7 +629,7 @@
         },
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/pq-2.1.8.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/pq-2.1.8.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-pq",
@@ -655,7 +655,7 @@
         },
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/psr-1.0.1.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/psr-1.0.1.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-psr",
@@ -678,7 +678,7 @@
         },
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/raphf-2.0.1.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/raphf-2.0.1.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-raphf",
@@ -699,7 +699,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/rdkafka-5.0.0.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/rdkafka-5.0.0.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-rdkafka",
@@ -722,7 +722,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/redis-5.3.4.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/redis-5.3.4.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-redis",
@@ -745,7 +745,7 @@
         },
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/uuid-1.2.0.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/uuid-1.2.0.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/ext-uuid",
@@ -766,7 +766,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/composer-1.10.22.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/composer-1.10.22.tar.gz"
         },
         "extra": {
           "export": "bin/export.composer.sh",
@@ -797,7 +797,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/composer-2.1.5.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/composer-2.1.5.tar.gz"
         },
         "extra": {
           "export": "bin/export.composer.sh",
@@ -830,7 +830,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/apache-2.4.48.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/apache-2.4.48.tar.gz"
         },
         "extra": {
           "export": "bin/export.apache2.sh",
@@ -853,7 +853,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/blackfire-2.4.3.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/blackfire-2.4.3.tar.gz"
         },
         "extra": {
           "export": "bin/export.blackfire.sh",
@@ -876,7 +876,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/libraries/libcassandra-2.16.0.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/libraries/libcassandra-2.16.0.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/libcassandra",
@@ -898,7 +898,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/libraries/librdkafka-1.7.0.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/libraries/librdkafka-1.7.0.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/librdkafka",
@@ -920,7 +920,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/nginx-1.20.1.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/nginx-1.20.1.tar.gz"
         },
         "extra": {
           "export": "bin/export.nginx.sh",
@@ -943,7 +943,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.8.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.8.tar.gz"
         },
         "extra": {
           "export": "bin/export.php.sh",
@@ -1038,7 +1038,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9.tar.gz"
         },
         "extra": {
           "export": "bin/export.php.sh",

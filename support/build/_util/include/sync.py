@@ -56,17 +56,17 @@ def manifests_difference(src_manifest, dst_manifest):
     return ret
 
 def rewrite_dist(manifest, src_region, src_bucket, src_prefix, dst_region, dst_bucket, dst_prefix):
-    # pattern for basically "https://lang-php.(s3.us-east-1|s3).amazonaws.com/dist-heroku-22-stable/"
+    # pattern for basically "https://lang-php.(s3.dualstack.us-east-1|s3.us-east-1|s3).amazonaws.com/dist-heroku-22-stable/"
     # this ensures old packages are correctly handled even when they do not contain the region in the URL
     s3_url_re=re.escape("https://{}.".format(src_bucket))
-    s3_url_re+=r"(?:s3.{}|s3)".format(re.escape(src_region))
+    s3_url_re+=r"(?:s3\.dualstack\.{0}|s3\.{0}|s3)".format(re.escape(src_region))
     s3_url_re+=re.escape(".amazonaws.com/{}".format(src_prefix))
     s3_url_re+=r"([^?]+)(\?.*)?"
     url=manifest.get("dist",{}).get("url","")
     r = re.match(s3_url_re, url)
     if r:
         # rewrite dist URL in manifest to destination bucket
-        manifest["dist"]["url"] = r.expand("https://{}.s3.{}.amazonaws.com/{}\\1\\2".format(dst_bucket, dst_region, dst_prefix))
+        manifest["dist"]["url"] = r.expand("https://{}.s3.dualstack.{}.amazonaws.com/{}\\1\\2".format(dst_bucket, dst_region, dst_prefix))
         return {"kind": "dist", "source": "s3://{}/{}{}".format(src_bucket, src_prefix, r.group(1)), "source-region": src_region, "destination": "s3://{}/{}{}".format(dst_bucket, dst_prefix, r.group(1)), "destination-region": dst_region}
     else:
         return {"kind": "dist", "skip": True, "source": url, "reason": "file located outside of bucket"}

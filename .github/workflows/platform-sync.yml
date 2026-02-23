@@ -161,7 +161,7 @@ jobs:
       - name: Generate Dev Center article sections
         run: |
           set -o pipefail
-          urls=( https://lang-php.s3.amazonaws.com/dist-${{ env.stacks_list_for_shell_expansion }}${{ inputs.dry-run == true && env.src_path_suffix || env.dst_path_suffix }}packages.json )
+          urls=( https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-${{ env.stacks_list_for_shell_expansion }}${{ inputs.dry-run == true && env.src_path_suffix || env.dst_path_suffix }}packages.json )
           # generate.php can generate individual sections, but doing it in one go a) is faster and b) means this code does not need to know what those sections are
           # Instead we split the generated contents into individual files, with the known delimiter as the split pattern.
           # tee stderr to a file

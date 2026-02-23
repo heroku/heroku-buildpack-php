@@ -5,7 +5,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.8+otherbuild.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.8+otherbuild.tar.gz"
         },
         "extra": {
           "export": "bin/export.php.sh",
