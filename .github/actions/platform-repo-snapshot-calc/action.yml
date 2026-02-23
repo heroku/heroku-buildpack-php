@@ -38,9 +38,9 @@ runs:
         INPUT_REPO_PATH_SUFFIX: ${{ inputs.repo-path-suffix }}
       run: |
         echo -n "urls=" >> "$GITHUB_OUTPUT"
-        echo "https://lang-php.s3.us-east-1.amazonaws.com/dist-${INPUT_STACKS_LIST_FOR_SHELL_EXPANSION}${INPUT_REPO_PATH_SUFFIX}packages.json" >> "$GITHUB_OUTPUT"
+        echo "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-${INPUT_STACKS_LIST_FOR_SHELL_EXPANSION}${INPUT_REPO_PATH_SUFFIX}packages.json" >> "$GITHUB_OUTPUT"
         echo -n "snapshot_urls=" >> "$GITHUB_OUTPUT"
-        echo "https://lang-php.s3.us-east-1.amazonaws.com/dist-${INPUT_STACKS_LIST_FOR_SHELL_EXPANSION}${INPUT_REPO_PATH_SUFFIX}packages-${{steps.formulae-hash.outputs.snapshot_sha256}}.json" >> "$GITHUB_OUTPUT"
+        echo "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-${INPUT_STACKS_LIST_FOR_SHELL_EXPANSION}${INPUT_REPO_PATH_SUFFIX}packages-${{steps.formulae-hash.outputs.snapshot_sha256}}.json" >> "$GITHUB_OUTPUT"
     - name: Check that all repo snapshot URLs exist
       id: check-snapshot-urls
       shell: bash

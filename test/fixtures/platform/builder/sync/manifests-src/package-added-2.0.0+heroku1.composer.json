@@ -1,7 +1,7 @@
 {
   "dist": {
     "type": "heroku-sys-tar",
-    "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-24-develop/package-added-2.0.0%2Bheroku1.tar.gz"
+    "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-24-develop/package-added-2.0.0%2Bheroku1.tar.gz"
   },
   "name": "heroku-sys/package-added",
   "require": {
