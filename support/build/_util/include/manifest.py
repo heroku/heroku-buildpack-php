@@ -18,7 +18,7 @@ s3_region_string = os.getenv("S3_REGION")
 if s3_region_string == None:
 	s3_region_string = "s3"
 else:
-	s3_region_string = "s3.{}".format(s3_region_string)
+	s3_region_string = "s3.dualstack.{}".format(s3_region_string)
 
 manifest = {
 	"type": sys.argv[1],

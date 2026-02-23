@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Change the S3 URLs used for downloads to use AWS' dual-stack (IPv6 compatible) endpoint.
 
 ## [v283] - 2026-02-18
 

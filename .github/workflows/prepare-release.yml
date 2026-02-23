@@ -19,7 +19,7 @@ jobs:
       - name: Check that repo snapshot URLs exist
         run: |
           curl --silent --head --fail --fail-early \
-            "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-{22,24-amd64,24-arm64}-stable/packages-${PLATFORM_REPO_SNAPSHOT_SHA256}.json"
+            "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-{22,24-amd64,24-arm64}-stable/packages-${PLATFORM_REPO_SNAPSHOT_SHA256}.json"
   prepare-release:
     needs: check-platform-repo-snapshot
     uses: heroku/languages-github-actions/.github/workflows/_classic-buildpack-prepare-release.yml@latest

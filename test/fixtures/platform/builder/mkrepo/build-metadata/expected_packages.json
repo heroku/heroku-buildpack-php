@@ -5,7 +5,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/apcu-5.1.20.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20200930/apcu-5.1.20.tar.gz"
         },
         "extra": {
           "config": "etc/php/conf.d/apcu.ini-dist"
@@ -28,7 +28,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20190902/apcu-5.1.20.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/extensions/no-debug-non-zts-20190902/apcu-5.1.20.tar.gz"
         },
         "extra": {
           "config": "etc/php/conf.d/apcu.ini-dist"
@@ -55,7 +55,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-php-bundled-extension",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9+build10.tar.gz?extension=heroku-sys/ext-bcmath"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9+build10.tar.gz?extension=heroku-sys/ext-bcmath"
         },
         "name": "heroku-sys/ext-bcmath",
         "replace": {
@@ -74,7 +74,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-php-bundled-extension",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-7.4.22.tar.gz?extension=heroku-sys/ext-bcmath"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/php-7.4.22.tar.gz?extension=heroku-sys/ext-bcmath"
         },
         "name": "heroku-sys/ext-bcmath",
         "replace": {
@@ -95,7 +95,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-7.4.22.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/php-7.4.22.tar.gz"
         },
         "extra": {
           "export": "bin/export.php.sh",
@@ -122,7 +122,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9+build10.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9+build10.tar.gz"
         },
         "extra": {
           "export": "bin/export.php.sh",

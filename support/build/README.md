@@ -78,7 +78,7 @@ From this, the buildpack would create a "platform package" `.heroku/php/composer
     		},
     		{
     			"type": "composer",
-    			"url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-18-stable/"
+    			"url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-18-stable/"
     		},
     		{
     			"type": "package",
@@ -233,7 +233,7 @@ A manifest looks roughly like this (example is for `ext-amqp/1.11.0` for PHP 8.1
     	"conflict": {},
     	"dist": {
     		"type": "heroku-sys-tar",
-    		"url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/extensions/no-debug-non-zts-20210902/amqp-1.11.0.tar.gz"
+    		"url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/extensions/no-debug-non-zts-20210902/amqp-1.11.0.tar.gz"
     	},
     	"name": "heroku-sys/ext-amqp",
     	"replace": {},
@@ -247,7 +247,7 @@ A manifest looks roughly like this (example is for `ext-amqp/1.11.0` for PHP 8.1
     	"version": "5.1.17"
     }
 
-*Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php-extension" and .name == "heroku-sys/ext-amqp") ] | .[0]'`*
+*Example: `curl -s https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php-extension" and .name == "heroku-sys/ext-amqp") ] | .[0]'`*
 
 Package `name`s must be prefixed with "`heroku-sys/`". Possible `type`s are `heroku-sys-php`, `heroku-sys-library`, `heroku-sys-php-extension`, `heroku-sys-program` or `heroku-sys-webserver`. The `dist` type must be "`heroku-sys-tar`".
 
@@ -302,14 +302,14 @@ Example generated PHP package manifest (reduced to relevant sections):
     {
     	"dist": {
     		"type": "heroku-sys-tar",
-    		"url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-develop/php-8.1.1.tar.gz"
+    		"url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-develop/php-8.1.1.tar.gz"
     	},
     	"extra": {
     		"shared": {
     			"heroku-sys/ext-bcmath": {
     				"dist": {
     					"type": "heroku-sys-php-bundled-extension",
-    					"url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-develop/php-8.1.1.tar.gz?extension=heroku-sys/ext-bcmath"
+    					"url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-develop/php-8.1.1.tar.gz?extension=heroku-sys/ext-bcmath"
     				},
     				"name": "heroku-sys/ext-bcmath",
     				"require": {
@@ -349,23 +349,23 @@ The `require` key must contain dependencies on at least the following packages:
 
 - `heroku/installer-plugin`, version 1.2.0 or newer (use version selector `^1.2.0`)
 
-*Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {require}'`*
+*Example: `curl -s https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {require}'`*
 
 If a package is built against a specific (or multiple) stacks, there must be a dependency on the following packages:
 
 - `heroku-sys/heroku`, version "22" for `heroku-22`, or version "24" for `heroku-24` (use version selectors `^22.0.0` or `^24.0.0`, or a valid Composer combination)
 
-*Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {require}'`*
+*Example: `curl -s https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {require}'`*
 
 If a package is of type `heroku-php-extension`, there must be a dependency on the following packages to ensure that the right PHP extension API is targeted during installs:
 
 - `heroku-sys/php`, with major.minor version parts specified for the PHP version series in question (either as e.g. `7.3.*`, or as `~7.3.0`)
 
-*Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php-extension") ][0] | {require}'`*
+*Example: `curl -s https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php-extension") ][0] | {require}'`*
 
 Additional dependencies can be expressed as well; for example, if an extension requires another extension at runtime, it may be listed in `require`, with its full `heroku-sys/ext-…` name and a suitable version (often "`*`").
 
-*Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.name == "heroku-sys/ext-pq") ][0] | {require}'`*
+*Example: `curl -s https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.name == "heroku-sys/ext-pq") ][0] | {require}'`*
 
 #### Package Name
 
@@ -393,7 +393,7 @@ The `type` of a package must be one of the following:
 
 The `dist` key must contain a struct with key `type` set to "`heroku-sys-tar`", and key `url` set to the `.tar.gz` tarball URL of the package.
 
-*Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {dist}'`*
+*Example: `curl -s https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {dist}'`*
 
 For "dummy" entries for extensions bundled with PHP, a `type` of `heroku-sys-php-bundled-extension` will cause no download operation to happen; however, the package will still generate an install event internally, and the package will participate in dependency resolution the same way a "real", third-party extension would. Their `url` field will be ignored, but should be a valid URL.
 
@@ -401,7 +401,7 @@ For "dummy" entries for extensions bundled with PHP, a `type` of `heroku-sys-php
 
 Composer packages may replace other packages. In the case of platform packages, this is useful mostly in case of a runtime. PHP is bundled with many extensions out of the box, so the manifest for the PHP package must indicate that it contains `ext-standard`, `ext-dom`, and so forth, and thus its manifest contains a long list of `heroku-sys/ext-…` entries under the `replace` key.
 
-*Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {replace}'`*
+*Example: `curl -s https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {replace}'`*
 
 PHP extensions built as shared are not listed in `replace`, as they get dedicated package entries in the repository, with a `dist` type of `heroku-sys-php-bundled-extension` (see above).
 
@@ -416,7 +416,7 @@ This feature can be used if an extension should have default configuration in pl
 
 If `extra`.`config` in the manifest is then set to "`etc/php/conf.d/memcached.ini-dist`", this config file will be used.
 
-*Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.name == "heroku-sys/ext-newrelic") ][0] | {extra: {config: .extra.config}}'`*
+*Example: `curl -s https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.name == "heroku-sys/ext-newrelic") ][0] | {extra: {config: .extra.config}}'`*
 
 #### Extra: Export & Profile
 
@@ -428,7 +428,7 @@ To achieve this, the formula would write a `bin/export.sh` with the following co
 
     export PATH="/app/.heroku/php/bin:/app/.heroku/php/sbin:$PATH"
 
-*Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-webserver") ][0] | {extra: {export: .extra.export}}'`*
+*Example: `curl -s https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-webserver") ][0] | {extra: {export: .extra.export}}'`*
 
 If the `extra`.`export` key in the manifest is then set to a string value of "`bin/export.sh`", the platform installer will ensure all packages have their export instructions executed after platform installation is complete.
 
@@ -436,19 +436,19 @@ In addition, a `bin/profile.sh` would also be necessary, with similar contents (
 
     export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
 
-*Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-webserver") ][0] | {extra: {profile: .extra.profile}}'`*
+*Example: `curl -s https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-webserver") ][0] | {extra: {profile: .extra.profile}}'`*
 
 If the `extra`.`profile` key in the manifest is then set to a string value of "`bin/profile.sh`", the platform installer will ensure that this script is executed, together with scripts from any other packages, during the startup of a dyno.
 
 For most packages, the `export` key is never needed; the `profile` key is sometimes used to perform operations during dyno boot. For example, the `newrelic` extension uses it to start the `newrelic-daemon` background process.
 
-*Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.name == "heroku-sys/ext-newrelic") ][0] | {extra: {profile: .extra.profile}}'`*
+*Example: `curl -s https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.name == "heroku-sys/ext-newrelic") ][0] | {extra: {profile: .extra.profile}}'`*
 
 #### Extra: Shared
 
 As package of type `heroku-sys-php` may come bundled with a bunch of extensions, it must list the all statically-built-in extensions in the `replace` section of its manifest; all extensions built as `shared` must instead be generated as separate packages (see further above). In order to allow external tooling to still quickly determine which packages belong to a PHP release, an entry for each shared extension should be generated in struct `extra.shared`, with package names as keys and `false` as the value.
 
-*Example: `curl -s https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php" and .require["heroku/installer-plugin"] == "^1.6.0") ][0] | {extra: {shared: .extra.shared}}'`*
+*Example: `curl -s https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php" and .require["heroku/installer-plugin"] == "^1.6.0") ][0] | {extra: {shared: .extra.shared}}'`*
 
 ## About Repositories
 
@@ -885,5 +885,5 @@ The extension is then ready for use in applications by requiring it in `composer
 
 ## Tips & Tricks
 
-- All manifests generated by Bob formulas, by `mkrepo.sh` and by `sync.sh` use an S3 region from environment variable `$S3_REGION` and fall back to using only "`s3`" in the URL, which is deprecated by AWS and may cause rate limit problems when resolving the bucket region from this global endpoint. Resulting URLs look like e.g. "`https://<your-bucket-name>.s3.us-east-1.amazonaws.com/your-prefix/...`".
+- All manifests generated by Bob formulas, by `mkrepo.sh` and by `sync.sh` use an S3 region from environment variable `$S3_REGION` and fall back to using only "`s3`" in the URL, which is deprecated by AWS and may cause rate limit problems when resolving the bucket region from this global endpoint. Resulting URLs look like e.g. "`https://<your-bucket-name>.s3.dualstack.us-east-1.amazonaws.com/your-prefix/...`".
 - If any dependencies are not yet deployed, you need to deploy them first, or use `UPSTREAM_S3_BUCKET` and `UPSTREAM_S3_PREFIX` (recommended).

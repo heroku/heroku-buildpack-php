@@ -2,7 +2,7 @@
   "conflict": {},
   "dist": {
     "type": "heroku-sys-tar",
-    "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9+build9.tar.gz"
+    "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9+build9.tar.gz"
   },
   "extra": {
     "export": "bin/export.php.sh",
@@ -12,7 +12,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-php-bundled-extension",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9+build9.tar.gz?extension=heroku-sys/ext-bcmath"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9+build9.tar.gz?extension=heroku-sys/ext-bcmath"
         },
         "name": "heroku-sys/ext-bcmath",
         "require": {
