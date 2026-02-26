@@ -6,6 +6,10 @@ on:
 # Disable all GITHUB_TOKEN permissions, since the GitHub App token is used instead.
 permissions: {}
 
+env:
+  # ensure these are in sync with other relevant workflow files
+  stacks_list_for_shell_expansion: "{heroku-22,heroku-24-amd64,heroku-24-arm64}"
+
 jobs:
   check-platform-repo-snapshot:
     runs-on: ubuntu-24.04
@@ -18,8 +22,9 @@ jobs:
           support/build/_util/formulae-hash.sh >> "$GITHUB_ENV"
       - name: Check that repo snapshot URLs exist
         run: |
+          # curl can do brace expansion for us, no need for unquote/quote trickery
           curl --silent --head --fail --fail-early \
-            "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-{22,24-amd64,24-arm64}-stable/packages-${PLATFORM_REPO_SNAPSHOT_SHA256}.json"
+            "https://lang-php.s3.us-east-1.amazonaws.com/dist-${{env.stacks_list_for_shell_expansion}}-stable/packages-${PLATFORM_REPO_SNAPSHOT_SHA256}.json"
   prepare-release:
     needs: check-platform-repo-snapshot
     uses: heroku/languages-github-actions/.github/workflows/_classic-buildpack-prepare-release.yml@latest

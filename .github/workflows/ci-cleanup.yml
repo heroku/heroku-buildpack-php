@@ -10,6 +10,10 @@ on:
 permissions:
   contents: read
 
+env:
+  # ensure these are in sync with other relevant workflow files
+  setup_ruby_ruby_version: "3.2"
+
 jobs:
   hatchet-app-cleaner:
     runs-on: ubuntu-24.04
@@ -24,7 +28,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-          ruby-version: "3.2"
+          ruby-version: "${{ env.setup_ruby_ruby_version }}"
       - name: Run Hatchet destroy
         # Only apps older than 10 minutes are destroyed, to ensure that any
         # in progress CI runs are not interrupted.

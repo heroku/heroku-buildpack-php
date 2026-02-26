@@ -23,6 +23,11 @@ env:
   HEROKU_API_USER: ${{ secrets.HEROKU_API_USER }}
   GIT_HTTP_LOW_SPEED_LIMIT: 1000
   GIT_HTTP_LOW_SPEED_TIME: 300
+  # ensure these are in sync with other relevant workflow files
+  setup_php_php_version: "8.4"
+  setup_php_composer_version: "2.9"
+  setup_ruby_ruby_version: "3.2"
+
 
 jobs:
   unit-test:
@@ -37,7 +42,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-          ruby-version: "3.2"
+          ruby-version: "${{ env.setup_ruby_ruby_version }}"
       - name: Execute tests
         run: bundle exec rspec test/spec/cgroup_spec.rb
   integration-test:
@@ -59,12 +64,12 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           bundler-cache: true
-          ruby-version: "3.2"
+          ruby-version: "${{ env.setup_ruby_ruby_version }}"
       - name: Install PHP and Composer
         uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
         with:
-          php-version: "8.4"
-          tools: "composer:2.9"
+          php-version: "${{ env.setup_php_php_version }}"
+          tools: "composer:${{ env.setup_php_composer_version }}"
       - name: Install packages from requirements.txt (for some tests in platform_spec.rb that run mkrepo.sh which needs natsort)
         run: |
           export VIRTUAL_ENV=$HOME/.venv
