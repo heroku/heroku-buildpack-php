@@ -1,0 +1,50 @@
+name: "Platform Repository Snapshot Calculation and Check"
+description: "Calculates the repository snapshot hash based on the formulae present and returns it together with resulting repository URLs and their status"
+inputs:
+  stacks-list-for-shell-expansion:
+    description: "A single stack, or a shell-style expansion list like {heroku-22,heroku-24-amd64,heroku-24-arm64}, for producing and checking repo URLs"
+    required: true
+  repo-path-suffix:
+    description: "A suffix like '-stable/' or '-develop/' that gets placed into a repo URL before 'packages(-$HASH)?.json'; must include a trailing slash"
+    required: true
+    default: "/"
+outputs:
+  snapshot-sha256:
+    description: "Snapshot hash SHA-256 string"
+    value: ${{ steps.formulae-hash.outputs.snapshot_sha256 }}
+  urls:
+    description: "The resulting repository URL(s) without the snapshot hash (i.e. just .../packages.json); if the input stack list had a brace expansion list, then this output will contain the expansion string, too, for later evaluation"
+    value: ${{ steps.make-urls.outputs.urls }}
+  snapshot-urls:
+    description: "The resulting repository URL(s) without the snapshot hash (i.e. with .../packages-<hash>.json); if the input stack list had a brace expansion list, then this output will contain the expansion string, too, for later evaluation"
+    value: ${{ steps.make-urls.outputs.snapshot_urls }}
+  snapshot-urls-check-outcome:
+    description: "Outcome (like steps.<step_id>.outcome) of the existence check for all the snapshotted repo URL(s); any missing will cause failure, else sucess."
+    value: ${{ steps.check-snapshot-urls.outcome }}
+runs:
+  using: "composite"
+  steps:
+    - name: Calculate formulae state Hash
+      id: formulae-hash
+      shell: bash
+      run: |
+        echo -n "snapshot_sha256=" >> "$GITHUB_OUTPUT"
+        support/build/_util/formulae-hash.sh >> "$GITHUB_OUTPUT"
+    - name: Make URLs
+      id: make-urls
+      shell: bash
+      env:
+        INPUT_STACKS_LIST_FOR_SHELL_EXPANSION: ${{ inputs.stacks-list-for-shell-expansion }}
+        INPUT_REPO_PATH_SUFFIX: ${{ inputs.repo-path-suffix }}
+      run: |
+        echo -n "urls=" >> "$GITHUB_OUTPUT"
+        echo "https://lang-php.s3.us-east-1.amazonaws.com/dist-${INPUT_STACKS_LIST_FOR_SHELL_EXPANSION}${INPUT_REPO_PATH_SUFFIX}packages.json" >> "$GITHUB_OUTPUT"
+        echo -n "snapshot_urls=" >> "$GITHUB_OUTPUT"
+        echo "https://lang-php.s3.us-east-1.amazonaws.com/dist-${INPUT_STACKS_LIST_FOR_SHELL_EXPANSION}${INPUT_REPO_PATH_SUFFIX}packages-${{steps.formulae-hash.outputs.snapshot_sha256}}.json" >> "$GITHUB_OUTPUT"
+    - name: Check that all repo snapshot URLs exist
+      id: check-snapshot-urls
+      shell: bash
+      continue-on-error: true
+      run: |
+        # curl will expand curly braces (if there was a shell expansion list for the stacks in the input) for us, so we can safely quote it
+        curl --silent --head --fail --fail-early "${{ steps.make-urls.outputs.snapshot_urls }}"

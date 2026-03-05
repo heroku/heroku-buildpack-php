@@ -4,7 +4,7 @@ run-name: Sync${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-$STACK
 env:
   src_path_suffix: "-develop/"
   dst_path_suffix: "-stable/"
-  # ensure these are in sync with other relevant workflow files
+  # ensure these are in sync with other relevant action/workflow yml files
   stacks_list_for_shell_expansion: "{heroku-22,heroku-24-amd64,heroku-24-arm64}"
   setup_php_php_version: "8.4"
   setup_php_composer_version: "2.9"
@@ -103,18 +103,20 @@ jobs:
           fail-on-cache-miss: true
       - name: Load cached Docker image
         run: docker load -i /tmp/docker-cache.tar.gz
-      - name: Calculate formulae state Hash
-        run: |
-          echo -n "PLATFORM_REPO_SNAPSHOT_SHA256=" >> "$GITHUB_ENV"
-          support/build/_util/formulae-hash.sh >> "$GITHUB_ENV"
-      - name: ${{ inputs.dry-run == true && 'Dry-run sync of' || 'Sync' }} changed packages to production bucket
+      - name: Perform platform repo snapshot checks
+        id: platform-repo-snapshot-calc
+        uses: ./.github/actions/platform-repo-snapshot-calc
+        with:
+          stacks-list-for-shell-expansion: ${{ matrix.stack }}
+          repo-path-suffix: ${{ env.dst_path_suffix }}
+      - name: ${{ inputs.dry-run == true && 'Dry-run sync of' || 'Sync' }} changed packages to stable bucket
         run: |
           # we want to fail if 'docker run' fails; without this, 'tee' would "eat" the failure status
           set -o pipefail
           # yes gets "n" to print for dry-runs so the sync aborts
           # errors are redirected to /dev/null, and we || true, to suppress SIGPIPE errors from 'docker run' exiting eventually
           # we need -i for Docker to accept input on stdin, but must not use -t for the pipeline to work
-          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh --no-remove -c "$PLATFORM_REPO_SNAPSHOT_SHA256" lang-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log
+          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh --no-remove -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" lang-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log
       - name: Upload sync log as artifact
         uses: actions/upload-artifact@v7
         with:
@@ -123,9 +125,9 @@ jobs:
       - name: Output dry-run summary
         if: ${{ inputs.dry-run == true }}
         run: |
-          echo '## Package changes available for syncing to ${{matrix.stack}} production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Package changes available for syncing from `…${{matrix.stack}}${{env.src_path_suffix}}` to `…${{matrix.stack}}${{env.dst_path_suffix}}`' >> "$GITHUB_STEP_SUMMARY"
           echo '> [!IMPORTANT]' >> "$GITHUB_STEP_SUMMARY"
-          echo '> **This is output from a dry-run**, no changes have been synced to production!' >> "$GITHUB_STEP_SUMMARY"
+          echo '> **This is output from a dry-run**, no changes have been synced!' >> "$GITHUB_STEP_SUMMARY"
           echo >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           sed -En '/^(The following packages will|Nothing to do except)/,/POTENTIALLY DESTRUCTIVE ACTION/{/POTENTIALLY DESTRUCTIVE ACTION/!p}' sync-${{matrix.stack}}.log >> "$GITHUB_STEP_SUMMARY"
@@ -133,7 +135,11 @@ jobs:
       - name: Output sync summary
         if: ${{ inputs.dry-run == false }}
         run: |
-          echo '## Package changes synced to ${{matrix.stack}} production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Platform repository `…${{matrix.stack}}${{env.dst_path_suffix}}` updated' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Snapshot hash for formulae in source tree: `${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Snapshot repository URL: ${{steps.platform-repo-snapshot-calc.outputs.snapshot-urls}}' >> "$GITHUB_STEP_SUMMARY"
+          echo '- "Head" repository URL: ${{steps.platform-repo-snapshot-calc.outputs.urls}}' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Package changes synced from `…${{matrix.stack}}${{env.src_path_suffix}}`' >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           cat sync-${{matrix.stack}}.log >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
@@ -161,10 +167,16 @@ jobs:
       - name: Install Dev Center generator dependencies
         run: |
           composer install -d support/devcenter/
+      - name: Perform platform repo snapshot checks
+        id: platform-repo-snapshot-calc
+        uses: ./.github/actions/platform-repo-snapshot-calc
+        with:
+          stacks-list-for-shell-expansion: ${{env.stacks_list_for_shell_expansion}}
+          repo-path-suffix: ${{ inputs.dry-run == true && env.src_path_suffix || env.dst_path_suffix }}
       - name: Generate Dev Center article sections
         run: |
           set -o pipefail
-          urls=( https://lang-php.s3.amazonaws.com/dist-${{ env.stacks_list_for_shell_expansion }}${{ inputs.dry-run == true && env.src_path_suffix || env.dst_path_suffix }}packages.json )
+          urls=( ${{ steps.platform-repo-snapshot-calc.outputs.urls }} )
           # generate.php can generate individual sections, but doing it in one go a) is faster and b) means this code does not need to know what those sections are
           # Instead we split the generated contents into individual files, with the known delimiter as the split pattern.
           # tee stderr to a file

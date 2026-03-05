@@ -28,7 +28,6 @@ env:
   setup_php_composer_version: "2.9"
   setup_ruby_ruby_version: "3.2"
 
-
 jobs:
   unit-test:
     runs-on: ${{ matrix.os }}
@@ -79,20 +78,27 @@ jobs:
           echo "$VIRTUAL_ENV/bin" >> "$GITHUB_PATH"
       - name: Hatchet setup
         run: bundle exec hatchet ci:setup
-      - name: Calculate formulae state Hash
+      - name: Calculate stack identifier for platform repo URL
+        id: set-stack-identifier-for-repo-url
         run: |
-          echo -n "PLATFORM_REPO_SNAPSHOT_SHA256=" >> "$GITHUB_ENV"
-          support/build/_util/formulae-hash.sh >> "$GITHUB_ENV"
-      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}}packages-${snapshot}.json (since we are not building main or a tag, but it's a PR)
+          # needs to be done dynamically this way; comparisons in dynamic expressions for some reason do not work for with: in the step below
+          echo -n "stack-identifier-for-repo-url=${STACK}" >> "$GITHUB_OUTPUT"
+          if [[ $STACK != "heroku-22" ]]; then echo -n "-amd64" >> "$GITHUB_OUTPUT"; fi
+          echo >> "$GITHUB_OUTPUT"
+      - name: Perform platform repo snapshot checks
+        id: platform-repo-snapshot-calc
+        uses: ./.github/actions/platform-repo-snapshot-calc
+        with:
+          stacks-list-for-shell-expansion: ${{ steps.set-stack-identifier-for-repo-url.outputs.stack-identifier-for-repo-url }}
+          repo-path-suffix: ${{ env.src_path_suffix }}
+      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}}… with snapshot (since we are not building main or a tag, but it's a PR)
         if: github.ref_type != 'tag' && github.ref_name != 'main' && github.event_name == 'pull_request'
         run: |
-          if [[ $STACK != heroku-22 ]]; then STACK="${STACK}-amd64"; fi
-          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}packages-${PLATFORM_REPO_SNAPSHOT_SHA256}.json" >> "$GITHUB_ENV"
-      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}} (since we are not building main or a tag, and it's not a PR, so no snapshot)
+          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- ${{steps.platform-repo-snapshot-calc.outputs.snapshot-urls}}" >> "$GITHUB_ENV"
+      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}}… without snapshot (since we are not building main or a tag, and it's not a PR)
         if: github.ref_type != 'tag' && github.ref_name != 'main' && github.event_name != 'pull_request'
         run: |
-          if [[ $STACK != heroku-22 ]]; then STACK="${STACK}-amd64"; fi
-          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- https://lang-php.s3.us-east-1.amazonaws.com/dist-${STACK}${{env.src_path_suffix}}" >> "$GITHUB_ENV"
+          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- ${{steps.platform-repo-snapshot-calc.outputs.urls}}" >> "$GITHUB_ENV"
       - name: Calculate number of parallel_rspec processes (half of num of lines in runtime log)
         run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat "$PARALLEL_TEST_RUNTIME_LOG" | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"
       - name: Execute tests

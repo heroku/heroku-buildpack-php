@@ -3,8 +3,10 @@ name: Prepare Release
 on:
   workflow_dispatch:
 
-# Disable all GITHUB_TOKEN permissions, since the GitHub App token is used instead.
-permissions: {}
+# _platform-repo-snapshot-calc needs read access for checkout
+# _classic-buildpack-prepare-release uses a GitHub App token instead
+permissions:
+  contents: read
 
 env:
   # ensure these are in sync with other relevant workflow files
@@ -16,15 +18,18 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Calculate formulae state Hash
+      - name: Perform platform repo snapshot checks
+        id: platform-repo-snapshot-calc
+        uses: ./.github/actions/platform-repo-snapshot-calc
+        with:
+          stacks-list-for-shell-expansion: ${{env.stacks_list_for_shell_expansion}}
+          repo-path-suffix: "-stable/"
+      - name: Fail if repo snapshots are missing for any of the stacks
+        if: steps.platform-repo-snapshot-calc.outputs.snapshot-urls-check-outcome != 'success'
         run: |
-          echo -n "PLATFORM_REPO_SNAPSHOT_SHA256=" >> "$GITHUB_ENV"
-          support/build/_util/formulae-hash.sh >> "$GITHUB_ENV"
-      - name: Check that repo snapshot URLs exist
-        run: |
-          # curl can do brace expansion for us, no need for unquote/quote trickery
-          curl --silent --head --fail --fail-early \
-            "https://lang-php.s3.us-east-1.amazonaws.com/dist-${{env.stacks_list_for_shell_expansion}}-stable/packages-${PLATFORM_REPO_SNAPSHOT_SHA256}.json"
+          # snapshot-urls output is not quoted so that the shell expands the brace expression for us
+          echo "::error title=Platform repo snapshot(s) missing::One or more of the following URLs were not found:" ${{ steps.platform-repo-snapshot-calc.outputs.snapshot-urls }}
+          exit 1
   prepare-release:
     needs: check-platform-repo-snapshot
     uses: heroku/languages-github-actions/.github/workflows/_classic-buildpack-prepare-release.yml@latest
