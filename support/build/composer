@@ -76,9 +76,10 @@ cat >> ${OUT_PREFIX}/bin/profile.composer.sh <<-'EOF'
 export COMPOSER_PROCESS_TIMEOUT=${COMPOSER_PROCESS_TIMEOUT:-0}
 export PATH="$HOME/.heroku/php/bin:$PATH"
 # now composer is on the path
+# we invoke it in $HOME so that we are independent of the cwd (which is not $HOME in e.g. Heroku CI)
 # no scan dir so no newrelic starts up and outputs messages etc
 # re-set COMPOSER_AUTH to ensure a malformed `heroku config:set` will not cause immediate outage
-export PATH="$PATH:$(realpath "$(PHP_INI_SCAN_DIR= COMPOSER_AUTH= composer config --no-plugins bin-dir)")"
+export PATH="$PATH:$(cd "$HOME"; bin_dir="$(PHP_INI_SCAN_DIR= COMPOSER_AUTH= composer config --no-plugins bin-dir)"; realpath --canonicalize-missing "$bin_dir")"
 EOF
 
 # Composer 2.3+ requires 7.2.5+

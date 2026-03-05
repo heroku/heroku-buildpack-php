@@ -14,6 +14,8 @@ describe "A PHP application on Heroku CI" do
 	it "has zend.assertions enabled and auto-runs a composer.json 'test' script entry" do
 		app = new_app_with_stack_and_platrepo('test/fixtures/ci/zendassert')
 		app.run_ci do |test_run|
+			expect(test_run.output).to_not match("Composer could not detect the root package")
+			expect(test_run.output).to_not match(/realpath: .+: No such file or directory/)
 			expect(test_run.output).to match("Script 'composer test' found, executing...")
 			expect(test_run.output).to match("Caught expected AssertionError")
 		end
