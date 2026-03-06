@@ -309,7 +309,7 @@ Example generated PHP package manifest (reduced to relevant sections):
     			"heroku-sys/ext-bcmath": {
     				"dist": {
     					"type": "heroku-sys-php-bundled-extension",
-    					"url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-develop/php-8.1.1.tar.gz?extension=heroku-sys/ext-bcmath"
+    					"url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-22-develop/php-8.1.1.tar.gz?extension=heroku-sys%2Fext-bcmath"
     				},
     				"name": "heroku-sys/ext-bcmath",
     				"require": {
