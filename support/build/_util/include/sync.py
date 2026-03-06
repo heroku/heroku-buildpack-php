@@ -1,4 +1,11 @@
-import sys, json, os, glob, datetime, re, argparse
+import argparse
+import datetime
+import glob
+import json
+import os
+import re
+import sys
+import urllib.parse
 from contextlib import contextmanager
 from enum import IntFlag
 from pathlib import Path
@@ -67,7 +74,9 @@ def rewrite_dist(manifest, src_region, src_bucket, src_prefix, dst_region, dst_b
     if r:
         # rewrite dist URL in manifest to destination bucket
         manifest["dist"]["url"] = r.expand("https://{}.s3.{}.amazonaws.com/{}\\1\\2".format(dst_bucket, dst_region, dst_prefix))
-        return {"kind": "dist", "source": "s3://{}/{}{}".format(src_bucket, src_prefix, r.group(1)), "source-region": src_region, "destination": "s3://{}/{}{}".format(dst_bucket, dst_prefix, r.group(1)), "destination-region": dst_region}
+        # the URL may contain encoded characters (e.g. "%2B" instead of "+" for a "-1.0.0+heroku1" package), but for the copy operation, we need the un-encoded form
+        dist_path = urllib.parse.unquote(r.group(1))
+        return {"kind": "dist", "source": "s3://{}/{}{}".format(src_bucket, src_prefix, dist_path), "source-region": src_region, "destination": "s3://{}/{}{}".format(dst_bucket, dst_prefix, dist_path), "destination-region": dst_region}
     else:
         return {"kind": "dist", "skip": True, "source": url, "reason": "file located outside of bucket"}
 

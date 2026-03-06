@@ -18,6 +18,23 @@
   },
   {
     "kind": "dist",
+    "source": "s3://lang-php/dist-heroku-24-develop/package-added-2.0.0+heroku1.tar.gz",
+    "source-region": "us-east-1",
+    "destination": "s3://lang-php/dist-heroku-24-stable/package-added-2.0.0+heroku1.tar.gz",
+    "destination-region": "us-east-1",
+    "op": "add",
+    "package": "package-added-2.0.0+heroku1"
+  },
+  {
+    "kind": "manifest",
+    "op": "add",
+    "package": "package-added-2.0.0+heroku1",
+    "source": "manifests-dst/package-added-2.0.0+heroku1.composer.json",
+    "destination": "s3://lang-php/dist-heroku-24-stable/package-added-2.0.0+heroku1.composer.json",
+    "destination-region": "us-east-1"
+  },
+  {
+    "kind": "dist",
     "skip": true,
     "source": "https://example.com/heroku-24/package-added-externaldist-1.0.0.tar.gz",
     "reason": "file located outside of bucket",
