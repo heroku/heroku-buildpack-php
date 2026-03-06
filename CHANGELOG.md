@@ -5,6 +5,7 @@
 ### FIX
 
 - Packages with build metadata in version strings (e.g. `php-8.5.3+heroku1`) have incorrectly encoded dist URLs in manifest [David Zuelke]
+- Fix realpath warning during test startup in Heroku CI runs [David Zuelke]
 
 ## [v283] - 2026-02-18
 
