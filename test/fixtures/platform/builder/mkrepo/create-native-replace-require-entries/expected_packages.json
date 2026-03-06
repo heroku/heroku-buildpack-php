@@ -63,7 +63,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-php-bundled-extension",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9.tar.gz?extension=heroku-sys/ext-bcmath"
+          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-8.0.9.tar.gz?extension=heroku-sys%2Fext-bcmath"
         },
         "name": "heroku-sys/ext-bcmath",
         "replace": {
@@ -82,7 +82,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-php-bundled-extension",
-          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-7.4.22.tar.gz?extension=heroku-sys/ext-bcmath"
+          "url": "https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-20-stable/php-7.4.22.tar.gz?extension=heroku-sys%2Fext-bcmath"
         },
         "name": "heroku-sys/ext-bcmath",
         "replace": {

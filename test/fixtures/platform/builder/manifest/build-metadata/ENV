@@ -1,0 +1,1 @@
+NOW="2022-01-26 20:49:45" STACK=heroku-20 S3_BUCKET=lang-php S3_PREFIX=dist-heroku-20-develop/ S3_REGION=us-east-1

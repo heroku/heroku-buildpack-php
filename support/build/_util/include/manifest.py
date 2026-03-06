@@ -1,4 +1,9 @@
-import os, sys, json, re, datetime
+import datetime
+import json
+import os
+import re
+import sys
+import urllib.parse
 
 require = json.loads(sys.argv[5]) if len(sys.argv) > 5 else {}
 stack=re.match(r"^([^-]+)(?:-([0-9]+))?$", os.getenv("STACK", "heroku-22"))
@@ -26,7 +31,7 @@ manifest = {
 	"version": sys.argv[3],
 	"dist": {
 		"type": "heroku-sys-tar",
-		"url": "https://"+os.getenv("S3_BUCKET")+"."+s3_region_string+".amazonaws.com/"+os.getenv("S3_PREFIX")+sys.argv[4]
+		"url": "https://"+os.getenv("S3_BUCKET")+"."+s3_region_string+".amazonaws.com/"+os.getenv("S3_PREFIX")+urllib.parse.quote(sys.argv[4])
 	},
 	"require": require,
 	"conflict": json.loads(sys.argv[6]) if len(sys.argv) > 6 else {},
@@ -51,7 +56,7 @@ if manifest["type"] == "heroku-sys-php":
 		# TODO: support the input value being a dict with some/all of the metadata below; use cases: bundled extensions that 1) require another (e.g. on Windows, ext-exif can only use ext-mbstring if mbstring is loaded first), or 2) conflict with others (ext-imap conflicts with ext-yaz if libyaz is < 2.0), or 3) need custom configs of some kind
 		dist = manifest.get("dist").copy()
 		dist["type"] = "heroku-sys-php-bundled-extension" # we have a no-op downloader for this type
-		dist["url"] += "?extension="+extname # for better readability in packages.json, test cases, diffs etc
+		dist["url"] += "?extension="+urllib.parse.quote_plus(extname) # for better readability in packages.json, test cases, diffs etc
 		extensions[extname] = {
 			"conflict": phpconflict,
 			"dist": dist,

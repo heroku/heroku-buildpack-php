@@ -92,7 +92,10 @@ fi
 # expand shared PHP extensions by creating a dummy package for every extension (in every PHP package) that is built as shared, so the solver can correctly pick it for installation
 # sort so that packages with the same name and version (e.g. ext-memcached 2.2.0) show up with their php requirement in descending order - otherwise a Composer limitation means that a simple "ext-memcached: * + php: ^7.0.0" request would install 7.0.latest and not 7.4.latest, as it finds the 7.0.* requirement extension first and sticks to that instead of 7.4. For packages with identical names and versions (but different e.g. requirements), Composer basically treats them as equal and picks as a winner whatever it finds first. The requirements have to be written like "x.y.*" for this to work of course (we replace "*", "<=" and so forth with "0", as that's fine for the purpose of just sorting - otherwise, a comparison of e.g. "^7.0.0" and "7.0.*" would cause "TypeError: '<' not supported between instances of 'str' and 'int'")
 python <(cat <<-'PYTHON' # beware of single quotes in body
-	import sys, re, json
+	import json
+	import re
+	import sys
+	import urllib.parse
 	from itertools import groupby
 	from natsort import natsorted
 	from operator import itemgetter
@@ -111,7 +114,7 @@ python <(cat <<-'PYTHON' # beware of single quotes in body
 	    for extname in shared.keys():
 	        if shared[extname] is True:
 	            continue # an older php package manifest that only has a list of shared extensions (name as key, true as value) rather than the versions as well, and lists even shared extensions in "replace"; this means we don't want to give it this treatment below
-	        shared[extname]["dist"]["url"] = "{}?extension={}".format(php.get("dist").get("url"), extname) # make sure "virtual" URL in the shared ext info has the right "base" (e.g. after a sync from another bucket)
+	        shared[extname]["dist"]["url"] = "{}?extension={}".format(php.get("dist").get("url"), urllib.parse.quote_plus(extname)) # make sure "virtual" URL in the shared ext info has the right "base" (e.g. after a sync from another bucket)
 	        manifests.append(shared[extname]); # add ext manifest to our repo list
 	        shared[extname] = False # make sure there still is a record of this extension in the PHP package (e.g. for tooling that generates version infos for Heroku Dev Center), but prevent e.g. the legacy Installer Plugin logic from handling this
 	# for each php or extension package, generate a "replace" entry for ".native", and require ".native" variants of any other exts it depends on
