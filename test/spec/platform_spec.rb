@@ -319,7 +319,7 @@ describe "The PHP Platform Installer" do
 				generated_json = JSON.parse(stdout)
 				
 				# compare sorted list of operations (sync.py processes in no defined order)
-				expect(expected_json.sort_by(&:zip)).to eq(generated_json.sort_by(&:zip))
+				expect(generated_json.sort_by(&:zip)).to eq(expected_json.sort_by(&:zip))
 			end
 		end
 	end
