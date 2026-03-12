@@ -1,0 +1,22 @@
+3528 782 7:16 / / ro,nosuid,nodev,nodiratime,relatime master:529 - ext4 /dev/loop16 ro
+3529 3528 0:135 / /dev rw,relatime - tmpfs none rw,size=492k,mode=755,inode64
+3530 3528 253:0 /ps/ff735bac-5e94-43f5-858c-59569b2472b9/app /app rw,relatime master:415 - ext4 /dev/mapper/evg0-evol0 rw
+3531 3528 253:0 /ps/ff735bac-5e94-43f5-858c-59569b2472b9/tmp /tmp rw,relatime master:415 - ext4 /dev/mapper/evg0-evol0 rw
+3532 3528 253:0 /ps/ff735bac-5e94-43f5-858c-59569b2472b9/var/tmp /var/tmp rw,relatime master:415 - ext4 /dev/mapper/evg0-evol0 rw
+3554 3528 0:244 / /proc rw,relatime - proc none rw
+3555 3529 0:245 / /dev rw,nosuid,noatime,nodiratime - tmpfs none rw,size=1024k,mode=755,inode64
+3556 3555 0:252 / /dev/shm rw,nosuid,nodev,relatime - tmpfs none rw,size=65536k,nr_inodes=2048,mode=700,uid=26783,gid=26783,inode64
+3557 3528 253:0 /ps/ff735bac-5e94-43f5-858c-59569b2472b9/passwd /etc/passwd ro,relatime master:415 - ext4 /dev/mapper/evg0-evol0 rw
+3581 3528 253:0 /ps/ff735bac-5e94-43f5-858c-59569b2472b9/group /etc/group ro,relatime master:415 - ext4 /dev/mapper/evg0-evol0 rw
+3582 3528 253:0 /ps/ff735bac-5e94-43f5-858c-59569b2472b9/hostname /etc/hostname ro,relatime master:415 - ext4 /dev/mapper/evg0-evol0 rw
+3583 3528 253:0 /ps/ff735bac-5e94-43f5-858c-59569b2472b9/hosts /etc/hosts ro,relatime master:415 - ext4 /dev/mapper/evg0-evol0 rw
+3584 3528 253:0 /ps/ff735bac-5e94-43f5-858c-59569b2472b9/profile /etc/profile ro,relatime master:415 - ext4 /dev/mapper/evg0-evol0 rw
+3614 3528 253:0 /ps/ff735bac-5e94-43f5-858c-59569b2472b9/bash.bashrc /etc/bash.bashrc ro,relatime master:415 - ext4 /dev/mapper/evg0-evol0 rw
+3615 3528 0:26 /systemd/resolve/resolv.conf /etc/resolv.conf ro,nosuid,nodev master:11 - tmpfs tmpfs rw,size=6479504k,mode=755,inode64
+3616 3554 0:5 /null /proc/kcore ro,relatime master:2 - devtmpfs devtmpfs rw,size=32386712k,nr_inodes=8096678,mode=755,inode64
+3617 3554 0:5 /null /proc/timer_list ro,relatime master:2 - devtmpfs devtmpfs rw,size=32386712k,nr_inodes=8096678,mode=755,inode64
+3618 3554 253:0 /ps/ff735bac-5e94-43f5-858c-59569b2472b9/tmp/mask /proc/scsi ro,relatime master:415 - ext4 /dev/mapper/evg0-evol0 rw
+3619 3528 253:0 /ps/ff735bac-5e94-43f5-858c-59569b2472b9/sys /sys rw,relatime master:415 - ext4 /dev/mapper/evg0-evol0 rw
+3620 3555 0:253 / /dev/pts rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=666,max=1024
+3621 3555 0:253 /ptmx /dev/ptmx rw,nosuid,noexec,relatime - devpts devpts rw,gid=5,mode=620,ptmxmode=666,max=1024
+1576 3554 0:245 /.lxc-boot-id /proc/sys/kernel/random/boot_id ro,nosuid,nodev,noexec,noatime,nodiratime - tmpfs none rw,size=1024k,mode=755,inode64
