@@ -1,0 +1,217 @@
+name: Update "PHP Support" Dev Center article with latest package info
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry-run:
+        description: 'Only generate markdown and diff, without updating live Dev Center article'
+        type: boolean
+        default: false
+        required: false
+
+permissions:
+  contents: read
+
+env:
+  # ensure these are in sync with other relevant workflow files
+  stacks_list_for_shell_expansion: "{heroku-22,heroku-24-amd64,heroku-24-arm64}"
+  repo_path_suffix: "-stable/"
+  setup_php_php_version: "8.4"
+  setup_php_composer_version: "2.9"
+
+jobs:
+  devcenter-generate:
+    runs-on: ubuntu-24.04
+    outputs:
+      diff_result: ${{ steps.diff.outputs.diff_result }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Perform platform repo snapshot checks
+        id: platform-repo-snapshot-calc
+        uses: ./.github/actions/platform-repo-snapshot-calc
+        with:
+          stacks-list-for-shell-expansion: ${{env.stacks_list_for_shell_expansion}}
+          repo-path-suffix: ${{env.repo_path_suffix}}
+      - name: Fail if repo snapshots are missing for any of the stacks
+        if: steps.platform-repo-snapshot-calc.outputs.snapshot-urls-check-outcome != 'success'
+        run: |
+          # snapshot-urls output is not quoted so that the shell expands the brace expression for us
+          echo "::error title=Platform repo snapshot(s) missing::One or more of the following URLs were not found:" ${{ steps.platform-repo-snapshot-calc.outputs.snapshot-urls }}
+          exit 1
+      - name: Install dos2unix
+        run: sudo apt-get install dos2unix
+      - name: Install PHP and Composer
+        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
+        with:
+          php-version: "${{ env.setup_php_php_version }}"
+          tools: "composer:${{ env.setup_php_composer_version }}"
+      - name: Install Dev Center generator dependencies
+        run: |
+          composer install -d support/devcenter/
+      - name: Generate Dev Center article sections
+        run: |
+          set -o pipefail
+          urls=( ${{ steps.platform-repo-snapshot-calc.outputs.snapshot-urls }} )
+          # generate.php can generate individual sections, but doing it in one go a) is faster and b) means this code does not need to know what those sections are
+          # Instead we split the generated contents into individual files, with the known delimiter as the split pattern.
+          # tee stderr to a file
+          support/devcenter/generate.php "${urls[@]}" 2> >(tee warnings.txt >&2) | csplit -s -z -f 'section-' -b '%02d.md' - '/^<!-- BEGIN [A-Z_][A-Z0-9_-]\+ -->$/' '{*}'
+          # if there were warnings or notices on stderr, output them for GitHub highlighting
+          # the \L, \E and \u extensions are case modifiers
+          # this turns "(WARNING|NOTICE): foobar" into "::(warning|notice) title=(Warning|Notice) emitted by generator.php::foobar"
+          sed -E -e 's/^(WARNING|NOTICE): /::\L\1\E title=\L\u\1\E emitted by generator.php::/g' warnings.txt
+          # sanity check number of generated splits (e.g. in case the split ever changes)
+          shopt -s nullglob
+          splits=( section-*.md )
+          if (( ${#splits[@]} < 2 )); then
+            echo 'error::Expected more than one section from generator.'
+            exit 1
+          fi
+      - name: Download current Dev Center article markdown
+        run: |
+          set -o pipefail
+          # jq -j, not -r, otherwise we get a stray trailing newline
+          curl -H "Accept: application/json" https://devcenter.heroku.com/api/v1/articles/php-support | jq -j '.content' > php-support.md
+          # Because the articles are edited in a web interface, they likely use CRLF line endings.
+          # We will be patching using the LF line ending section files generated in an earlier step.
+          # For this reason, we may have to convert to LF, so we check if the file would be converted by dos2unix using the --info option.
+          # The "c" info flag prints only file names that would trigger conversion; we first remember this output for the next step via tee.
+          # The "0" flag triggers zero-byte output for happy consumption by xargs
+          # Then, we finally run the conversion (if needed) by passing the file name to dos2unix again via xargs.
+          dos2unix --info=c0 php-support.md | tee have_crlf.txt | xargs -r0 dos2unix
+      - name: Find generated section start/end markers in Dev Center article markdown
+        id: find-section-markers
+        run: |
+          # init job file
+          echo -n > php-support.md.ed-unordered.txt
+          for f in section-*.md; do
+            # extract first and last lines of the section file (those are the start and end markers)
+            first=$(head -n1 "$f")
+            last=$(tail -n1 "$f")
+            # grep the line numbers (-n) as fixed (-F) full-line (-x) strings and extract them
+            start=$(set -o pipefail; grep -nFx "$first" php-support.md | cut -d':' -f1) || {
+              echo "::warning title=Failed to match section start marker::Start marker '$first' not found in input markdown; skipping '$f'..."
+              continue
+            }
+            end=$(set -o pipefail; grep -nFx "$last" php-support.md | cut -d':' -f1) || {
+              echo "::warning title=Failed to match section end marker::End marker '$last' not found in input markdown; skipping '$f'..."
+              continue
+            }
+            # write out a line with the start-end range and filename
+            echo "${start},${end} ${f}" >> php-support.md.ed-unordered.txt
+          done
+          num_sections=$(set -o pipefail; wc -l php-support.md.ed-unordered.txt | awk '{ print $1 }')
+          (( $num_sections > 0 )) || echo "::warning title=No sections matched in input markdown::None of the generated sections coud be matched against the input markdown. No updates will occur."
+          echo "num_sections=${num_sections}" >> "$GITHUB_OUTPUT"
+      - name: Patch Dev Center article markdown
+        if: steps.find-section-markers.outputs.num_sections > 0
+        run: |
+          # init our ed script (https://www.gnu.org/software/diffutils/manual/html_node/Detailed-ed.html) for patching
+          echo -n > php-support.md.ed
+          # we now have the target file line ranges and source file names
+          # for patch to handle the line numbers in the ed script correctly, they must be ordered with the last changes coming first
+          # (otherwise every applied change will shift the line numbers for following changes)
+          sort -r -n -k1 -t',' php-support.md.ed-unordered.txt | while read range f; do
+            # write out an ed command that says "from starting line to ending line, replace with what follows"
+            echo "${range}c" >> php-support.md.ed
+            # write out new contents for range in command above
+            cat "$f" >> php-support.md.ed
+            # mark end of content
+            echo "." >> php-support.md.ed
+          done
+          patch --backup --ed php-support.md php-support.md.ed
+      - name: Dump diff of markdown contents
+        id: diff
+        if: steps.find-section-markers.outputs.num_sections > 0
+        run: |
+          # diff exits 0 if there are no differences, 1 if there are, 2 if there was trouble
+          # our patch --ed earlier added a newline at the end of the file
+          # the downloaded markdown, however, may not have a newline at the end of the file
+          # as a result, `diff` may produce a difference for that, but we want to ignore it
+          # we run through a sed that matches on end of file ($), then appends (a) nothing (after backslash)
+          # GNU sed will then add a newline at the end if there isn't one
+          diff -u <(sed -e '$a\' php-support.md.orig) <(sed -e '$a\' php-support.md) > php-support.diff && {
+            echo "::notice title=No diff in markdown::There were no differences after applying the generated sections to the input markdown."
+            echo "diff_result=0" >> "$GITHUB_OUTPUT"
+          } || {
+            diff_result=$?
+            echo "diff_result=${diff_result}" >> "$GITHUB_OUTPUT"
+            (( diff_result != 1 )) && {
+              echo "::error title=Unexpected error during diffing::Exit status of 'diff' command was '${diff_result}'."
+              exit ${diff_result}
+            }
+            echo '## Diff of changes to ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
+            echo >> "$GITHUB_STEP_SUMMARY"
+            echo '``````diff' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+            cat php-support.diff >> "$GITHUB_STEP_SUMMARY"
+            echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+          }
+      - name: Upload diff as artifact
+        if: steps.find-section-markers.outputs.num_sections > 0 && steps.diff.outputs.diff_result == 1
+        uses: actions/upload-artifact@v7
+        with:
+          name: devcenter-diff
+          path: |
+            have_crlf.txt
+            php-support.diff
+  devcenter-update:
+    needs: devcenter-generate
+    if: ${{ needs.devcenter-generate.outputs.diff_result == 1 }}
+    runs-on: ubuntu-24.04
+    env:
+      HEROKU_DEVCENTER_API_TOKEN:  ${{ secrets.HEROKU_DEVCENTER_API_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Install dos2unix
+        run: sudo apt-get install dos2unix
+      - name: Download current Dev Center article markdown
+        run: |
+          set -o pipefail
+          # we need to query this JSON twice, and a temp file is easiest for error handling
+          curl -H "Accept: application/json" https://devcenter.heroku.com/api/v1/articles/php-support > php-support.json
+          # jq -j, not -r, otherwise we get a stray trailing newline
+          cat php-support.json | jq -je '.content' > php-support.md
+          # here we want the trailing newline; run through alternative operator and empty filter to cause exit status 4 with -e if field missing
+          cat php-support.json | jq -re '.id // empty | @sh "article_id=\(.)"' >> "$GITHUB_ENV"
+          # Because the articles are edited in a web interface, they likely use CRLF line endings.
+          # We will be patching using an LF diff.
+          # For this reason, we may have to convert to LF, so we check if the file would be converted by dos2unix using the --info option.
+          # The "c" info flag prints only file names that would trigger conversion; we first remember this output for the next step via tee -a.
+          # The "0" flag triggers zero-byte output for happy consumption by xargs
+          # Then, we finally run the conversion (if needed) by passing the file name to dos2unix again via xargs.
+          dos2unix --info=c0 php-support.md | tee have_crlf.txt | xargs -r0 dos2unix
+      - name: Download diff artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: devcenter-diff
+          path: devcenter-diffs
+      - name: Patch Dev Center article markdown
+        run: |
+          patch php-support.md devcenter-diffs/php-support.diff
+          # convert back to the original CRLF if dos2unix ran in an earlier step (have_crlf.txt will be empty if not, and xargs will not run due to -r)
+          cat have_crlf.txt | xargs -r0 unix2dos
+      - name: Validate Dev Center article
+        if: inputs.dry-run == true
+        run: |
+          set -o pipefail
+          curl -sS --fail-with-body -X POST -K <(echo -n "user = bot:"; printenv "HEROKU_DEVCENTER_API_TOKEN") -H "Accept: application/json" --data-urlencode 'article[content]@php-support.md' "https://devcenter.heroku.com/api/v1/private/articles/${article_id}/validate.json"
+      - name: Output Dev Center article
+        if: inputs.dry-run == true
+        run: |
+          echo "::notice title=Dev Center article not updated::No changes were made to the live article due to dry-run mode."
+          echo '## Updated markdown for ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support)' >> "$GITHUB_STEP_SUMMARY"
+          echo "> [!WARNING]" >> "$GITHUB_STEP_SUMMARY"
+          echo "> **Dev Center has not been updated with the contents below**, copy the Markdown for manual updating!" >> "$GITHUB_STEP_SUMMARY"
+          echo >> "$GITHUB_STEP_SUMMARY"
+          echo '``````markdown' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+          cat php-support.md >> "$GITHUB_STEP_SUMMARY"
+          [[ -n "$(tail -c1 php-support.md)" ]] && echo >> "$GITHUB_STEP_SUMMARY" # add trailing newline if necessary
+          echo '``````' >> "$GITHUB_STEP_SUMMARY" # six instead of three backticks because our output is likely to also contain series of backticks
+      - name: Update Dev Center article
+        if: inputs.dry-run == false
+        run: |
+          set -o pipefail
+          curl -sS --fail-with-body -X PUT -K <(echo -n "user = bot:"; printenv "HEROKU_DEVCENTER_API_TOKEN") -H "Accept: application/json" --data-urlencode 'article[content]@php-support.md' "https://devcenter.heroku.com/api/v1/private/articles/${article_id}.json"
+          echo 'Successfully updated ["PHP Support" Dev Center article](https://devcenter.heroku.com/articles/php-support) with synced packages.' >> "$GITHUB_STEP_SUMMARY"

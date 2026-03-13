@@ -11,6 +11,7 @@ permissions:
 env:
   # ensure these are in sync with other relevant workflow files
   stacks_list_for_shell_expansion: "{heroku-22,heroku-24-amd64,heroku-24-arm64}"
+  repo_path_suffix: "-stable/"
 
 jobs:
   check-platform-repo-snapshot:
@@ -23,7 +24,7 @@ jobs:
         uses: ./.github/actions/platform-repo-snapshot-calc
         with:
           stacks-list-for-shell-expansion: ${{env.stacks_list_for_shell_expansion}}
-          repo-path-suffix: "-stable/"
+          repo-path-suffix: ${{env.repo_path_suffix}}
       - name: Fail if repo snapshots are missing for any of the stacks
         if: steps.platform-repo-snapshot-calc.outputs.snapshot-urls-check-outcome != 'success'
         run: |
