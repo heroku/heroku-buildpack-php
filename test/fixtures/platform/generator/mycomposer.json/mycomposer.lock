@@ -4,12 +4,12 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "e7113f052bcc55a036d374f1ffa1efc2",
+    "content-hash": "c3c046c73c7cf3251beeb608d39d0a28",
     "packages": [],
     "packages-dev": [],
     "aliases": [],
     "minimum-stability": "stable",
-    "stability-flags": [],
+    "stability-flags": {},
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
@@ -20,9 +20,8 @@
         "ext-redis": "*",
         "ext-sqlite3": "*",
         "ext-ldap": "*",
-        "ext-imap": "*",
-        "ext-blackfire": "*"
+        "ext-imap": "*"
     },
-    "platform-dev": [],
-    "plugin-api-version": "2.3.0"
+    "platform-dev": {},
+    "plugin-api-version": "2.6.0"
 }

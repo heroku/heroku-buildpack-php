@@ -74,6 +74,7 @@ mkdir -p ${OUT_PREFIX}/bin
 
 # these env var defaults we want both during a build (used in the INI futher below) and at boot time
 tee ${OUT_PREFIX}/bin/export.newrelic.sh > ${OUT_PREFIX}/bin/profile.newrelic.sh <<'EOF'
+export NEW_RELIC_ENABLED=${NEW_RELIC_ENABLED:-"1"}
 export NEW_RELIC_APP_NAME=${NEW_RELIC_APP_NAME:-${HEROKU_APP_NAME:-"PHP Application on Heroku"}}
 export NEW_RELIC_LOG_LEVEL=${NEW_RELIC_LOG_LEVEL:-"warning"}
 export NEW_RELIC_DAEMON_LOG_LEVEL="$NEW_RELIC_LOG_LEVEL"
@@ -111,6 +112,8 @@ mkdir -p ${OUT_PREFIX}/etc/php/conf.d
 cat > ${OUT_PREFIX}/etc/php/conf.d/newrelic.ini-dist <<'EOF'
 extension = newrelic.so
 
+newrelic.enabled = ${NEW_RELIC_ENABLED}
+
 newrelic.loglevel = ${NEW_RELIC_LOG_LEVEL}
 
 newrelic.license = ${NEW_RELIC_LICENSE_KEY}
@@ -133,11 +136,37 @@ newrelic.daemon.logfile = stderr
 newrelic.daemon.pidfile = /tmp/newrelic-daemon.pid
 EOF
 
+# this is the post-install script for CNBs; it disables New Relic as we currently can't run the daemon in the background
+cat > "${OUT_PREFIX}/bin/install.newrelic.sh" <<'EOFX'
+#!/usr/bin/env bash
+set -eu
+
+echo >&2 "NOTICE: disabling New Relic"
+
+cat <<EOF
+[
+	{
+		"scope": "all",
+		"modification_behavior": "override",
+		"name": "NEW_RELIC_LOG_LEVEL",
+		"value": "error"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "override",
+		"name": "NEW_RELIC_ENABLED",
+		"value": "0"
+	}
+]
+EOF
+EOFX
+chmod a+x "${OUT_PREFIX}/bin/install.newrelic.sh"
+
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/newrelic.ini-dist\",\"export\":\"bin/export.newrelic.sh\",\"profile\":\"bin/profile.newrelic.sh\"}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/newrelic.ini-dist\",\"export\":\"bin/export.newrelic.sh\",\"install\":\"bin/install.newrelic.sh\",\"profile\":\"bin/profile.newrelic.sh\"}"}"
 
 python $(dirname $BASH_SOURCE)/../../_util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
