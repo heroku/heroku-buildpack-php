@@ -20,7 +20,7 @@ dep_package=${dep_name}-${dep_build}
 dep_manifest=${dep_package}.composer.json
 
 echo "-----> Packaging ${dep_name} (${dep_version})..."
-echo "FYI: Blackfire API reports latest version as $(curl -A "Heroku" -I -L -s https://blackfire.io/api/v1/releases/cli/linux/$(dpkg --print-architecture) | grep -i 'X-Blackfire-Release-Version: ' | sed "s%X-Blackfire-Release-Version: %%i" | sed s%.$%%)"
+echo "FYI: Blackfire API reports latest version as $(curl -A "Heroku" -I -L -s "https://blackfire.io/api/v1/releases/cli/linux/$(dpkg --print-architecture)" | grep -i 'X-Blackfire-Release-Version: ' | sed "s%X-Blackfire-Release-Version: %%i" | sed "s%.$%%")"
 
 curl -L "https://packages.blackfire.io/binaries/blackfire/${dep_version}/blackfire-linux_$(dpkg --print-architecture).tar.gz" | tar xz
 
