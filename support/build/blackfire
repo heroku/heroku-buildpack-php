@@ -67,11 +67,38 @@ done
 
 EOF
 
+# this is the post-install script for CNBs; it disables Blackfire as we currently can't run the CLI agent in the background
+cat > "${OUT_PREFIX}/bin/install.blackfire.sh" <<'EOFX'
+#!/usr/bin/env bash
+set -eu
+
+echo >&2 "NOTICE: disabling Blackfire"
+
+cat <<EOF
+[
+	{
+		"scope": "all",
+		"modification_behavior": "override",
+		"name": "BLACKFIRE_LOG_FILE",
+		"value": "stderr"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "override",
+		"name": "BLACKFIRE_APM_ENABLED",
+		"value": "0"
+	}
+]
+EOF
+EOFX
+chmod a+x "${OUT_PREFIX}/bin/install.blackfire.sh"
+
+
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
 MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
-MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.blackfire.sh\",\"profile\":\"bin/profile.blackfire.sh\"}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.blackfire.sh\",\"install\":\"bin/install.blackfire.sh\",\"profile\":\"bin/profile.blackfire.sh\"}"}"
 
 python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-program" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
 
