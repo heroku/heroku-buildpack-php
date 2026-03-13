@@ -272,16 +272,27 @@ if ! curl_retry_on_18  --retry-connrefused --retry 3 --connect-timeout 10 --fail
 fi
 
 # prepend the default repo to the list configured by the user
-# list of repositories to use is in ascening order of precedence
+# list of repositories to use is in ascending order of precedence
 export_env_dir "$env_dir" '^HEROKU_PHP_PLATFORM_REPOSITORIES$'
-have_custom_platform_repos="${HEROKU_PHP_PLATFORM_REPOSITORIES:+1}"
-HEROKU_PHP_PLATFORM_REPOSITORIES="${platform_repo_url} ${HEROKU_PHP_PLATFORM_REPOSITORIES:-}"
+have_custom_platform_repos=
+HEROKU_PHP_PLATFORM_REPOSITORIES='$default' # gets replaced later
+if [[ -v HEROKU_PHP_PLATFORM_REPOSITORIES ]]; then
+	have_custom_platform_repos=1
+	HEROKU_PHP_PLATFORM_REPOSITORIES+=" ${HEROKU_PHP_PLATFORM_REPOSITORIES}"
+fi
+# replace any occurrence of "$default" with the actual default repo URL, useful in combination with "-" (see below)
+HEROKU_PHP_PLATFORM_REPOSITORIES=$(default=$platform_repo_url envsubst '$default' <<<"$HEROKU_PHP_PLATFORM_REPOSITORIES")
 if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
-	# a single "-" in the user supplied string removes everything to the left of it; can be used to delete the default repo
+	# a plain "-" in the user supplied string removes everything to the left of it; can be used to delete the default repo
 	notice_inline "Default platform repository disabled."
-	HEROKU_PHP_PLATFORM_REPOSITORIES=${HEROKU_PHP_PLATFORM_REPOSITORIES#*" - "}
-	s3_url=$(echo "$HEROKU_PHP_PLATFORM_REPOSITORIES" | cut -f1 -d" " | sed 's/[^/]*$//')
-	notice_inline 'Bootstrapping using first repository in $HEROKU_PHP_PLATFORM_REPOSITORIES.'
+	# it's possible to use the "-" entry to re-set the repositories twice in HEROKU_PHP_PLATFORM_REPOSITORIES
+	# this is handy when a user wants to bring their own full platform repository, but still use the default repo for bootstrapping:
+	# HEROKU_PHP_PLATFORM_REPOSITORIES="- $default - https://mycustomrepo.s3.amazonaws.com/"
+	# for this, we fetch the entry after the first " - " marker ("#" bash pattern syntax)
+	s3_url=$(echo "${HEROKU_PHP_PLATFORM_REPOSITORIES#*" - "}" | cut -f1 -d" " | sed 's/[^/]*$//')
+	notice_inline "Bootstrapping from ${s3_url}"
+	# for the actual repositories to use, we find the last " - " marker ("##" bash pattern syntax)
+	HEROKU_PHP_PLATFORM_REPOSITORIES=${HEROKU_PHP_PLATFORM_REPOSITORIES##*" - "}
 fi
 
 bootstrap_url_filepath() {
