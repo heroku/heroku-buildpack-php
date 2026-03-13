@@ -259,7 +259,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 			$this->configurePackage($package);
 			// enable any packages this package claims to "replace"
 			$this->enableReplaces($package);
-			if($this->hasInstallScript($package)) {
+			if($this->hasInstallScript($package) && self::isCnb()) {
 				// this is a new-style package for CNBs with an install script that knows how to install itself
 				// it probably also returns env vars that we want to record
 				$this->appendLayerEnvData($this->runInstallScript($package));
@@ -396,6 +396,11 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		} else {
 			throw new \RuntimeException('Package declares invalid or missing "config" in "extra"');
 		}
+	}
+	
+	protected static function isCnb()
+	{
+		return getenv("CNB_TARGET_OS") !== false && getenv("CNB_TARGET_ARCH") !== false;
 	}
 	
 	protected function hasInstallScript(PackageInterface $package)
