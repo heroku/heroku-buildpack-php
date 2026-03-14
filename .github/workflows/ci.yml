@@ -11,7 +11,8 @@ permissions:
   contents: read
 
 env:
-  src_path_suffix: "-develop/"
+  develop_repo_path_suffix: "-develop/"
+  stable_repo_path_suffix: "-stable/"
   HEROKU_DISABLE_AUTOUPDATE: 1
   HATCHET_RETRIES: 3
   IS_RUNNING_ON_CI: true
@@ -78,27 +79,37 @@ jobs:
           echo "$VIRTUAL_ENV/bin" >> "$GITHUB_PATH"
       - name: Hatchet setup
         run: bundle exec hatchet ci:setup
-      - name: Calculate stack identifier for platform repo URL
-        id: set-stack-identifier-for-repo-url
+      - name: Calculate stack identifier and suffix for platform repo URL
+        id: platform-repo-url-inputs
         run: |
           # needs to be done dynamically this way; comparisons in dynamic expressions for some reason do not work for with: in the step below
-          echo -n "stack-identifier-for-repo-url=${STACK}" >> "$GITHUB_OUTPUT"
+          echo -n "stack-identifier=${STACK}" >> "$GITHUB_OUTPUT"
           if [[ $STACK != "heroku-22" ]]; then echo -n "-amd64" >> "$GITHUB_OUTPUT"; fi
           echo >> "$GITHUB_OUTPUT"
+          echo -n "repo-path-suffix=" >> "$GITHUB_OUTPUT"
+          if [[ $GITHUB_REF_TYPE != "tag" && $GITHUB_REF_NAME != "main" && $GITHUB_EVENT_NAME != 'pull_request' ]]; then
+            echo "$develop_repo_path_suffix" >> "$GITHUB_OUTPUT"
+          else
+            echo "$stable_repo_path_suffix" >> "$GITHUB_OUTPUT"
+          fi
       - name: Perform platform repo snapshot checks
         id: platform-repo-snapshot-calc
         uses: ./.github/actions/platform-repo-snapshot-calc
         with:
-          stacks-list-for-shell-expansion: ${{ steps.set-stack-identifier-for-repo-url.outputs.stack-identifier-for-repo-url }}
-          repo-path-suffix: ${{ env.src_path_suffix }}
-      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}}… with snapshot (since we are not building main or a tag, but it's a PR)
-        if: github.ref_type != 'tag' && github.ref_name != 'main' && github.event_name == 'pull_request'
+          stacks-list-for-shell-expansion: ${{ steps.platform-repo-url-inputs.outputs.stack-identifier }}
+          repo-path-suffix: ${{ steps.platform-repo-url-inputs.outputs.repo-path-suffix }}
+      - name: Fail early if snapshot URL is not present
+        if: ${{ steps.platform-repo-snapshot-calc.outputs.snapshot-urls-check-outcome != 'success' }}
         run: |
-          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- ${{steps.platform-repo-snapshot-calc.outputs.snapshot-urls}}" >> "$GITHUB_ENV"
-      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES to …${{env.src_path_suffix}}… without snapshot (since we are not building main or a tag, and it's not a PR)
+          echo "::error title=Platform repo snapshot missing::URL not found: ${{ steps.platform-repo-snapshot-calc.outputs.snapshot-urls }}"
+          exit 1
+      - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES (since we are not building main or a tag or for a PR)
+        # we intentionally do not export this for tags or main or PR runs, since we want to use the default snapshot behavior in bin/compile
         if: github.ref_type != 'tag' && github.ref_name != 'main' && github.event_name != 'pull_request'
         run: |
-          echo "HEROKU_PHP_PLATFORM_REPOSITORIES=- ${{steps.platform-repo-snapshot-calc.outputs.urls}}" >> "$GITHUB_ENV"
+          env_line="HEROKU_PHP_PLATFORM_REPOSITORIES=- ${{ steps.platform-repo-snapshot-calc.outputs.snapshot-urls }}"
+          echo "::notice title=Platform repositories overridden for branch CI run::Running with '${env_line}'"
+          echo "$env_line" >> "$GITHUB_ENV"
       - name: Calculate number of parallel_rspec processes (half of num of lines in runtime log)
         run: echo "PARALLEL_TEST_PROCESSORS=$(( ($(cat "$PARALLEL_TEST_RUNTIME_LOG" | wc -l)+2-1)/2 ))" >> "$GITHUB_ENV"
       - name: Execute tests
