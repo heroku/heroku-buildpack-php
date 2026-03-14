@@ -110,7 +110,24 @@ jobs:
           # yes gets "n" to print for dry-runs so the sync aborts
           # errors are redirected to /dev/null, and we || true, to suppress SIGPIPE errors from 'docker run' exiting eventually
           # we need -i for Docker to accept input on stdin, but must not use -t for the pipeline to work
-          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh --no-remove -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" lang-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log
+          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh --no-remove -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" lang-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log || {
+            result=$?
+            case $result in
+              3)
+                echo "::error title=Repository not in consistent state::Bucket contains manifests that are not listed in packages.json"
+                ;;
+              4)
+                echo "::error title=Repository snapshot outdated::The repository snapshot and packages.json differ; sync needs to be run against a branch whose manifests match the snapshot"
+                ;;
+              9)
+                echo "::error title=Snapshot already exists in destination::The destination already contains the same repository snapshot; overwrites of snapshots are not allowed"
+                ;;
+              *)
+                echo "::error title=Repository sync failed::Check step output for details"
+                ;;
+            esac
+            exit $result
+          }
       - name: Upload sync log as artifact
         uses: actions/upload-artifact@v7
         with:
