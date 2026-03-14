@@ -60,25 +60,6 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
-      - name: Install Ruby and Bundler
-        uses: ruby/setup-ruby@v1
-        with:
-          bundler-cache: true
-          ruby-version: "${{ env.setup_ruby_ruby_version }}"
-      - name: Install PHP and Composer
-        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
-        with:
-          php-version: "${{ env.setup_php_php_version }}"
-          tools: "composer:${{ env.setup_php_composer_version }}"
-      - name: Install packages from requirements.txt (for some tests in platform_spec.rb that run mkrepo.sh which needs natsort)
-        run: |
-          export VIRTUAL_ENV=$HOME/.venv
-          python3 -m venv "$VIRTUAL_ENV"
-          export PATH=$VIRTUAL_ENV/bin:$PATH
-          pip install -r requirements.txt
-          echo "$VIRTUAL_ENV/bin" >> "$GITHUB_PATH"
-      - name: Hatchet setup
-        run: bundle exec hatchet ci:setup
       - name: Calculate stack identifier and suffix for platform repo URL
         id: platform-repo-url-inputs
         run: |
@@ -103,6 +84,25 @@ jobs:
         run: |
           echo "::error title=Platform repo snapshot missing::URL not found: ${{ steps.platform-repo-snapshot-calc.outputs.snapshot-urls }}"
           exit 1
+      - name: Install Ruby and Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          ruby-version: "${{ env.setup_ruby_ruby_version }}"
+      - name: Install PHP and Composer
+        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
+        with:
+          php-version: "${{ env.setup_php_php_version }}"
+          tools: "composer:${{ env.setup_php_composer_version }}"
+      - name: Install packages from requirements.txt (for some tests in platform_spec.rb that run mkrepo.sh which needs natsort)
+        run: |
+          export VIRTUAL_ENV=$HOME/.venv
+          python3 -m venv "$VIRTUAL_ENV"
+          export PATH=$VIRTUAL_ENV/bin:$PATH
+          pip install -r requirements.txt
+          echo "$VIRTUAL_ENV/bin" >> "$GITHUB_PATH"
+      - name: Hatchet setup
+        run: bundle exec hatchet ci:setup
       - name: Export HEROKU_PHP_PLATFORM_REPOSITORIES (since we are not building main or a tag or for a PR)
         # we intentionally do not export this for tags or main or PR runs, since we want to use the default snapshot behavior in bin/compile
         if: github.ref_type != 'tag' && github.ref_name != 'main' && github.event_name != 'pull_request'
