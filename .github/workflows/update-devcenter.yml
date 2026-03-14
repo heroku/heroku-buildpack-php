@@ -1,8 +1,23 @@
 name: Update "PHP Support" Dev Center article with latest package info
 
+env:
+  # ensure these are in sync with other relevant workflow files
+  setup_php_php_version: "8.4"
+  setup_php_composer_version: "2.9"
+
 on:
   workflow_dispatch:
     inputs:
+      stacks:
+        description: 'Stacks to generate for (single stack or "{heroku-22,heroku-24-amd64}" style expansion list)'
+        type: string
+        default: "{heroku-22,heroku-24-amd64}"
+        required: true
+      repo-path-suffix:
+        description: 'Path suffix for repository URLs (e.g. "-develop/" or "-stable/")'
+        type: string
+        default: "-stable/"
+        required: true
       dry-run:
         description: 'Only generate markdown and diff, without updating live Dev Center article'
         type: boolean
@@ -11,13 +26,6 @@ on:
 
 permissions:
   contents: read
-
-env:
-  # ensure these are in sync with other relevant workflow files
-  stacks_list_for_shell_expansion: "{heroku-22,heroku-24-amd64,heroku-24-arm64}"
-  repo_path_suffix: "-stable/"
-  setup_php_php_version: "8.4"
-  setup_php_composer_version: "2.9"
 
 jobs:
   devcenter-generate:
@@ -31,8 +39,8 @@ jobs:
         id: platform-repo-snapshot-calc
         uses: ./.github/actions/platform-repo-snapshot-calc
         with:
-          stacks-list-for-shell-expansion: ${{env.stacks_list_for_shell_expansion}}
-          repo-path-suffix: ${{env.repo_path_suffix}}
+          stacks-list-for-shell-expansion: ${{ inputs.stacks }}
+          repo-path-suffix: ${{ inputs.repo-path-suffix }}
       - name: Fail if repo snapshots are missing for any of the stacks
         if: steps.platform-repo-snapshot-calc.outputs.snapshot-urls-check-outcome != 'success'
         run: |
