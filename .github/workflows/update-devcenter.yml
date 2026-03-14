@@ -4,19 +4,26 @@ env:
   # ensure these are in sync with other relevant workflow files
   setup_php_php_version: "8.4"
   setup_php_composer_version: "2.9"
+  # ensure these also match the input defaults below
+  stacks_list_for_shell_expansion: "{heroku-22,heroku-24-amd64}"
+  repo_path_suffix: "-stable/"
 
 on:
+  release:
+    types: [released]
   workflow_dispatch:
     inputs:
-      stacks:
+      stacks-list-for-shell-expansion:
         description: 'Stacks to generate for (single stack or "{heroku-22,heroku-24-amd64}" style expansion list)'
         type: string
-        default: "{heroku-22,heroku-24-amd64}"
+         # make sure this matches the default value in env: above
+        default: '{heroku-22,heroku-24-amd64}'
         required: true
       repo-path-suffix:
         description: 'Path suffix for repository URLs (e.g. "-develop/" or "-stable/")'
         type: string
-        default: "-stable/"
+        # make sure this matches the default value in env: above
+        default: '-stable/'
         required: true
       dry-run:
         description: 'Only generate markdown and diff, without updating live Dev Center article'
@@ -39,8 +46,8 @@ jobs:
         id: platform-repo-snapshot-calc
         uses: ./.github/actions/platform-repo-snapshot-calc
         with:
-          stacks-list-for-shell-expansion: ${{ inputs.stacks }}
-          repo-path-suffix: ${{ inputs.repo-path-suffix }}
+          stacks-list-for-shell-expansion: ${{ github.event_name == 'workflow_dispatch' && inputs.stacks-list-for-shell-expansion || env.stacks_list_for_shell_expansion }}
+          repo-path-suffix: ${{ github.event_name == 'workflow_dispatch' && inputs.repo-path-suffix || env.repo_path_suffix }}
       - name: Fail if repo snapshots are missing for any of the stacks
         if: steps.platform-repo-snapshot-calc.outputs.snapshot-urls-check-outcome != 'success'
         run: |
