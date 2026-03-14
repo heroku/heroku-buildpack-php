@@ -133,7 +133,7 @@ if [[ ! $localsrc ]]; then
 		s5cmd "${S5CMD_OPTIONS[@]}" cp --source-region "$src_region" "s3://${src_bucket}/${src_prefix}packages-${checksum}.json" "$src_tmp" || { echo -e "\nFailed to fetch repository snapshot! See message above for errors." >&2; exit 1; }
 		# for now, we are syncing based on all found .composer.json manifests, that's how the sync.py logic works
 		# in the future, given a specific snapshot, the manifests could potentially be extracted from the snapshotted repo instead for much more selective syncing (where we just carry over the entire repo, and re-write the dist URLs only)
-		diff -q "${src_tmp}/packages.json" "${src_tmp}/packages-${checksum}.json" >/dev/null || { echo -e "\npackages.json and packages-${checksum}.json differ; can only sync snapshots that match latest state. Aborting." >&2; exit 1; }
+		diff -q "${src_tmp}/packages.json" "${src_tmp}/packages-${checksum}.json" >/dev/null || { echo -e "\npackages.json and packages-${checksum}.json differ; can only sync snapshots that match latest state. Aborting." >&2; exit 4; }
 	fi
 	
 	src_manifests="s3://${src_bucket}/${src_prefix}*.composer.json"
@@ -152,7 +152,7 @@ if [[ ! $localdst ]]; then
 	# we won't sync if the destination already has a snapshot for the given checksum
 	# except for when the source is local - that's a removal, which happens on dev prefixes and may be necessary
 	# (a later sync to a stable prefix would fail if the stable prefix already has the same snapshot)
-	[[ $checksum && ! $localsrc ]] && AWS_REGION=$dst_region s5cmd "${S5CMD_OPTIONS[@]}" ls "s3://${dst_bucket}/${dst_prefix}packages-${checksum}.json" >/dev/null 2>&1 && { echo -e "\nDestination bucket already has packages-${checksum}.json, aborting." >&2; exit 1; }
+	[[ $checksum && ! $localsrc ]] && AWS_REGION=$dst_region s5cmd "${S5CMD_OPTIONS[@]}" ls "s3://${dst_bucket}/${dst_prefix}packages-${checksum}.json" >/dev/null 2>&1 && { echo -e "\nDestination bucket already has packages-${checksum}.json, aborting." >&2; exit 9; }
 	dst_ls_json=$(AWS_REGION=$dst_region s5cmd "${S5CMD_OPTIONS[@]}" --json ls "${dst_manifests}" 2>&1) && {
 		# this is for an 's5cmd run' later, so we're generating quoted arguments
 		downloads+=("cp --source-region ${dst_region@Q} ${dst_manifests@Q} ${dst_tmp@Q}")
@@ -181,7 +181,7 @@ echo "" >&2
 		 You should run 'mkrepo.sh' to update, or ask the bucket maintainers to do so.
 	EOF
 	read -rp "Would you like to abort this operation? [Yn] " proceed
-	[[ ! $proceed =~ [nN]o* ]] && exit 1 # yes is the default so doing yes | sync.sh won't do something stupid
+	[[ ! $proceed =~ [nN]o* ]] && exit 3 # yes is the default so doing yes | sync.sh won't do something stupid
 	echo "" >&2
 }
 

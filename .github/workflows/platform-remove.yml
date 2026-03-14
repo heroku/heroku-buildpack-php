@@ -1,6 +1,9 @@
 name: Platform packages removal from -develop/
 run-name: Removal${{ inputs.dry-run == true && ' dry-run' || '' }} from dist-${{inputs.stack}}-develop/
 
+env:
+  repo_path_suffix: -develop/
+
 on:
   workflow_dispatch:
     inputs:
@@ -64,26 +67,28 @@ jobs:
         with:
           key: ${{ steps.restore-docker.outputs.cache-primary-key }}
           path: /tmp/docker-cache.tar.gz
-      - name: Calculate formulae state Hash
-        run: |
-          echo -n "PLATFORM_REPO_SNAPSHOT_SHA256=" >> "$GITHUB_ENV"
-          support/build/_util/formulae-hash.sh >> "$GITHUB_ENV"
+      - name: Perform platform repo snapshot checks
+        id: platform-repo-snapshot-calc
+        uses: ./.github/actions/platform-repo-snapshot-calc
+        with:
+          stacks-list-for-shell-expansion: ${{ inputs.stack }}
+          repo-path-suffix: ${{ env.repo_path_suffix }}
       - name: List packages for removal using given input list
         if: ${{ inputs.dry-run == true }}
         run: |
           set -f
           set -o pipefail
-          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh -c "$PLATFORM_REPO_SNAPSHOT_SHA256" ${{inputs.manifests}} 2>&1 | tee remove.out
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" ${{inputs.manifests}} 2>&1 | tee remove.out
       - name: Remove packages from repository
         if: ${{ inputs.dry-run == false }}
         run: |
           set -f
           set -o pipefail
-          (yes 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh -c "$PLATFORM_REPO_SNAPSHOT_SHA256" ${{inputs.manifests}} 2>&1 | tee remove.out
+          (yes 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" ${{inputs.manifests}} 2>&1 | tee remove.out
       - name: Output dry-run summary
         if: ${{ inputs.dry-run == true }}
         run: |
-          echo '## Packages which would be removed from production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Packages which would be removed from platform repository (`…${{inputs.stack}}${{env.repo_path_suffix}}`)' >> "$GITHUB_STEP_SUMMARY"
           echo '> [!IMPORTANT]' >> "$GITHUB_STEP_SUMMARY"
           echo '> **This is output from a dry-run**, no packages have been removed.' >> "$GITHUB_STEP_SUMMARY"
           echo >> "$GITHUB_STEP_SUMMARY"
@@ -93,7 +98,11 @@ jobs:
       - name: Output removal summary
         if: ${{ inputs.dry-run == false }}
         run: |
-          echo '## Packages removed from production bucket' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Platform repository `…${{inputs.stack}}${{env.repo_path_suffix}}` updated' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Snapshot hash for formulae in source tree: `${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}`' >> "$GITHUB_STEP_SUMMARY"
+          echo '- Snapshot repository URL: ${{steps.platform-repo-snapshot-calc.outputs.snapshot-urls}}' >> "$GITHUB_STEP_SUMMARY"
+          echo '- "Head" repository URL: ${{steps.platform-repo-snapshot-calc.outputs.urls}}' >> "$GITHUB_STEP_SUMMARY"
+          echo '## Packages removed from `…${{inputs.stack}}${{env.repo_path_suffix}}`' >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
           cat remove.out >> "$GITHUB_STEP_SUMMARY"
           echo '```' >> "$GITHUB_STEP_SUMMARY"
