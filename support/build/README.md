@@ -137,23 +137,23 @@ Please refer to [the instructions in the main README](../../README.md#custom-pla
 
 To use custom platform packages (either new ones, or modifications of existing ones), a new Composer repository has to be created (see [the instructions in the main README](../../README.md#custom-platform-repositories) for usage info). All the tooling in here is designed to work with S3, since it is reliable and cheap. The bucket permissions should be set up so that a public listing is allowed.
 
-The folder `support/build` contains [Bob](http://github.com/kennethreitz/bob-builder) build formulae for all packages and their dependencies.
+The folders `support/build/packages` and `support/build/formulae` contain [Bob](http://github.com/kennethreitz/bob-builder) **package recipe** files (in `packages/`, for concrete versions) and **base formulae** (in `formulae/`, where most of the implementation of a formula lives) for all packages and their dependencies.
 
-These build formulae can have dependencies (e.g. an extension formula depends on the correct version of PHP needed to build it, and maybe on a vendored library); Bob handles downloading of dependencies prior to a build, and it's the responsibility of a build formula to remove these dependencies again if they're not needed e.g. in between running `make` and `make install`.
+The concrete package recipes can have dependencies (e.g. an extension formula depends on the correct version of PHP needed to build it, and maybe on a vendored library); Bob handles downloading of dependencies prior to a build, and it's the responsibility of a build formula to remove these dependencies again if they're not needed e.g. in between running `make` and `make install`.
 
 The build formulae are also expected to generate a [manifest](#about-manifests), which is a `composer.json` containing all relevant information about a package.
 
-In `support/build/_util`, three scripts (`deploy.sh` to deploy a package with its [manifest](#about-manifests), `mkrepo.sh` to (re-)generate a [repository](#about-repositories) from all existing manifests, and `sync.sh` to [sync between repos](#syncing-repositories)) take care of most of the heavy lifting. The directory is added to `$PATH` in `Dockerfile`, so the helpers can be invoked directly.
+In `support/build/util`, three scripts (`deploy.sh` to deploy a package with its [manifest](#about-manifests), `mkrepo.sh` to (re-)generate a [repository](#about-repositories) from all existing manifests, and `sync.sh` to [sync between repos](#syncing-repositories)) take care of most of the heavy lifting. The directory is added to `$PATH` in `Dockerfile`, so the helpers can be invoked directly.
 
 ### Preparations
 
 Packages for a platform repository are best built using a Docker container (either locally, or using on a platform like Heroku). The instructions below use `docker run…` locally.
 
-Refer to the [README in `support/build/_docker/`](_docker/README.md) for setup instructions.
+Refer to the [README in `support/build/docker/`](docker/README.md) for setup instructions.
 
 The following environment variables are required:
 
-- `WORKSPACE_DIR`, must be "`/app/support/build`"
+- `WORKSPACE_DIR`, must be "`/app/support/build/packages`"
 - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with credentials for the S3 bucket
 - `S3_BUCKET` with the name of the S3 bucket to use for builds
 - `S3_PREFIX` (just a slash, or a prefix directory name **with a trailing, but no leading, slash**)
@@ -261,7 +261,7 @@ All formulae use the `manifest.py` helper to generate the information above. **U
 
 For example, the Apache HTTPD web server is built roughly as follows:
 
-    source $(dirname $BASH_SOURCE)/_util/include/manifest.sh
+    source "$(dirname "$BASH_SOURCE")/../util/include/manifest.sh"
     curl … # download httpd
     ./configure --prefix="$1" …
     make && make install
@@ -281,7 +281,7 @@ For example, the Apache HTTPD web server is built roughly as follows:
     export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
     EOF
     
-    python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+    python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > "$dep_manifest"
     
     print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
 
@@ -580,7 +580,7 @@ It can be desirable to have immutable "frozen" repository states for the buildpa
 
 To achieve this, a `packages-${snapshot}.json` can be [generated](#re-generating-repositories) and [synced](#syncing-repositories) in addition to the "bleeding edge" `packages.json`. The buildpack uses a hash of the list of platform package formulae as the value for `${snapshot}`. This way, the hash changes every time a formula file name is added or changed.
 
-The hash is computed and printed by the `formulae-hash.sh` helper in the `_util` directory; this hash can then be passed to `mkrepo.sh`, `sync.sh` and `remove.sh` using the `-c` option. The buildpack also uses it in `bin/compile` to construct the expected URL to `platform-${snapshot}.json` for the default platform repository.
+The hash is computed and printed by the `formulae-hash.sh` helper in the `util` directory; this hash can then be passed to `mkrepo.sh`, `sync.sh` and `remove.sh` using the `-c` option. The buildpack also uses it in `bin/compile` to construct the expected URL to `platform-${snapshot}.json` for the default platform repository.
 
 **When updating build formulae without changing the version (e.g. when changing compile options), to ensure that existing package builds are not updated, build metadata should be used in the [version](#package-version) of the updated package (so e.g. `php-8.4.6` becomes `php-8.4.6+build2`).** This way, the updated build can co-exist with the older builds, and existing repository snapshots will not pick up the changed build, because the hash of the list of formulae has changed due to the updated formula filename.
 
@@ -695,8 +695,8 @@ The versions in the example above may have to be updated to reflect newer releas
 
 Finally, build the containers for each stack:
 
-    $ docker build --pull --tag heroku-php-build-heroku-22 --file $(pwd)/support/build/_docker/heroku-22.Dockerfile .
-    $ docker build --platform linux/amd64 --pull --tag heroku-php-build-heroku-24-amd64 --file $(pwd)/support/build/_docker/heroku-24.Dockerfile .
+    $ docker build --pull --tag heroku-php-build-heroku-22 --file $(pwd)/support/build/docker/heroku-22.Dockerfile .
+    $ docker build --platform linux/amd64 --pull --tag heroku-php-build-heroku-24-amd64 --file $(pwd)/support/build/docker/heroku-24.Dockerfile .
 
 #### Building and Deploying
 
@@ -759,8 +759,8 @@ Pull in the buildpack as a Composer dependency:
 Build the base Docker images from the buildpack for all stacks:
 
     $ cd vendor/heroku/heroku-buildpack-php
-    $ docker build --pull --tag php-heroku-22 --file $(pwd)/support/build/_docker/heroku-22.Dockerfile .
-    $ docker build --platform linux/amd64 --pull --tag php-heroku-24-amd64 --file $(pwd)/support/build/_docker/heroku-24.Dockerfile .
+    $ docker build --pull --tag php-heroku-22 --file $(pwd)/support/build/docker/heroku-22.Dockerfile .
+    $ docker build --platform linux/amd64 --pull --tag php-heroku-24-amd64 --file $(pwd)/support/build/docker/heroku-24.Dockerfile .
     $ cd -
 
 #### Creating Custom Dockerfiles
@@ -768,7 +768,7 @@ Build the base Docker images from the buildpack for all stacks:
 Create a `heroku-22.Dockerfile` with the following contents:
 
     FROM php-heroku-22:latest
-    ENV WORKSPACE_DIR=/app
+    ENV WORKSPACE_DIR=/app/packages
     ENV UPSTREAM_S3_BUCKET=lang-php
     ENV UPSTREAM_S3_PREFIX=dist-heroku-22-stable/
     COPY . /app
@@ -776,7 +776,7 @@ Create a `heroku-22.Dockerfile` with the following contents:
 Create a `heroku-24.Dockerfile` with the following contents:
 
     FROM php-heroku-24-amd64:latest
-    ENV WORKSPACE_DIR=/app
+    ENV WORKSPACE_DIR=/app/packages
     ENV UPSTREAM_S3_BUCKET=lang-php
     ENV UPSTREAM_S3_PREFIX=dist-heroku-24-amd64-stable/
     COPY . /app
@@ -785,24 +785,24 @@ Both set the correct upstream S3 bucket and prefix, so that formula dependencies
 
 #### Create an Extension Base Formula
 
-In the project root directory, create a file named `xdebug` with the following contents:
+In the project root directory, create a folder named `formulae`, and in it a file named `xdebug` with the following contents:
 
     #!/usr/bin/env bash
     
-    dep_name=$(basename $BASH_SOURCE)
-    source $(dirname $BASH_SOURCE)/vendor/heroku/heroku-buildpack-php/support/build/extensions/pecl
+    dep_name=$(basename "$BASH_SOURCE")
+    source "$(dirname "$BASH_SOURCE")/vendor/heroku/heroku-buildpack-php/support/build/formulae/include/pecl-ext"
 
 #### Create Extension Formulae per Version and PHP Series
 
-For each PHP version, create a separate directory, and in there, create a formula for the specific version.
+In a top-level folder named `packages`, for each PHP version, create a separate directory, and in there, create a formula for the specific version.
 
-For instance, for PHP 7.3 and Xdebug version 2.7.0, have a `php-7.3/xdebug-2.7.0` with the following contents:
+For instance, for PHP 7.3 and Xdebug version 2.7.0, have a `packages/php-7.3/xdebug-2.7.0` with the following contents:
 
     #!/usr/bin/env bash
     # Build Path: /app/.heroku/php
     # Build Deps: php-7.3.*
     
-    source $(dirname $0)/../xdebug
+    source "$(dirname "$0")/../../formulae/xdebug"
 
 The `php-7.3.*` dependency will not be found in the current S3 bucket and prefix, so Bob will fall back to `UPSTREAM_S3_BUCKET` and `UPSTREAM_S3_PREFIX`.
 

@@ -264,7 +264,7 @@ else
 fi
 s3_url="https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-${stack_locator}-stable/"
 # hash the list of "declared" build formulae, this is the "snapshot" of a fixed repo state
-platform_repo_url="${s3_url}packages-$("$bp_dir"/support/build/_util/formulae-hash.sh).json"
+platform_repo_url="${s3_url}packages-$("$bp_dir"/support/build/util/formulae-hash.sh).json"
 if ! curl_retry_on_18  --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent -I "$platform_repo_url" > /dev/null; then
 	notice_inline "Default platform repository snapshot not available."
 	export_env_dir "$env_dir" '^HEROKU_PHP_PLATFORM_REPOSITORY_SNAPSHOT_FALLBACK$'
@@ -308,7 +308,7 @@ curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --sil
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
-curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-2.9.3.tar.gz" || {
+curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-2.9.3%2Bheroku1.tar.gz" || {
 	build_report::set_string failure_reason bootstrap.download
 	build_report::set_string failure_detail composer
 	error <<-EOF

@@ -29,7 +29,7 @@ runs:
       shell: bash
       run: |
         echo -n "snapshot_sha256=" >> "$GITHUB_OUTPUT"
-        support/build/_util/formulae-hash.sh >> "$GITHUB_OUTPUT"
+        support/build/util/formulae-hash.sh >> "$GITHUB_OUTPUT"
     - name: Make URLs
       id: make-urls
       shell: bash

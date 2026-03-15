@@ -50,7 +50,7 @@ jobs:
       - id: expand-formulae
         name: Expand list of given formulae
         run: |
-          cd support/build
+          cd support/build/packages
           echo '## Formulae input for building' >> "$GITHUB_STEP_SUMMARY"
           echo -n "matrix=" >> "$GITHUB_OUTPUT"
           set -o pipefail
@@ -74,7 +74,7 @@ jobs:
         run: |
           shopt -s extglob
           stackname_with_architecture=${{inputs.stack}}
-          docker build --tag heroku-php-build-${stackname_with_architecture}:${{github.sha}} --file support/build/_docker/${stackname_with_architecture%-?(amd|arm)64}.Dockerfile .
+          docker build --tag heroku-php-build-${stackname_with_architecture}:${{github.sha}} --file support/build/docker/${stackname_with_architecture%-?(amd|arm)64}.Dockerfile .
       - name: Save built Docker image
         if: steps.cache-docker.outputs.cache-hit != 'true'
         run: docker save heroku-php-build-${{inputs.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
@@ -103,13 +103,13 @@ jobs:
         run: docker load -i /tmp/docker-cache.tar.gz
       - name: Build formula without deploying
         if: ${{ inputs.dry-run == true }}
-        run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} bob build ${{matrix.formula}}
+        run: docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} bob build ${{matrix.formula}}
       - name: Build and deploy formula
         if: ${{ inputs.dry-run == false && inputs.overwrite == false }}
-        run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh ${{matrix.formula}}
+        run: docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh ${{matrix.formula}}
       - name: Build and deploy(+overwrite) formula
         if: ${{ inputs.dry-run == false && inputs.overwrite == true }}
-        run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh --overwrite ${{matrix.formula}}
+        run: docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh --overwrite ${{matrix.formula}}
   mkrepo:
     needs: deploys
     if: ${{ inputs.dry-run == false }}
@@ -135,11 +135,11 @@ jobs:
           stacks-list-for-shell-expansion: ${{ inputs.stack }}
           repo-path-suffix: ${{ env.repo_path_suffix }}
       - name: Re-generate platform package repository
-        run: docker run --rm --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} mkrepo.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" --upload
+        run: docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} mkrepo.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" --upload
       - name: Dry-run sync.sh to show package changes available for syncing to stable bucket
         run: |
           set -o pipefail
-          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" lang-php dist-${{inputs.stack}}${{env.sync_dst_path_suffix}} 2>&1 | tee sync.out
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" lang-php dist-${{inputs.stack}}${{env.sync_dst_path_suffix}} 2>&1 | tee sync.out
       - name: Output job summary
         run: |
           echo '## Platform repository `…${{inputs.stack}}${{env.repo_path_suffix}}` updated' >> "$GITHUB_STEP_SUMMARY"

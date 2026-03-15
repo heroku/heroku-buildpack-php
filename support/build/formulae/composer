@@ -1,0 +1,159 @@
+#!/usr/bin/env bash
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
+source "$(dirname "$BASH_SOURCE")/../util/include/manifest.sh"
+
+OUT_PREFIX=$1
+
+dep_formula=${0#$WORKSPACE_DIR/}
+dep_name=$(basename $BASH_SOURCE)
+dep_build=${dep_formula#"${dep_name}-"}
+dep_version=${dep_build%%+*} # strip build metadata off the end of the version
+dep_package=${dep_name}-${dep_build}
+dep_manifest=${dep_package}.composer.json
+
+echo "-----> Packaging ${dep_name} (${dep_version})..."
+
+export PATH=${OUT_PREFIX}/bin:$PATH
+
+curl -sL https://getcomposer.org/installer > composer-setup.php
+if ! curl -sL https://composer.github.io/installer.sha384sum | sha384sum --quiet -c -; then
+	>&2 echo 'ERROR: Invalid installer signature'
+	rm composer-setup.php
+	exit 1
+fi
+
+php composer-setup.php --version=${dep_version}
+
+# work around https://github.com/composer/composer/issues/11046
+echo '{}' > composer.json
+
+plugin_api_version=$(php composer.phar show --platform | grep '^composer-plugin-api' | awk '{print $2}')
+runtime_api_version=$(php composer.phar show --platform | grep '^composer-runtime-api' | awk '{print $2}')
+
+# php is in there, so clear it first
+rm -rf ${OUT_PREFIX}/*
+mkdir -p ${OUT_PREFIX}/bin
+
+mv composer.phar ${OUT_PREFIX}/bin/composer
+
+# a few reasonable defaults for Composer (use available memory, always mirror path repos because of FS boundaries during build, always run non-interactively)
+tee ${OUT_PREFIX}/bin/export.composer.sh > ${OUT_PREFIX}/bin/profile.composer.sh <<-'EOF'
+	mlib="/sys/fs/cgroup/memory/memory.limit_in_bytes"
+	if [[ -f "$mlib" ]]; then
+		export COMPOSER_MEMORY_LIMIT=${COMPOSER_MEMORY_LIMIT:-$(cat "$mlib")}
+	fi
+	export COMPOSER_MIRROR_PATH_REPOS=${COMPOSER_MIRROR_PATH_REPOS:-1}
+	export COMPOSER_NO_INTERACTION=${COMPOSER_NO_INTERACTION:-1}
+EOF
+
+# this gets sourced after package install, so that the buildpack and following buildpacks can invoke
+# composer bin-dir goes last to avoid any conflicts
+# we use --no-plugins just in case the vendor dir is there, see e.g. https://github.com/Ocramius/PackageVersions/issues/64
+cat >> ${OUT_PREFIX}/bin/export.composer.sh <<-'EOF'
+export PATH="/app/.heroku/php/bin:$PATH"
+# now composer is on the path
+# the export script is called with /app as the cwd, but the app source with composer.json is in another location
+# we need to cd to the dirname of realpath 'composer' first to find the actual location of the app during the build:
+# - we know 'composer' is on $PATH in /app/.heroku/php/bin
+# - we know /app/.heroku/php is a symlink to the build dir
+# - we $(dirname $(realpath 'composer')) to get $build_dir/.heroku/php/bin/
+# - then we cd up three times (from .heroku/php/bin, from .heroku/php, from .heroku) so we're in the build dir
+# - then we invoke 'composer config bin-dir' in there and realpath that so it's absolute
+# no scan dir so no newrelic starts up and outputs messages etc
+# we need to use --canonicalize-missing, otherwise we'd have to mkdir -p the bin-dir (it's not there yet when we source export early on in bin/compile)
+export PATH="$PATH:$(cd "$(dirname "$(realpath "$(which composer)")")"; cd ../../..; bin_dir="$(PHP_INI_SCAN_DIR= COMPOSER_AUTH= composer config --no-plugins bin-dir)"; realpath --canonicalize-missing "$bin_dir")"
+EOF
+# this gets sourced on dyno boot
+# unlimited Composer process timeout only for runtime, not build time
+# composer bin-dir goes last to avoid any conflicts
+# we use --no-plugins just in case the vendor dir is there, see e.g. https://github.com/Ocramius/PackageVersions/issues/64
+cat >> ${OUT_PREFIX}/bin/profile.composer.sh <<-'EOF'
+export COMPOSER_PROCESS_TIMEOUT=${COMPOSER_PROCESS_TIMEOUT:-0}
+export PATH="$HOME/.heroku/php/bin:$PATH"
+# now composer is on the path
+# we invoke it in $HOME so that we are independent of the cwd (which is not $HOME in e.g. Heroku CI)
+# no scan dir so no newrelic starts up and outputs messages etc
+# re-set COMPOSER_AUTH to ensure a malformed `heroku config:set` will not cause immediate outage
+export PATH="$PATH:$(cd "$HOME"; bin_dir="$(PHP_INI_SCAN_DIR= COMPOSER_AUTH= composer config --no-plugins bin-dir)"; realpath --canonicalize-missing "$bin_dir")"
+EOF
+
+# this is the post-install script for CNBs; it produces LayerEnv data
+cat > "${OUT_PREFIX}/bin/install.composer.sh" <<'EOFX'
+#!/usr/bin/env bash
+set -eu
+
+package_root=$(cd "$(dirname "$0")"; cd ..; pwd)
+dest_root=$1
+
+cat <<EOF
+[
+	{
+		"scope": "all",
+		"modification_behavior": "default",
+		"name": "COMPOSER_MIRROR_PATH_REPOS",
+		"value": "1"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "default",
+		"name": "COMPOSER_NO_INTERACTION",
+		"value": "1"
+	},
+	{
+		"scope": "launch",
+		"modification_behavior": "default",
+		"name": "COMPOSER_PROCESS_TIMEOUT",
+		"value": "0"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "prepend",
+		"name": "PATH",
+		"value": "${dest_root}/bin"
+	},
+	{
+		"scope": "all",
+		"modification_behavior": "delimiter",
+		"name": "PATH",
+		"value": ":"
+	}
+]
+EOF
+EOFX
+chmod a+x "${OUT_PREFIX}/bin/install.composer.sh"
+
+# Composer 2.3+ requires 7.2.5+
+if [[ $dep_version == 1.* || $dep_version == 2.[012].* ]]; then
+	phpreq=">=5.3.2"
+else
+	phpreq=">=7.2.5"
+fi
+
+# the || true (needs to be there, not before the <<-'HEREDOC') prevents 'set -e' induced termination from the 'read' encountering EOF
+read -r -d '' require <<-EOF || true
+{
+	"heroku-sys/php": "${phpreq}",
+	"heroku-sys/ext-filter": "*",
+	"heroku-sys/ext-hash": "*",
+	"heroku-sys/ext-iconv": "*",
+	"heroku-sys/ext-json": "*",
+	"heroku-sys/ext-phar": "*",
+	"heroku-sys/ext-openssl": "*",
+	"heroku-sys/ext-zlib": "*"
+}
+EOF
+
+MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"$require"}"
+MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
+MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
+MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{\"heroku-sys/composer-plugin-api\":\"${plugin_api_version}\",\"heroku-sys/composer-runtime-api\":\"${runtime_api_version}\"}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.composer.sh\",\"install\":\"bin/install.composer.sh\",\"profile\":\"bin/profile.composer.sh\"}"}"
+
+python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-program" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > "$dep_manifest"
+
+print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
