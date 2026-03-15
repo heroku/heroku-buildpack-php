@@ -7,7 +7,7 @@ name = "PHP"
 		".gitignore",
 		".rspec_parallel",
 		"support/build/conf/",
-		"support/build/_docker/",
+		"support/build/docker/",
 		"support/build/_patches/",
 		"support/devcenter/",
 		"support/util/",

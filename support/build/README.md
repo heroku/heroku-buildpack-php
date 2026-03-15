@@ -149,7 +149,7 @@ In `support/build/_util`, three scripts (`deploy.sh` to deploy a package with it
 
 Packages for a platform repository are best built using a Docker container (either locally, or using on a platform like Heroku). The instructions below use `docker run…` locally.
 
-Refer to the [README in `support/build/_docker/`](_docker/README.md) for setup instructions.
+Refer to the [README in `support/build/docker/`](docker/README.md) for setup instructions.
 
 The following environment variables are required:
 
@@ -695,8 +695,8 @@ The versions in the example above may have to be updated to reflect newer releas
 
 Finally, build the containers for each stack:
 
-    $ docker build --pull --tag heroku-php-build-heroku-22 --file $(pwd)/support/build/_docker/heroku-22.Dockerfile .
-    $ docker build --platform linux/amd64 --pull --tag heroku-php-build-heroku-24-amd64 --file $(pwd)/support/build/_docker/heroku-24.Dockerfile .
+    $ docker build --pull --tag heroku-php-build-heroku-22 --file $(pwd)/support/build/docker/heroku-22.Dockerfile .
+    $ docker build --platform linux/amd64 --pull --tag heroku-php-build-heroku-24-amd64 --file $(pwd)/support/build/docker/heroku-24.Dockerfile .
 
 #### Building and Deploying
 
@@ -759,8 +759,8 @@ Pull in the buildpack as a Composer dependency:
 Build the base Docker images from the buildpack for all stacks:
 
     $ cd vendor/heroku/heroku-buildpack-php
-    $ docker build --pull --tag php-heroku-22 --file $(pwd)/support/build/_docker/heroku-22.Dockerfile .
-    $ docker build --platform linux/amd64 --pull --tag php-heroku-24-amd64 --file $(pwd)/support/build/_docker/heroku-24.Dockerfile .
+    $ docker build --pull --tag php-heroku-22 --file $(pwd)/support/build/docker/heroku-22.Dockerfile .
+    $ docker build --platform linux/amd64 --pull --tag php-heroku-24-amd64 --file $(pwd)/support/build/docker/heroku-24.Dockerfile .
     $ cd -
 
 #### Creating Custom Dockerfiles

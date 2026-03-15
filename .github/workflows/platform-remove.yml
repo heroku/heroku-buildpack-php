@@ -57,7 +57,7 @@ jobs:
         run: |
           shopt -s extglob
           stackname_with_architecture=${{inputs.stack}}
-          docker build --tag heroku-php-build-${stackname_with_architecture}:${{github.sha}} --file support/build/_docker/${stackname_with_architecture%-?(amd|arm)64}.Dockerfile .
+          docker build --tag heroku-php-build-${stackname_with_architecture}:${{github.sha}} --file support/build/docker/${stackname_with_architecture%-?(amd|arm)64}.Dockerfile .
       - name: Save built Docker image
         if: steps.restore-docker.outputs.cache-hit != 'true'
         run: docker save heroku-php-build-${{inputs.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
@@ -78,13 +78,13 @@ jobs:
         run: |
           set -f
           set -o pipefail
-          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" ${{inputs.manifests}} 2>&1 | tee remove.out
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" ${{inputs.manifests}} 2>&1 | tee remove.out
       - name: Remove packages from repository
         if: ${{ inputs.dry-run == false }}
         run: |
           set -f
           set -o pipefail
-          (yes 2>/dev/null || true) | docker run --rm -i --env-file=support/build/_docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" ${{inputs.manifests}} 2>&1 | tee remove.out
+          (yes 2>/dev/null || true) | docker run --rm -i --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} remove.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" ${{inputs.manifests}} 2>&1 | tee remove.out
       - name: Output dry-run summary
         if: ${{ inputs.dry-run == true }}
         run: |
