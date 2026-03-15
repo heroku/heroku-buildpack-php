@@ -8,7 +8,7 @@ set -o pipefail
 # fail harder
 set -eu
 
-source $(dirname $BASH_SOURCE)/../../util/include/manifest.sh
+source "$(dirname "$BASH_SOURCE")/../util/include/manifest.sh"
 
 ZEND_MODULE_API_VERSION=$(basename $(dirname $0))
 ZEND_MODULE_API_VERSION=${ZEND_MODULE_API_VERSION#no-debug-non-zts-}
@@ -42,14 +42,15 @@ ext_dir=${OUT_PREFIX}/lib/php/extensions/no-debug-non-zts-${ZEND_MODULE_API_VERS
 bin_dir=${OUT_PREFIX}/bin
 
 dep_formula=${0#$WORKSPACE_DIR/}
-dep_name=$(basename $BASH_SOURCE)
+dep_name=$(basename "$BASH_SOURCE")
+dep_name=${dep_name#"ext-"} # until we rename the package files
 dep_build=${dep_formula##*"/${dep_name}-"}
 dep_version=${dep_build%%+*} # strip build metadata off the end of the version
 dep_package=ext-${dep_name}-${dep_build}
 dep_manifest=${dep_package}_php-$series.composer.json
 
 echo "-----> Packaging ext-${dep_name} (${dep_version})..."
-echo "FYI: Blackfire API reports latest version as $(curl -I -A "Heroku" -L -s https://blackfire.io/api/v1/releases/probe/php/linux/$(dpkg --print-architecture)/${series/\./} | grep -i 'X-Blackfire-Release-Version: ' | sed "s%X-Blackfire-Release-Version: %%i" | sed s%.$%%)"
+echo "FYI: Blackfire API reports latest version as $(curl -I -A "Heroku" -L -s https://blackfire.io/api/v1/releases/probe/php/linux/$(dpkg --print-architecture)/${series/\./} | grep -i 'X-Blackfire-Release-Version: ' | sed "s%X-Blackfire-Release-Version: %%i" | sed "s%.$%%")"
 
 curl -L -o probe.tar.gz "https://packages.blackfire.io/binaries/blackfire-php/${dep_version}/blackfire-php-linux_$(dpkg --print-architecture)-php-${series/\./}.tar.gz"
 
@@ -64,6 +65,6 @@ MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{}"}"
 
-python $(dirname $BASH_SOURCE)/../../util/include/manifest.py "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > "$dep_manifest"
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

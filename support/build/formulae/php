@@ -5,7 +5,7 @@ set -o pipefail
 # fail harder
 set -eu
 
-source $(dirname $BASH_SOURCE)/util/include/manifest.sh
+source "$(dirname "$BASH_SOURCE")/../util/include/manifest.sh"
 
 OUT_PREFIX=$1
 
@@ -91,7 +91,7 @@ echo "Patching configure to force pread for PHP-FPM tracing..."
 grep "fpm_trace_type=ptrace" configure && sed -i 's/fpm_trace_type=ptrace/fpm_trace_type=pread/' configure || exit 99
 
 echo "Patching SIGTERM handling in PHP-FPM..."
-patch -p1 < "$(dirname $BASH_SOURCE)/patches/php/ignoresigterm.patch"
+patch -p1 < "$(dirname "$BASH_SOURCE")/../patches/php/ignoresigterm.patch"
 
 configureopts=()
 configureopts+=("--with-zip")
@@ -156,8 +156,8 @@ IFS='.' read -r -a version <<< "$dep_version" # read the parts of $dep_version i
 echo "-----> Copying version-specific php.ini files..."
 for (( i = 0; i < ${#version[@]}; i++)); do
 	version_dir=$(IFS=/; echo "${version[*]:0:$i}") # set IFS to "/" for merging, but echo is a builtin, so it must be a subshell and a separate command
-	cp -v $(dirname $BASH_SOURCE)/conf/php/${version_dir}/php.ini ${OUT_PREFIX}/etc/php/ 2> /dev/null || true
-	cp -v $(dirname $BASH_SOURCE)/conf/php/${version_dir}/conf.d/*.ini ${OUT_PREFIX}/etc/php/conf.d/ 2> /dev/null || true
+	cp -v "$(dirname "$BASH_SOURCE")/../conf/php/${version_dir}/php.ini" "${OUT_PREFIX}/etc/php/" 2> /dev/null || true
+	cp -v "$(dirname "$BASH_SOURCE")/../conf/php/${version_dir}/conf.d/"*.ini "${OUT_PREFIX}/etc/php/conf.d/" 2> /dev/null || true
 done
 
 echo "-----> Generating export and profile scripts..."
@@ -295,6 +295,6 @@ MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA=$(echo "$exts_shared" | python -c 'import sys, json; json.dump({"shared": dict(item.split() for item in sys.stdin), "export": "bin/export.php.sh", "install": "bin/install.php.sh", "profile": "bin/profile.php.sh"}, sys.stdout)')
 
 echo "-----> Generating manifest..."
-python $(dirname $BASH_SOURCE)/util/include/manifest.py "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-php" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > "$dep_manifest"
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

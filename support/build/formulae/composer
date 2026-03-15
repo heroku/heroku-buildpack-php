@@ -5,7 +5,7 @@ set -o pipefail
 # fail harder
 set -eu
 
-source $(dirname $BASH_SOURCE)/util/include/manifest.sh
+source "$(dirname "$BASH_SOURCE")/../util/include/manifest.sh"
 
 OUT_PREFIX=$1
 
@@ -154,6 +154,6 @@ MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{\"heroku-sys/composer-plugin-api\":\"${plugin_api_version}\",\"heroku-sys/composer-runtime-api\":\"${runtime_api_version}\"}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.composer.sh\",\"install\":\"bin/install.composer.sh\",\"profile\":\"bin/profile.composer.sh\"}"}"
 
-python $(dirname $BASH_SOURCE)/util/include/manifest.py "heroku-sys-program" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-program" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > "$dep_manifest"
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

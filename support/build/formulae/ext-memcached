@@ -1,21 +1,31 @@
 #!/usr/bin/env bash
 
-dep_name=$(basename $BASH_SOURCE)
+dep_name=$(basename "$BASH_SOURCE")
+dep_name=${dep_name#"ext-"} # until we rename the package files
 
-# we need libuuid1 already installed
-needed=( libuuid1 )
+OUT_PREFIX=$1
+
+# can't build without this
+needed=( libsasl2-2 )
+if [[ $STACK == "heroku-22" ]]; then
+	needed+=( libmemcached11 )
+else
+	needed+=( libmemcached11t64 )
+fi
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
 	echo "Error! Missing libraries: $missing"
 	exit 1
 fi
 
-# we need uuid-dev to compile
-needed=( uuid-dev )
+# we need libsasl2-dev and libmemcached-dev for ext-memcached
+needed=( libsasl2-dev libmemcached-dev )
 missing=$(comm -1 -3 <(dpkg-query -W -f '${package}\n' | sort) <(IFS=$'\n'; echo "${needed[*]}" | sort))
 if [[ "$missing" ]]; then
 	apt-get update -qq || { echo "Failed to 'apt-get update'. You must build this formula using Docker."; exit 1; }
 	apt-get install -q -y $missing
 fi
 
-source $(dirname $BASH_SOURCE)/../pecl
+CONFIGURE_EXTRA="--with-zstd"
+
+source "$(dirname "$BASH_SOURCE")/include/pecl-ext"

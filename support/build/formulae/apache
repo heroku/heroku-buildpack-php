@@ -7,7 +7,7 @@ set -eu
 
 OUT_PREFIX=$1
 
-source $(dirname $BASH_SOURCE)/util/include/manifest.sh
+source "$(dirname "$BASH_SOURCE")/../util/include/manifest.sh"
 
 dep_formula=${0#$WORKSPACE_DIR/}
 dep_name=$(basename $BASH_SOURCE)
@@ -33,7 +33,7 @@ curl -L ${aprutil_url} | tar xz --strip-components=1 -C ${dep_dirname}/srclib/ap
 
 pushd ${dep_dirname}
 
-patch -p1 < $(dirname $BASH_SOURCE)/patches/httpd-ignoresigterm.patch
+patch -p1 < "$(dirname "$BASH_SOURCE")/../patches/httpd-ignoresigterm.patch"
 
 ./configure \
 	--enable-layout=GNU \
@@ -63,7 +63,7 @@ MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.apache2.sh\",\"install\":\"bin/install.apache2.sh\",\"profile\":\"bin/profile.apache2.sh\"}"}"
 
 mkdir -p ${OUT_PREFIX}/etc/apache2
-cp $(dirname $BASH_SOURCE)/conf/apache2/httpd.conf ${OUT_PREFIX}/etc/apache2/httpd.conf
+cp "$(dirname "$BASH_SOURCE")/../conf/apache2/httpd.conf" "${OUT_PREFIX}/etc/apache2/httpd.conf"
 
 mkdir -p ${OUT_PREFIX}/bin
 # this gets sourced after package install, so that the buildpack and following buildpacks can invoke
@@ -111,6 +111,6 @@ EOF
 EOFX
 chmod a+x "${OUT_PREFIX}/bin/install.apache2.sh"
 
-python $(dirname $BASH_SOURCE)/util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > "$dep_manifest"
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

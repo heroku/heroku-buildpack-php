@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-dep_name=$(basename $BASH_SOURCE)
+dep_name=$(basename "$BASH_SOURCE")
+dep_name=${dep_name#"ext-"} # until we rename the package files
 
 # let's see if librabbitmq is there
 needed=( librabbitmq4 )
@@ -17,4 +18,4 @@ if [[ "$missing" ]]; then
 	apt-get install -q -y $missing
 fi
 
-source $(dirname $BASH_SOURCE)/../pecl
+source "$(dirname "$BASH_SOURCE")/include/pecl-ext"

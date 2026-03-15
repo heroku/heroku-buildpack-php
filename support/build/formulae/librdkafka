@@ -5,7 +5,7 @@ set -o pipefail
 # fail harder
 set -eu
 
-source $(dirname $BASH_SOURCE)/../util/include/manifest.sh
+source "$(dirname "$BASH_SOURCE")/../util/include/manifest.sh"
 
 OUT_PREFIX=$1
 
@@ -51,6 +51,6 @@ echo
 echo "ABI version is: ${ABI_VERSION}"
 echo
 
-python $(dirname $BASH_SOURCE)/../util/include/manifest.py "heroku-sys-library" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "{}" "{}" "{}" "{\"heroku-sys/librdkafka-abi\":\"${ABI_VERSION}\"}" > $dep_manifest
+python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-library" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "{}" "{}" "{}" "{\"heroku-sys/librdkafka-abi\":\"${ABI_VERSION}\"}" > "$dep_manifest"
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

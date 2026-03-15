@@ -7,7 +7,7 @@ set -eu
 
 OUT_PREFIX=$1
 
-source $(dirname $BASH_SOURCE)/util/include/manifest.sh
+source "$(dirname "$BASH_SOURCE")/../util/include/manifest.sh"
 
 dep_formula=${0#$WORKSPACE_DIR/}
 dep_name=$(basename $BASH_SOURCE)
@@ -30,7 +30,7 @@ if dpkg --compare-versions "$dep_version" "lt" 1.13.1; then
 	curl -L https://github.com/nginx/nginx/commit/8449f750e62cd229026e9df3bd023ec7e073a7d4.patch | patch -p1
 fi
 
-patch -p1 < $(dirname $BASH_SOURCE)/patches/nginx-ignoresigterm.patch
+patch -p1 < $(dirname $BASH_SOURCE)/../patches/nginx-ignoresigterm.patch
 
 ETC=${OUT_PREFIX}/etc
 VAR=${OUT_PREFIX}/var
@@ -74,6 +74,6 @@ cat > ${OUT_PREFIX}/bin/profile.nginx.sh <<'EOF'
 export PATH="$HOME/.heroku/php/sbin:$PATH"
 EOF
 
-python $(dirname $BASH_SOURCE)/util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > "$dep_manifest"
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

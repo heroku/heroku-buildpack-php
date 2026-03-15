@@ -785,12 +785,12 @@ Both set the correct upstream S3 bucket and prefix, so that formula dependencies
 
 #### Create an Extension Base Formula
 
-In the project root directory, create a file named `xdebug` with the following contents:
+In the project root directory, create a folder named `formulae`, and in it a file named `xdebug` with the following contents:
 
     #!/usr/bin/env bash
     
-    dep_name=$(basename $BASH_SOURCE)
-    source $(dirname $BASH_SOURCE)/vendor/heroku/heroku-buildpack-php/support/build/extensions/pecl
+    dep_name=$(basename "$BASH_SOURCE")
+    source "$(dirname "$BASH_SOURCE")/vendor/heroku/heroku-buildpack-php/support/build/formulae/include/pecl-ext"
 
 #### Create Extension Formulae per Version and PHP Series
 
@@ -802,7 +802,7 @@ For instance, for PHP 7.3 and Xdebug version 2.7.0, have a `php-7.3/xdebug-2.7.0
     # Build Path: /app/.heroku/php
     # Build Deps: php-7.3.*
     
-    source $(dirname $0)/../xdebug
+    source "$(dirname "$0")/../formulae/xdebug"
 
 The `php-7.3.*` dependency will not be found in the current S3 bucket and prefix, so Bob will fall back to `UPSTREAM_S3_BUCKET` and `UPSTREAM_S3_PREFIX`.
 
