@@ -8,7 +8,7 @@ set -eu
 find_cmd=$(command -v gfind find | head -n1) # prefer gfind, since we use a GNU extension (-printf)
 
 # default for $1
-scan_dir=$(dirname "$BASH_SOURCE")/../
+scan_dir=$(dirname "$BASH_SOURCE")/../packages
 scan_dir=${1:-$scan_dir}
 
 # Find using $find_cmd

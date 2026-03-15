@@ -137,9 +137,9 @@ Please refer to [the instructions in the main README](../../README.md#custom-pla
 
 To use custom platform packages (either new ones, or modifications of existing ones), a new Composer repository has to be created (see [the instructions in the main README](../../README.md#custom-platform-repositories) for usage info). All the tooling in here is designed to work with S3, since it is reliable and cheap. The bucket permissions should be set up so that a public listing is allowed.
 
-The folder `support/build` contains [Bob](http://github.com/kennethreitz/bob-builder) build formulae for all packages and their dependencies.
+The folders `support/build/packages` and `support/build/formulae` contain [Bob](http://github.com/kennethreitz/bob-builder) **package recipe** files (in `packages/`, for concrete versions) and **base formulae** (in `formulae/`, where most of the implementation of a formula lives) for all packages and their dependencies.
 
-These build formulae can have dependencies (e.g. an extension formula depends on the correct version of PHP needed to build it, and maybe on a vendored library); Bob handles downloading of dependencies prior to a build, and it's the responsibility of a build formula to remove these dependencies again if they're not needed e.g. in between running `make` and `make install`.
+The concrete package recipes can have dependencies (e.g. an extension formula depends on the correct version of PHP needed to build it, and maybe on a vendored library); Bob handles downloading of dependencies prior to a build, and it's the responsibility of a build formula to remove these dependencies again if they're not needed e.g. in between running `make` and `make install`.
 
 The build formulae are also expected to generate a [manifest](#about-manifests), which is a `composer.json` containing all relevant information about a package.
 
@@ -153,7 +153,7 @@ Refer to the [README in `support/build/docker/`](docker/README.md) for setup ins
 
 The following environment variables are required:
 
-- `WORKSPACE_DIR`, must be "`/app/support/build`"
+- `WORKSPACE_DIR`, must be "`/app/support/build/packages`"
 - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with credentials for the S3 bucket
 - `S3_BUCKET` with the name of the S3 bucket to use for builds
 - `S3_PREFIX` (just a slash, or a prefix directory name **with a trailing, but no leading, slash**)
@@ -261,7 +261,7 @@ All formulae use the `manifest.py` helper to generate the information above. **U
 
 For example, the Apache HTTPD web server is built roughly as follows:
 
-    source $(dirname $BASH_SOURCE)/util/include/manifest.sh
+    source "$(dirname "$BASH_SOURCE")/../util/include/manifest.sh"
     curl … # download httpd
     ./configure --prefix="$1" …
     make && make install
@@ -281,7 +281,7 @@ For example, the Apache HTTPD web server is built roughly as follows:
     export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
     EOF
     
-    python $(dirname $BASH_SOURCE)/util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+    python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > "$dep_manifest"
     
     print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
 
@@ -768,7 +768,7 @@ Build the base Docker images from the buildpack for all stacks:
 Create a `heroku-22.Dockerfile` with the following contents:
 
     FROM php-heroku-22:latest
-    ENV WORKSPACE_DIR=/app
+    ENV WORKSPACE_DIR=/app/packages
     ENV UPSTREAM_S3_BUCKET=lang-php
     ENV UPSTREAM_S3_PREFIX=dist-heroku-22-stable/
     COPY . /app
@@ -776,7 +776,7 @@ Create a `heroku-22.Dockerfile` with the following contents:
 Create a `heroku-24.Dockerfile` with the following contents:
 
     FROM php-heroku-24-amd64:latest
-    ENV WORKSPACE_DIR=/app
+    ENV WORKSPACE_DIR=/app/packages
     ENV UPSTREAM_S3_BUCKET=lang-php
     ENV UPSTREAM_S3_PREFIX=dist-heroku-24-amd64-stable/
     COPY . /app
@@ -794,15 +794,15 @@ In the project root directory, create a folder named `formulae`, and in it a fil
 
 #### Create Extension Formulae per Version and PHP Series
 
-For each PHP version, create a separate directory, and in there, create a formula for the specific version.
+In a top-level folder named `packages`, for each PHP version, create a separate directory, and in there, create a formula for the specific version.
 
-For instance, for PHP 7.3 and Xdebug version 2.7.0, have a `php-7.3/xdebug-2.7.0` with the following contents:
+For instance, for PHP 7.3 and Xdebug version 2.7.0, have a `packages/php-7.3/xdebug-2.7.0` with the following contents:
 
     #!/usr/bin/env bash
     # Build Path: /app/.heroku/php
     # Build Deps: php-7.3.*
     
-    source "$(dirname "$0")/../formulae/xdebug"
+    source "$(dirname "$0")/../../formulae/xdebug"
 
 The `php-7.3.*` dependency will not be found in the current S3 bucket and prefix, so Bob will fall back to `UPSTREAM_S3_BUCKET` and `UPSTREAM_S3_PREFIX`.
 
