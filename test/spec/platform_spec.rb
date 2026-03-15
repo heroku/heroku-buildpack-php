@@ -34,7 +34,7 @@ describe "The PHP Platform Installer" do
 					rescue Errno::ENOENT
 					end
 					cmd << " #{bp_root}/support/installer "
-					cmd << " https://lang-php.s3.us-east-1.amazonaws.com/dist-heroku-24-amd64-stable/packages.json " # our default repo
+					cmd << " https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-24-amd64-stable/packages.json " # our default repo
 					cmd << args
 					
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
@@ -101,7 +101,7 @@ describe "The PHP Platform Installer" do
 					"php",
 					"#{bp_root}/bin/util/platform.php",
 					"#{bp_root}/support/installer",
-					"https://lang-php.s3.us-east-1.amazonaws.com/dist-#{stack_with_arch}-stable/packages.json"
+					"https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-#{stack_with_arch}-stable/packages.json"
 				)
 				raise unless status.success?
 				File.open("#{@install_tmpdir}/composer.json", "w") { |file| file.write(stdout) }

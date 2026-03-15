@@ -91,7 +91,7 @@ Example generated "`platform.json`" from a simple project's `composer.lock`:
         },
         {
             "type": "composer",
-            "url": "https:\/\/lang-php.s3.us-east-1.amazonaws.com\/dist-heroku-24-stable\/packages.json"
+            "url": "https:\/\/lang-php.s3.dualstack.us-east-1.amazonaws.com\/dist-heroku-24-stable\/packages.json"
         },
         {
             "type": "package",
