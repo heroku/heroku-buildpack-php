@@ -5,7 +5,7 @@ set -o pipefail
 # fail harder
 set -eu
 
-source $(dirname $BASH_SOURCE)/_util/include/manifest.sh
+source $(dirname $BASH_SOURCE)/util/include/manifest.sh
 
 OUT_PREFIX=$1
 
@@ -84,6 +84,6 @@ popd
 echo "-----> Stripping..."
 strip ${OUT_PREFIX}/bin/php
 
-python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-package" "heroku-sys/pkg-${dep_name}" "$dep_build" "${dep_formula}.tar.gz" > $dep_manifest
+python $(dirname $BASH_SOURCE)/util/include/manifest.py "heroku-sys-package" "heroku-sys/pkg-${dep_name}" "$dep_build" "${dep_formula}.tar.gz" > $dep_manifest
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

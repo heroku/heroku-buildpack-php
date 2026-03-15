@@ -143,7 +143,7 @@ These build formulae can have dependencies (e.g. an extension formula depends on
 
 The build formulae are also expected to generate a [manifest](#about-manifests), which is a `composer.json` containing all relevant information about a package.
 
-In `support/build/_util`, three scripts (`deploy.sh` to deploy a package with its [manifest](#about-manifests), `mkrepo.sh` to (re-)generate a [repository](#about-repositories) from all existing manifests, and `sync.sh` to [sync between repos](#syncing-repositories)) take care of most of the heavy lifting. The directory is added to `$PATH` in `Dockerfile`, so the helpers can be invoked directly.
+In `support/build/util`, three scripts (`deploy.sh` to deploy a package with its [manifest](#about-manifests), `mkrepo.sh` to (re-)generate a [repository](#about-repositories) from all existing manifests, and `sync.sh` to [sync between repos](#syncing-repositories)) take care of most of the heavy lifting. The directory is added to `$PATH` in `Dockerfile`, so the helpers can be invoked directly.
 
 ### Preparations
 
@@ -261,7 +261,7 @@ All formulae use the `manifest.py` helper to generate the information above. **U
 
 For example, the Apache HTTPD web server is built roughly as follows:
 
-    source $(dirname $BASH_SOURCE)/_util/include/manifest.sh
+    source $(dirname $BASH_SOURCE)/util/include/manifest.sh
     curl … # download httpd
     ./configure --prefix="$1" …
     make && make install
@@ -281,7 +281,7 @@ For example, the Apache HTTPD web server is built roughly as follows:
     export PATH="$HOME/.heroku/php/bin:$HOME/.heroku/php/sbin:$PATH"
     EOF
     
-    python $(dirname $BASH_SOURCE)/_util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
+    python $(dirname $BASH_SOURCE)/util/include/manifest.py "heroku-sys-webserver" "heroku-sys/${dep_name}" "$dep_version" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > $dep_manifest
     
     print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
 
@@ -580,7 +580,7 @@ It can be desirable to have immutable "frozen" repository states for the buildpa
 
 To achieve this, a `packages-${snapshot}.json` can be [generated](#re-generating-repositories) and [synced](#syncing-repositories) in addition to the "bleeding edge" `packages.json`. The buildpack uses a hash of the list of platform package formulae as the value for `${snapshot}`. This way, the hash changes every time a formula file name is added or changed.
 
-The hash is computed and printed by the `formulae-hash.sh` helper in the `_util` directory; this hash can then be passed to `mkrepo.sh`, `sync.sh` and `remove.sh` using the `-c` option. The buildpack also uses it in `bin/compile` to construct the expected URL to `platform-${snapshot}.json` for the default platform repository.
+The hash is computed and printed by the `formulae-hash.sh` helper in the `util` directory; this hash can then be passed to `mkrepo.sh`, `sync.sh` and `remove.sh` using the `-c` option. The buildpack also uses it in `bin/compile` to construct the expected URL to `platform-${snapshot}.json` for the default platform repository.
 
 **When updating build formulae without changing the version (e.g. when changing compile options), to ensure that existing package builds are not updated, build metadata should be used in the [version](#package-version) of the updated package (so e.g. `php-8.4.6` becomes `php-8.4.6+build2`).** This way, the updated build can co-exist with the older builds, and existing repository snapshots will not pick up the changed build, because the hash of the list of formulae has changed due to the updated formula filename.
 

@@ -271,7 +271,7 @@ describe "The PHP Platform Installer" do
 				bp_root = [".."].cycle("#{manifest_fixtures_subdir}/#{testcase}".count("/")+1).to_a.join("/") # right "../.." sequence to get us back to the root of the buildpack
 				Dir.chdir("#{manifest_fixtures_subdir}/#{testcase}") do |cwd|
 					cmd = File.read("ENV") # any env vars for the test (manifest.py needs STACK, S3_BUCKET, S3_PREFIX, TIME)
-					cmd << " python3 #{bp_root}/support/build/_util/include/manifest.py "
+					cmd << " python3 #{bp_root}/support/build/util/include/manifest.py "
 					cmd << File.read("ARGS")
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 				
@@ -292,7 +292,7 @@ describe "The PHP Platform Installer" do
 				bp_root = [".."].cycle("#{mkrepo_fixtures_subdir}/#{testcase}".count("/")+1).to_a.join("/") # right "../.." sequence to get us back to the root of the buildpack
 				Dir.chdir("#{mkrepo_fixtures_subdir}/#{testcase}") do |cwd|
 					
-					cmd = "S3_BUCKET=OURS3BUCKET S3_PREFIX=OURS3PREFIX/ #{bp_root}/support/build/_util/mkrepo.sh *.composer.json"
+					cmd = "S3_BUCKET=OURS3BUCKET S3_PREFIX=OURS3PREFIX/ #{bp_root}/support/build/util/mkrepo.sh *.composer.json"
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 					
 					expect(status.exitstatus).to eq(0), "mkrepo.sh failed, stdout: #{stdout}, stderr: #{stderr}"
@@ -310,7 +310,7 @@ describe "The PHP Platform Installer" do
 		it "produces the expected list of operations when syncing between two repositories" do
 			bp_root = [".."].cycle("#{sync_fixtures_subdir}".count("/")+1).to_a.join("/") # right "../.." sequence to get us back to the root of the buildpack
 			Dir.chdir("#{sync_fixtures_subdir}") do |cwd|
-				cmd = "python3 #{bp_root}/support/build/_util/include/sync.py --dry-run us-east-1 lang-php dist-heroku-24-develop/ manifests-src/ us-east-1 lang-php dist-heroku-24-stable/ manifests-dst/"
+				cmd = "python3 #{bp_root}/support/build/util/include/sync.py --dry-run us-east-1 lang-php dist-heroku-24-develop/ manifests-src/ us-east-1 lang-php dist-heroku-24-stable/ manifests-dst/"
 				stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 				
 				expect(status.exitstatus).to eq(0), "sync.py failed, stdout: #{stdout}, stderr: #{stderr}"

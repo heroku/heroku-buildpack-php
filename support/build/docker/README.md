@@ -24,7 +24,7 @@ From the root of the Git repository (not from `support/build/docker/`), you can 
 
 You then have a shell where you can run `bob build`, `deploy.sh` and so forth. You can of course also invoke these programs directly with `docker run`.
 
-The `support/build/_util/` directory is on `$PATH` in the image.
+The `support/build/util/` directory is on `$PATH` in the image.
 
 ### Passing AWS credentials to the container
 
