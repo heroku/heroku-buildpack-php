@@ -156,8 +156,8 @@ IFS='.' read -r -a version <<< "$dep_version" # read the parts of $dep_version i
 echo "-----> Copying version-specific php.ini files..."
 for (( i = 0; i < ${#version[@]}; i++)); do
 	version_dir=$(IFS=/; echo "${version[*]:0:$i}") # set IFS to "/" for merging, but echo is a builtin, so it must be a subshell and a separate command
-	cp -v $(dirname $BASH_SOURCE)/_conf/php/${version_dir}/php.ini ${OUT_PREFIX}/etc/php/ 2> /dev/null || true
-	cp -v $(dirname $BASH_SOURCE)/_conf/php/${version_dir}/conf.d/*.ini ${OUT_PREFIX}/etc/php/conf.d/ 2> /dev/null || true
+	cp -v $(dirname $BASH_SOURCE)/conf/php/${version_dir}/php.ini ${OUT_PREFIX}/etc/php/ 2> /dev/null || true
+	cp -v $(dirname $BASH_SOURCE)/conf/php/${version_dir}/conf.d/*.ini ${OUT_PREFIX}/etc/php/conf.d/ 2> /dev/null || true
 done
 
 echo "-----> Generating export and profile scripts..."

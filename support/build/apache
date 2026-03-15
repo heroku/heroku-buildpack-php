@@ -63,7 +63,7 @@ MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"export\":\"bin/export.apache2.sh\",\"install\":\"bin/install.apache2.sh\",\"profile\":\"bin/profile.apache2.sh\"}"}"
 
 mkdir -p ${OUT_PREFIX}/etc/apache2
-cp $(dirname $BASH_SOURCE)/_conf/apache2/httpd.conf ${OUT_PREFIX}/etc/apache2/httpd.conf
+cp $(dirname $BASH_SOURCE)/conf/apache2/httpd.conf ${OUT_PREFIX}/etc/apache2/httpd.conf
 
 mkdir -p ${OUT_PREFIX}/bin
 # this gets sourced after package install, so that the buildpack and following buildpacks can invoke
