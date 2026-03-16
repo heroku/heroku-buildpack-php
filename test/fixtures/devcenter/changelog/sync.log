@@ -2,8 +2,8 @@ The following packages will be IGNORED:
   - (none)
 
 The following packages will be ADDED
- from s3://lang-php/dist-heroku-20-develop/
-   to s3://lang-php/dist-heroku-20-stable/:
+ from s3://heroku-buildpack-php/dist-heroku-20-develop/
+   to s3://heroku-buildpack-php/dist-heroku-20-stable/:
   - blackfire-2.24.4
   - ext-amqp-1.9.99_php-8.0
   - ext-amqp-2.1.2_php-8.0
@@ -38,12 +38,12 @@ The following packages will be ADDED
   - libcassandra-1.2.3
 
 The following packages will be UPDATED (source manifest is newer)
- from s3://lang-php/dist-heroku-20-develop/
-   to s3://lang-php/dist-heroku-20-stable/:
+ from s3://heroku-buildpack-php/dist-heroku-20-develop/
+   to s3://heroku-buildpack-php/dist-heroku-20-stable/:
   - (none)
 
 The following packages will be REMOVED
- from s3://lang-php/dist-heroku-20-stable/:
+ from s3://heroku-buildpack-php/dist-heroku-20-stable/:
   - (none)
 
 
@@ -126,8 +126,8 @@ The following packages will be IGNORED:
   - (none)
 
 The following packages will be ADDED
- from s3://lang-php/dist-heroku-22-develop/
-   to s3://lang-php/dist-heroku-22-stable/:
+ from s3://heroku-buildpack-php/dist-heroku-22-amd64-develop/
+   to s3://heroku-buildpack-php/dist-heroku-22-amd64-stable/:
   - blackfire-2.24.4
   - ext-amqp-2.1.2_php-8.1
   - ext-amqp-2.1.2_php-8.2
@@ -154,12 +154,12 @@ The following packages will be ADDED
   - apache-2.4.4
 
 The following packages will be UPDATED (source manifest is newer)
- from s3://lang-php/dist-heroku-22-develop/
-   to s3://lang-php/dist-heroku-22-stable/:
+ from s3://heroku-buildpack-php/dist-heroku-22-amd64-develop/
+   to s3://heroku-buildpack-php/dist-heroku-22-amd64-stable/:
   - (none)
 
 The following packages will be REMOVED
- from s3://lang-php/dist-heroku-22-stable/:
+ from s3://heroku-buildpack-php/dist-heroku-22-amd64-stable/:
   - (none)
 
 

@@ -16,7 +16,7 @@ on:
         description: 'Stack to build for'
         type: choice
         options:
-        - heroku-22
+        - heroku-22-amd64
         - heroku-24-amd64
         - heroku-24-arm64
         required: true
@@ -144,7 +144,7 @@ jobs:
       - name: Dry-run sync.sh to show package changes available for syncing to stable bucket
         run: |
           set -o pipefail
-          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" lang-php dist-${{inputs.stack}}${{env.sync_dst_path_suffix}} 2>&1 | tee sync.out
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" heroku-buildpack-php dist-${{inputs.stack}}${{env.sync_dst_path_suffix}} 2>&1 | tee sync.out
       - name: Output job summary
         run: |
           echo '## Platform repository `…${{inputs.stack}}${{env.repo_path_suffix}}` updated' >> "$GITHUB_STEP_SUMMARY"

@@ -6,7 +6,7 @@ USER root
 
 WORKDIR /app
 ENV WORKSPACE_DIR=/app/support/build/packages
-ENV S3_BUCKET=lang-php
+ENV S3_BUCKET=heroku-buildpack-php
 ENV S3_PREFIX=dist-heroku-24-${TARGETARCH}-develop/
 ENV S3_REGION=us-east-1
 ENV STACK=heroku-24

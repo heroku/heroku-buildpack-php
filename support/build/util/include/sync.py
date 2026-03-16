@@ -63,7 +63,7 @@ def manifests_difference(src_manifest, dst_manifest):
     return ret
 
 def rewrite_dist(manifest, src_region, src_bucket, src_prefix, dst_region, dst_bucket, dst_prefix):
-    # pattern for basically "https://lang-php.(s3.dualstack.us-east-1|s3.us-east-1|s3).amazonaws.com/dist-heroku-22-stable/"
+    # pattern for basically "https://heroku-buildpack-php.(s3.dualstack.us-east-1|s3.us-east-1|s3).amazonaws.com/dist-heroku-22-amd64-stable/"
     # this ensures old packages are correctly handled even when they do not contain the region in the URL
     s3_url_re=re.escape("https://{}.".format(src_bucket))
     s3_url_re+=r"(?:s3\.dualstack\.{0}|s3\.{0}|s3)".format(re.escape(src_region))

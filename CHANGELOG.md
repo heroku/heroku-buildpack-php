@@ -13,6 +13,8 @@
 - Change the S3 URLs used for downloads to use AWS' dual-stack (IPv6 compatible) endpoint.
 - Re-structure platform package formulae [David Zuelke]
 - Auto-determine version of minimal PHP and Composer for bootstrapping from local packages definition [David Zuelke]
+- Switch from S3 bucket `lang-php` to `heroku-buildpack-php` [David Zuelke]
+- Adjust `heroku-22` S3 bucket paths to use `-amd64` architecture suffix, like `heroku-24` [David Zuelke]
 
 ### FIX
 

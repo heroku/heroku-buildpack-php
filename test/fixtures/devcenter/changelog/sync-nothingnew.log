@@ -2,18 +2,18 @@ The following packages will be IGNORED:
   - (none)
 
 The following packages will be ADDED
- from s3://lang-php/dist-heroku-20-develop/
-   to s3://lang-php/dist-heroku-20-stable/:
+ from s3://heroku-buildpack-php/dist-heroku-20-develop/
+   to s3://heroku-buildpack-php/dist-heroku-20-stable/:
   - (none)
 
 The following packages will be UPDATED (source manifest is newer)
- from s3://lang-php/dist-heroku-20-develop/
-   to s3://lang-php/dist-heroku-20-stable/:
+ from s3://heroku-buildpack-php/dist-heroku-20-develop/
+   to s3://heroku-buildpack-php/dist-heroku-20-stable/:
   - php-8.2.15
   - php-8.3.2
 
 The following packages will be REMOVED
- from s3://lang-php/dist-heroku-20-stable/:
+ from s3://heroku-buildpack-php/dist-heroku-20-stable/:
   - (none)
 
 
@@ -33,18 +33,18 @@ The following packages will be IGNORED:
   - (none)
 
 The following packages will be ADDED
- from s3://lang-php/dist-heroku-20-develop/
-   to s3://lang-php/dist-heroku-20-stable/:
+ from s3://heroku-buildpack-php/dist-heroku-20-develop/
+   to s3://heroku-buildpack-php/dist-heroku-20-stable/:
   - (none)
 
 The following packages will be UPDATED (source manifest is newer)
- from s3://lang-php/dist-heroku-20-develop/
-   to s3://lang-php/dist-heroku-20-stable/:
+ from s3://heroku-buildpack-php/dist-heroku-20-develop/
+   to s3://heroku-buildpack-php/dist-heroku-20-stable/:
   - php-8.2.15
   - php-8.3.2
 
 The following packages will be REMOVED
- from s3://lang-php/dist-heroku-20-stable/:
+ from s3://heroku-buildpack-php/dist-heroku-20-stable/:
   - (none)
 
 

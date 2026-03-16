@@ -34,7 +34,7 @@ describe "The PHP Platform Installer" do
 					rescue Errno::ENOENT
 					end
 					cmd << " #{bp_root}/support/installer "
-					cmd << " https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-24-amd64-stable/packages.json " # our default repo
+					cmd << " https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-24-amd64-stable/packages.json " # our default repo
 					cmd << args
 					
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
@@ -90,8 +90,7 @@ describe "The PHP Platform Installer" do
 	describe "Composer Plugin" do
 		before(:all) do
 			fixture = "test/fixtures/platform/installer/polyfills"
-			stack_with_arch = stack = ENV["STACK"] || "heroku-24"
-			stack_with_arch = "#{stack}-amd64" unless stack == "heroku-22"
+			stack = ENV["STACK"] || "heroku-24"
 			
 			@install_tmpdir = Dir.mktmpdir("install")
 			Dir.chdir(fixture) do |cwd|
@@ -101,7 +100,7 @@ describe "The PHP Platform Installer" do
 					"php",
 					"#{bp_root}/bin/util/platform.php",
 					"#{bp_root}/support/installer",
-					"https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-#{stack_with_arch}-stable/packages.json"
+					platform_repo_from_env_or_default(stack, "amd64")
 				)
 				raise unless status.success?
 				File.open("#{@install_tmpdir}/composer.json", "w") { |file| file.write(stdout) }
@@ -310,7 +309,7 @@ describe "The PHP Platform Installer" do
 		it "produces the expected list of operations when syncing between two repositories" do
 			bp_root = [".."].cycle("#{sync_fixtures_subdir}".count("/")+1).to_a.join("/") # right "../.." sequence to get us back to the root of the buildpack
 			Dir.chdir("#{sync_fixtures_subdir}") do |cwd|
-				cmd = "python3 #{bp_root}/support/build/util/include/sync.py --dry-run us-east-1 lang-php dist-heroku-24-develop/ manifests-src/ us-east-1 lang-php dist-heroku-24-stable/ manifests-dst/"
+				cmd = "python3 #{bp_root}/support/build/util/include/sync.py --dry-run us-east-1 heroku-buildpack-php dist-heroku-24-develop/ manifests-src/ us-east-1 heroku-buildpack-php dist-heroku-24-stable/ manifests-dst/"
 				stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 				
 				expect(status.exitstatus).to eq(0), "sync.py failed, stdout: #{stdout}, stderr: #{stderr}"
