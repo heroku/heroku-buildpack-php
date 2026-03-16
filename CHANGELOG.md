@@ -12,6 +12,7 @@
 - Unify ComposerInstallerPlugin for Classic and CNB [David Zuelke]
 - Change the S3 URLs used for downloads to use AWS' dual-stack (IPv6 compatible) endpoint.
 - Re-structure platform package formulae [David Zuelke]
+- Auto-determine version of minimal PHP and Composer for bootstrapping from local packages definition [David Zuelke]
 
 ### FIX
 
