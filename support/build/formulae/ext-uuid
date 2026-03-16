@@ -1,5 +1,10 @@
 #!/usr/bin/env bash
 
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
 dep_name=$(basename "$BASH_SOURCE")
 
 # we need libuuid1 already installed
