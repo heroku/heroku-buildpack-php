@@ -12,8 +12,10 @@ mkrepo_fixtures_subdir = "test/fixtures/platform/builder/mkrepo"
 priorities_fixtures_subdir = "test/fixtures/platform/repository/priorities"
 sync_fixtures_subdir = "test/fixtures/platform/builder/sync"
 
+DUMMY_PLATFORM_REPO_URL = "https://DUMMYPLATFORMHOST/DUMMYPLATFORMPATH"
+
 describe "The PHP Platform Installer" do
-	describe "composer.json Generator Script" do
+	describe "composer.json Generator Script", stack: "heroku-24" do
 		Dir.each_child(generator_fixtures_subdir) do |testcase|
 			it "produces the expected platform composer.json for case #{testcase}" do
 				bp_root = [".."].cycle("#{generator_fixtures_subdir}/#{testcase}".count("/")+1).to_a.join("/") # right "../.." sequence to get us back to the root of the buildpack
@@ -34,7 +36,7 @@ describe "The PHP Platform Installer" do
 					rescue Errno::ENOENT
 					end
 					cmd << " #{bp_root}/support/installer "
-					cmd << " https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-24-amd64-stable/packages.json " # our default repo
+					cmd << " #{DUMMY_PLATFORM_REPO_URL} " # a placeholder we will replace later for the dry-run install
 					cmd << args
 					
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
@@ -55,7 +57,8 @@ describe "The PHP Platform Installer" do
 					
 					break unless status == 0
 					
-					expected_json = JSON.parse(File.read("expected_platform_composer.json"))
+					expected_platform_composer_json = File.read("expected_platform_composer.json")
+					expected_json = JSON.parse(expected_platform_composer_json)
 					generated_json = JSON.parse(stdout)
 					
 					# check all of the expected keys are there (and only those)
@@ -78,10 +81,23 @@ describe "The PHP Platform Installer" do
 					break if ["blackfire-cli-unknown", "composer1", "customrepo", "require-dev-runtime-only"].include?(testcase)
 					
 					# and finally check if it's installable in a dry run
-					cmd = "COMPOSER=expected_platform_composer.json composer install --dry-run"
-					cmd << " --no-dev" unless is_dev_install
-					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
-					expect(status.exitstatus).to eq(0), "dry run install failed, stderr: #{stderr}, stdout: #{stdout}"
+					# we make a temp dir in the parent dir of the fixture
+					# that way, the relative paths to the installer plugin etc are correct
+					Dir.mktmpdir(testcase, "..") do |dir|
+						# mktmpdir does not actually cd to the temp dir!
+						File.open("#{dir}/composer.json", "w") do |file|
+							file.write(
+								expected_platform_composer_json.sub(
+									DUMMY_PLATFORM_REPO_URL,
+									platform_repo_from_env_or_default("heroku-24", "amd64")
+								)
+							)
+						end
+						cmd = "composer install -d #{dir} --dry-run"
+						cmd << " --no-dev" unless is_dev_install
+						stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
+						expect(status.exitstatus).to eq(0), "dry run install failed, stderr: #{stderr}, stdout: #{stdout}"
+					end
 				end
 			end
 		end
