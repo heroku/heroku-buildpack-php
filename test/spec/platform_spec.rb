@@ -292,7 +292,7 @@ describe "The PHP Platform Installer" do
 				bp_root = [".."].cycle("#{mkrepo_fixtures_subdir}/#{testcase}".count("/")+1).to_a.join("/") # right "../.." sequence to get us back to the root of the buildpack
 				Dir.chdir("#{mkrepo_fixtures_subdir}/#{testcase}") do |cwd|
 					
-					cmd = "S3_BUCKET=OURS3BUCKET S3_PREFIX=OURS3PREFIX/ #{bp_root}/support/build/util/mkrepo.sh *.composer.json"
+					cmd = "S3_BUCKET=OURS3BUCKET S3_PREFIX=OURS3PREFIX/ S3_REGION=us-east-1 #{bp_root}/support/build/util/mkrepo.sh *.composer.json"
 					stdout, stderr, status = Open3.capture3("bash -c #{Shellwords.escape(cmd)}")
 					
 					expect(status.exitstatus).to eq(0), "mkrepo.sh failed, stdout: #{stdout}, stderr: #{stderr}"
