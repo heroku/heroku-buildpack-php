@@ -27,7 +27,7 @@ pushd ${dep_dirname}
 
 # we need libreadline for PHP
 needed=()
-if [[ $STACK == heroku-2[02] ]]; then
+if [[ $STACK == "heroku-22" ]]; then
 	needed+=( libreadline8 )
 else
 	needed+=( libreadline8t64 )

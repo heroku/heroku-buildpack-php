@@ -103,13 +103,18 @@ jobs:
         run: docker load -i /tmp/docker-cache.tar.gz
       - name: Build formula without deploying
         if: ${{ inputs.dry-run == true }}
-        run: docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} bob build ${{matrix.formula}}
-      - name: Build and deploy formula
-        if: ${{ inputs.dry-run == false && inputs.overwrite == false }}
-        run: docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh ${{matrix.formula}}
-      - name: Build and deploy(+overwrite) formula
-        if: ${{ inputs.dry-run == false && inputs.overwrite == true }}
-        run: docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh --overwrite ${{matrix.formula}}
+        run: docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh --dry-run ${{matrix.formula}}
+      - name: Build and deploy${{ inputs.overwrite == true && '(+overwrite)' || '' }} formula
+        if: ${{ inputs.dry-run == false }}
+        run: |
+          docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh ${{ inputs.overwrite == true && '--overwrite' || '' }} ${{matrix.formula}} || {
+            status=$?
+            if (( status == 9 )); then
+              echo "::notice title=Skipped formula ${{matrix.formula}}::Not available on this stack or architecture."
+            else
+              exit "$status"
+            fi
+          }
   mkrepo:
     needs: deploys
     if: ${{ inputs.dry-run == false }}

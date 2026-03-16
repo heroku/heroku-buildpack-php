@@ -56,6 +56,14 @@ case $(dpkg --print-architecture) in
 		;;
 esac
 
+if [[
+	( $dep_version == 9.* && $STACK != heroku-22 ) ||
+	( $dep_version == 1[01].* && $STACK != heroku-2[24] )
+]]; then
+	echo "Version not supported on stack ${STACK}, skipping."
+	exit 9
+fi
+
 echo "-----> Packaging ext-${dep_name} (${dep_version}, for PHP ${series})..."
 
 curl -L ${dep_url} | tar xz

@@ -7,6 +7,9 @@ dep_build=${dep_package#"${dep_name}-"} # strip formula name from front of full 
 
 if [[ $dep_build != 5.* ]]; then
 	CONFIGURE_EXTRA="--enable-redis-lz4 --with-liblz4 --enable-redis-lzf --with-liblzf --enable-redis-zstd --with-libzstd"
+elif [[ $STACK != "heroku-22" ]]; then
+	echo "Version not supported on stack ${STACK}, skipping."
+	exit 9
 fi
 
 source "$(dirname "$BASH_SOURCE")/include/pecl-ext"
