@@ -84,6 +84,9 @@ popd
 echo "-----> Stripping..."
 strip ${OUT_PREFIX}/bin/php
 
-python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-package" "heroku-sys/pkg-${dep_name}" "$dep_build" "${dep_formula}.tar.gz" > "$dep_manifest"
+# We just want this package to show up in the repository, but not be installable.
+# We do that by not giving it a heroku-sys/ prefix - it will just be called "php-min".
+# The CNB can then manually look it up from the repository contents for bootstrapping.
+python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-program" "${dep_name}" "$dep_build" "${dep_formula}.tar.gz" > "$dep_manifest"
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
