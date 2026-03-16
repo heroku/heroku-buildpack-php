@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       formulae:
-        description: 'Shell word list of formulae to build; any Bash wildcards are allowed, e.g. "php-8.1.8 extensions/no-debug-non-zts-{2022,2021}*/newrelic-10*"'
+        description: 'Shell word list of formulae to build; any Bash wildcards are allowed, e.g. "php-8.1.8 ext-newrelic-10.*_php-8.{1,2}"'
         type: string
         required: true
       stack:

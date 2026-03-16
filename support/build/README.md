@@ -194,11 +194,11 @@ then on build, Bob will first look for "`php-7.3.*`" in your S3 bucket, and then
 To verify a formula, `bob build` can be used to build it:
 
     $ docker run -ti --rm <yourimagetagname> bash
-    ~ $ bob build extensions/no-debug-non-zts-20180731/yourextension-1.2.3
+    ~ $ bob build ext-yourextension-1.2.3_php-7.3
     
     Fetching dependencies... found 1:
       - php-7.3.*
-    Building formula extensions/no-debug-non-zts-20180731/yourextension-1.2.3
+    Building formula ext-yourextension-1.2.3_php-7.3
     ...
 
 If that works, a `bob deploy` would build it first, and then upload it to your bucket (you can specify `--overwrite` to overwrite existing packages).
@@ -207,7 +207,7 @@ However, that alone is not enough - the *manifest* needs to be in place as well,
 
 The next two sections contain important info about manifests and repositories; the *tl;dr* is: **do not use `bob deploy`, but `deploy.sh`, to deploy a package**, because it will take care of manifest uploading:
 
-    ~ $ deploy.sh extensions/no-debug-non-zts-20180731/yourextension-1.2.3
+    ~ $ deploy.sh ext-yourextension-1.2.3_php-7.3
 
 In addition to an `--overwrite` option, the `deploy.sh` script also accepts a `--publish` option that will cause the package to immediately be published into the repository by [re-generating that repo](#re-generating-repositories). **This should be used with caution**, as several parallel `deploy.sh` invocations could result in a race condition when re-generating the repository.
 
@@ -217,7 +217,7 @@ After a `bob build` or `bob deploy`, you'll be prompted to upload a manifest. It
 
 To perform the deploy and the manifest upload in one step, **the `deploy.sh` utility (it's on `$PATH`) should be used instead of `bob deploy`**:
 
-    ~ $ deploy.sh extensions/no-debug-non-zts-20180731/yourextension-1.2.3
+    ~ $ deploy.sh ext-yourextension-1.2.3_php-7.3
 
 This will upload the manifest to the S3 bucket if the package build and deploy succeeded. Like `bob deploy`, this script accepts a `--overwrite` flag.
 
@@ -233,7 +233,7 @@ A manifest looks roughly like this (example is for `ext-amqp/1.11.0` for PHP 8.1
     	"conflict": {},
     	"dist": {
     		"type": "heroku-sys-tar",
-    		"url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/extensions/no-debug-non-zts-20210902/amqp-1.11.0.tar.gz"
+    		"url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-stable/ext-amqp-1.11.0_php-8.1.tar.gz"
     	},
     	"name": "heroku-sys/ext-amqp",
     	"replace": {},
