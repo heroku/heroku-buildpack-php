@@ -876,7 +876,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/libraries/libcassandra-2.16.0.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/libcassandra-2.16.0.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/libcassandra",
@@ -898,7 +898,7 @@
         "conflict": {},
         "dist": {
           "type": "heroku-sys-tar",
-          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/libraries/librdkafka-1.7.0.tar.gz"
+          "url": "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-20-stable/librdkafka-1.7.0.tar.gz"
         },
         "extra": {},
         "name": "heroku-sys/librdkafka",
