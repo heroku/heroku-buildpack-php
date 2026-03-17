@@ -49,8 +49,8 @@ curl -L -o probe.tar.gz "https://packages.blackfire.io/binaries/blackfire-php/${
 
 mkdir -p ${ext_dir}
 tar -zxf probe.tar.gz
-cp blackfire-${ZEND_MODULE_API_VERSION}.so ${ext_dir}/blackfire.so
-rm probe.tar.gz blackfire-${ZEND_MODULE_API_VERSION}.so blackfire-${ZEND_MODULE_API_VERSION}.sha
+mv blackfire-${ZEND_MODULE_API_VERSION}.so ${ext_dir}/blackfire.so
+rm probe.tar.gz blackfire-${ZEND_MODULE_API_VERSION}.sha*
 
 MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\",\"heroku-sys/blackfire\":\">=2.0.0\"}"}"
 MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
