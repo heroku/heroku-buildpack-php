@@ -2,6 +2,11 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.4.19
+- PHP/8.5.4
+
 ### CHG
 
 - Support non-`heroku-sys-…` type packages in platform repositories
