@@ -1,14 +1,28 @@
 #!/usr/bin/env bash
 
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
 dep_name=$(basename "$BASH_SOURCE")
-dep_name=${dep_name#"ext-"} # until we rename the package files
+
+dep_package=${0#"${WORKSPACE_DIR}/"} # trim WORKSPACE_DIR prefix from $0 (the invoked package recipe)
+dep_build=${dep_package#"${dep_name}-"} # strip formula name from front of full package name
 
 OUT_PREFIX=$1
 export PATH=${OUT_PREFIX}/bin:${PATH}
 
+php_series=$(php-config --version | cut -d. -f1,2) # get "7.3", "7.4", "8.0" etc for the php requirement in the manifest
 # we need to declare the required version of librdkafka
-series=$(php-config --version | cut -d. -f1,2) # get "7.3", "7.4", "8.0" etc for the php requirement in the manifest
-MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\",\"heroku-sys/librdkafka\":\"^1.0.0 | ^2.0.0\",\"heroku-sys/librdkafka-abi\":\"^1\"}"}"
+# for heroku-22 it's 1.x, otherwise 2.x
+if [[ $STACK == "heroku-22" ]]; then
+	librdkafka_version="1.*"
+else
+	librdkafka_version="2.*"
+fi
+
+MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${php_series}.*\",\"heroku-sys/librdkafka\":\"${librdkafka_version}\",\"heroku-sys/librdkafka-abi\":\"^1\"}"}"
 
 CONFIGURE_EXTRA="--with-rdkafka=${OUT_PREFIX}"
 

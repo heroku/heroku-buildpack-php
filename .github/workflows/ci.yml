@@ -64,9 +64,7 @@ jobs:
         id: platform-repo-url-inputs
         run: |
           # needs to be done dynamically this way; comparisons in dynamic expressions for some reason do not work for with: in the step below
-          echo -n "stack-identifier=${STACK}" >> "$GITHUB_OUTPUT"
-          if [[ $STACK != "heroku-22" ]]; then echo -n "-amd64" >> "$GITHUB_OUTPUT"; fi
-          echo >> "$GITHUB_OUTPUT"
+          echo "stack-identifier=${STACK}-amd64" >> "$GITHUB_OUTPUT"
           echo -n "repo-path-suffix=" >> "$GITHUB_OUTPUT"
           if [[ $GITHUB_REF_TYPE != "tag" && $GITHUB_REF_NAME != "main" && $GITHUB_EVENT_NAME != 'pull_request' ]]; then
             echo "$develop_repo_path_suffix" >> "$GITHUB_OUTPUT"

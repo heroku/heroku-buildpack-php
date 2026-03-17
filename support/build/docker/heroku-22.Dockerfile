@@ -4,8 +4,8 @@ ARG TARGETARCH
 
 WORKDIR /app
 ENV WORKSPACE_DIR=/app/support/build/packages
-ENV S3_BUCKET=lang-php
-ENV S3_PREFIX=dist-heroku-22-develop/
+ENV S3_BUCKET=heroku-buildpack-php
+ENV S3_PREFIX=dist-heroku-22-${TARGETARCH}-develop/
 ENV S3_REGION=us-east-1
 ENV STACK=heroku-22
 ENV DEBIAN_FRONTEND=noninteractive

@@ -257,12 +257,7 @@ build_report::start_timer bootstrap
 
 status "Bootstrapping..."
 
-if [[ $STACK == "heroku-22" ]]; then
-	stack_locator=$STACK
-else
-	stack_locator="${STACK}-$(dpkg --print-architecture)"
-fi
-s3_url="https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-${stack_locator}-stable/"
+s3_url="https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-${STACK}-$(dpkg --print-architecture)-stable/"
 # hash the list of "declared" build formulae, this is the "snapshot" of a fixed repo state
 platform_repo_url="${s3_url}packages-$("$bp_dir"/support/build/util/formulae-hash.sh).json"
 if ! curl_retry_on_18  --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent -I "$platform_repo_url" > /dev/null; then
@@ -289,12 +284,30 @@ if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
 	notice_inline 'Bootstrapping using first repository in $HEROKU_PHP_PLATFORM_REPOSITORIES.'
 fi
 
+bootstrap_url_filepath() {
+	local bootstrap_scan_dir=$(dirname "$BASH_SOURCE")/../support/build/packages
+	
+	# 1. Find
+	#   - in $bootstrap_scan_dir
+	#   - all files
+	#   - that fnmatch(3) "${1}.*" (so a caller can specify e.g. "composer-2.9")
+	# 2. Print each using their "nested path", meaning with the scan dir prefix removed
+	# 3. Reverse version sort (with forced C collation for sorting)
+	# 4. Fetch only the first item
+	# 5. URL-encode it using jq (in case it contains e.g. a "+" character) and append ".tar.gz"
+	# 6. run it through an empty grep so it fails if there are no results
+	find "$bootstrap_scan_dir" -type f -name "${1}.*" -printf "%P\n" \
+		| LC_ALL=C sort -r --version-sort \
+		| head -n1 \
+		| jq -jR '@uri, ".tar.gz"' \
+		| grep ""
+}
 
 # minimal PHP needed for installs, and make "composer" invocations use that for now
 mkdir -p $build_dir/.heroku/php-min
 ln -s $build_dir/.heroku/php-min /app/.heroku/php-min
 
-curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/php-min.tar.gz "${s3_url}php-min-8.4.18.tar.gz" || {
+curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o "$build_dir/.heroku/php-min.tar.gz" "${s3_url}$(bootstrap_url_filepath "php-min-8.4" || warning_inline "Could not find a PHP version for bootstrapping!")" || {
 	build_report::set_string failure_reason bootstrap.download
 	build_report::set_string failure_detail php-min
 	error <<-EOF
@@ -308,7 +321,7 @@ curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --sil
 tar xzf $build_dir/.heroku/php-min.tar.gz -C $build_dir/.heroku/php-min
 rm $build_dir/.heroku/php-min.tar.gz
 
-curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o $build_dir/.heroku/composer.tar.gz "${s3_url}composer-2.9.3%2Bheroku1.tar.gz" || {
+curl_retry_on_18 --retry-connrefused --retry 3 --connect-timeout 10 --fail --silent --location -o "$build_dir/.heroku/composer.tar.gz" "${s3_url}$(bootstrap_url_filepath "composer-2.9" || warning_inline "Could not find a Composer version for bootstrapping!")" || {
 	build_report::set_string failure_reason bootstrap.download
 	build_report::set_string failure_detail composer
 	error <<-EOF

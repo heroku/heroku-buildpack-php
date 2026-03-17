@@ -9,40 +9,39 @@ source "$(dirname "$BASH_SOURCE")/../util/include/manifest.sh"
 
 OUT_PREFIX=$1
 
-ZEND_MODULE_API_VERSION=$(basename $(dirname $0))
-ZEND_MODULE_API_VERSION=${ZEND_MODULE_API_VERSION#no-debug-non-zts-}
-
-dep_formula=${0#$WORKSPACE_DIR/}
+dep_package=${0#"${WORKSPACE_DIR}/"}
 dep_name=$(basename "$BASH_SOURCE")
-dep_name=${dep_name#"ext-"} # until we rename the package files
-dep_build=${dep_formula##*"/${dep_name}-"}
-dep_version=${dep_build%%+*} # strip build metadata off the end of the version
-dep_package=ext-${dep_name}-${dep_build}
+dep_build_with_series=${dep_package#"${dep_name}-"} # strip formula name from front of full package name
+dep_build=${dep_build_with_series%"_php-"[0-9].[0-9]} # strip "_php-x.y" suffix from end
+dep_version=${dep_build%%"+"*} # strip build metadata off the end of the version
+series=${dep_build_with_series#"${dep_build}_php-"} # extract "x.y" PHP series
+dep_manifest=${dep_package}.composer.json
+
 dep_dirname=newrelic-php5-${dep_version}-linux
 dep_archive_name=${dep_dirname}.tar.gz
 dep_url=https://download.newrelic.com/php_agent/archive/${dep_version}/${dep_archive_name}
-case ${ZEND_MODULE_API_VERSION} in
-	20210902)
-		series=8.1
+
+case "${series}" in
+	8.1)
+		ZEND_MODULE_API_VERSION=20210902
 		;;
-	20220829)
-		series=8.2
+	8.2)
+		ZEND_MODULE_API_VERSION=20220829
 		;;
-	20230831)
-		series=8.3
+	8.3)
+		ZEND_MODULE_API_VERSION=20230831
 		;;
-	20240924)
-		series=8.4
+	8.4)
+		ZEND_MODULE_API_VERSION=20240924
 		;;
-	20250925)
-		series=8.5
+	8.5)
+		ZEND_MODULE_API_VERSION=20250925
 		;;
 	*)
-		echo "Unsupported PHP/Zend Module API version: ${ZEND_MODULE_API_VERSION}"
+		echo "Unsupported PHP version series: ${series}"
 		exit 1
 		;;
 esac
-dep_manifest=${dep_package}_php-$series.composer.json
 
 case $(dpkg --print-architecture) in
 	amd64)
@@ -57,7 +56,15 @@ case $(dpkg --print-architecture) in
 		;;
 esac
 
-echo "-----> Packaging ext-${dep_name} (${dep_version})..."
+if [[
+	( $dep_version == 9.* && $STACK != heroku-22 ) ||
+	( $dep_version == 1[01].* && $STACK != heroku-2[24] )
+]]; then
+	echo "Version not supported on stack ${STACK}, skipping."
+	exit 9
+fi
+
+echo "-----> Packaging ext-${dep_name} (${dep_version}, for PHP ${series})..."
 
 curl -L ${dep_url} | tar xz
 
@@ -169,6 +176,6 @@ MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
 MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
 MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{\"config\":\"etc/php/conf.d/newrelic.ini-dist\",\"export\":\"bin/export.newrelic.sh\",\"install\":\"bin/install.newrelic.sh\",\"profile\":\"bin/profile.newrelic.sh\"}"}"
 
-python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-php-extension" "heroku-sys/ext-${dep_name}" "$dep_build" "${dep_formula}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > "$dep_manifest"
+python "$(dirname "$BASH_SOURCE")/../util/include/manifest.py" "heroku-sys-php-extension" "heroku-sys/${dep_name}" "$dep_build" "${dep_package}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > "$dep_manifest"
 
 print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"

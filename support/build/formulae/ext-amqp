@@ -1,7 +1,19 @@
 #!/usr/bin/env bash
 
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
 dep_name=$(basename "$BASH_SOURCE")
-dep_name=${dep_name#"ext-"} # until we rename the package files
+
+dep_package=${0#"${WORKSPACE_DIR}/"} # trim WORKSPACE_DIR prefix from $0 (the invoked package recipe)
+dep_build=${dep_package#"${dep_name}-"} # strip formula name from front of full package name
+
+if [[ $dep_build == 1.* && $STACK != "heroku-22" ]]; then
+	echo "Version not supported on stack ${STACK}, skipping."
+	exit 9
+fi
 
 # let's see if librabbitmq is there
 needed=( librabbitmq4 )

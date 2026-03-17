@@ -37,6 +37,28 @@ else
 fi
 dep_manifest=${dep_package}.composer.json
 
+case "$STACK" in
+	"heroku-22")
+		# 8.0 could not be built on jammy due to OpenSSL 3
+		supported_series=8.[1-5]
+		;;
+	heroku-24)
+		supported_series=8.[2-5]
+		;;
+	heroku-26)
+		supported_series=8.[4-5]
+		;;
+	*)
+		echo "Unknown stack: $STACK"
+		exit 1
+		;;
+esac
+
+if [[ ! $dep_version == ${supported_series}.* ]]; then
+	echo "Stack ${STACK} only supports PHP version series ${supported_series}, skipping build."
+	exit 9
+fi
+
 echo "-----> Building ${dep_name} (${dep_version})..."
 
 for url in "${dep_url[@]}"; do

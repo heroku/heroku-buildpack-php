@@ -9,14 +9,14 @@ on:
   workflow_dispatch:
     inputs:
       formulae:
-        description: 'Shell word list of formulae to build; any Bash wildcards are allowed, e.g. "php-8.1.8 extensions/no-debug-non-zts-{2022,2021}*/newrelic-10*"'
+        description: 'Shell word list of formulae to build; any Bash wildcards are allowed, e.g. "php-8.1.8 ext-newrelic-10.*_php-8.{1,2}" (nullglob and extglob are on)'
         type: string
         required: true
       stack:
         description: 'Stack to build for'
         type: choice
         options:
-        - heroku-22
+        - heroku-22-amd64
         - heroku-24-amd64
         - heroku-24-arm64
         required: true
@@ -54,7 +54,7 @@ jobs:
           echo '## Formulae input for building' >> "$GITHUB_STEP_SUMMARY"
           echo -n "matrix=" >> "$GITHUB_OUTPUT"
           set -o pipefail
-          shopt -s nullglob
+          shopt -s nullglob extglob
           ls -f ${{inputs.formulae}} | xargs -n 1 echo - >> "$GITHUB_STEP_SUMMARY"
           ls -f ${{inputs.formulae}} | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
   docker-build:
@@ -103,13 +103,18 @@ jobs:
         run: docker load -i /tmp/docker-cache.tar.gz
       - name: Build formula without deploying
         if: ${{ inputs.dry-run == true }}
-        run: docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} bob build ${{matrix.formula}}
-      - name: Build and deploy formula
-        if: ${{ inputs.dry-run == false && inputs.overwrite == false }}
-        run: docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh ${{matrix.formula}}
-      - name: Build and deploy(+overwrite) formula
-        if: ${{ inputs.dry-run == false && inputs.overwrite == true }}
-        run: docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh --overwrite ${{matrix.formula}}
+        run: docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh --dry-run ${{matrix.formula}}
+      - name: Build and deploy${{ inputs.overwrite == true && '(+overwrite)' || '' }} formula
+        if: ${{ inputs.dry-run == false }}
+        run: |
+          docker run --rm --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} deploy.sh ${{ inputs.overwrite == true && '--overwrite' || '' }} ${{matrix.formula}} || {
+            status=$?
+            if (( status == 9 )); then
+              echo "::notice title=Skipped formula ${{matrix.formula}}::Not available on this stack or architecture."
+            else
+              exit "$status"
+            fi
+          }
   mkrepo:
     needs: deploys
     if: ${{ inputs.dry-run == false }}
@@ -139,7 +144,7 @@ jobs:
       - name: Dry-run sync.sh to show package changes available for syncing to stable bucket
         run: |
           set -o pipefail
-          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" lang-php dist-${{inputs.stack}}${{env.sync_dst_path_suffix}} 2>&1 | tee sync.out
+          (yes n 2>/dev/null || true) | docker run --rm -i --env-file=support/build/docker/env.default heroku-php-build-${{inputs.stack}}:${{github.sha}} sync.sh -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" heroku-buildpack-php dist-${{inputs.stack}}${{env.sync_dst_path_suffix}} 2>&1 | tee sync.out
       - name: Output job summary
         run: |
           echo '## Platform repository `…${{inputs.stack}}${{env.repo_path_suffix}}` updated' >> "$GITHUB_STEP_SUMMARY"

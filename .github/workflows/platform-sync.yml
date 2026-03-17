@@ -11,8 +11,8 @@ env:
 on:
   workflow_dispatch:
     inputs:
-      stack-heroku-22:
-        description: 'Sync heroku-22 packages'
+      stack-heroku-22-amd64:
+        description: 'Sync heroku-22 (amd64) packages'
         type: boolean
         default: true
         required: false
@@ -46,7 +46,7 @@ jobs:
         run: |
           echo '## Stacks to sync' >> "$GITHUB_STEP_SUMMARY"
           set -o pipefail
-          stacks=(${{ inputs.stack-heroku-22 == true && 'heroku-22' || ''}} ${{ inputs.stack-heroku-24-amd64 == true && 'heroku-24-amd64' || ''}} ${{ inputs.stack-heroku-24-arm64 == true && 'heroku-24-arm64' || ''}})
+          stacks=(${{ inputs.stack-heroku-22-amd64 == true && 'heroku-22-amd64' || ''}} ${{ inputs.stack-heroku-24-amd64 == true && 'heroku-24-amd64' || ''}} ${{ inputs.stack-heroku-24-arm64 == true && 'heroku-24-arm64' || ''}})
           printf -- "- %s\n" "${stacks[@]}" >> "$GITHUB_STEP_SUMMARY"
           echo -n "matrix=" >> "$GITHUB_OUTPUT"
           printf "%s\n" "${stacks[@]}" | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
@@ -110,7 +110,7 @@ jobs:
           # yes gets "n" to print for dry-runs so the sync aborts
           # errors are redirected to /dev/null, and we || true, to suppress SIGPIPE errors from 'docker run' exiting eventually
           # we need -i for Docker to accept input on stdin, but must not use -t for the pipeline to work
-          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh --no-remove -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" lang-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log || {
+          (yes "${{ inputs.dry-run == true && 'n' || 'y' }}" 2>/dev/null || true) | docker run --rm -i --env-file=support/build/docker/env.default heroku-php-build-${{matrix.stack}}:${{github.sha}} sync.sh --no-remove -c "${{steps.platform-repo-snapshot-calc.outputs.snapshot-sha256}}" heroku-buildpack-php dist-${{matrix.stack}}${{env.dst_path_suffix}} 2>&1 | tee sync-${{matrix.stack}}.log || {
             result=$?
             case $result in
               3)

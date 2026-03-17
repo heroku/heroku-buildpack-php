@@ -2,7 +2,7 @@ name: "Platform Repository Snapshot Calculation and Check"
 description: "Calculates the repository snapshot hash based on the formulae present and returns it together with resulting repository URLs and their status"
 inputs:
   stacks-list-for-shell-expansion:
-    description: "A single stack, or a shell-style expansion list like {heroku-22,heroku-24-amd64,heroku-24-arm64}, for producing and checking repo URLs"
+    description: "A single stack, or a shell-style expansion list like {heroku-22-amd64,heroku-24-amd64,heroku-24-arm64}, for producing and checking repo URLs"
     required: true
   repo-path-suffix:
     description: "A suffix like '-stable/' or '-develop/' that gets placed into a repo URL before 'packages(-$HASH)?.json'; must include a trailing slash"
@@ -38,9 +38,9 @@ runs:
         INPUT_REPO_PATH_SUFFIX: ${{ inputs.repo-path-suffix }}
       run: |
         echo -n "urls=" >> "$GITHUB_OUTPUT"
-        echo "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-${INPUT_STACKS_LIST_FOR_SHELL_EXPANSION}${INPUT_REPO_PATH_SUFFIX}packages.json" >> "$GITHUB_OUTPUT"
+        echo "https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-${INPUT_STACKS_LIST_FOR_SHELL_EXPANSION}${INPUT_REPO_PATH_SUFFIX}packages.json" >> "$GITHUB_OUTPUT"
         echo -n "snapshot_urls=" >> "$GITHUB_OUTPUT"
-        echo "https://lang-php.s3.dualstack.us-east-1.amazonaws.com/dist-${INPUT_STACKS_LIST_FOR_SHELL_EXPANSION}${INPUT_REPO_PATH_SUFFIX}packages-${{steps.formulae-hash.outputs.snapshot_sha256}}.json" >> "$GITHUB_OUTPUT"
+        echo "https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-${INPUT_STACKS_LIST_FOR_SHELL_EXPANSION}${INPUT_REPO_PATH_SUFFIX}packages-${{steps.formulae-hash.outputs.snapshot_sha256}}.json" >> "$GITHUB_OUTPUT"
     - name: Check that all repo snapshot URLs exist
       id: check-snapshot-urls
       shell: bash

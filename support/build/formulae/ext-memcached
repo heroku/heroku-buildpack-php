@@ -1,7 +1,11 @@
 #!/usr/bin/env bash
 
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
 dep_name=$(basename "$BASH_SOURCE")
-dep_name=${dep_name#"ext-"} # until we rename the package files
 
 OUT_PREFIX=$1
 

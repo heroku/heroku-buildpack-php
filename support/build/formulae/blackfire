@@ -1,7 +1,4 @@
 #!/usr/bin/env bash
-# Build Path: /app/.heroku/php
-
-OUT_PREFIX=$1
 
 # fail hard
 set -o pipefail
@@ -9,6 +6,8 @@ set -o pipefail
 set -eu
 
 source "$(dirname "$BASH_SOURCE")/../util/include/manifest.sh"
+
+OUT_PREFIX=$1
 
 bin_dir=${OUT_PREFIX}/bin
 
