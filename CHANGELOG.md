@@ -22,6 +22,7 @@
 - Composer/2.9.5
 - nginx/1.28.2
 - librdkafka/2.13.2
+- blackfire/2026.3.0
 
 ## [v284] - 2026-03-17
 
