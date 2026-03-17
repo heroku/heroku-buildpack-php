@@ -7,6 +7,7 @@
 - PHP/8.4.19
 - PHP/8.5.4
 - ext-blackfire/1.92.60
+- ext-ev/1.2.3
 
 ### CHG
 
