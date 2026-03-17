@@ -9,6 +9,7 @@
 - ext-blackfire/1.92.60
 - ext-ev/1.2.3
 - ext-mongodb/1.21.5
+- ext-grpc/1.78.0
 
 ### CHG
 
