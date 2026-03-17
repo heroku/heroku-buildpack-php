@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v284] - 2026-03-17
+
 ### ADD
 
 - Read memory limits from cgroups (v1 or v2) in boot scripts (#699) [David Zuelke]
@@ -3138,7 +3141,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v283...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v284...main
+[v284]: https://github.com/heroku/heroku-buildpack-php/compare/v283...v284
 [v283]: https://github.com/heroku/heroku-buildpack-php/compare/v282...v283
 [v282]: https://github.com/heroku/heroku-buildpack-php/compare/v281...v282
 [v281]: https://github.com/heroku/heroku-buildpack-php/compare/v280...v281
