@@ -2,12 +2,27 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.4.19
+- PHP/8.5.4
+- ext-blackfire/1.92.60
+- ext-ev/1.2.3
+- ext-mongodb/1.21.5
+- ext-grpc/1.78.0
+- ext-newrelic/12.5.0.30
+- ext-mongodb/2.2.1
+
 ### CHG
 
-- Support non-`heroku-sys-…` type packages in platform repositories [David Zuelke]
-- Make Composer Installer Plugin a package in platform repository (for use by the PHP CNB) [David Zuelke]
-- Make web server boot scripts (`heroku-php-apache2` and `heroku-php-nginx`) and configs a package in platform repository (for use by the PHP CNB) [David Zuelke]
-- Include minimal boostrapping PHP package (not installable) in platform repository (for use by the PHP CNB) [David Zuelke]
+- Support non-`heroku-sys-…` type packages in platform repositories
+- Make Composer Installer Plugin a package in platform repository (for use by the PHP CNB)
+- Make web server boot scripts (`heroku-php-apache2` and `heroku-php-nginx`) and configs a package in platform repository (for use by the PHP CNB)
+- Include minimal bootstrapping PHP package (not installable) in platform repository (for use by the PHP CNB)
+- Composer/2.9.5
+- nginx/1.28.2
+- librdkafka/2.13.2
+- blackfire/2026.3.0
 
 ## [v284] - 2026-03-17
 
