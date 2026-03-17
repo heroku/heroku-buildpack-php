@@ -1,0 +1,1 @@
+This test case asserts that packages which are not of type heroku-sys-* get a different dist type (normal "tar") and different requirements (not dependent on the installer plugin) than regular packages.
