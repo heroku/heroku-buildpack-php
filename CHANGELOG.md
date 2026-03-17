@@ -8,6 +8,7 @@
 - PHP/8.5.4
 - ext-blackfire/1.92.60
 - ext-ev/1.2.3
+- ext-mongodb/1.21.5
 
 ### CHG
 
