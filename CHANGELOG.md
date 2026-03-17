@@ -20,6 +20,7 @@
 - Make web server boot scripts (`heroku-php-apache2` and `heroku-php-nginx`) and configs a package in platform repository (for use by the PHP CNB)
 - Include minimal bootstrapping PHP package (not installable) in platform repository (for use by the PHP CNB)
 - Composer/2.9.5
+- nginx/1.28.2
 
 ## [v284] - 2026-03-17
 
