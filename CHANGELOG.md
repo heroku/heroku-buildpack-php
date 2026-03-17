@@ -10,6 +10,7 @@
 - ext-ev/1.2.3
 - ext-mongodb/1.21.5
 - ext-grpc/1.78.0
+- ext-newrelic/12.5.0.30
 
 ### CHG
 
