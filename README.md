@@ -66,10 +66,6 @@ For instructions on how to build custom platform packages (and a repository to h
 
 The following information only applies if you're forking and hacking on this buildpack for your own purposes.
 
-### Pull Requests
-
-Please submit all pull requests against `develop` as the base branch.
-
 ### Custom Platform Packages and Repositories
 
 Please refer to the [README in `support/build/`](support/build/README.md) for instructions.
