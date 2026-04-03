@@ -389,7 +389,10 @@ echo -e "\n[global]\nlog_level = notice" >> "$fpm_config_tmp"
 
 # build command string arrays for PHP-FPM and Nginx
 # we're using an array, because we need to correctly preserve quoting, spaces, etc
-fpm_command=( php-fpm --prefix "$php_server_root" --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" ${php_config:+-c "$php_config"} )
+# when a custom php.ini is given via -c, it replaces the buildpack's php.ini, which may not define extension_dir
+# we always pass the correct extension_dir via -d to ensure extensions are found regardless of the php.ini used
+php_extension_dir=$(php-config --extension-dir)
+fpm_command=( php-fpm --prefix "$php_server_root" --pid "$fpm_pidfile" --nodaemonize -y "$fpm_config_tmp" -d "extension_dir=$php_extension_dir" ${php_config:+-c "$php_config"} )
 nginx_command=( nginx -p "$web_server_root" -e "$web_server_root/var/log/nginx/error.log" -c "$nginx_main" -g "pid $nginx_pidfile; include $nginx_config;" )
 
 ram=
