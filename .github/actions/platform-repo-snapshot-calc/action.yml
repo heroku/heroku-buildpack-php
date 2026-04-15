@@ -2,7 +2,7 @@ name: "Platform Repository Snapshot Calculation and Check"
 description: "Calculates the repository snapshot hash based on the formulae present and returns it together with resulting repository URLs and their status"
 inputs:
   stacks-list-for-shell-expansion:
-    description: "A single stack, or a shell-style expansion list like {heroku-22-amd64,heroku-24-amd64,heroku-24-arm64}, for producing and checking repo URLs"
+    description: "A single stack, or a shell-style expansion list like {heroku-22-amd64,heroku-24-amd64,heroku-24-arm64,heroku-26-amd64,heroku-26-arm64}, for producing and checking repo URLs"
     required: true
   repo-path-suffix:
     description: "A suffix like '-stable/' or '-develop/' that gets placed into a repo URL before 'packages(-$HASH)?.json'; must include a trailing slash"

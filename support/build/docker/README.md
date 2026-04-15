@@ -4,6 +4,8 @@
 
 **After every change to your formulae, perform the following** from the root of the Git repository (not from `support/build/docker/`) to rebuild the images for each stack:
 
+    $ docker build --pull --tag heroku-php-build-heroku-26-amd64 --platform linux/amd64 --file $(pwd)/support/build/docker/heroku-26.Dockerfile .
+    $ docker build --pull --tag heroku-php-build-heroku-26-arm64 --platform linux/arm64 --file $(pwd)/support/build/docker/heroku-26.Dockerfile .
     $ docker build --pull --tag heroku-php-build-heroku-24-amd64 --platform linux/amd64 --file $(pwd)/support/build/docker/heroku-24.Dockerfile .
     $ docker build --pull --tag heroku-php-build-heroku-24-arm64 --platform linux/arm64 --file $(pwd)/support/build/docker/heroku-24.Dockerfile .
     $ docker build --pull --tag heroku-php-build-heroku-22-amd64 --platform linux/amd64 --file $(pwd)/support/build/docker/heroku-22.Dockerfile .
@@ -18,6 +20,8 @@ Out of the box, each `Dockerfile` has the correct values predefined for `S3_BUCK
 
 From the root of the Git repository (not from `support/build/docker/`), you can e.g. `bash` into each of the images you built using their tag:
 
+    docker run --rm -ti heroku-php-build-heroku-26-amd64 bash
+    docker run --rm -ti heroku-php-build-heroku-26-arm64 bash
     docker run --rm -ti heroku-php-build-heroku-24-amd64 bash
     docker run --rm -ti heroku-php-build-heroku-24-arm64 bash
     docker run --rm -ti heroku-php-build-heroku-22-amd64 bash

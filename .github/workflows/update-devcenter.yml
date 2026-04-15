@@ -5,7 +5,7 @@ env:
   setup_php_php_version: "8.4"
   setup_php_composer_version: "2.9"
   # ensure these also match the input defaults below
-  stacks_list_for_shell_expansion: "{heroku-22-amd64,heroku-24-amd64}"
+  stacks_list_for_shell_expansion: "{heroku-22-amd64,heroku-24-amd64,heroku-26-amd64}"
   repo_path_suffix: "-stable/"
 
 on:
@@ -14,10 +14,10 @@ on:
   workflow_dispatch:
     inputs:
       stacks-list-for-shell-expansion:
-        description: 'Stacks to generate for (single stack or "{heroku-22-amd64,heroku-24-amd64}" style expansion list)'
+        description: 'Stacks to generate for (single stack or "{heroku-22-amd64,heroku-24-amd64,heroku-26-amd64}" style expansion list)'
         type: string
          # make sure this matches the default value in env: above
-        default: '{heroku-22-amd64,heroku-24-amd64}'
+        default: '{heroku-22-amd64,heroku-24-amd64,heroku-26-amd64}'
         required: true
       repo-path-suffix:
         description: 'Path suffix for repository URLs (e.g. "-develop/" or "-stable/")'
