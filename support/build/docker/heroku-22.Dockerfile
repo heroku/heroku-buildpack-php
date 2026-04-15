@@ -1,4 +1,4 @@
-FROM heroku/heroku:22-build.v160
+FROM heroku/heroku:22-build
 
 ARG TARGETARCH
 
