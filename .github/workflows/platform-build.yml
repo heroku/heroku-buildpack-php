@@ -30,11 +30,6 @@ on:
         type: boolean
         default: false
         required: false
-      concurrency:
-        description: 'GitHub Actions runner concurrency'
-        type: number
-        default: 3
-        required: true
 
 permissions:
   contents: read
@@ -84,7 +79,6 @@ jobs:
     runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'pub-hk-ubuntu-24.04-arm-xlarge' || 'pub-hk-ubuntu-24.04-xlarge' }}
     strategy:
       fail-fast: false
-      max-parallel: ${{ fromJSON(inputs.concurrency) }}
       matrix:
         formula: ${{ fromJSON(needs.formulae-list.outputs.formulae) }}
     env:
