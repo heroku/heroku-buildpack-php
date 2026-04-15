@@ -11,6 +11,7 @@
 - ext-newrelic/12.6.0.34
 - ext-phalcon/5.11.1
 - nginx/1.30.0
+- Composer/2.2.27
 - Composer/2.9.7
 - blackfire/2026.4.1
 - librdkafka/2.14.0
