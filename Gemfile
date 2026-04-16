@@ -1,6 +1,6 @@
 source "https://rubygems.org"
 
-ruby '>= 3.1', '< 3.4'
+ruby '>= 3.2', '< 4.1'
 
 gem 'heroku_hatchet', git: 'https://github.com/heroku/hatchet.git', branch: 'timeouts-etc'
 gem 'rspec-retry'
