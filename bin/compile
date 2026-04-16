@@ -285,7 +285,7 @@ if [[ "${HEROKU_PHP_PLATFORM_REPOSITORIES}" == *" - "* ]]; then
 fi
 
 bootstrap_url_filepath() {
-	local bootstrap_scan_dir=$(dirname "$BASH_SOURCE")/../support/build/packages
+	local bootstrap_scan_dir="$bp_dir/support/build/packages"
 	
 	# 1. Find
 	#   - in $bootstrap_scan_dir

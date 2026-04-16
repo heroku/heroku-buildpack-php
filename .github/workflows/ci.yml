@@ -45,6 +45,13 @@ jobs:
           ruby-version: "${{ env.setup_ruby_ruby_version }}"
       - name: Execute tests
         run: bundle exec rspec test/spec/cgroup_spec.rb
+  container-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+      - name: Run buildpack using default app fixture
+        run: make run
   integration-test:
     runs-on: ubuntu-24.04
     strategy:
