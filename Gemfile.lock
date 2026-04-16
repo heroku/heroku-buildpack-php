@@ -1,10 +1,10 @@
 GIT
   remote: https://github.com/heroku/hatchet.git
-  revision: 4dff977ab2cd0db87230c448503b1472d369ba37
+  revision: 3730d71eaaae28507679f33dd91e8edb2e149baa
   branch: timeouts-etc
   specs:
-    heroku_hatchet (8.0.4)
-      excon (~> 0)
+    heroku_hatchet (8.0.6)
+      excon (< 2)
       platform-api (~> 3)
       rrrretry (~> 1)
       thor (~> 1)
@@ -17,7 +17,8 @@ GEM
     base64 (0.3.0)
     diff-lcs (1.6.2)
     erubis (2.7.0)
-    excon (0.112.0)
+    excon (1.4.2)
+      logger
     heroics (0.1.3)
       base64
       erubis (~> 2.0)
@@ -25,33 +26,36 @@ GEM
       moneta
       multi_json (>= 1.9.2)
       webrick
+    logger (1.7.0)
     moneta (1.0.0)
-    multi_json (1.17.0)
-    parallel (1.27.0)
-    parallel_tests (5.6.0)
+    multi_json (1.20.1)
+    parallel (2.0.1)
+    parallel_tests (5.7.0)
       parallel
-    platform-api (3.8.0)
+    platform-api (3.9.0)
       heroics (~> 0.1.1)
       moneta (~> 1.0.0)
       rate_throttle_client (~> 0.1.0)
-    rake (13.3.1)
+    rake (13.4.2)
     rate_throttle_client (0.1.2)
     rrrretry (1.0.0)
-    rspec-core (3.13.5)
+    rspec-core (3.13.6)
       rspec-support (~> 3.13.0)
     rspec-expectations (3.13.5)
       diff-lcs (>= 1.2.0, < 2.0)
       rspec-support (~> 3.13.0)
     rspec-retry (0.6.2)
       rspec-core (> 3.3)
-    rspec-support (3.13.5)
+    rspec-support (3.13.7)
     sem_version (2.0.1)
-    thor (1.4.0)
+    thor (1.5.0)
     threaded (0.0.4)
-    webrick (1.9.1)
+    webrick (1.9.2)
 
 PLATFORMS
+  arm64-darwin-24
   ruby
+  x86_64-linux
 
 DEPENDENCIES
   ansi
@@ -62,8 +66,34 @@ DEPENDENCIES
   rspec-retry
   sem_version
 
+CHECKSUMS
+  ansi (1.6.0) sha256=ac9ea0c0ea8d32fb4e271348e609963ac78882f34b73836c2a02b3622e666658
+  base64 (0.3.0) sha256=27337aeabad6ffae05c265c450490628ef3ebd4b67be58257393227588f5a97b
+  diff-lcs (1.6.2) sha256=9ae0d2cba7d4df3075fe8cd8602a8604993efc0dfa934cff568969efb1909962
+  erubis (2.7.0) sha256=63653f5174a7997f6f1d6f465fbe1494dcc4bdab1fb8e635f6216989fb1148ba
+  excon (1.4.2) sha256=32d8d8eda619717d9b8043b4675e096fb5c2139b080e2ad3b267f88c545aaa35
+  heroics (0.1.3) sha256=31d792e8706ecc6f78299f52d0b0f8ab55489a13b5f4f76c3050b07912563562
+  heroku_hatchet (8.0.6)
+  logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
+  moneta (1.0.0) sha256=2224e5a68156e8eceb525fb0582c8c4e0f29f67cae86507cdcfb406abbb1fc5d
+  multi_json (1.20.1) sha256=2f3934e805cc45ef91b551a1f89d0e9191abd06a5e04a2ef09a6a036c452ca6d
+  parallel (2.0.1) sha256=337782d3e39f4121e67563bf91dd8ece67f48923d90698614773a0ec9a5b2c7d
+  parallel_tests (5.7.0) sha256=3f1762c46ca2c223b8af8ef877217f9d76974e191bfa934f2580b58bcf1d005c
+  platform-api (3.9.0) sha256=be3b919955c52649fd931a9f62d571bd6f06613de630970dc7255fc95eb7d962
+  rake (13.4.2) sha256=cb825b2bd5f1f8e91ca37bddb4b9aaf345551b4731da62949be002fa89283701
+  rate_throttle_client (0.1.2) sha256=f9de968b892fea9272154f6182b4f5cfb74292585e66763fb8a8510181ec83ee
+  rrrretry (1.0.0) sha256=3c60784501701a49d8ad499af7e76dbddf9a8be916beffe885bd0f443ad1c749
+  rspec-core (3.13.6) sha256=a8823c6411667b60a8bca135364351dda34cd55e44ff94c4be4633b37d828b2d
+  rspec-expectations (3.13.5) sha256=33a4d3a1d95060aea4c94e9f237030a8f9eae5615e9bd85718fe3a09e4b58836
+  rspec-retry (0.6.2) sha256=6101ba23a38809811ae3484acde4ab481c54d846ac66d5037ccb40131a60d858
+  rspec-support (3.13.7) sha256=0640e5570872aafefd79867901deeeeb40b0c9875a36b983d85f54fb7381c47c
+  sem_version (2.0.1) sha256=6d97d4f67e28546ba90b3c290f901d6c8031ddb8e08bce962139739c4d40b183
+  thor (1.5.0) sha256=e3a9e55fe857e44859ce104a84675ab6e8cd59c650a49106a05f55f136425e73
+  threaded (0.0.4) sha256=8f32c11d29f7c7237aabeb36d286c15ac495137ce06ace3357de743aafd4f0e3
+  webrick (1.9.2) sha256=beb4a15fc474defed24a3bda4ffd88a490d517c9e4e6118c3edce59e45864131
+
 RUBY VERSION
-   ruby 3.2.3p157
+  ruby 4.0.2
 
 BUNDLED WITH
-   2.4.19
+  4.0.8
