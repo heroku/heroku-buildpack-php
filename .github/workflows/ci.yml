@@ -27,7 +27,7 @@ env:
   # ensure these are in sync with other relevant workflow files
   setup_php_php_version: "8.4"
   setup_php_composer_version: "2.9"
-  setup_ruby_ruby_version: "3.2"
+  setup_ruby_ruby_version: "4.0"
 
 jobs:
   unit-test:

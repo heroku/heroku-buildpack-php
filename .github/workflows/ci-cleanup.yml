@@ -12,7 +12,7 @@ permissions:
 
 env:
   # ensure these are in sync with other relevant workflow files
-  setup_ruby_ruby_version: "3.2"
+  setup_ruby_ruby_version: "4.0"
 
 jobs:
   hatchet-app-cleaner:
