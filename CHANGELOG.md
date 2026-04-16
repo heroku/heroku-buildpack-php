@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Make buildpack exit trap compatible with Bash 5.3. ([#936](https://github.com/heroku/heroku-buildpack-php//pull/936))
 
 ## [v286] - 2026-04-15
 
