@@ -309,9 +309,9 @@ exit_trap() {
 		build_report::stop_timers
 	}
 
-	# if exit status was 0, or if a failure_reason is already set, skip the rest
-	(( exit_status )) || return
-	build_report::has failure_reason && return
+	if (( exit_status == 0 )) || build_report::has failure_reason; then
+		return "$exit_status";
+	fi
 
 	local trace=$(
 		local frame=0
