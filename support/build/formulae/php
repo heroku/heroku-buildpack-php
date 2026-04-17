@@ -37,8 +37,11 @@ else
 fi
 dep_manifest=${dep_package}.composer.json
 
+# When we add support for a new stack, we only build PHP versions that at that time are
+# still in "Active support" upstream: https://www.php.net/supported-versions.php
+# Keep this list in sync with php_on_stack? in test/spec/spec_helper.rb
 case "$STACK" in
-	"heroku-22")
+	heroku-22)
 		# 8.0 could not be built on jammy due to OpenSSL 3
 		supported_series=8.[1-5]
 		;;
@@ -77,11 +80,16 @@ if [[ $STACK == "heroku-22" ]]; then
 	needed+=( libldap-2.5-0 )
 	needed+=( libreadline8 )
 	needed+=( libzip4 ) # went back from ABI v5 to v4 in 1.6 or 1.7
-else
+elif [[ $STACK == "heroku-24" ]]; then
 	needed+=( libicu74 )
 	needed+=( libldap2 )
 	needed+=( libreadline8t64 )
 	needed+=( libzip4t64 )
+else
+	needed+=( libicu78 )
+	needed+=( libldap2 )
+	needed+=( libreadline8t64 )
+	needed+=( libzip5 )
 fi
 if [[ $dep_version == 8.[1-3].* ]]; then
 	needed+=( libc-client2007e libkrb5-3 libpam0g  ) # the IMAP extension was bundled before PHP 8.4

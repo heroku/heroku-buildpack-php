@@ -157,7 +157,7 @@ The following environment variables are required:
 - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with credentials for the S3 bucket
 - `S3_BUCKET` with the name of the S3 bucket to use for builds
 - `S3_PREFIX` (just a slash, or a prefix directory name **with a trailing, but no leading, slash**)
-- `STACK` (currently, only "`heroku-22-amd64`", "`heroku-24-amd64`" or "`heroku-24-arm64`" make any sense)
+- `STACK` (currently, only "`heroku-22-amd64`", "`heroku-24-amd64`", "`heroku-24-arm64`", "`heroku-26-amd64`" or "`heroku-26-arm64`" make any sense)
 
 The following environment variables are highly recommended (see section *Understanding Upstream Buckets*):
 
@@ -165,6 +165,7 @@ The following environment variables are highly recommended (see section *Underst
 - `UPSTREAM_S3_PREFIX`, where dependencies are pulled from if they can't be found in `S3_BUCKET+S3_PREFIX` should probably be set to
   - "`dist-heroku-22-amd64-stable/`", the official Heroku stable repository prefix for the [heroku-22 stack](https://devcenter.heroku.com/articles/stack).
   - "`dist-heroku-24-amd64-stable/`", the official Heroku stable repository prefix for the [heroku-24 stack](https://devcenter.heroku.com/articles/stack).
+  - "`dist-heroku-26-amd64-stable/`", the official Heroku stable repository prefix for the [heroku-26 stack](https://devcenter.heroku.com/articles/stack).
 
 The following environment variables are optional, but strongly recommended:
 
@@ -353,7 +354,7 @@ The `require` key must contain dependencies on at least the following packages:
 
 If a package is built against a specific (or multiple) stacks, there must be a dependency on the following packages:
 
-- `heroku-sys/heroku`, version "22" for `heroku-22`, or version "24" for `heroku-24` (use version selectors `^22.0.0` or `^24.0.0`, or a valid Composer combination)
+- `heroku-sys/heroku`, version "22" for `heroku-22`, version "24" for `heroku-24` or version "26" for `heroku-26` (use version selectors `^22.0.0`, `^24.0.0` or `^26.0.0`, or a valid Composer combination)
 
 *Example: `curl -s https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-amd64-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {require}'`*
 
@@ -656,7 +657,7 @@ If option `-c` is given to `remove.sh`, the option value will be treated as a "s
 
 In this example, you will fork the buildpack and add your own formula to it. **The fork is only used for building the package and publishing the repository, it is not used to build and run applications.**
 
-The `heroku-22` and `heroku-24` stack variants of the package will be hosted in the same repository.
+All stack variants of the package will be hosted in the same repository.
 
 A development and a stable S3 bucket prefix are used for the repository, and helpers are used for synchronization between them.
 
@@ -697,6 +698,7 @@ Finally, build the containers for each stack:
 
     $ docker build --pull --tag heroku-php-build-heroku-22 --file $(pwd)/support/build/docker/heroku-22.Dockerfile .
     $ docker build --platform linux/amd64 --pull --tag heroku-php-build-heroku-24-amd64 --file $(pwd)/support/build/docker/heroku-24.Dockerfile .
+    $ docker build --platform linux/amd64 --pull --tag heroku-php-build-heroku-26-amd64 --file $(pwd)/support/build/docker/heroku-26.Dockerfile .
 
 #### Building and Deploying
 
@@ -704,11 +706,13 @@ Verify that the build works:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-22 bob build nginx-1.15.4
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-24 bob build nginx-1.15.4
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-26 bob build nginx-1.15.4
 
 If all went well, deploy it using the helper script:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-22 deploy.sh nginx-1.15.4
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-24 deploy.sh nginx-1.15.4
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-26 deploy.sh nginx-1.15.4
 
 #### Repository Creation
 
@@ -738,7 +742,7 @@ You can then use that repository:
 
 The Heroku PHP buildpack will be pulled in as a Composer dependency. Its build `Dockerfile`s are built and tagged locally, and a custom `Dockerfile` for each targeted stack builds upon those tagged images.
 
-The `heroku-22-amd64` and `heroku-24-amd64` stack variants of the package will be hosted in the same repository.
+All stack variants of the package will be hosted in the same repository.
 
 The package in this example is the Xdebug extension. The extension formula can re-use an existing buildpack base formula for PECL extensions.
 
@@ -761,6 +765,7 @@ Build the base Docker images from the buildpack for all stacks:
     $ cd vendor/heroku/heroku-buildpack-php
     $ docker build --pull --tag php-heroku-22-amd64 --file $(pwd)/support/build/docker/heroku-22.Dockerfile .
     $ docker build --pull --tag php-heroku-24-amd64 --file $(pwd)/support/build/docker/heroku-24.Dockerfile .
+    $ docker build --pull --tag php-heroku-26-amd64 --file $(pwd)/support/build/docker/heroku-26.Dockerfile .
     $ cd -
 
 #### Creating Custom Dockerfiles
@@ -779,6 +784,14 @@ Create a `heroku-24.Dockerfile` with the following contents:
     ENV WORKSPACE_DIR=/app/packages
     ENV UPSTREAM_S3_BUCKET=heroku-buildpack-php
     ENV UPSTREAM_S3_PREFIX=dist-heroku-24-amd64-stable/
+    COPY . /app
+
+Create a `heroku-26.Dockerfile` with the following contents:
+
+    FROM php-heroku-26-amd64:latest
+    ENV WORKSPACE_DIR=/app/packages
+    ENV UPSTREAM_S3_BUCKET=heroku-buildpack-php
+    ENV UPSTREAM_S3_PREFIX=dist-heroku-26-amd64-stable/
     COPY . /app
 
 Both set the correct upstream S3 bucket and prefix, so that formula dependencies like PHP are pulled from the official Heroku S3 locations.
@@ -812,6 +825,7 @@ Build one Docker image for each stack:
 
     $ docker build --tag xdebug-heroku-22-amd64 --file heroku-22.Dockerfile .
     $ docker build --tag xdebug-heroku-24-amd64 --file heroku-24.Dockerfile .
+    $ docker build --tag xdebug-heroku-26-amd64 --file heroku-26.Dockerfile .
 
 #### Building and Deploying
 
@@ -819,11 +833,13 @@ Verify that the build works by building a specific formula for a specific PHP ve
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-22-amd64 bob build php-7.3/xdebug-2.7.0
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-24-amd64 bob build php-7.3/xdebug-2.7.0
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-26-amd64 bob build php-7.3/xdebug-2.7.0
 
 If all went well, deploy it using the helper script:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-22-amd64 deploy.sh php-7.3/xdebug-2.7.0
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-24-amd64 deploy.sh php-7.3/xdebug-2.7.0
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-26-amd64 deploy.sh php-7.3/xdebug-2.7.0
 
 #### Repository Creation
 
@@ -831,6 +847,7 @@ From the manifests that are now in your S3 bucket, make a repository:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-22-amd64 mkrepo.sh --upload
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-24-amd64 mkrepo.sh --upload
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-26-amd64 mkrepo.sh --upload
 
 You can now test this repository on a Heroku app by pushing an app that requires `ext-xdebug` in `composer.json`:
 

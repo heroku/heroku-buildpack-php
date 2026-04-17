@@ -26,6 +26,16 @@ on:
         type: boolean
         default: true
         required: false
+      stack-heroku-26-amd64:
+        description: 'Sync heroku-26 (amd64) packages'
+        type: boolean
+        default: true
+        required: false
+      stack-heroku-26-arm64:
+        description: 'Sync heroku-26 (arm64) packages'
+        type: boolean
+        default: true
+        required: false
       dry-run:
         description: 'Only list package changes, without syncing'
         type: boolean
@@ -46,7 +56,7 @@ jobs:
         run: |
           echo '## Stacks to sync' >> "$GITHUB_STEP_SUMMARY"
           set -o pipefail
-          stacks=(${{ inputs.stack-heroku-22-amd64 == true && 'heroku-22-amd64' || ''}} ${{ inputs.stack-heroku-24-amd64 == true && 'heroku-24-amd64' || ''}} ${{ inputs.stack-heroku-24-arm64 == true && 'heroku-24-arm64' || ''}})
+          stacks=(${{ inputs.stack-heroku-22-amd64 == true && 'heroku-22-amd64' || ''}} ${{ inputs.stack-heroku-24-amd64 == true && 'heroku-24-amd64' || ''}} ${{ inputs.stack-heroku-24-arm64 == true && 'heroku-24-arm64' || ''}} ${{ inputs.stack-heroku-26-amd64 == true && 'heroku-26-amd64' || ''}} ${{ inputs.stack-heroku-26-arm64 == true && 'heroku-26-arm64' || ''}})
           printf -- "- %s\n" "${stacks[@]}" >> "$GITHUB_STEP_SUMMARY"
           echo -n "matrix=" >> "$GITHUB_OUTPUT"
           printf "%s\n" "${stacks[@]}" | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"

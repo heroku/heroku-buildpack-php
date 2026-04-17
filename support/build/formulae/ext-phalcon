@@ -2,4 +2,11 @@
 
 dep_name=$(basename "$BASH_SOURCE")
 
+# ext-phalcon fails to compile when using GCC 14+, so can't currently be built on Heroku-26+:
+# https://github.com/heroku/heroku-buildpack-php/issues/927
+if [[ $STACK != +(heroku-22|heroku-24) ]]; then
+	echo "Version not supported on stack ${STACK}, skipping."
+	exit 9
+fi
+
 source "$(dirname "$BASH_SOURCE")/include/pecl-ext"

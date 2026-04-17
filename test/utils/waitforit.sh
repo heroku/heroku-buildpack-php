@@ -3,10 +3,16 @@
 # fail harder
 set -u
 
-if ! type -p "timeout" > /dev/null; then
+# There are several behaviour changes/regressions in the Rust uutils coreutils timeout and tail
+# versions, so for now we work around this by explicitly using their GNU coreutils versions instead:
+# https://github.com/heroku/heroku-buildpack-php/issues/931
+
+if ! timeout_cmd=$(command -v gnutimeout timeout | head -n1); then
 	echo "This program requires 'timeout'." >&2
 	exit 1
 fi
+
+tail_cmd=$(command -v gnutail tail | head -n1)
 
 print_help() {
 	cat >&2 <<-EOF
@@ -72,11 +78,11 @@ stdout_log=$(mktemp)
 stderr_log=$(mktemp)
 
 # launch the program wrapped in a timeout, sending stderr to stdout to separate logs while maintaining their respective original "channels"
-timeout $duration "$@" > >(tee "$stdout_log") 2> >(tee "$stderr_log" >&2) & pid=$!
+"$timeout_cmd" "$duration" "$@" > >(tee "$stdout_log") 2> >(tee "$stderr_log" >&2) & pid=$!
 
 # tail the log file in a timeout, and grep for our expected output
 # once the grep returns, we keep writing output to a following pipeline (if there is one), so that a program there can do some stuff - once it's done, our echo attempts will start failing (due to SIGPIPE), and we exit
-timeout $duration tail -q -F "$stdout_log" "$stderr_log" > >(grep --line-buffered $grepargs -E -e "$text" && while test $pipeout; do echo "." 2>/dev/null || break; sleep 0.1; done; ) & tid=$!
+"$timeout_cmd" "$duration" "$tail_cmd" -q -F "$stdout_log" "$stderr_log" > >(grep --line-buffered $grepargs -E -e "$text" && while test $pipeout; do echo "." 2>/dev/null || break; sleep 0.1; done; ) & tid=$!
 
 # wait for whichever returns first - could be the program "crashing" or timing out, or the tail hitting the grep expression or timing out
 wait -n $pid $tid

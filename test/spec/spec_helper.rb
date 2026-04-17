@@ -58,12 +58,17 @@ def expected_default_php(stack)
 	"8.4"
 end
 
+# Keep this list in sync with the supported_series values in support/build/formulae/php
 def php_on_stack?(series)
-	case ENV["STACK"]
+	case stack = ENV["STACK"]
 		when "heroku-22"
 			available = ["8.1", "8.2", "8.3", "8.4", "8.5"]
-		else
+		when "heroku-24"
 			available = ["8.2", "8.3", "8.4", "8.5"]
+		when "heroku-26"
+			available = ["8.4", "8.5"]
+		else
+			raise "Unknown stack: #{stack}"
 	end
 	available.include?(series)
 end

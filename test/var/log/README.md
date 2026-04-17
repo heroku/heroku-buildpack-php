@@ -44,6 +44,7 @@ The `$logstmp` directory will now have ten subfolders (named after the artifact 
 user@host:log$ find "$logstmp" -name '*.log' -exec basename '{}' ';' | sort | uniq
 parallel_runtime_rspec.heroku-22.log
 parallel_runtime_rspec.heroku-24.log
+parallel_runtime_rspec.heroku-26.log
 ```
 
 ### Updating runtime logs with calculated medians

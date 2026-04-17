@@ -4,8 +4,9 @@
 
 ### CHG
 
-- Rebuilt Apache 2.4.66 with updated APR (1.6.3 -> 1.7.6) and APR-util (1.6.1 -> 1.6.3). ([#939](https://github.com/heroku/heroku-buildpack-php//pull/939))
-- Make buildpack exit trap compatible with Bash 5.3. ([#936](https://github.com/heroku/heroku-buildpack-php//pull/936))
+- Add support for Heroku-26. ([#930](https://github.com/heroku/heroku-buildpack-php/pull/930))
+- Rebuilt Apache 2.4.66 with updated APR (1.6.3 -> 1.7.6) and APR-util (1.6.1 -> 1.6.3). ([#939](https://github.com/heroku/heroku-buildpack-php/pull/939))
+- Make buildpack exit trap compatible with Bash 5.3. ([#936](https://github.com/heroku/heroku-buildpack-php/pull/936))
 
 ## [v286] - 2026-04-15
 
