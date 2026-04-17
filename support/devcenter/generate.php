@@ -20,10 +20,11 @@ if(isset($sections['s'])) {
 	unset($sections['s']);
 	$stacks = array_combine(range(1, count($stacks)), $stacks); // re-index to start at 1, relevant for the numbering of footnotes
 } else {
-	// these need updating from time to time to add new stacks and remove EOL ones
+	// Keep the Heroku stack versions here in sync with .github/workflows/update-devcenter.yml
 	$stacks = [
 		1 => '22', // the offset we start with here is relevant for the numbering of footnotes
 		'24',
+		'26',
 	];
 }
 
@@ -32,7 +33,7 @@ if(isset($sections['p'])) {
 	$series = explode(',', $sections['p']);
 	unset($sections['p']);
 } else {
-	// these need updating from time to time to add new series and remove series no longer on any stack
+	// Keep this PHP versions list in sync with the supported_series values in support/build/formulae/php
 	$series = [
 		'8.1',
 		'8.2',
