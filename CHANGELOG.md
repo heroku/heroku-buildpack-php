@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v287] - 2026-04-17
+
 ### CHG
 
 - Add support for Heroku-26. ([#930](https://github.com/heroku/heroku-buildpack-php/pull/930))
@@ -3186,7 +3189,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v286...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v287...main
+[v287]: https://github.com/heroku/heroku-buildpack-php/compare/v286...v287
 [v286]: https://github.com/heroku/heroku-buildpack-php/compare/v285...v286
 [v285]: https://github.com/heroku/heroku-buildpack-php/compare/v284...v285
 [v284]: https://github.com/heroku/heroku-buildpack-php/compare/v283...v284
