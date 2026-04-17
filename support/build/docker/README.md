@@ -34,9 +34,9 @@ If you want to deploy packages and thus need to pass `AWS_ACCESS_KEY_ID` and `AW
 
     docker run --rm -ti -e AWS_ACCESS_KEY_ID=... -e AWS_SECRET_ACCESS_KEY=... heroku-php-build-heroku-22-amd64 bash
 
-#### Passing credentials through  the environment
+#### Passing credentials through the environment
 
-The two environment variables `AWS_ACCESS_KEY_ID`and `AWS_SECRET_ACCESS_KEY` are defined in `support/build/docker/env.default`, without values. This will cause Docker to "forward" values for these variables from the current environment, so you can pass them in:
+The two environment variables `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` are defined in `support/build/docker/env.default`, without values. This will cause Docker to "forward" values for these variables from the current environment, so you can pass them in:
 
     AWS_ACCESS_KEY_ID=... AWS_SECRET_ACCESS_KEY=... docker run --rm -ti --env-file=support/build/docker/env.default heroku-php-build-heroku-22-amd64 bash
 
@@ -50,6 +50,6 @@ or
 
 This method is the easiest for users who want to build packages in their own S3 bucket, as they will have to adjust the `S3_BUCKET` and `S3_PREFIX` environment variable values anyway from their default values.
 
-For this method, it is important to keep the credentials file in a location outside the buildpack, so that your credentials aren't accidentally committed. Copy `support/build/docker/env.default` **to a safe location outside the buildpack directory**, and insert your values for `AWS_ACCESS_KEY_ID`and `AWS_SECRET_ACCESS_KEY`.
+For this method, it is important to keep the credentials file in a location outside the buildpack, so that your credentials aren't accidentally committed. Copy `support/build/docker/env.default` **to a safe location outside the buildpack directory**, and insert your values for `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY`.
 
     docker run --rm -ti --env-file=../SOMEPATHOUTSIDE/s3.env heroku-php-build-heroku-22-amd64 bash

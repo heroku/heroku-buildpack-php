@@ -38,7 +38,7 @@ user@host:log$ gh api '/repos/heroku/heroku-buildpack-php/actions/artifacts?name
                xargs -L2 -- bash -c 'gh api "$1" | ditto -k -x - "'$logstmp'/${0}"'
 ```
 
-The `$logstmp` directory will now have ten subfolders (named after the artifact ID), each with run a run log file for each stack:
+The `$logstmp` directory will now have ten subfolders (named after the artifact ID), each with a run log file for each stack:
 
 ```ShellSession
 user@host:log$ find "$logstmp" -name '*.log' -exec basename '{}' ';' | sort | uniq

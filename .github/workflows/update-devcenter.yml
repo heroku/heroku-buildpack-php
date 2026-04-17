@@ -117,7 +117,7 @@ jobs:
             echo "${start},${end} ${f}" >> php-support.md.ed-unordered.txt
           done
           num_sections=$(set -o pipefail; wc -l php-support.md.ed-unordered.txt | awk '{ print $1 }')
-          (( $num_sections > 0 )) || echo "::warning title=No sections matched in input markdown::None of the generated sections coud be matched against the input markdown. No updates will occur."
+          (( $num_sections > 0 )) || echo "::warning title=No sections matched in input markdown::None of the generated sections could be matched against the input markdown. No updates will occur."
           echo "num_sections=${num_sections}" >> "$GITHUB_OUTPUT"
       - name: Patch Dev Center article markdown
         if: steps.find-section-markers.outputs.num_sections > 0

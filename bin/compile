@@ -272,7 +272,7 @@ if ! curl_retry_on_18  --retry-connrefused --retry 3 --connect-timeout 10 --fail
 fi
 
 # prepend the default repo to the list configured by the user
-# list of repositories to use is in ascening order of precedence
+# list of repositories to use is in ascending order of precedence
 export_env_dir "$env_dir" '^HEROKU_PHP_PLATFORM_REPOSITORIES$'
 have_custom_platform_repos="${HEROKU_PHP_PLATFORM_REPOSITORIES:+1}"
 HEROKU_PHP_PLATFORM_REPOSITORIES="${platform_repo_url} ${HEROKU_PHP_PLATFORM_REPOSITORIES:-}"
@@ -584,7 +584,7 @@ else
 		'$COMPOSER_LOCK' are compatible with the list above, and ensure
 		all required extensions are available for the desired runtimes.
 		
-		When choosing a PHP runtimes and extensions, please also ensure
+		When choosing a PHP runtime and extensions, please also ensure
 		they are available on your app's stack ($STACK), and select
 		a different stack if needed after consulting the article below.
 		

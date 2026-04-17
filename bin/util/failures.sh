@@ -24,7 +24,7 @@ detect_platform_solving_failures() {
 	failures+=("requirements.extension.mysql")
 	warnings+=("ext-mysql not available for selected PHP version")
 	
-	# FIXME: detect multiple conflicing requirements (e.g. from require and require-dev)?
+	# FIXME: detect multiple conflicting requirements (e.g. from require and require-dev)?
 	
 	# regex_failures expects variable names, not values, as it dereferences the arrays
 	regex_failures regexes failures warnings || echo "unknown"
