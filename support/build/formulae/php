@@ -39,7 +39,9 @@ dep_manifest=${dep_package}.composer.json
 
 # When we add support for a new stack, we only build PHP versions that at that time are
 # still in "Active support" upstream: https://www.php.net/supported-versions.php
-# Keep this list in sync with php_on_stack? in test/spec/spec_helper.rb
+# Keep this list in sync with the PHP version lists in:
+# - support/devcenter/generate.php
+# - test/spec/spec_helper.rb
 case "$STACK" in
 	heroku-22)
 		# 8.0 could not be built on jammy due to OpenSSL 3

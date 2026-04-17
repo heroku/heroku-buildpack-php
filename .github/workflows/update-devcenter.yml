@@ -4,7 +4,8 @@ env:
   # ensure these are in sync with other relevant workflow files
   setup_php_php_version: "8.4"
   setup_php_composer_version: "2.9"
-  # ensure these also match the input defaults below
+  # ensure these also match the input defaults below, and also keep in sync with
+  # the stack versions in support/devcenter/generate.php
   stacks_list_for_shell_expansion: "{heroku-22-amd64,heroku-24-amd64,heroku-26-amd64}"
   repo_path_suffix: "-stable/"
 
