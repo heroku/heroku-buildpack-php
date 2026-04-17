@@ -211,7 +211,7 @@ describe "The PHP Platform Installer" do
 			expect(@providedextensionslog_tmpfile.read)
 				.to include("symfony/polyfill-uuid heroku-sys/ext-uuid:*")
 				.and include("dummypak/ext-pq-polyfill heroku-sys/ext-pq:*")
-				.and include("dummypak/ext-imap-polyfill heroku-sys/ext-imap:8.3.0")
+				.and include("dummypak/ext-imap-polyfill heroku-sys/ext-imap:8.4.0")
 				.and include("symfony/polyfill-ctype heroku-sys/ext-ctype:*")
 		end
 		
@@ -394,12 +394,12 @@ describe "The PHP Platform Installer" do
 					expect(app.output).to include("detected userland polyfill packages for PHP extensions")
 					expect(app.output).not_to include("- ext-mbstring") # ext not required by any dependency, so should not be installed or even attempted ("- ext-mbstring...")
 					out_before_polyfills, out_after_polyfills = app.output.split("detected userland polyfill packages for PHP extensions", 2)
-					expect(out_before_polyfills).to include("- php (8.3")
+					expect(out_before_polyfills).to include("- php (8.4")
 					expect(out_after_polyfills).to include("- ext-ctype (already enabled)")
 					expect(out_after_polyfills).to include("- ext-raphf (") # ext-pq, which we required, depends on it
 					expect(out_after_polyfills).to include("- ext-pq (")
 					expect(out_after_polyfills).to include("- ext-uuid (")
-					expect(out_after_polyfills).to include("- ext-imap (bundled with php)")
+					expect(out_after_polyfills).to include("- ext-imap (")
 					
 					expect(app.bin_report_dump).to match(
 						"bootstrap.duration" => a_kind_of(Float),

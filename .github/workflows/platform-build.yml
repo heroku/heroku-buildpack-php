@@ -19,6 +19,8 @@ on:
         - heroku-22-amd64
         - heroku-24-amd64
         - heroku-24-arm64
+        - heroku-26-amd64
+        - heroku-26-arm64
         required: true
       dry-run:
         description: 'Build packages without deploying to S3 (e.g. for testing a formula)'

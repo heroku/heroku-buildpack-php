@@ -71,7 +71,9 @@ describe "A PHP application" do
 		end
 	end
 	
-	context "that uses the ScoutAPM integration for Laravel" do
+	# ScoutAPM doesn't yet support PHP 8.4, so this test can only be run on Heroku-24 and older:
+	# https://github.com/scoutapp/scout-apm-php/issues/314
+	context "that uses the ScoutAPM integration for Laravel", :requires_php_on_stack => "8.3" do
 		it "does not download and start the ScoutAPM agent during a build" do
 			app = new_app_with_stack_and_platrepo(
 				"test/fixtures/bugs/scoutapm",
