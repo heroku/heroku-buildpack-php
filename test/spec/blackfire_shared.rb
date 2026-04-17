@@ -129,7 +129,7 @@ shared_examples "A PHP application using ext-blackfire and" do |agent|
 							out = @run[idx]
 							expect(out).not_to match(/\[Info\]/) # this message should not occur if defaults are applied correctly
 						end
-						it "preparations launches blackfire CLI, but not the extension, with #{script}", if: mode != "with default BLACKFIRE_LOG_LEVEL" do
+						it "boot preparations launches blackfire CLI, but not the extension, with #{script}", if: mode != "with default BLACKFIRE_LOG_LEVEL" do
 							out = @run[idx]
 							
 							out_before_fpm, out_after_fpm = out.unansi.split("Starting php-fpm", 2)

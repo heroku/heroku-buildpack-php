@@ -46,7 +46,7 @@ Several fixtures test basic cgroup structures and limits, missing memory control
 
 ## Generating fixtures with Docker
 
-Running the script `test/fixtures/cgroup/gen-docker-cases.sh` (from the root dir of the buildpack) generates `test/fixtures/cgroup/docker-…` cases using the currently configured Docker cgroup driver and version (which it gets from `docker info`).
+Running the script `test/fixtures/cgroups/gen-docker-cases.sh` (from the root dir of the buildpack) generates `test/fixtures/cgroups/docker-…` cases using the currently configured Docker cgroup driver and version (which it gets from `docker info`).
 
 These should not be committed to the repo, as not all permutations are needed, but it can be used as a starting point for building or updating other fixtures.
 

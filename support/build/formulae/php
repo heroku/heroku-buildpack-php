@@ -174,7 +174,7 @@ cp ${dep_dirname}/php.ini-production ${OUT_PREFIX}/etc/php/php.ini
 # next, include any more specific config files that we have created
 IFS='.' read -r -a version <<< "$dep_version" # read the parts of $dep_version into an array, e.g. (8 3 33)
 # iterate over version parts so we try "" (from index 0) first, then "8", then "8/3/", then "8/3/33" for a version "8.3.33"
-# in each case, we copy anything that's in that directory; more specific version configs will this overwrite less specific ones
+# in each case, we copy anything that's in that directory; more specific version configs will thus overwrite less specific ones
 echo "-----> Copying version-specific php.ini files..."
 for (( i = 0; i < ${#version[@]}; i++)); do
 	version_dir=$(IFS=/; echo "${version[*]:0:$i}") # set IFS to "/" for merging, but echo is a builtin, so it must be a subshell and a separate command
