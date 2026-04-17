@@ -1145,7 +1145,7 @@
 
 ## [v203] - 2021-12-17
 
-## ADD
+### ADD
 
 - PHP/7.4.27 [David Zuelke]
 - PHP/8.0.14 [David Zuelke]
@@ -1155,7 +1155,7 @@
 - ext-psr/1.1.0 (for PHP 7.2) [David Zuelke]
 - ext-psr/1.2.0 (for PHP 7.3+) [David Zuelke]
 
-## [v202] - 2012-12-10
+## [v202] - 2021-12-10
 
 ### ADD
 
@@ -1836,7 +1836,7 @@
 
 - Enable zend.assertions on Heroku CI [David Zuelke]
 - Boot scripts now prefer a `composer` binary on `$PATH` over a `composer.phar` in the CWD [David Zuelke]
-- Refactor logic used to prevent APM extensions such as `ext-newrelic` or `ext-blackfire` from starting up during during boot preparations or builds [David Zuelke]
+- Refactor logic used to prevent APM extensions such as `ext-newrelic` or `ext-blackfire` from starting up during boot preparations or builds [David Zuelke]
 - Patch `libc-client`, used by PHP's `ext-imap`, to use SNI if possible (required with TLSv1.3) [David Zuelke]
 - Composer/1.9.0 [David Zuelke]
 
@@ -2052,7 +2052,7 @@
 - Translate `NEW_RELIC_LOG_LEVEL` values "verbose" and "verbosedebug" to "debug" for `newrelic-daemon` [David Zuelke]
 - librdkafka/0.11.6 [David Zuelke]
 
-## [v145] - 2019-10-16
+## [v145] - 2018-10-16
 
 ### ADD
 
@@ -2067,7 +2067,7 @@
 
 - Nginx reports "localhost" instead of requested hostname in SERVER_NAME FastCGI variable (#264) [David Zuelke]
 
-## [v144] - 2019-09-13
+## [v144] - 2018-09-13
 
 ### ADD
 
@@ -2111,7 +2111,7 @@
 
 ### CHG
 
-- Verbose error messasge on `bin/detect` failure [David Zuelke]
+- Verbose error message on `bin/detect` failure [David Zuelke]
 - Emit brief warnings for common regexed build failure cases [David Zuelke]
 - Run most internal 'composer' invocations using '--no-plugins' [David Zuelke]
 - Composer/1.7.1 [David Zuelke]
@@ -3009,7 +3009,7 @@
 
 ### FIX
 
-- Apache `mod_proxy_fgci`'s "disablereuse=off" config flag causes intermittent blank pages with HTTPD 2.4.11+ [David Zuelke]
+- Apache `mod_proxy_fcgi`'s "disablereuse=off" config flag causes intermittent blank pages with HTTPD 2.4.11+ [David Zuelke]
 - Applications on cedar-10 can select non-existing PHP 7.0.0beta1 package via composer.json [David Zuelke]
 
 ## [v70] - 2015-07-10
@@ -3112,7 +3112,7 @@
 
 ### FIX
 
-- Incorrect 'child 123 said into stderr' removal for lines that are deemed to long by FPM and cut off using a terminating '...' sequence instead of closing double quotes [David Zuelke]
+- Incorrect 'child 123 said into stderr' removal for lines that are deemed too long by FPM and cut off using a terminating '...' sequence instead of closing double quotes [David Zuelke]
 
 ## [v62] - 2015-02-04
 

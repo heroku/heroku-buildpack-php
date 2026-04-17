@@ -19,7 +19,7 @@ install_newrelic_userini() {
 			build_report::set_string failure_reason apm.automagic.newrelic.NEW_RELIC_CONFIG_FILE.missing
 			build_report::set_string failure_detail "$NEW_RELIC_CONFIG_FILE"
 			error <<-EOF
-				Config var 'NEW_RELIC_CONFIG_FILE' points to non existing file
+				Config var 'NEW_RELIC_CONFIG_FILE' points to a non-existent file
 				'${NEW_RELIC_CONFIG_FILE}'
 			EOF
 		fi

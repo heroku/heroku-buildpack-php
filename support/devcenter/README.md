@@ -1,6 +1,6 @@
 # Dev Center PHP Support Article and Changelog Generators
 
-For updating the devcenter article there is a [PHP update-devcenter](https://github.com/heroku/heroku-buildpack-php/actions/workflows/update-devcenter.yml) GitHub action.
+For updating the Dev Center article there is a [PHP update-devcenter](https://github.com/heroku/heroku-buildpack-php/actions/workflows/update-devcenter.yml) GitHub action.
 
 ## PHP Support Generator
 

@@ -595,7 +595,7 @@ else
 		'$COMPOSER_LOCK' are compatible with the list above, and ensure
 		all required extensions are available for the desired runtimes.
 		
-		When choosing a PHP runtimes and extensions, please also ensure
+		When choosing a PHP runtime and extensions, please also ensure
 		they are available on your app's stack ($STACK), and select
 		a different stack if needed after consulting the article below.
 		

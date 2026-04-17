@@ -8,7 +8,7 @@
 
 PHP can be extended with so-called *extensions*, which are typically written in C and interface with the engine through specific APIs. These extensions most commonly provide bindings to native system libraries (e.g. `ext-amqp` for `libamqp`) to expose functionality to applications, but they can also hook into the PHP engine to enable certain features or insights (e.g. `ext-newrelic` for instrumentation).
 
-Unlike language ecosystems such as Python or Ruby, PHP has no widely established and standardized method of compiling installing native extensions on a per-project basis during installation of an application's dependencies.
+Unlike language ecosystems such as Python or Ruby, PHP has no widely established and standardized method of compiling and installing native extensions on a per-project basis during installation of an application's dependencies.
 
 The [Composer](https://getcomposer.org) project is PHP's de-facto standard package manager. Through a `composer.json` file, applications express their dependencies; a dependency can be another user-land package, or a so-called *platform package*: a PHP runtime, or an extension. For user-land dependencies, the graph of requirements is reconciled at `composer update` time; platform package requirements are recorded separately. Together, they are written to the lock file, `composer.lock`, which enables reliable, stable installation of dependencies across environments.
 
@@ -109,9 +109,9 @@ From this, the buildpack would create a "platform package" `.heroku/php/composer
     	]
     }
 
-The structure of the originally required packages, such as `mongodb/mongodb`, is kept intact. This is done both to ensure that combinations requirements are taken into account the same way Composer does (two packages can have requirements for the same, say, `php` platform package), as well as to aid debugging: if, in the example above, `ext-mongodb` wasn't available on Heroku, then the error message from Composer would indicate that package `mongodb/mongodb` requires a non-existent package, and the user attempting the deploy would immediately understand why.
+The structure of the originally required packages, such as `mongodb/mongodb`, is kept intact. This is done both to ensure that combination requirements are taken into account the same way Composer does (two packages can have requirements for the same, say, `php` platform package), as well as to aid debugging: if, in the example above, `ext-mongodb` wasn't available on Heroku, then the error message from Composer would indicate that package `mongodb/mongodb` requires a non-existent package, and the user attempting the deploy would immediately understand why.
 
-The requirements from the main `composer.json`, which in `composer.lock` are located in the `platform` key, are moved to their own meta-package named "`composer.json/composer.lock`"; this is again to ensure that these dependencies are honored correctly in combination will all the other requirements, and that users would get an immediately readable error message if a required package isn't available.
+The requirements from the main `composer.json`, which in `composer.lock` are located in the `platform` key, are moved to their own meta-package named "`composer.json/composer.lock`"; this is again to ensure that these dependencies are honored correctly in combination with all the other requirements, and that users would get an immediately readable error message if a required package isn't available.
 
 Also included, but omitted from the above example for brevity, are other packages such as the Nginx and Apache web servers, which users cannot directly specify as dependencies, but which are installed using the same mechanism as PHP or PHP extensions.
 
@@ -253,7 +253,7 @@ Package `name`s must be prefixed with "`heroku-sys/`". Possible `type`s are `her
 
 The special package type `heroku-sys-package` is used for internal packages used for bootstrapping (e.g. a minimal PHP build).
 
-The `require`d package `heroku/installer-plugin` will be available during install. Package `heroku-sys/heroku` is a virtual package `provide`d by the platform `composer.json` generated in `bin/compile` and has the right stack version (either "`18`" or "`20`"); the selector for `heroku-sys/php` ensures that the package only applies to PHP 8.1.x.
+The `require`d package `heroku/installer-plugin` will be available during install. Package `heroku-sys/heroku` is a virtual package `provide`d by the platform `composer.json` generated in `bin/compile` and has the right Heroku stack version ("`22`"); the selector for `heroku-sys/php` ensures that the package only applies to PHP 8.1.x.
 
 ### Manifest Helpers
 
@@ -446,7 +446,7 @@ For most packages, the `export` key is never needed; the `profile` key is someti
 
 #### Extra: Shared
 
-As package of type `heroku-sys-php` may come bundled with a bunch of extensions, it must list the all statically-built-in extensions in the `replace` section of its manifest; all extensions built as `shared` must instead be generated as separate packages (see further above). In order to allow external tooling to still quickly determine which packages belong to a PHP release, an entry for each shared extension should be generated in struct `extra.shared`, with package names as keys and `false` as the value.
+As package of type `heroku-sys-php` may come bundled with a bunch of extensions, it must list all statically-built-in extensions in the `replace` section of its manifest; all extensions built as `shared` must instead be generated as separate packages (see further above). In order to allow external tooling to still quickly determine which packages belong to a PHP release, an entry for each shared extension should be generated in struct `extra.shared`, with package names as keys and `false` as the value.
 
 *Example: `curl -s https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-amd64-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php" and .require["heroku/installer-plugin"] == "^1.6.0") ][0] | {extra: {shared: .extra.shared}}'`*
 
@@ -620,7 +620,7 @@ After testing builds, the contents of that "develop" repository can then be sync
 
 The `sync.sh` script automatically detects additions, updates and removals based on manifests. It will also warn if the source `packages.json` is not up to date with its manifests, and prompt for confirmation before syncing.
 
-If option `-c` is given to `mkrepo.sh`, the option value will be treated as a "snapshot" identifier. In this case, the snapshot must exist in the source bucket, but is not allowed to already exist in the destination bucket. This prevents the modification of existing buckets:
+If option `-c` is given to `sync.sh`, the option value will be treated as a "snapshot" identifier. In this case, the snapshot must exist in the source bucket, but is not allowed to already exist in the destination bucket. This prevents the modification of existing buckets:
 
     ~ $ sync.sh -c "$(formulae-hash.sh)" my-bucket dist-heroku-24-amd64-stable/ us-east-1 my-bucket dist-heroku-24-amd64-develop/ us-east-1
 
@@ -628,7 +628,7 @@ If option `-c` is given to `mkrepo.sh`, the option value will be treated as a "s
 
 #### Syncing from Upstream
 
-You will usually use an [Upstream Bucket](#understanding-upstream-buckets) to ensure that Bob will pull dependencies from Heroku's official bucket without having to worry about maintaining packages up the dependency tree, such as library or PHP prerequsites for an extension.
+You will usually use an [Upstream Bucket](#understanding-upstream-buckets) to ensure that Bob will pull dependencies from Heroku's official bucket without having to worry about maintaining packages up the dependency tree, such as library or PHP prerequisites for an extension.
 
 However, in rare circumstances, such as when you want to fully host all platform packages including PHP yourself and have the official repository disabled for your app, you either need to build all packages from scratch, or sync the Heroku builds from the official repository:
 
