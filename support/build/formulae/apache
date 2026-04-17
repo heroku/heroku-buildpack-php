@@ -17,8 +17,8 @@ dep_package=${dep_name}-${dep_build}
 dep_dirname=httpd-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
 dep_url=https://archive.apache.org/dist/httpd/${dep_archive_name}
-apr_url=https://archive.apache.org/dist/apr/apr-1.6.3.tar.gz
-aprutil_url=https://archive.apache.org/dist/apr/apr-util-1.6.1.tar.gz
+apr_url=https://archive.apache.org/dist/apr/apr-1.7.6.tar.gz
+aprutil_url=https://archive.apache.org/dist/apr/apr-util-1.6.3.tar.gz
 dep_manifest=${dep_package}.composer.json
 
 echo "-----> Building ${dep_name} (${dep_version})..."
