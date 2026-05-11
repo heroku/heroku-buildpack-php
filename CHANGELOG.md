@@ -15,6 +15,7 @@
 
 - Apache/2.4.67
 - blackfire/2026.4.2
+- librdkafka/2.14.1
 
 ## [v287] - 2026-04-17
 
