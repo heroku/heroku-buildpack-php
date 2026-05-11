@@ -11,6 +11,10 @@
 - ext-blackfire/2026.4.1
 - ext-mongodb/2.3.1
 
+### CHG
+
+- Apache/2.4.67
+
 ## [v287] - 2026-04-17
 
 ### CHG
