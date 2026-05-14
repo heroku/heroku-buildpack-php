@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Allow PHP 8.5 for apps that do not explicitly require a PHP version.
 
 ## [v288] - 2026-05-12
 

@@ -14,7 +14,7 @@
     "replace": {},
     "require": {
         "composer.json\/composer.lock": "dev-93d2b466348eca908189088d43f9fb1a",
-        "heroku-sys\/php": "^8.1.0 <8.5",
+        "heroku-sys\/php": "^8.1.0 <8.6",
         "heroku-sys\/composer": "*",
         "heroku-sys\/composer-plugin-api": "^2",
         "heroku-sys\/apache": "^2.4.10",

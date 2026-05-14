@@ -451,7 +451,7 @@ build_report::start_timer platform.prepare
 
 status "Preparing platform package installation..."
 
-HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^8.1.0 <8.5"
+HEROKU_PHP_DEFAULT_RUNTIME_VERSION="^8.1.0 <8.6"
 export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 # extract requirements from composer.lock
 { platform_stderr=$(/app/.heroku/php-min/bin/php $bp_dir/bin/util/platform.php ${have_custom_platform_repos:+"--list-repositories"} "$bp_dir/support/installer/" $HEROKU_PHP_PLATFORM_REPOSITORIES 2>&1 >$build_dir/.heroku/php/composer.json | tee >(indent > /dev/stderr)); } || {
