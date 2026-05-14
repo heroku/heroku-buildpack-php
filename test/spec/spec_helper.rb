@@ -55,7 +55,7 @@ def expect_exit(expect: :to, operator: :eq, code: 0)
 end
 
 def expected_default_php(stack)
-	"8.4"
+	"8.5"
 end
 
 # Keep this list in sync with the supported_series values in support/build/formulae/php
