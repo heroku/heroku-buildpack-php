@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v289] - 2026-05-19
+
 ### CHG
 
 - Allow PHP 8.5 for apps that do not explicitly require a PHP version.
@@ -3209,7 +3212,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v288...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v289...main
+[v289]: https://github.com/heroku/heroku-buildpack-php/compare/v288...v289
 [v288]: https://github.com/heroku/heroku-buildpack-php/compare/v287...v288
 [v287]: https://github.com/heroku/heroku-buildpack-php/compare/v286...v287
 [v286]: https://github.com/heroku/heroku-buildpack-php/compare/v285...v286
