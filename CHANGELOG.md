@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v290] - 2026-05-21
+
 ### CHG
 
 - nginx/1.30.1
@@ -3215,7 +3218,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v289...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v290...main
+[v290]: https://github.com/heroku/heroku-buildpack-php/compare/v289...v290
 [v289]: https://github.com/heroku/heroku-buildpack-php/compare/v288...v289
 [v288]: https://github.com/heroku/heroku-buildpack-php/compare/v287...v288
 [v287]: https://github.com/heroku/heroku-buildpack-php/compare/v286...v287
