@@ -18,6 +18,7 @@
 - Apache/2.4.68
 - Composer/2.2.28
 - Composer/2.9.8
+- blackfire/2026.6.0
 
 ## [v291] - 2026-05-26
 
