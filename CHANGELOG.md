@@ -8,6 +8,7 @@
 - PHP/8.4.22
 - ext-blackfire/2026.5.0
 - ext-mongodb/2.3.3
+- ext-newrelic/12.7.0.36
 
 ## [v291] - 2026-05-26
 
