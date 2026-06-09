@@ -11,6 +11,7 @@
 - ext-newrelic/12.7.0.36
 - ext-grpc/1.81.0
 - ext-phalcon/5.13.0
+- Composer/2.10.1
 
 ### CHG
 
