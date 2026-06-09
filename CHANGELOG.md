@@ -7,6 +7,7 @@
 - PHP/8.5.7
 - PHP/8.4.22
 - ext-blackfire/2026.5.0
+- ext-mongodb/2.3.3
 
 ## [v291] - 2026-05-26
 
