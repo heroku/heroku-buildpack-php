@@ -2,6 +2,24 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.5.7
+- PHP/8.4.22
+- ext-blackfire/2026.5.0
+- ext-mongodb/2.3.3
+- ext-newrelic/12.7.0.36
+- ext-grpc/1.81.0
+- ext-phalcon/5.13.0
+- Composer/2.10.1
+
+### CHG
+
+- Apache/2.4.68
+- Composer/2.2.28
+- Composer/2.9.8
+- blackfire/2026.6.0
+- librdkafka/2.14.2
 
 ## [v291] - 2026-05-26
 
