@@ -19,6 +19,7 @@
 - Composer/2.2.28
 - Composer/2.9.8
 - blackfire/2026.6.0
+- librdkafka/2.14.2
 
 ## [v291] - 2026-05-26
 
