@@ -38,7 +38,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Expand list of manifests to remove
         run: |
           echo '## Manifests input for removal' >> "$GITHUB_STEP_SUMMARY"
