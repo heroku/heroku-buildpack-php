@@ -43,7 +43,7 @@ jobs:
       formulae: ${{ steps.expand-formulae.outputs.matrix }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - id: expand-formulae
         name: Expand list of given formulae
         run: |
@@ -58,7 +58,7 @@ jobs:
     runs-on: ${{ endsWith(inputs.stack, '-arm64') && 'ubuntu-24.04-arm' || 'ubuntu-24.04' }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Cache Docker build
         id: cache-docker
         uses: actions/cache@v6
@@ -88,7 +88,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Restore cached Docker build
         uses: actions/cache/restore@v6
         with:
@@ -128,7 +128,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Restore cached Docker build
         uses: actions/cache/restore@v6
         with:

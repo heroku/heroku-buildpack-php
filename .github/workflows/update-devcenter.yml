@@ -42,7 +42,7 @@ jobs:
       diff_result: ${{ steps.diff.outputs.diff_result }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Perform platform repo snapshot checks
         id: platform-repo-snapshot-calc
         uses: ./.github/actions/platform-repo-snapshot-calc
@@ -179,7 +179,7 @@ jobs:
       HEROKU_DEVCENTER_API_TOKEN:  ${{ secrets.HEROKU_DEVCENTER_API_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install dos2unix
         run: sudo apt-get install dos2unix
       - name: Download current Dev Center article markdown
