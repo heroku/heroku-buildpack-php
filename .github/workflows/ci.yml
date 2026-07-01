@@ -40,7 +40,7 @@ jobs:
         os: ["ubuntu-22.04", "ubuntu-24.04"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install Ruby and Bundler
         uses: ruby/setup-ruby@v1
         with:
@@ -52,7 +52,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Run buildpack using default app fixture
         run: make run
   integration-test:
@@ -70,7 +70,7 @@ jobs:
       PARALLEL_TEST_RUNTIME_LOG: test/var/log/parallel_runtime_rspec.${{ matrix.stack }}.log
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Calculate stack identifier and suffix for platform repo URL
         id: platform-repo-url-inputs
         run: |

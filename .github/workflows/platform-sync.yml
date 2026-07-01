@@ -69,7 +69,7 @@ jobs:
         stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Cache Docker build
         id: cache-docker
         uses: actions/cache@v6
@@ -98,7 +98,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Restore cached Docker build
         uses: actions/cache/restore@v6
         with:
@@ -169,7 +169,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install PHP and Composer
         uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
