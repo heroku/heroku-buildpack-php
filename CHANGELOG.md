@@ -10,6 +10,7 @@
 - PHP/8.5.8
 - ext-grpc/1.82.0
 - ext-newrelic/12.8.0.37
+- ext-blackfire/2026.7.0
 
 ## [v292] - 2026-06-09
 
