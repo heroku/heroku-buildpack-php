@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.2.32
+- PHP/8.3.32
+- PHP/8.4.23
+- PHP/8.5.8
+- ext-grpc/1.82.0
+- ext-newrelic/12.8.0.37
+- ext-blackfire/2026.7.0
+- ext-phalcon/5.16.0
+
+### CHG
+
+- blackfire/2026.6.1
+- nginx/1.30.3
+- Composer/2.10.2
+- librdkafka/2.15.0
 
 ## [v292] - 2026-06-09
 
