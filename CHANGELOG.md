@@ -18,6 +18,7 @@
 - blackfire/2026.6.1
 - nginx/1.30.3
 - Composer/2.10.2
+- librdkafka/2.15.0
 
 ## [v292] - 2026-06-09
 
