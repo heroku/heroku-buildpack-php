@@ -18,6 +18,7 @@
 
 - blackfire/2026.7.0
 - nginx/1.30.4
+- `ext-phalcon` is now available on Heroku-26 (PHP 8.4 and 8.5). ([#927](https://github.com/heroku/heroku-buildpack-php/issues/927))
 
 ## [v293] - 2026-07-08
 
