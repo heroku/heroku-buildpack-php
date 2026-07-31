@@ -11,6 +11,7 @@
 - ext-event/3.1.6
 - ext-grpc/1.83.0
 - ext-newrelic/12.9.0.38
+- ext-phalcon/5.17.0
 
 ## [v293] - 2026-07-08
 
