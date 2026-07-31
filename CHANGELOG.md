@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.2.33
+- PHP/8.3.33
+- PHP/8.4.24
+- PHP/8.5.9
+- ext-event/3.1.6
+- ext-grpc/1.83.0
+- ext-newrelic/12.9.0.38
+- ext-phalcon/5.17.0
+- ext-blackfire/2026.7.1
+
+### CHG
+
+- blackfire/2026.7.0
+- nginx/1.30.4
 
 ## [v293] - 2026-07-08
 
