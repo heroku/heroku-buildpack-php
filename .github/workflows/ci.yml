@@ -30,6 +30,13 @@ env:
   setup_ruby_ruby_version: "4.0"
 
 jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Run ShellCheck
+        run: make lint-scripts
   unit-test:
     runs-on: ${{ matrix.os }}
     strategy:
