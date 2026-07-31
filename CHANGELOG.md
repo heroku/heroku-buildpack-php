@@ -14,6 +14,10 @@
 - ext-phalcon/5.17.0
 - ext-blackfire/2026.7.1
 
+### CHG
+
+- blackfire/2026.7.0
+
 ## [v293] - 2026-07-08
 
 ### ADD
