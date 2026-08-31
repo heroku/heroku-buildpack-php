@@ -16,6 +16,8 @@
 ### CHG
 
 - blackfire/2026.8.1
+- composer/2.2.30
+- composer/2.10.3
 
 
 ## [v294] - 2026-07-31
