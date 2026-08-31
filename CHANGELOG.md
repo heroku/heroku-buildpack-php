@@ -11,6 +11,7 @@
 - ext-grpc/1.83.1
 - ext-phalcon/5.20.3
 - ext-newrelic/12.10.0.39
+- ext-blackfire/2026.8.8
 
 
 ## [v294] - 2026-07-31
