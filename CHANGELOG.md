@@ -9,6 +9,7 @@
 - ext-mongodb/1.21.7
 - ext-mongodb/2.4.1
 - ext-grpc/1.83.1
+- ext-phalcon/5.20.3
 
 
 ## [v294] - 2026-07-31
