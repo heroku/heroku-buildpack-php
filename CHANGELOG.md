@@ -13,6 +13,10 @@
 - ext-newrelic/12.10.0.39
 - ext-blackfire/2026.8.8
 
+### CHG
+
+- blackfire/2026.8.1
+
 
 ## [v294] - 2026-07-31
 
