@@ -16,12 +16,12 @@ dep_version=${dep_build%%+*} # strip build metadata off the end of the version
 dep_package=${dep_name}-${dep_build}
 dep_dirname=php-${dep_version}
 dep_archive_name=${dep_dirname}.tar.gz
-dep_url=https://php.net/get/${dep_archive_name}/from/this/mirror
+dep_url=https://www.php.net/distributions/${dep_archive_name}
 dep_manifest=${dep_package}.composer.json
 
 echo "-----> Building ${dep_name} (${dep_version})..."
 
-curl -L ${dep_url} | tar xz
+curl -fL "${dep_url}" | tar xz
 
 pushd ${dep_dirname}
 
