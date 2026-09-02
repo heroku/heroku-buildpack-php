@@ -117,7 +117,7 @@ $handlerStack->push(GuzzleHttp\Middleware::retry(function($times, $req, $res, $e
 	if($res && $res->getStatusCode() >= 500) return true;
 	return false;
 }));
-$client = new GuzzleHttp\Client(['handler' => $handlerStack, "timeout" => "2.0"]);
+$client = new GuzzleHttp\Client(['handler' => $handlerStack, "timeout" => 2.0]);
 
 $repositories = [];
 $responses = GuzzleHttp\Pool::batch($client, (function() use($posArgs, $client) {
