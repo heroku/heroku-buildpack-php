@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.4.25
+- PHP/8.5.10
+- ext-mongodb/1.21.7
+- ext-mongodb/2.4.1
+- ext-grpc/1.83.1
+- ext-phalcon/5.20.3
+- ext-newrelic/12.10.0.39
+- ext-blackfire/2026.8.8
+
+### CHG
+
+- blackfire/2026.8.1
+- composer/2.2.30
+- composer/2.10.3
+
 
 ## [v294] - 2026-07-31
 
