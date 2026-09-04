@@ -4,6 +4,9 @@ updates:
     directory: "/"
     schedule:
       interval: "monthly"
+    allow:
+      # Update transitive dependencies too.
+      - dependency-type: "all"
     groups:
       test-dependencies:
         patterns:
@@ -16,6 +19,9 @@ updates:
     directory: "/support/devcenter"
     schedule:
       interval: "monthly"
+    allow:
+      # Update transitive dependencies too.
+      - dependency-type: "all"
     groups:
       devcenter-generator-dependencies:
         patterns: 
