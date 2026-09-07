@@ -28,7 +28,7 @@ GEM
       webrick
     logger (1.7.0)
     moneta (1.0.0)
-    multi_json (1.20.1)
+    multi_json (1.21.1)
     parallel (2.0.1)
     parallel_tests (5.7.0)
       parallel
@@ -76,7 +76,7 @@ CHECKSUMS
   heroku_hatchet (8.0.6)
   logger (1.7.0) sha256=196edec7cc44b66cfb40f9755ce11b392f21f7967696af15d274dde7edff0203
   moneta (1.0.0) sha256=2224e5a68156e8eceb525fb0582c8c4e0f29f67cae86507cdcfb406abbb1fc5d
-  multi_json (1.20.1) sha256=2f3934e805cc45ef91b551a1f89d0e9191abd06a5e04a2ef09a6a036c452ca6d
+  multi_json (1.21.1) sha256=e6126a31808e3b4d19f483c775ceac34df190dffa62adfb63a165ee14ba68080
   parallel (2.0.1) sha256=337782d3e39f4121e67563bf91dd8ece67f48923d90698614773a0ec9a5b2c7d
   parallel_tests (5.7.0) sha256=3f1762c46ca2c223b8af8ef877217f9d76974e191bfa934f2580b58bcf1d005c
   platform-api (3.9.0) sha256=be3b919955c52649fd931a9f62d571bd6f06613de630970dc7255fc95eb7d962
