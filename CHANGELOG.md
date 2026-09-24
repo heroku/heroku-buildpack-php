@@ -6,6 +6,10 @@
 
 - Applied additional `curl` best practices such as request timeouts, retries and clearer error output. ([#991](https://github.com/heroku/heroku-buildpack-php/pull/991))
 
+### FIX
+
+- Fixed a permission error writing platform installer diagnostics to `/dev/stderr` when running as an unprivileged user, such as under herokuish. ([#981](https://github.com/heroku/heroku-buildpack-php/pull/981))
+
 ## [v295] - 2026-09-02
 
 ### ADD
