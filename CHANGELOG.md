@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v296] - 2026-09-24
+
 ### CHG
 
 - Applied additional `curl` best practices such as request timeouts, retries and clearer error output. ([#991](https://github.com/heroku/heroku-buildpack-php/pull/991))
@@ -3312,7 +3315,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v295...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v296...main
+[v296]: https://github.com/heroku/heroku-buildpack-php/compare/v295...v296
 [v295]: https://github.com/heroku/heroku-buildpack-php/compare/v294...v295
 [v294]: https://github.com/heroku/heroku-buildpack-php/compare/v293...v294
 [v293]: https://github.com/heroku/heroku-buildpack-php/compare/v292...v293
