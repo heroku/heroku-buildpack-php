@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Applied additional `curl` best practices such as request timeouts, retries and clearer error output. ([#991](https://github.com/heroku/heroku-buildpack-php/pull/991))
 
 ## [v295] - 2026-09-02
 
