@@ -10,6 +10,8 @@
 - PHP/8.5.11
 - ext-blackfire/2026.9.2
 - ext-grpc/1.84.0
+- ext-mongodb/1.21.10
+- ext-mongodb/2.5.3
 
 
 ## [v296] - 2026-09-24
