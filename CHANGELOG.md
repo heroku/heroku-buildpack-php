@@ -12,6 +12,7 @@
 - ext-grpc/1.84.0
 - ext-mongodb/1.21.10
 - ext-mongodb/2.5.3
+- ext-newrelic/12.11.0.40
 
 
 ## [v296] - 2026-09-24
