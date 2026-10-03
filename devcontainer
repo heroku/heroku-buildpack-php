@@ -1,0 +1,42 @@
+{
+  "name": "Heroku PHP Buildpack",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-22.04",
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {
+      "version": "latest"
+    },
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/node:18": {}
+  },
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-vscode.makefile-tools",
+        "timonwong.shellcheck",
+        "ruby.ruby-lsp",
+        "felixbecker.php-debug",
+        "felixbecker.php-intellisense",
+        "ms-python.python"
+      ],
+      "settings": {
+        "php.validate.executablePath": "/usr/bin/php",
+        "shellformat.path": "/usr/bin/shfmt",
+        "[shell]": {
+          "editor.defaultFormatter": "foxundermoon.shell-format"
+        }
+      }
+    }
+  },
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+  "forwardPorts": [8080],
+  "portsAttributes": {
+    "8080": {
+      "label": "Application",
+      "onAutoForward": "notify"
+    }
+  },
+  "remoteUser": "vscode",
+  "mounts": [
+    "source=${localEnv:HOME}${localEnv:USERPROFILE}/.ssh,target=/home/vscode/.ssh,readonly"
+  ]
+}
