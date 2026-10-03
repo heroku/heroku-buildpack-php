@@ -26,6 +26,16 @@ on:
         type: boolean
         default: true
         required: false
+      stack-heroku-26-amd64:
+        description: 'Sync heroku-26 (amd64) packages'
+        type: boolean
+        default: true
+        required: false
+      stack-heroku-26-arm64:
+        description: 'Sync heroku-26 (arm64) packages'
+        type: boolean
+        default: true
+        required: false
       dry-run:
         description: 'Only list package changes, without syncing'
         type: boolean
@@ -46,7 +56,7 @@ jobs:
         run: |
           echo '## Stacks to sync' >> "$GITHUB_STEP_SUMMARY"
           set -o pipefail
-          stacks=(${{ inputs.stack-heroku-22-amd64 == true && 'heroku-22-amd64' || ''}} ${{ inputs.stack-heroku-24-amd64 == true && 'heroku-24-amd64' || ''}} ${{ inputs.stack-heroku-24-arm64 == true && 'heroku-24-arm64' || ''}})
+          stacks=(${{ inputs.stack-heroku-22-amd64 == true && 'heroku-22-amd64' || ''}} ${{ inputs.stack-heroku-24-amd64 == true && 'heroku-24-amd64' || ''}} ${{ inputs.stack-heroku-24-arm64 == true && 'heroku-24-arm64' || ''}} ${{ inputs.stack-heroku-26-amd64 == true && 'heroku-26-amd64' || ''}} ${{ inputs.stack-heroku-26-arm64 == true && 'heroku-26-arm64' || ''}})
           printf -- "- %s\n" "${stacks[@]}" >> "$GITHUB_STEP_SUMMARY"
           echo -n "matrix=" >> "$GITHUB_OUTPUT"
           printf "%s\n" "${stacks[@]}" | jq -jcRn '[inputs|select(length>0)]' >> "$GITHUB_OUTPUT"
@@ -59,10 +69,10 @@ jobs:
         stack: ${{ fromJSON(needs.stack-list.outputs.stacks) }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Cache Docker build
         id: cache-docker
-        uses: actions/cache@v5
+        uses: actions/cache@v6
         with:
           key: docker-cache-heroku-php-build-${{matrix.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
@@ -88,9 +98,9 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Restore cached Docker build
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           key: docker-cache-heroku-php-build-${{matrix.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
@@ -159,9 +169,9 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install PHP and Composer
-        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: "${{ env.setup_php_php_version }}"
           tools: "composer:${{ env.setup_php_composer_version }}"

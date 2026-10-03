@@ -1,4 +1,6 @@
-FROM heroku/heroku:24-build.v160
+# TODO: Once Heroku-22 support is removed, combine the Heroku-24 and Heroku-26 `Dockerfile`s
+# into one using build args (since apart from the stack versions they are identical).
+FROM heroku/heroku:24-build
 
 ARG TARGETARCH
 

@@ -1,13 +1,17 @@
-FROM heroku/heroku:22-build
+# TODO: Once Heroku-22 support is removed, combine the Heroku-24 and Heroku-26 `Dockerfile`s
+# into one using build args (since apart from the stack versions they are identical).
+FROM heroku/heroku:26-build
 
 ARG TARGETARCH
+
+USER root
 
 WORKDIR /app
 ENV WORKSPACE_DIR=/app/support/build/packages
 ENV S3_BUCKET=heroku-buildpack-php
-ENV S3_PREFIX=dist-heroku-22-${TARGETARCH}-develop/
+ENV S3_PREFIX=dist-heroku-26-${TARGETARCH}-develop/
 ENV S3_REGION=us-east-1
-ENV STACK=heroku-22
+ENV STACK=heroku-26
 ENV DEBIAN_FRONTEND=noninteractive
 
 RUN apt-get update && apt-get install -y python3-pip python3-venv

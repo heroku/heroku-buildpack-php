@@ -187,6 +187,7 @@ function build_report::get_timer() {
 # build_report::clear_timer "my_timer_name"
 # ```
 function build_report::clear_timer() {
+	local key="${1}"
 	declare -gA __build_report_start_times
 	unset __build_report_start_times["${key}"]
 }

@@ -439,7 +439,7 @@ class ComposerInstallerPlugin implements PluginInterface, EventSubscriberInterfa
 		
 		$data = [];
 		// each entry in the list is a struct with variables from a package's install script
-		// we cannot simply return a list of them to the CNB, as the CNB spec only allows a single definition per environment variableper modification behavior on a layer, e.g. one single value to prepend to $PATH
+		// we cannot simply return a list of them to the CNB, as the CNB spec only allows a single definition per environment variable per modification behavior on a layer, e.g. one single value to prepend to $PATH
 		// it is, however, likely that we will have more than one variable setting from our package installs (e.g. several packages adding entries to $PATH)
 		foreach($this->layerEnvData as $entry) {
 			if(!isset($entry['modification_behavior'])) $entry['modification_behavior'] = 'override';

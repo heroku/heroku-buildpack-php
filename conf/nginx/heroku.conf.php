@@ -22,7 +22,7 @@ http {
 
 	fastcgi_buffers 256 4k;
 
-	# define an easy to reference name that can be used in fastgi_pass
+	# define an easy to reference name that can be used in fastcgi_pass
 	upstream heroku-fcgi {
 		#server 127.0.0.1:4999 max_fails=3 fail_timeout=3s;
 		server unix:/tmp/heroku.fcgi.<?=getenv('PORT')?:'8080'?>.sock max_fails=3 fail_timeout=3s;

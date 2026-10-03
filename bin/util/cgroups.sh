@@ -40,7 +40,7 @@ cgroup_util_read_cgroup2_memory_limit() {
 	
 	local f
 	local limit
-	# memory.high is the the best limit to read ("This is the main mechanism to control memory usage of a cgroup.", https://www.kernel.org/doc/html/v5.15/admin-guide/cgroup-v2.html)
+	# memory.high is the best limit to read ("This is the main mechanism to control memory usage of a cgroup.", https://www.kernel.org/doc/html/v5.15/admin-guide/cgroup-v2.html)
 	# we fall back to memory.max first (the final "safety net" limit), then memory.low (best-effort memory protection, e.g. OCI memory.reservation or Docker --memory-reservation), then finally memory.min (hard guaranteed minimum)
 	for f in "${1:?$usage}/memory.high" "${1}/memory.max" "${1}/memory.low" "${1}/memory.min"; do
 		if [[ ! -r "$f" ]]; then

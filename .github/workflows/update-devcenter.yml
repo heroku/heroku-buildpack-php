@@ -4,8 +4,9 @@ env:
   # ensure these are in sync with other relevant workflow files
   setup_php_php_version: "8.4"
   setup_php_composer_version: "2.9"
-  # ensure these also match the input defaults below
-  stacks_list_for_shell_expansion: "{heroku-22-amd64,heroku-24-amd64}"
+  # ensure these also match the input defaults below, and also keep in sync with
+  # the stack versions in support/devcenter/generate.php
+  stacks_list_for_shell_expansion: "{heroku-22-amd64,heroku-24-amd64,heroku-26-amd64}"
   repo_path_suffix: "-stable/"
 
 on:
@@ -14,10 +15,10 @@ on:
   workflow_dispatch:
     inputs:
       stacks-list-for-shell-expansion:
-        description: 'Stacks to generate for (single stack or "{heroku-22-amd64,heroku-24-amd64}" style expansion list)'
+        description: 'Stacks to generate for (single stack or "{heroku-22-amd64,heroku-24-amd64,heroku-26-amd64}" style expansion list)'
         type: string
          # make sure this matches the default value in env: above
-        default: '{heroku-22-amd64,heroku-24-amd64}'
+        default: '{heroku-22-amd64,heroku-24-amd64,heroku-26-amd64}'
         required: true
       repo-path-suffix:
         description: 'Path suffix for repository URLs (e.g. "-develop/" or "-stable/")'
@@ -41,7 +42,7 @@ jobs:
       diff_result: ${{ steps.diff.outputs.diff_result }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Perform platform repo snapshot checks
         id: platform-repo-snapshot-calc
         uses: ./.github/actions/platform-repo-snapshot-calc
@@ -57,7 +58,7 @@ jobs:
       - name: Install dos2unix
         run: sudo apt-get install dos2unix
       - name: Install PHP and Composer
-        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: "${{ env.setup_php_php_version }}"
           tools: "composer:${{ env.setup_php_composer_version }}"
@@ -117,7 +118,7 @@ jobs:
             echo "${start},${end} ${f}" >> php-support.md.ed-unordered.txt
           done
           num_sections=$(set -o pipefail; wc -l php-support.md.ed-unordered.txt | awk '{ print $1 }')
-          (( $num_sections > 0 )) || echo "::warning title=No sections matched in input markdown::None of the generated sections coud be matched against the input markdown. No updates will occur."
+          (( $num_sections > 0 )) || echo "::warning title=No sections matched in input markdown::None of the generated sections could be matched against the input markdown. No updates will occur."
           echo "num_sections=${num_sections}" >> "$GITHUB_OUTPUT"
       - name: Patch Dev Center article markdown
         if: steps.find-section-markers.outputs.num_sections > 0
@@ -178,7 +179,7 @@ jobs:
       HEROKU_DEVCENTER_API_TOKEN:  ${{ secrets.HEROKU_DEVCENTER_API_TOKEN }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install dos2unix
         run: sudo apt-get install dos2unix
       - name: Download current Dev Center article markdown
