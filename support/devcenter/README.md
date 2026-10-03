@@ -1,5 +1,7 @@
 # Dev Center PHP Support Article and Changelog Generators
 
+For updating the Dev Center article there is a [PHP update-devcenter](https://github.com/heroku/heroku-buildpack-php/actions/workflows/update-devcenter.yml) GitHub action.
+
 ## PHP Support Generator
 
 The `generate.php` tool will, given platform repository URLs as arguments, generate:
@@ -25,13 +27,13 @@ First, `composer install` the dependencies.
 By default, all sections will be generated:
 
 ```ShellSession
-$ ./generate.php https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-{22,24-amd64}-stable/packages.json
+$ ./generate.php https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-{22,24-amd64,26-amd64}-stable/packages.json
 ```
 
 You may also generate any of the five sections individually using the `--runtimes`, `--built-in-extensions`, `--third-party-extensions`, `--composers`, or `--webservers` options:
 
 ```ShellSession
-$ ./generate.php --third-party-extensions https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-{22,24-amd64}-stable/packages.json
+$ ./generate.php --third-party-extensions https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-{22,24-amd64,26-amd64}-stable/packages.json
 ```
 
 You'd usually pipe the output into e.g. `pbcopy` and then update the Dev Center article.
@@ -50,8 +52,8 @@ It will then generate a list of new PHP releases, extensions, Composer versions,
 
 First, `composer install` the dependencies.
 
-Assuming you ran a `sync.sh` job for two stacks (say, heroku-22-amd64 and heroku-24-amd64) and `tee`d the outputs into `sync-heroku-{22,24}-amd64.log`:
+Assuming you ran a `sync.sh` job for three stacks (say, heroku-22-amd64, heroku-24-amd64 and heroku-26-amd64) and `tee`d the outputs into `sync-heroku-{22,24,26}-amd64.log`:
 
 ```ShellSession
-cat `sync-heroku-{22,24}-amd64.log | ./changelog.php`
+cat `sync-heroku-{22,24,26}-amd64.log | ./changelog.php`
 ```

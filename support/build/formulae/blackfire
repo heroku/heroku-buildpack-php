@@ -30,7 +30,7 @@ mv blackfire ${bin_dir}/
 
 find ${OUT_PREFIX} -type f \( -executable -o -name '*.a' \) -exec sh -c "file -i '{}' | grep -Eq 'application/x-(archive|(pie-)?executable|sharedlib); charset=binary'" \; -print | xargs strip --strip-unneeded
 
-# these env var defaults we want both during a build (used in the INI futher below) and at boot time
+# these env var defaults we want both during a build (used in the INI further below) and at boot time
 tee ${OUT_PREFIX}/bin/export.blackfire.sh > ${OUT_PREFIX}/bin/profile.blackfire.sh <<'EOF'
 # hard-code these two; no need for users to override them
 export BLACKFIRE_LOG_FILE=stderr
@@ -53,7 +53,7 @@ blackfire_pid=$!
 
 # give it a moment to start up...
 while ! test -S "${BLACKFIRE_AGENT_SOCKET#"unix://"}"; do
-	# ...unless it somehow crashes on start, then we have to bail to prevent an infite loop
+	# ...unless it somehow crashes on start, then we have to bail to prevent an infinite loop
 	if ! kill -0 $blackfire_pid 2> /dev/null; then # kill -0 checks if process exists
 		echo "Failed to start blackfire agent!" >&2
 		break;

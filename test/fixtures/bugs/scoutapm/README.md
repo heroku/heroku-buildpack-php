@@ -50,11 +50,11 @@ SCOUT_NAME=test
 
 ### 3. Trim down the `scoutapm/` directory contents
 
-1. Remove everything except `.gitignore`, `artisan`, `bootstrap/`, `composer.json`, `composer.lock`, and any untracked files(we clean those up at the end):
+1. Remove everything except `.gitignore`, `artisan`, `bootstrap/`, `composer.json`, `composer.lock`, and any untracked files (we clean those up at the end):
    ```ShellSession
    $ git rm -r !(.gitignore|artisan|bootstrap|composer.json|composer.lock$(git check-ignore -- * | xargs printf "|%s"))
    ```
-1. Remove the `--withRouting` part from `boostrap/app.php`:
+1. Remove the `--withRouting` part from `bootstrap/app.php`:
    ```diff
    diff --git a/bootstrap/app.php b/bootstrap/app.php
    index 7b162da..43175b5 100644
@@ -118,7 +118,7 @@ SCOUT_NAME=test
    ```ShellSession
    $ composer require --no-scripts scoutapp/scout-apm-laravel
    ```
-1. The `php artisan vendor:publish --provider="Scoutapm\Laravel\Providers\ScoutApmServiceProvider"` step is not necessary,because we are using `CACHE_STORE=array`
+1. The `php artisan vendor:publish --provider="Scoutapm\Laravel\Providers\ScoutApmServiceProvider"` step is not necessary, because we are using `CACHE_STORE=array`
 1. Stage and commit the modifications:
    ```ShellSession
    $ git add composer.*

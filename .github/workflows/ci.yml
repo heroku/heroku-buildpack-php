@@ -27,17 +27,27 @@ env:
   # ensure these are in sync with other relevant workflow files
   setup_php_php_version: "8.4"
   setup_php_composer_version: "2.9"
-  setup_ruby_ruby_version: "3.2"
+  setup_ruby_ruby_version: "4.0"
 
 jobs:
+  lint:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Run ShellCheck
+        run: make lint-scripts
   unit-test:
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
+        # TODO: Add `ubuntu-26.04` once it's available on GitHub Actions:
+        # https://github.com/heroku/heroku-buildpack-php/issues/941
         os: ["ubuntu-22.04", "ubuntu-24.04"]
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install Ruby and Bundler
         uses: ruby/setup-ruby@v1
         with:
@@ -45,11 +55,19 @@ jobs:
           ruby-version: "${{ env.setup_ruby_ruby_version }}"
       - name: Execute tests
         run: bundle exec rspec test/spec/cgroup_spec.rb
+  container-test:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+      - name: Run buildpack using default app fixture
+        run: make run
   integration-test:
     runs-on: ubuntu-24.04
     strategy:
+      fail-fast: false
       matrix:
-        stack: ["heroku-22", "heroku-24"]
+        stack: ["heroku-22", "heroku-24", "heroku-26"]
     env:
       STACK: ${{ matrix.stack }}
       BLACKFIRE_CLIENT_ID:  ${{ secrets.BLACKFIRE_CLIENT_ID }}
@@ -59,7 +77,7 @@ jobs:
       PARALLEL_TEST_RUNTIME_LOG: test/var/log/parallel_runtime_rspec.${{ matrix.stack }}.log
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Calculate stack identifier and suffix for platform repo URL
         id: platform-repo-url-inputs
         run: |
@@ -88,7 +106,7 @@ jobs:
           bundler-cache: true
           ruby-version: "${{ env.setup_ruby_ruby_version }}"
       - name: Install PHP and Composer
-        uses: shivammathur/setup-php@44454db4f0199b8b9685a5d763dc37cbf79108e1 # 2.36.0
+        uses: shivammathur/setup-php@f3e473d116dcccaddc5834248c87452386958240 # 2.37.2
         with:
           php-version: "${{ env.setup_php_php_version }}"
           tools: "composer:${{ env.setup_php_composer_version }}"

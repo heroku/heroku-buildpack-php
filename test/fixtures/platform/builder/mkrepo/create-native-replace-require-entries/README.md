@@ -1,4 +1,4 @@
-Userland "polyfill" packages (e.g. `symfony/polyfill-mbstring`) can declare a native extension as "provided". If a user has such a polyfill in their dependency graph (and they often do, since other packages use these polyfills), then during dependency resolution, the "real" extension package (which we rewrite to e.g. `heroku-sys/ext-mbstring`) will not be installed, since another, installed, package (`symfony/polyfill-mstring`) already fulfills the requirement (via its `provide` metadata field).
+Userland "polyfill" packages (e.g. `symfony/polyfill-mbstring`) can declare a native extension as "provided". If a user has such a polyfill in their dependency graph (and they often do, since other packages use these polyfills), then during dependency resolution, the "real" extension package (which we rewrite to e.g. `heroku-sys/ext-mbstring`) will not be installed, since another, installed, package (`symfony/polyfill-mbstring`) already fulfills the requirement (via its `provide` metadata field).
 
 But our platform package installation logic must
 

@@ -20,10 +20,11 @@ if(isset($sections['s'])) {
 	unset($sections['s']);
 	$stacks = array_combine(range(1, count($stacks)), $stacks); // re-index to start at 1, relevant for the numbering of footnotes
 } else {
-	// these need updating from time to time to add new stacks and remove EOL ones
+	// Keep the Heroku stack versions here in sync with .github/workflows/update-devcenter.yml
 	$stacks = [
 		1 => '22', // the offset we start with here is relevant for the numbering of footnotes
 		'24',
+		'26',
 	];
 }
 
@@ -32,7 +33,7 @@ if(isset($sections['p'])) {
 	$series = explode(',', $sections['p']);
 	unset($sections['p']);
 } else {
-	// these need updating from time to time to add new series and remove series no longer on any stack
+	// Keep this PHP versions list in sync with the supported_series values in support/build/formulae/php
 	$series = [
 		'8.1',
 		'8.2',
@@ -116,7 +117,7 @@ $handlerStack->push(GuzzleHttp\Middleware::retry(function($times, $req, $res, $e
 	if($res && $res->getStatusCode() >= 500) return true;
 	return false;
 }));
-$client = new GuzzleHttp\Client(['handler' => $handlerStack, "timeout" => "2.0"]);
+$client = new GuzzleHttp\Client(['handler' => $handlerStack, "timeout" => 2.0]);
 
 $repositories = [];
 $responses = GuzzleHttp\Pool::batch($client, (function() use($posArgs, $client) {
@@ -171,7 +172,7 @@ foreach($packages as $package) {
 	
 	if($package['type'] == 'heroku-sys-php-extension') {
 		// for extensions, we want to find the stack(s) and PHP version series (always just one due to extension API version) that match the "require" entries in the extension package's metadata, and then generate an entry for each permutation
-		// example: an extension is for heroku-sys/php:8.3.* and for heroku-sys/heroku:*, then we want two entires, both for series 8.3, but one for heroku-22 and one for heroku-24 (or whatever stacks are current)
+		// example: an extension is for heroku-sys/php:8.3.* and for heroku-sys/heroku:*, then we want two entries, both for series 8.3, but one for heroku-22 and one for heroku-24 (or whatever stacks are current)
 		foreach($findstacks($package) as $stack) {
 			// check whether it's a regular extension, or one bundled with PHP but not compiled in (those have that special dist type)
 			// bundled and compiled in extensions do not get separate package entries, but are only declared in the "replace" list of their PHP release entry
@@ -351,7 +352,7 @@ foreach($extCounts as $name => $count) {
 		if(!$next) break;
 		if(count(array_intersect_key($current, $next)) != 3) {
 			// contains more than just "name", "data", and "major_version" keys
-			// that means at least one of the runtime series "columm" contains more than one major version
+			// that means at least one of the runtime series "column" contains more than one major version
 			// we thus cannot collapse anything, even if some versions do not have any overlap, to avoid confusion
 			// (e.g. ext-phalcon 2.x was only on 5.5 and 5.6, 3.x is on 7.0+, 4.x is on 7.3+, so we want three rows, even though 2.x and 3.x have no overlap)
 			$overlap = true;

@@ -18,6 +18,8 @@ on:
         - heroku-22-amd64
         - heroku-24-amd64
         - heroku-24-arm64
+        - heroku-26-amd64
+        - heroku-26-arm64
         required: true
       dry-run:
         description: 'Only list package removals, without executing'
@@ -36,7 +38,7 @@ jobs:
       AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Expand list of manifests to remove
         run: |
           echo '## Manifests input for removal' >> "$GITHUB_STEP_SUMMARY"
@@ -44,7 +46,7 @@ jobs:
           printf -- '- `%s`\n' ${{inputs.manifests}} >> "$GITHUB_STEP_SUMMARY"
       - name: Restore cached Docker image
         id: restore-docker
-        uses: actions/cache/restore@v5
+        uses: actions/cache/restore@v6
         with:
           key: docker-cache-heroku-php-build-${{inputs.stack}}.${{github.sha}}
           path: /tmp/docker-cache.tar.gz
@@ -63,7 +65,7 @@ jobs:
         run: docker save heroku-php-build-${{inputs.stack}}:${{github.sha}} | gzip -1 > /tmp/docker-cache.tar.gz
       - name: Cache built Docker image
         if: steps.restore-docker.outputs.cache-hit != 'true'
-        uses: actions/cache/save@v5
+        uses: actions/cache/save@v6
         with:
           key: ${{ steps.restore-docker.outputs.cache-primary-key }}
           path: /tmp/docker-cache.tar.gz
