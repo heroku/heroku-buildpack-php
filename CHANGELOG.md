@@ -3,6 +3,177 @@
 ## [Unreleased]
 
 
+## [v297] - 2026-09-25
+
+### ADD
+
+- PHP/8.2.34
+- PHP/8.3.35
+- PHP/8.4.26
+- PHP/8.5.11
+- ext-blackfire/2026.9.2
+- ext-grpc/1.84.0
+- ext-mongodb/1.21.10
+- ext-mongodb/2.5.3
+- ext-newrelic/12.11.0.40
+- ext-phalcon/5.22.0
+
+### CHG
+
+- nginx/1.30.5
+- librdkafka/2.15.1
+- blackfire/2026.9.1
+
+## [v296] - 2026-09-24
+
+### CHG
+
+- Applied additional `curl` best practices such as request timeouts, retries and clearer error output. ([#991](https://github.com/heroku/heroku-buildpack-php/pull/991))
+
+### FIX
+
+- Fixed a permission error writing platform installer diagnostics to `/dev/stderr` when running as an unprivileged user, such as under herokuish. ([#981](https://github.com/heroku/heroku-buildpack-php/pull/981))
+
+## [v295] - 2026-09-02
+
+### ADD
+
+- PHP/8.4.25
+- PHP/8.5.10
+- ext-mongodb/1.21.7
+- ext-mongodb/2.4.1
+- ext-grpc/1.83.1
+- ext-phalcon/5.20.3
+- ext-newrelic/12.10.0.39
+- ext-blackfire/2026.8.8
+
+### CHG
+
+- blackfire/2026.8.1
+- composer/2.2.30
+- composer/2.10.3
+
+
+## [v294] - 2026-07-31
+
+### ADD
+
+- PHP/8.2.33
+- PHP/8.3.33
+- PHP/8.4.24
+- PHP/8.5.9
+- ext-event/3.1.6
+- ext-grpc/1.83.0
+- ext-newrelic/12.9.0.38
+- ext-phalcon/5.17.0
+- ext-blackfire/2026.7.1
+
+### CHG
+
+- blackfire/2026.7.0
+- nginx/1.30.4
+- `ext-phalcon` is now available on Heroku-26 (PHP 8.4 and 8.5). ([#927](https://github.com/heroku/heroku-buildpack-php/issues/927))
+
+## [v293] - 2026-07-08
+
+### ADD
+
+- PHP/8.2.32
+- PHP/8.3.32
+- PHP/8.4.23
+- PHP/8.5.8
+- ext-grpc/1.82.0
+- ext-newrelic/12.8.0.37
+- ext-blackfire/2026.7.0
+- ext-phalcon/5.16.0
+
+### CHG
+
+- blackfire/2026.6.1
+- nginx/1.30.3
+- Composer/2.10.2
+- librdkafka/2.15.0
+
+## [v292] - 2026-06-09
+
+### ADD
+
+- PHP/8.5.7
+- PHP/8.4.22
+- ext-blackfire/2026.5.0
+- ext-mongodb/2.3.3
+- ext-newrelic/12.7.0.36
+- ext-grpc/1.81.0
+- ext-phalcon/5.13.0
+- Composer/2.10.1
+
+### CHG
+
+- Apache/2.4.68
+- Composer/2.2.28
+- Composer/2.9.8
+- blackfire/2026.6.0
+- librdkafka/2.14.2
+
+## [v291] - 2026-05-26
+
+### CHG
+
+- nginx/1.30.2
+
+## [v290] - 2026-05-21
+
+### CHG
+
+- nginx/1.30.1
+
+## [v289] - 2026-05-19
+
+### CHG
+
+- Allow PHP 8.5 for apps that do not explicitly require a PHP version.
+
+## [v288] - 2026-05-12
+
+### ADD
+
+- PHP/8.5.6
+- PHP/8.4.21
+- PHP/8.3.31
+- PHP/8.2.31
+- ext-blackfire/2026.4.1
+- ext-mongodb/2.3.1
+
+### CHG
+
+- Apache/2.4.67
+- blackfire/2026.4.2
+- librdkafka/2.14.1
+
+## [v287] - 2026-04-17
+
+### CHG
+
+- Add support for Heroku-26. ([#930](https://github.com/heroku/heroku-buildpack-php/pull/930))
+- Rebuilt Apache 2.4.66 with updated APR (1.6.3 -> 1.7.6) and APR-util (1.6.1 -> 1.6.3). ([#939](https://github.com/heroku/heroku-buildpack-php/pull/939))
+- Make buildpack exit trap compatible with Bash 5.3. ([#936](https://github.com/heroku/heroku-buildpack-php/pull/936))
+
+## [v286] - 2026-04-15
+
+### CHG
+
+- PHP/8.5.5
+- PHP/8.4.20
+- ext-blackfire/2026.4.0
+- ext-grpc/1.80.0
+- ext-newrelic/12.6.0.34
+- ext-phalcon/5.11.1
+- nginx/1.30.0
+- Composer/2.2.27
+- Composer/2.9.7
+- blackfire/2026.4.1
+- librdkafka/2.14.0
+
 ## [v285] - 2026-03-17
 
 ### ADD
@@ -1125,7 +1296,7 @@
 
 ## [v203] - 2021-12-17
 
-## ADD
+### ADD
 
 - PHP/7.4.27 [David Zuelke]
 - PHP/8.0.14 [David Zuelke]
@@ -1135,7 +1306,7 @@
 - ext-psr/1.1.0 (for PHP 7.2) [David Zuelke]
 - ext-psr/1.2.0 (for PHP 7.3+) [David Zuelke]
 
-## [v202] - 2012-12-10
+## [v202] - 2021-12-10
 
 ### ADD
 
@@ -1816,7 +1987,7 @@
 
 - Enable zend.assertions on Heroku CI [David Zuelke]
 - Boot scripts now prefer a `composer` binary on `$PATH` over a `composer.phar` in the CWD [David Zuelke]
-- Refactor logic used to prevent APM extensions such as `ext-newrelic` or `ext-blackfire` from starting up during during boot preparations or builds [David Zuelke]
+- Refactor logic used to prevent APM extensions such as `ext-newrelic` or `ext-blackfire` from starting up during boot preparations or builds [David Zuelke]
 - Patch `libc-client`, used by PHP's `ext-imap`, to use SNI if possible (required with TLSv1.3) [David Zuelke]
 - Composer/1.9.0 [David Zuelke]
 
@@ -2032,7 +2203,7 @@
 - Translate `NEW_RELIC_LOG_LEVEL` values "verbose" and "verbosedebug" to "debug" for `newrelic-daemon` [David Zuelke]
 - librdkafka/0.11.6 [David Zuelke]
 
-## [v145] - 2019-10-16
+## [v145] - 2018-10-16
 
 ### ADD
 
@@ -2047,7 +2218,7 @@
 
 - Nginx reports "localhost" instead of requested hostname in SERVER_NAME FastCGI variable (#264) [David Zuelke]
 
-## [v144] - 2019-09-13
+## [v144] - 2018-09-13
 
 ### ADD
 
@@ -2091,7 +2262,7 @@
 
 ### CHG
 
-- Verbose error messasge on `bin/detect` failure [David Zuelke]
+- Verbose error message on `bin/detect` failure [David Zuelke]
 - Emit brief warnings for common regexed build failure cases [David Zuelke]
 - Run most internal 'composer' invocations using '--no-plugins' [David Zuelke]
 - Composer/1.7.1 [David Zuelke]
@@ -2989,7 +3160,7 @@
 
 ### FIX
 
-- Apache `mod_proxy_fgci`'s "disablereuse=off" config flag causes intermittent blank pages with HTTPD 2.4.11+ [David Zuelke]
+- Apache `mod_proxy_fcgi`'s "disablereuse=off" config flag causes intermittent blank pages with HTTPD 2.4.11+ [David Zuelke]
 - Applications on cedar-10 can select non-existing PHP 7.0.0beta1 package via composer.json [David Zuelke]
 
 ## [v70] - 2015-07-10
@@ -3092,7 +3263,7 @@
 
 ### FIX
 
-- Incorrect 'child 123 said into stderr' removal for lines that are deemed to long by FPM and cut off using a terminating '...' sequence instead of closing double quotes [David Zuelke]
+- Incorrect 'child 123 said into stderr' removal for lines that are deemed too long by FPM and cut off using a terminating '...' sequence instead of closing double quotes [David Zuelke]
 
 ## [v62] - 2015-02-04
 
@@ -3165,7 +3336,19 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v285...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v297...main
+[v297]: https://github.com/heroku/heroku-buildpack-php/compare/v296...v297
+[v296]: https://github.com/heroku/heroku-buildpack-php/compare/v295...v296
+[v295]: https://github.com/heroku/heroku-buildpack-php/compare/v294...v295
+[v294]: https://github.com/heroku/heroku-buildpack-php/compare/v293...v294
+[v293]: https://github.com/heroku/heroku-buildpack-php/compare/v292...v293
+[v292]: https://github.com/heroku/heroku-buildpack-php/compare/v291...v292
+[v291]: https://github.com/heroku/heroku-buildpack-php/compare/v290...v291
+[v290]: https://github.com/heroku/heroku-buildpack-php/compare/v289...v290
+[v289]: https://github.com/heroku/heroku-buildpack-php/compare/v288...v289
+[v288]: https://github.com/heroku/heroku-buildpack-php/compare/v287...v288
+[v287]: https://github.com/heroku/heroku-buildpack-php/compare/v286...v287
+[v286]: https://github.com/heroku/heroku-buildpack-php/compare/v285...v286
 [v285]: https://github.com/heroku/heroku-buildpack-php/compare/v284...v285
 [v284]: https://github.com/heroku/heroku-buildpack-php/compare/v283...v284
 [v283]: https://github.com/heroku/heroku-buildpack-php/compare/v282...v283

@@ -12,7 +12,7 @@ permissions:
 
 env:
   # ensure these are in sync with other relevant workflow files
-  setup_ruby_ruby_version: "3.2"
+  setup_ruby_ruby_version: "4.0"
 
 jobs:
   hatchet-app-cleaner:
@@ -23,7 +23,7 @@ jobs:
       HEROKU_DISABLE_AUTOUPDATE: 1
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Install Ruby and dependencies
         uses: ruby/setup-ruby@v1
         with:

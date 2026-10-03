@@ -6,7 +6,7 @@
 # watchexec -qrc --stop-timeout 0 -- make run FIXTURE=test/fixtures/composer/basic_lock_v2
 # ```
 
-.PHONY: run
+.PHONY: lint-scripts run
 
 STACK ?= heroku-24
 FIXTURE ?= test/fixtures/default
@@ -15,6 +15,9 @@ COMPILE_FAILURE_EXIT_CODE ?= 1
 
 # Converts a stack name of `heroku-NN` to its build Docker image tag of `heroku/heroku:NN-build`.
 STACK_IMAGE_TAG := heroku/$(subst -,:,$(STACK))-build
+
+lint-scripts:
+	@git ls-files -z --cached --others --exclude-standard 'bin/*' '*/bin/*' '*.sh' 'support/build/formulae/*' 'support/build/packages/*' ':!:*.php' | xargs -0 shellcheck --check-sourced --color=always
 
 run:
 	@echo "Running buildpack using: STACK=$(STACK) FIXTURE=$(FIXTURE)"

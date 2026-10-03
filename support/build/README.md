@@ -8,7 +8,7 @@
 
 PHP can be extended with so-called *extensions*, which are typically written in C and interface with the engine through specific APIs. These extensions most commonly provide bindings to native system libraries (e.g. `ext-amqp` for `libamqp`) to expose functionality to applications, but they can also hook into the PHP engine to enable certain features or insights (e.g. `ext-newrelic` for instrumentation).
 
-Unlike language ecosystems such as Python or Ruby, PHP has no widely established and standardized method of compiling installing native extensions on a per-project basis during installation of an application's dependencies.
+Unlike language ecosystems such as Python or Ruby, PHP has no widely established and standardized method of compiling and installing native extensions on a per-project basis during installation of an application's dependencies.
 
 The [Composer](https://getcomposer.org) project is PHP's de-facto standard package manager. Through a `composer.json` file, applications express their dependencies; a dependency can be another user-land package, or a so-called *platform package*: a PHP runtime, or an extension. For user-land dependencies, the graph of requirements is reconciled at `composer update` time; platform package requirements are recorded separately. Together, they are written to the lock file, `composer.lock`, which enables reliable, stable installation of dependencies across environments.
 
@@ -109,9 +109,9 @@ From this, the buildpack would create a "platform package" `.heroku/php/composer
     	]
     }
 
-The structure of the originally required packages, such as `mongodb/mongodb`, is kept intact. This is done both to ensure that combinations requirements are taken into account the same way Composer does (two packages can have requirements for the same, say, `php` platform package), as well as to aid debugging: if, in the example above, `ext-mongodb` wasn't available on Heroku, then the error message from Composer would indicate that package `mongodb/mongodb` requires a non-existent package, and the user attempting the deploy would immediately understand why.
+The structure of the originally required packages, such as `mongodb/mongodb`, is kept intact. This is done both to ensure that combination requirements are taken into account the same way Composer does (two packages can have requirements for the same, say, `php` platform package), as well as to aid debugging: if, in the example above, `ext-mongodb` wasn't available on Heroku, then the error message from Composer would indicate that package `mongodb/mongodb` requires a non-existent package, and the user attempting the deploy would immediately understand why.
 
-The requirements from the main `composer.json`, which in `composer.lock` are located in the `platform` key, are moved to their own meta-package named "`composer.json/composer.lock`"; this is again to ensure that these dependencies are honored correctly in combination will all the other requirements, and that users would get an immediately readable error message if a required package isn't available.
+The requirements from the main `composer.json`, which in `composer.lock` are located in the `platform` key, are moved to their own meta-package named "`composer.json/composer.lock`"; this is again to ensure that these dependencies are honored correctly in combination with all the other requirements, and that users would get an immediately readable error message if a required package isn't available.
 
 Also included, but omitted from the above example for brevity, are other packages such as the Nginx and Apache web servers, which users cannot directly specify as dependencies, but which are installed using the same mechanism as PHP or PHP extensions.
 
@@ -157,7 +157,7 @@ The following environment variables are required:
 - `AWS_ACCESS_KEY_ID` and `AWS_SECRET_ACCESS_KEY` with credentials for the S3 bucket
 - `S3_BUCKET` with the name of the S3 bucket to use for builds
 - `S3_PREFIX` (just a slash, or a prefix directory name **with a trailing, but no leading, slash**)
-- `STACK` (currently, only "`heroku-22-amd64`", "`heroku-24-amd64`" or "`heroku-24-arm64`" make any sense)
+- `STACK` (currently, only "`heroku-22-amd64`", "`heroku-24-amd64`", "`heroku-24-arm64`", "`heroku-26-amd64`" or "`heroku-26-arm64`" make any sense)
 
 The following environment variables are highly recommended (see section *Understanding Upstream Buckets*):
 
@@ -165,6 +165,7 @@ The following environment variables are highly recommended (see section *Underst
 - `UPSTREAM_S3_PREFIX`, where dependencies are pulled from if they can't be found in `S3_BUCKET+S3_PREFIX` should probably be set to
   - "`dist-heroku-22-amd64-stable/`", the official Heroku stable repository prefix for the [heroku-22 stack](https://devcenter.heroku.com/articles/stack).
   - "`dist-heroku-24-amd64-stable/`", the official Heroku stable repository prefix for the [heroku-24 stack](https://devcenter.heroku.com/articles/stack).
+  - "`dist-heroku-26-amd64-stable/`", the official Heroku stable repository prefix for the [heroku-26 stack](https://devcenter.heroku.com/articles/stack).
 
 The following environment variables are optional, but strongly recommended:
 
@@ -253,7 +254,7 @@ Package `name`s must be prefixed with "`heroku-sys/`". Possible `type`s are `her
 
 The special package type `heroku-sys-package` is used for internal packages used for bootstrapping (e.g. a minimal PHP build).
 
-The `require`d package `heroku/installer-plugin` will be available during install. Package `heroku-sys/heroku` is a virtual package `provide`d by the platform `composer.json` generated in `bin/compile` and has the right stack version (either "`18`" or "`20`"); the selector for `heroku-sys/php` ensures that the package only applies to PHP 8.1.x.
+The `require`d package `heroku/installer-plugin` will be available during install. Package `heroku-sys/heroku` is a virtual package `provide`d by the platform `composer.json` generated in `bin/compile` and has the right Heroku stack version ("`22`"); the selector for `heroku-sys/php` ensures that the package only applies to PHP 8.1.x.
 
 ### Manifest Helpers
 
@@ -353,7 +354,7 @@ The `require` key must contain dependencies on at least the following packages:
 
 If a package is built against a specific (or multiple) stacks, there must be a dependency on the following packages:
 
-- `heroku-sys/heroku`, version "22" for `heroku-22`, or version "24" for `heroku-24` (use version selectors `^22.0.0` or `^24.0.0`, or a valid Composer combination)
+- `heroku-sys/heroku`, version "22" for `heroku-22`, version "24" for `heroku-24` or version "26" for `heroku-26` (use version selectors `^22.0.0`, `^24.0.0` or `^26.0.0`, or a valid Composer combination)
 
 *Example: `curl -s https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-amd64-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php") ][0] | {require}'`*
 
@@ -446,7 +447,7 @@ For most packages, the `export` key is never needed; the `profile` key is someti
 
 #### Extra: Shared
 
-As package of type `heroku-sys-php` may come bundled with a bunch of extensions, it must list the all statically-built-in extensions in the `replace` section of its manifest; all extensions built as `shared` must instead be generated as separate packages (see further above). In order to allow external tooling to still quickly determine which packages belong to a PHP release, an entry for each shared extension should be generated in struct `extra.shared`, with package names as keys and `false` as the value.
+As package of type `heroku-sys-php` may come bundled with a bunch of extensions, it must list all statically-built-in extensions in the `replace` section of its manifest; all extensions built as `shared` must instead be generated as separate packages (see further above). In order to allow external tooling to still quickly determine which packages belong to a PHP release, an entry for each shared extension should be generated in struct `extra.shared`, with package names as keys and `false` as the value.
 
 *Example: `curl -s https://heroku-buildpack-php.s3.dualstack.us-east-1.amazonaws.com/dist-heroku-22-amd64-stable/packages.json | jq '[ .packages[][] | select(.type == "heroku-sys-php" and .require["heroku/installer-plugin"] == "^1.6.0") ][0] | {extra: {shared: .extra.shared}}'`*
 
@@ -620,7 +621,7 @@ After testing builds, the contents of that "develop" repository can then be sync
 
 The `sync.sh` script automatically detects additions, updates and removals based on manifests. It will also warn if the source `packages.json` is not up to date with its manifests, and prompt for confirmation before syncing.
 
-If option `-c` is given to `mkrepo.sh`, the option value will be treated as a "snapshot" identifier. In this case, the snapshot must exist in the source bucket, but is not allowed to already exist in the destination bucket. This prevents the modification of existing buckets:
+If option `-c` is given to `sync.sh`, the option value will be treated as a "snapshot" identifier. In this case, the snapshot must exist in the source bucket, but is not allowed to already exist in the destination bucket. This prevents the modification of existing buckets:
 
     ~ $ sync.sh -c "$(formulae-hash.sh)" my-bucket dist-heroku-24-amd64-stable/ us-east-1 my-bucket dist-heroku-24-amd64-develop/ us-east-1
 
@@ -628,7 +629,7 @@ If option `-c` is given to `mkrepo.sh`, the option value will be treated as a "s
 
 #### Syncing from Upstream
 
-You will usually use an [Upstream Bucket](#understanding-upstream-buckets) to ensure that Bob will pull dependencies from Heroku's official bucket without having to worry about maintaining packages up the dependency tree, such as library or PHP prerequsites for an extension.
+You will usually use an [Upstream Bucket](#understanding-upstream-buckets) to ensure that Bob will pull dependencies from Heroku's official bucket without having to worry about maintaining packages up the dependency tree, such as library or PHP prerequisites for an extension.
 
 However, in rare circumstances, such as when you want to fully host all platform packages including PHP yourself and have the official repository disabled for your app, you either need to build all packages from scratch, or sync the Heroku builds from the official repository:
 
@@ -656,7 +657,7 @@ If option `-c` is given to `remove.sh`, the option value will be treated as a "s
 
 In this example, you will fork the buildpack and add your own formula to it. **The fork is only used for building the package and publishing the repository, it is not used to build and run applications.**
 
-The `heroku-22` and `heroku-24` stack variants of the package will be hosted in the same repository.
+All stack variants of the package will be hosted in the same repository.
 
 A development and a stable S3 bucket prefix are used for the repository, and helpers are used for synchronization between them.
 
@@ -697,6 +698,7 @@ Finally, build the containers for each stack:
 
     $ docker build --pull --tag heroku-php-build-heroku-22 --file $(pwd)/support/build/docker/heroku-22.Dockerfile .
     $ docker build --platform linux/amd64 --pull --tag heroku-php-build-heroku-24-amd64 --file $(pwd)/support/build/docker/heroku-24.Dockerfile .
+    $ docker build --platform linux/amd64 --pull --tag heroku-php-build-heroku-26-amd64 --file $(pwd)/support/build/docker/heroku-26.Dockerfile .
 
 #### Building and Deploying
 
@@ -704,11 +706,13 @@ Verify that the build works:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-22 bob build nginx-1.15.4
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-24 bob build nginx-1.15.4
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-26 bob build nginx-1.15.4
 
 If all went well, deploy it using the helper script:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-22 deploy.sh nginx-1.15.4
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-24 deploy.sh nginx-1.15.4
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv heroku-php-build-heroku-26 deploy.sh nginx-1.15.4
 
 #### Repository Creation
 
@@ -738,7 +742,7 @@ You can then use that repository:
 
 The Heroku PHP buildpack will be pulled in as a Composer dependency. Its build `Dockerfile`s are built and tagged locally, and a custom `Dockerfile` for each targeted stack builds upon those tagged images.
 
-The `heroku-22-amd64` and `heroku-24-amd64` stack variants of the package will be hosted in the same repository.
+All stack variants of the package will be hosted in the same repository.
 
 The package in this example is the Xdebug extension. The extension formula can re-use an existing buildpack base formula for PECL extensions.
 
@@ -761,6 +765,7 @@ Build the base Docker images from the buildpack for all stacks:
     $ cd vendor/heroku/heroku-buildpack-php
     $ docker build --pull --tag php-heroku-22-amd64 --file $(pwd)/support/build/docker/heroku-22.Dockerfile .
     $ docker build --pull --tag php-heroku-24-amd64 --file $(pwd)/support/build/docker/heroku-24.Dockerfile .
+    $ docker build --pull --tag php-heroku-26-amd64 --file $(pwd)/support/build/docker/heroku-26.Dockerfile .
     $ cd -
 
 #### Creating Custom Dockerfiles
@@ -779,6 +784,14 @@ Create a `heroku-24.Dockerfile` with the following contents:
     ENV WORKSPACE_DIR=/app/packages
     ENV UPSTREAM_S3_BUCKET=heroku-buildpack-php
     ENV UPSTREAM_S3_PREFIX=dist-heroku-24-amd64-stable/
+    COPY . /app
+
+Create a `heroku-26.Dockerfile` with the following contents:
+
+    FROM php-heroku-26-amd64:latest
+    ENV WORKSPACE_DIR=/app/packages
+    ENV UPSTREAM_S3_BUCKET=heroku-buildpack-php
+    ENV UPSTREAM_S3_PREFIX=dist-heroku-26-amd64-stable/
     COPY . /app
 
 Both set the correct upstream S3 bucket and prefix, so that formula dependencies like PHP are pulled from the official Heroku S3 locations.
@@ -812,6 +825,7 @@ Build one Docker image for each stack:
 
     $ docker build --tag xdebug-heroku-22-amd64 --file heroku-22.Dockerfile .
     $ docker build --tag xdebug-heroku-24-amd64 --file heroku-24.Dockerfile .
+    $ docker build --tag xdebug-heroku-26-amd64 --file heroku-26.Dockerfile .
 
 #### Building and Deploying
 
@@ -819,11 +833,13 @@ Verify that the build works by building a specific formula for a specific PHP ve
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-22-amd64 bob build php-7.3/xdebug-2.7.0
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-24-amd64 bob build php-7.3/xdebug-2.7.0
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-26-amd64 bob build php-7.3/xdebug-2.7.0
 
 If all went well, deploy it using the helper script:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-22-amd64 deploy.sh php-7.3/xdebug-2.7.0
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-24-amd64 deploy.sh php-7.3/xdebug-2.7.0
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-26-amd64 deploy.sh php-7.3/xdebug-2.7.0
 
 #### Repository Creation
 
@@ -831,6 +847,7 @@ From the manifests that are now in your S3 bucket, make a repository:
 
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-22-amd64 mkrepo.sh --upload
     $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-24-amd64 mkrepo.sh --upload
+    $ docker run --rm -ti --env-file=../heroku-php-s3.dockerenv xdebug-heroku-26-amd64 mkrepo.sh --upload
 
 You can now test this repository on a Heroku app by pushing an app that requires `ext-xdebug` in `composer.json`:
 

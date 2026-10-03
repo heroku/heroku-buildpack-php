@@ -10,7 +10,7 @@
 					"php": "^7.0 | ^8.0"
 				},
 				"provide": {
-					"ext-imap": "8.3.0"
+					"ext-imap": "8.4.0"
 				}
 			}
 		},
@@ -30,7 +30,7 @@
 		}
 	],
 	"require": {
-		"php": "8.3.*",
+		"php": "8.4.*",
 		"dummypak/ext-pq-polyfill": "^1.0",
 		"dummypak/ext-imap-polyfill": "^1.0",
 		"symfony/polyfill-ctype": "^1.24.0",

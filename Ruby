@@ -1,0 +1,45 @@
+## Install
+
+The Sentry SDK for Ruby comes as a gem that should be added to your `Gemfile`:
+
+```ruby
+gem "sentry-ruby"
+```
+
+After adding the gems, run the following to install the SDK:
+
+```ruby
+bundle install
+```
+
+## Configure SDK
+
+To use Sentry Ruby all you need is your DSN. Like most Sentry libraries it will honor the `SENTRY_DSN` environment variable. You can find it on the project settings page under API Keys. You can either export it as environment variable or manually configure it with `Sentry.init`:
+
+```ruby
+
+require 'sentry-ruby'
+
+Sentry.init do |config|
+  config.dsn = 'https://999392f8e932f53073ef42ff736d062b@o4512192354254848.ingest.de.sentry.io/4512192362446928'
+
+  # Add data like request headers and IP for users,
+  # see https://docs.sentry.io/platforms/ruby/data-management/data-collected/ for more info
+  config.send_default_pii = true
+end
+```
+
+## Verify
+
+This snippet contains a deliberate error and message sent to Sentry and can be used as a test to make sure that everything's working as expected.
+
+```ruby
+
+begin
+  1 / 0
+rescue ZeroDivisionError => exception
+  Sentry.capture_exception(exception)
+end
+
+Sentry.capture_message("test message")
+```

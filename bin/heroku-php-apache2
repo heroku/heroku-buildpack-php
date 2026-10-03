@@ -519,7 +519,7 @@ fi
 # 3) as the signal to subshells, we use SIGUSR1
 # 3a) this is so subshells can tell whether we sent them the signal and they should in turn stop gracefully (SIGUSR1)...
 # 3b) ... or if something crashed, or e.g. Heroku's process manager sent SIGTERM to all processes in the group, in which case a graceful shutdown attempt is futile anyway
-# 3c) SIGINT oder SIGQUIT are not an option since backgrounded subshells cannot trap them (http://vaab.blog.kal.fr/2016/07/30/trapping-sigint-sigquit-in-asynchronous-tasks/) in Bash 3 (it works in Bash 4+ in interactive shells at least)
+# 3c) SIGINT or SIGQUIT are not an option since backgrounded subshells cannot trap them (http://vaab.blog.kal.fr/2016/07/30/trapping-sigint-sigquit-in-asynchronous-tasks/) in Bash 3 (it works in Bash 4+ in interactive shells at least)
 # 3d) because we're sending SIGUSR1 via cleanup(), we have to ignore that signal right before - otherwise, the backgrounded subshells exiting upon this exit status would cause our main process to terminate due to set -e
 # 3e) we do not simply set USR1 to ignored globally, because then we would not catch the case where something external sends a USR1 to our subshell - instead, our exit trap will fire in these cases where we did not initiate the cleanup, and tear everything down
 # 4) kill ourselves with the correct signal in case we're handling SIGTERM or, further down, SIGINT (http://www.cons.org/cracauer/sigint.html and http://mywiki.wooledge.org/SignalTrap#Special_Note_On_SIGINT1)

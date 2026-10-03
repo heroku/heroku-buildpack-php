@@ -10,7 +10,7 @@ permissions:
 
 env:
   # ensure these are in sync with other relevant workflow files
-  stacks_list_for_shell_expansion: "{heroku-22-amd64,heroku-24-amd64,heroku-24-arm64}"
+  stacks_list_for_shell_expansion: "{heroku-22-amd64,heroku-24-amd64,heroku-24-arm64,heroku-26-amd64,heroku-26-arm64}"
   repo_path_suffix: "-stable/"
 
 jobs:
@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
       - name: Perform platform repo snapshot checks
         id: platform-repo-snapshot-calc
         uses: ./.github/actions/platform-repo-snapshot-calc
