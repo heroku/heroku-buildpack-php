@@ -122,4 +122,44 @@ describe "A PHP application failing to build" do
 			)
 		end
 	end
+	
+	context "because composer.json requires a PHP version with known vulnerabilities" do
+		before(:all) do
+			@app = new_app_with_stack_and_platrepo_and_bin_report_dumper(
+				"test/fixtures/default",
+				allow_failure: true,
+				before_deploy: -> {
+					system("composer require --quiet --ignore-platform-reqs --no-install php '8.4.26'") or raise "Failed to require PHP version"
+				}
+			)
+			@app.deploy
+		end
+		
+		after(:all) do
+			@app.teardown!
+		end
+		
+		it "throws an error" do
+			expect(@app.output).to include("Your selected PHP version has known security vulnerabilities!")
+			expect(@app.output).to include("PHP 8.4.26 is affected by CVE-2026-109618 and CVE-2026-109619,")
+			expect(@app.output).to include("such as '~8.4.27'")
+		end
+		
+		it "captures information about the build" do
+			expect(@app.bin_report_dump).to match(
+				"bootstrap.duration" => a_kind_of(Float),
+				"platform.prepare.duration" => a_kind_of(Float),
+				"platform.install.main.packages.installed_count" => 4,
+				"platform.install.main.duration" => a_kind_of(Float),
+				"platform.polyfill_count" => 0,
+				"platform.packages.installed_count" => 4,
+				"platform.php.version" => "8.4.26",
+				"platform.php.series" => "8.4",
+				"platform.install.duration" => a_kind_of(Float),
+				"failure_reason" => "platform.php.vulnerable",
+				"open_timers" => "__main__",
+				"duration" => a_kind_of(Float),
+			)
+		end
+	end
 end
