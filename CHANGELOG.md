@@ -13,6 +13,10 @@
 - ext-mongodb/2.5.5
 - ext-phalcon/5.23.0
 
+### CHG
+
+- Apache/2.4.69
+
 ## [v297] - 2026-09-25
 
 ### ADD
