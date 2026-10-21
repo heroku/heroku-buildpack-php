@@ -2,6 +2,27 @@
 
 ## [Unreleased]
 
+### ADD
+
+- PHP/8.2.35
+- PHP/8.3.36
+- PHP/8.4.27
+- PHP/8.5.12
+- ext-blackfire/2026.10.2
+- ext-mongodb/1.21.12
+- ext-mongodb/2.5.5
+- ext-phalcon/5.23.0
+
+### CHG
+
+- Apache/2.4.69
+- nginx/1.30.6
+- librdkafka/2.16.0
+- blackfire/2026.10.0
+
+### FIX
+
+- Patched PHP 8.1.34 for CVE-2026-109618 and CVE-2026-109619 using the PHP project's backport for end-of-life versions.
 
 ## [v297] - 2026-09-25
 
