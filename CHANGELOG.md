@@ -18,6 +18,7 @@
 - Apache/2.4.69
 - nginx/1.30.6
 - librdkafka/2.16.0
+- blackfire/2026.10.0
 
 ## [v297] - 2026-09-25
 
