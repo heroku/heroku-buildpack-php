@@ -11,6 +11,7 @@
 - ext-blackfire/2026.10.2
 - ext-mongodb/1.21.12
 - ext-mongodb/2.5.5
+- ext-phalcon/5.23.0
 
 ## [v297] - 2026-09-25
 
