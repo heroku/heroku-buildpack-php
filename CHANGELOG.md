@@ -7,9 +7,9 @@
 
 ### CHG
 
-- Builds now fail if the app requires a PHP version affected by CVE-2026-109618 and CVE-2026-109619, such as an exact older patch version.
-- Builds now fail early with a clear error message on unsupported or unrecognised stacks.
-- PHP runtime selection error messages now suggest using a version range such as `^8.5.0` or `~8.5.0`.
+- Builds now fail if the app requires a PHP version affected by CVE-2026-109618 and CVE-2026-109619, such as an exact older patch version. ([#1009](https://github.com/heroku/heroku-buildpack-php/pull/1009))
+- Builds now fail early with a clear error message on unsupported or unrecognised stacks. ([#1011](https://github.com/heroku/heroku-buildpack-php/pull/1011))
+- PHP runtime selection error messages now suggest using a version range such as `^8.5.0` or `~8.5.0`. ([#1012](https://github.com/heroku/heroku-buildpack-php/pull/1012))
 
 ## [v298] - 2026-10-21
 
