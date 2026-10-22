@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+
+## [v299] - 2026-10-22
+
 ### CHG
 
 - Builds now fail if the app requires a PHP version affected by CVE-2026-109618 and CVE-2026-109619, such as an exact older patch version.
@@ -3365,7 +3368,8 @@
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v298...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v299...main
+[v299]: https://github.com/heroku/heroku-buildpack-php/compare/v298...v299
 [v298]: https://github.com/heroku/heroku-buildpack-php/compare/v297...v298
 [v297]: https://github.com/heroku/heroku-buildpack-php/compare/v296...v297
 [v296]: https://github.com/heroku/heroku-buildpack-php/compare/v295...v296
