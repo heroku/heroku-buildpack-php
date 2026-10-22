@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Builds now fail if the app requires a PHP version affected by CVE-2026-109618 and CVE-2026-109619, such as an exact older patch version.
 
 ## [v298] - 2026-10-21
 
