@@ -477,13 +477,14 @@ export HEROKU_PHP_DEFAULT_RUNTIME_VERSION
 			
 			Please perform the following steps locally on your computer to
 			resolve this issue before attempting another deploy:
-			1) add a dependency for 'php' to 'require' in '$COMPOSER'
+			1) add a dependency for 'php' to 'require' in '$COMPOSER',
+			   using a version range such as '^8.5.0' or '~8.5.0'
 			2) run 'composer update' to re-generate the lock file
 			3) stage changes using 'git add $COMPOSER $COMPOSER_LOCK'
 			4) commit changes using 'git commit'
 			
 			For more information on selecting PHP runtimes, please refer to
-			https://devcenter.heroku.com/articles/php-support
+			https://devcenter.heroku.com/articles/specifying-a-php-runtime
 		EOF
 	elif (( code == 4 )); then
 		build_report::set_string failure_reason platform.repositories.url_invalid
@@ -587,6 +588,12 @@ else
 		Please verify that all requirements for runtime versions in
 		'$COMPOSER_LOCK' are compatible with the list above, and ensure
 		all required extensions are available for the desired runtimes.
+		
+		When requiring a PHP version, use a range such as '^8.5.0' or
+		'~8.5.0' rather than an exact version, so that updates are
+		installed automatically on each deploy. For more information
+		on selecting PHP runtimes, refer to:
+		https://devcenter.heroku.com/articles/specifying-a-php-runtime
 		
 		When choosing a PHP runtime and extensions, please also ensure
 		they are available on your app's stack ($STACK), and select

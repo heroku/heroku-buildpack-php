@@ -6,6 +6,7 @@
 
 - Builds now fail if the app requires a PHP version affected by CVE-2026-109618 and CVE-2026-109619, such as an exact older patch version.
 - Builds now fail early with a clear error message on unsupported or unrecognised stacks.
+- PHP runtime selection error messages now suggest using a version range such as `^8.5.0` or `~8.5.0`.
 
 ## [v298] - 2026-10-21
 
