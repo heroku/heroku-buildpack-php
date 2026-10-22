@@ -98,7 +98,9 @@ shared_examples "A PHP application using ext-blackfire and" do |agent|
 							.map { |script| "#{script} -F conf/fpm.include.broken 2>&1"}
 							.join("; echo -n '#{delimiter}'; ")
 						retry_until retry: 3, sleep: 5 do
-							@run = @app.run(run_cmds).split(delimiter)
+							run_output = @app.run(run_cmds)
+							expect_app_present_on_dyno(run_output)
+							@run = run_output.split(delimiter)
 						end
 					end
 					
