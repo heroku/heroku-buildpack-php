@@ -24,6 +24,7 @@ RSpec.configure do |config|
 
 	config.verbose_retry       = true # show retry status in spec process
 	config.default_retry_count = 2 if ENV['IS_RUNNING_ON_CI'] # retry all tests that fail again...
+	config.default_sleep_interval = 5 # by default there is no sleep between retries
 	# config.exceptions_to_retry = [Excon::Errors::Timeout] #... if they're caused by these exception types
 	config.fail_fast = 1 if ENV['IS_RUNNING_ON_CI']
 
@@ -52,6 +53,13 @@ def expect_exit(expect: :to, operator: :eq, code: 0)
 		"Expected exit code #{run_obj.status.exitstatus} #{expect} be #{operator} to #{code}; output:\n#{run_obj.output}"
 	)
 	run_obj # so that can be tested too
+end
+
+# Intermittently, the first command run on a one-off dyno fails because the app's files or PATH entries are missing.
+# Call this on the output of a run that doesn't otherwise check exit codes (so wouldn't be retried), from inside retry_until.
+# n.b. the commands we run are always passed to the dyno on one line, so only the dyno's own shell reports "line 1".
+def expect_app_present_on_dyno(output)
+	expect(output).not_to match(/^\/bin\/bash: line 1: .+: (command not found|No such file or directory)\r?$/)
 end
 
 def expected_default_php(stack)

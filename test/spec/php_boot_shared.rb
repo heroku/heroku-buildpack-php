@@ -135,7 +135,9 @@ shared_examples "A PHP application for testing boot options" do |series, server|
 						.map.with_index { |example, i| "i='#{"%03d" % i}'; #{example[:cmd]} >run.$i.out 2>&1; echo $'\\n'$? >run.$i.status" }
 						.join("; echo -n '#{delimiter}' >run.$i.xdelim; ")
 					retry_until retry: 3, sleep: 5 do
-						@run = @app.run("#{run_cmds}; sleep 1; cat run.*").split(delimiter)
+						run_output = @app.run("#{run_cmds}; sleep 1; cat run.*")
+						expect_app_present_on_dyno(run_output)
+						@run = run_output.split(delimiter)
 					end
 				end
 				
