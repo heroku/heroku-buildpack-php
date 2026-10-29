@@ -2,6 +2,9 @@
 
 ## [Unreleased]
 
+### CHG
+
+- Composer's `preferred-install` config is now respected, since `composer install` is no longer run with `--prefer-dist`, so packages configured as `source` or `auto` are now installed from source (the Composer default remains `dist`). ([#1017](https://github.com/heroku/heroku-buildpack-php/pull/1017))
 
 ## [v299] - 2026-10-22
 
