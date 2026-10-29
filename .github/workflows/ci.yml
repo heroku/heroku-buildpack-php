@@ -42,9 +42,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # TODO: Add `ubuntu-26.04` once it's available on GitHub Actions:
-        # https://github.com/heroku/heroku-buildpack-php/issues/941
-        os: ["ubuntu-22.04", "ubuntu-24.04"]
+        os: ["ubuntu-22.04", "ubuntu-24.04", "ubuntu-26.04"]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
