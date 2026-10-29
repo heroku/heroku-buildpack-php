@@ -1,14 +1,18 @@
 # Changelog
 
+All notable changes to this project will be documented in this file.
+
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
 ## [Unreleased]
 
-### CHG
+### Changed
 
 - Composer's `preferred-install` config is now respected, since `composer install` is no longer run with `--prefer-dist`, so packages configured as `source` or `auto` are now installed from source (the Composer default remains `dist`). ([#1017](https://github.com/heroku/heroku-buildpack-php/pull/1017))
 
 ## [v299] - 2026-10-22
 
-### CHG
+### Changed
 
 - Builds now fail if the app requires a PHP version affected by CVE-2026-109618 and CVE-2026-109619, such as an exact older patch version. ([#1009](https://github.com/heroku/heroku-buildpack-php/pull/1009))
 - Builds now fail early with a clear error message on unsupported or unrecognised stacks. ([#1011](https://github.com/heroku/heroku-buildpack-php/pull/1011))
@@ -16,222 +20,227 @@
 
 ## [v298] - 2026-10-21
 
-### ADD
+### Added
 
-- PHP/8.2.35
-- PHP/8.3.36
-- PHP/8.4.27
-- PHP/8.5.12
-- ext-blackfire/2026.10.2
-- ext-mongodb/1.21.12
-- ext-mongodb/2.5.5
-- ext-phalcon/5.23.0
+- Added PHP 8.2.35. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
+- Added PHP 8.3.36. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
+- Added PHP 8.4.27. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
+- Added PHP 8.5.12. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
+- Added `ext-blackfire` 2026.10.2. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
+- Added `ext-mongodb` 1.21.12. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
+- Added `ext-mongodb` 2.5.5. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
+- Added `ext-phalcon` 5.23.0. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
 
-### CHG
+### Changed
 
-- Apache/2.4.69
-- nginx/1.30.6
-- librdkafka/2.16.0
-- blackfire/2026.10.0
+- Updated `apache` to 2.4.69. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
+- Updated `nginx` to 1.30.6. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
+- Updated `librdkafka` to 2.16.0. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
+- Updated `blackfire` to 2026.10.0. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
 
-### FIX
+### Fixed
 
-- Patched PHP 8.1.34 for CVE-2026-109618 and CVE-2026-109619 using the PHP project's backport for end-of-life versions.
+- Patched PHP 8.1.34 for CVE-2026-109618 and CVE-2026-109619 using the PHP project's backport for end-of-life versions. ([#1006](https://github.com/heroku/heroku-buildpack-php/pull/1006))
 
 ## [v297] - 2026-09-25
 
-### ADD
+### Added
 
-- PHP/8.2.34
-- PHP/8.3.35
-- PHP/8.4.26
-- PHP/8.5.11
-- ext-blackfire/2026.9.2
-- ext-grpc/1.84.0
-- ext-mongodb/1.21.10
-- ext-mongodb/2.5.3
-- ext-newrelic/12.11.0.40
-- ext-phalcon/5.22.0
+- Added PHP 8.2.34. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
+- Added PHP 8.3.35. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
+- Added PHP 8.4.26. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
+- Added PHP 8.5.11. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
+- Added `ext-blackfire` 2026.9.2. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
+- Added `ext-grpc` 1.84.0. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
+- Added `ext-mongodb` 1.21.10. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
+- Added `ext-mongodb` 2.5.3. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
+- Added `ext-newrelic` 12.11.0.40. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
+- Added `ext-phalcon` 5.22.0. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
 
-### CHG
+### Changed
 
-- nginx/1.30.5
-- librdkafka/2.15.1
-- blackfire/2026.9.1
+- Updated `nginx` to 1.30.5. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
+- Updated `librdkafka` to 2.15.1. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
+- Updated `blackfire` to 2026.9.1. ([#994](https://github.com/heroku/heroku-buildpack-php/pull/994))
 
 ## [v296] - 2026-09-24
 
-### CHG
+### Changed
 
 - Applied additional `curl` best practices such as request timeouts, retries and clearer error output. ([#991](https://github.com/heroku/heroku-buildpack-php/pull/991))
 
-### FIX
+### Fixed
 
 - Fixed a permission error writing platform installer diagnostics to `/dev/stderr` when running as an unprivileged user, such as under herokuish. ([#981](https://github.com/heroku/heroku-buildpack-php/pull/981))
 
 ## [v295] - 2026-09-02
 
-### ADD
+### Added
 
-- PHP/8.4.25
-- PHP/8.5.10
-- ext-mongodb/1.21.7
-- ext-mongodb/2.4.1
-- ext-grpc/1.83.1
-- ext-phalcon/5.20.3
-- ext-newrelic/12.10.0.39
-- ext-blackfire/2026.8.8
+- Added PHP 8.4.25. ([#982](https://github.com/heroku/heroku-buildpack-php/pull/982))
+- Added PHP 8.5.10. ([#982](https://github.com/heroku/heroku-buildpack-php/pull/982))
+- Added `ext-mongodb` 1.21.7. ([#982](https://github.com/heroku/heroku-buildpack-php/pull/982))
+- Added `ext-mongodb` 2.4.1. ([#982](https://github.com/heroku/heroku-buildpack-php/pull/982))
+- Added `ext-grpc` 1.83.1. ([#982](https://github.com/heroku/heroku-buildpack-php/pull/982))
+- Added `ext-phalcon` 5.20.3. ([#982](https://github.com/heroku/heroku-buildpack-php/pull/982))
+- Added `ext-newrelic` 12.10.0.39. ([#982](https://github.com/heroku/heroku-buildpack-php/pull/982))
+- Added `ext-blackfire` 2026.8.8. ([#982](https://github.com/heroku/heroku-buildpack-php/pull/982))
 
-### CHG
+### Changed
 
-- blackfire/2026.8.1
-- composer/2.2.30
-- composer/2.10.3
-
+- Updated `blackfire` to 2026.8.1. ([#982](https://github.com/heroku/heroku-buildpack-php/pull/982))
+- Updated `composer` 2.2 to 2.2.30. ([#982](https://github.com/heroku/heroku-buildpack-php/pull/982))
+- Updated `composer` 2.10 to 2.10.3. ([#982](https://github.com/heroku/heroku-buildpack-php/pull/982))
 
 ## [v294] - 2026-07-31
 
-### ADD
+### Added
 
-- PHP/8.2.33
-- PHP/8.3.33
-- PHP/8.4.24
-- PHP/8.5.9
-- ext-event/3.1.6
-- ext-grpc/1.83.0
-- ext-newrelic/12.9.0.38
-- ext-phalcon/5.17.0
-- ext-blackfire/2026.7.1
+- Added PHP 8.2.33. ([#976](https://github.com/heroku/heroku-buildpack-php/pull/976))
+- Added PHP 8.3.33. ([#976](https://github.com/heroku/heroku-buildpack-php/pull/976))
+- Added PHP 8.4.24. ([#976](https://github.com/heroku/heroku-buildpack-php/pull/976))
+- Added PHP 8.5.9. ([#976](https://github.com/heroku/heroku-buildpack-php/pull/976))
+- Added `ext-event` 3.1.6. ([#976](https://github.com/heroku/heroku-buildpack-php/pull/976))
+- Added `ext-grpc` 1.83.0. ([#976](https://github.com/heroku/heroku-buildpack-php/pull/976))
+- Added `ext-newrelic` 12.9.0.38. ([#976](https://github.com/heroku/heroku-buildpack-php/pull/976))
+- Added `ext-phalcon` 5.17.0. ([#976](https://github.com/heroku/heroku-buildpack-php/pull/976))
+- Added `ext-blackfire` 2026.7.1. ([#976](https://github.com/heroku/heroku-buildpack-php/pull/976))
+- Added `ext-phalcon` for Heroku-26 (PHP 8.4 and 8.5). ([#927](https://github.com/heroku/heroku-buildpack-php/issues/927), [#977](https://github.com/heroku/heroku-buildpack-php/pull/977))
 
-### CHG
+### Changed
 
-- blackfire/2026.7.0
-- nginx/1.30.4
-- `ext-phalcon` is now available on Heroku-26 (PHP 8.4 and 8.5). ([#927](https://github.com/heroku/heroku-buildpack-php/issues/927))
+- Updated `blackfire` to 2026.7.0. ([#976](https://github.com/heroku/heroku-buildpack-php/pull/976))
+- Updated `nginx` to 1.30.4. ([#976](https://github.com/heroku/heroku-buildpack-php/pull/976))
 
 ## [v293] - 2026-07-08
 
-### ADD
+### Added
 
-- PHP/8.2.32
-- PHP/8.3.32
-- PHP/8.4.23
-- PHP/8.5.8
-- ext-grpc/1.82.0
-- ext-newrelic/12.8.0.37
-- ext-blackfire/2026.7.0
-- ext-phalcon/5.16.0
+- Added PHP 8.2.32. ([#969](https://github.com/heroku/heroku-buildpack-php/pull/969))
+- Added PHP 8.3.32. ([#969](https://github.com/heroku/heroku-buildpack-php/pull/969))
+- Added PHP 8.4.23. ([#969](https://github.com/heroku/heroku-buildpack-php/pull/969))
+- Added PHP 8.5.8. ([#969](https://github.com/heroku/heroku-buildpack-php/pull/969))
+- Added `ext-grpc` 1.82.0. ([#969](https://github.com/heroku/heroku-buildpack-php/pull/969))
+- Added `ext-newrelic` 12.8.0.37. ([#969](https://github.com/heroku/heroku-buildpack-php/pull/969))
+- Added `ext-blackfire` 2026.7.0. ([#969](https://github.com/heroku/heroku-buildpack-php/pull/969))
+- Added `ext-phalcon` 5.16.0. ([#969](https://github.com/heroku/heroku-buildpack-php/pull/969))
 
-### CHG
+### Changed
 
-- blackfire/2026.6.1
-- nginx/1.30.3
-- Composer/2.10.2
-- librdkafka/2.15.0
+- Updated `blackfire` to 2026.6.1. ([#969](https://github.com/heroku/heroku-buildpack-php/pull/969))
+- Updated `nginx` to 1.30.3. ([#969](https://github.com/heroku/heroku-buildpack-php/pull/969))
+- Updated `composer` 2.10 to 2.10.2. ([#969](https://github.com/heroku/heroku-buildpack-php/pull/969))
+- Updated `librdkafka` to 2.15.0. ([#969](https://github.com/heroku/heroku-buildpack-php/pull/969))
 
 ## [v292] - 2026-06-09
 
-### ADD
+### Added
 
-- PHP/8.5.7
-- PHP/8.4.22
-- ext-blackfire/2026.5.0
-- ext-mongodb/2.3.3
-- ext-newrelic/12.7.0.36
-- ext-grpc/1.81.0
-- ext-phalcon/5.13.0
-- Composer/2.10.1
+- Added PHP 8.5.7. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
+- Added PHP 8.4.22. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
+- Added `ext-blackfire` 2026.5.0. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
+- Added `ext-mongodb` 2.3.3. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
+- Added `ext-newrelic` 12.7.0.36. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
+- Added `ext-grpc` 1.81.0. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
+- Added `ext-phalcon` 5.13.0. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
+- Added `composer` 2.10.1. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
 
-### CHG
+### Changed
 
-- Apache/2.4.68
-- Composer/2.2.28
-- Composer/2.9.8
-- blackfire/2026.6.0
-- librdkafka/2.14.2
+- Updated `apache` to 2.4.68. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
+- Updated `composer` 2.2 to 2.2.28. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
+- Updated `composer` 2.9 to 2.9.8. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
+- Updated `blackfire` to 2026.6.0. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
+- Updated `librdkafka` to 2.14.2. ([#958](https://github.com/heroku/heroku-buildpack-php/pull/958))
 
 ## [v291] - 2026-05-26
 
-### CHG
+### Changed
 
-- nginx/1.30.2
+- Updated `nginx` to 1.30.2. ([#952](https://github.com/heroku/heroku-buildpack-php/pull/952))
 
 ## [v290] - 2026-05-21
 
-### CHG
+### Changed
 
-- nginx/1.30.1
+- Updated `nginx` to 1.30.1. ([#948](https://github.com/heroku/heroku-buildpack-php/pull/948))
 
 ## [v289] - 2026-05-19
 
-### CHG
+### Changed
 
-- Allow PHP 8.5 for apps that do not explicitly require a PHP version.
+- Allowed PHP 8.5 to be used for apps that do not explicitly require a PHP version. ([#946](https://github.com/heroku/heroku-buildpack-php/pull/946))
 
 ## [v288] - 2026-05-12
 
-### ADD
+### Added
 
-- PHP/8.5.6
-- PHP/8.4.21
-- PHP/8.3.31
-- PHP/8.2.31
-- ext-blackfire/2026.4.1
-- ext-mongodb/2.3.1
+- Added PHP 8.5.6. ([#944](https://github.com/heroku/heroku-buildpack-php/pull/944))
+- Added PHP 8.4.21. ([#944](https://github.com/heroku/heroku-buildpack-php/pull/944))
+- Added PHP 8.3.31. ([#944](https://github.com/heroku/heroku-buildpack-php/pull/944))
+- Added PHP 8.2.31. ([#944](https://github.com/heroku/heroku-buildpack-php/pull/944))
+- Added `ext-blackfire` 2026.4.1. ([#944](https://github.com/heroku/heroku-buildpack-php/pull/944))
+- Added `ext-mongodb` 2.3.1. ([#944](https://github.com/heroku/heroku-buildpack-php/pull/944))
 
-### CHG
+### Changed
 
-- Apache/2.4.67
-- blackfire/2026.4.2
-- librdkafka/2.14.1
+- Updated `apache` to 2.4.67. ([#944](https://github.com/heroku/heroku-buildpack-php/pull/944))
+- Updated `blackfire` to 2026.4.2. ([#944](https://github.com/heroku/heroku-buildpack-php/pull/944))
+- Updated `librdkafka` to 2.14.1. ([#944](https://github.com/heroku/heroku-buildpack-php/pull/944))
 
 ## [v287] - 2026-04-17
 
-### CHG
+### Added
 
-- Add support for Heroku-26. ([#930](https://github.com/heroku/heroku-buildpack-php/pull/930))
+- Added support for Heroku-26. ([#930](https://github.com/heroku/heroku-buildpack-php/pull/930))
+
+### Changed
+
 - Rebuilt Apache 2.4.66 with updated APR (1.6.3 -> 1.7.6) and APR-util (1.6.1 -> 1.6.3). ([#939](https://github.com/heroku/heroku-buildpack-php/pull/939))
-- Make buildpack exit trap compatible with Bash 5.3. ([#936](https://github.com/heroku/heroku-buildpack-php/pull/936))
+- Made the buildpack exit trap compatible with Bash 5.3. ([#936](https://github.com/heroku/heroku-buildpack-php/pull/936))
 
 ## [v286] - 2026-04-15
 
-### CHG
+### Added
 
-- PHP/8.5.5
-- PHP/8.4.20
-- ext-blackfire/2026.4.0
-- ext-grpc/1.80.0
-- ext-newrelic/12.6.0.34
-- ext-phalcon/5.11.1
-- nginx/1.30.0
-- Composer/2.2.27
-- Composer/2.9.7
-- blackfire/2026.4.1
-- librdkafka/2.14.0
+- Added PHP 8.5.5. ([#921](https://github.com/heroku/heroku-buildpack-php/pull/921))
+- Added PHP 8.4.20. ([#921](https://github.com/heroku/heroku-buildpack-php/pull/921))
+- Added `ext-blackfire` 2026.4.0. ([#922](https://github.com/heroku/heroku-buildpack-php/pull/922))
+- Added `ext-grpc` 1.80.0. ([#922](https://github.com/heroku/heroku-buildpack-php/pull/922))
+- Added `ext-newrelic` 12.6.0.34. ([#922](https://github.com/heroku/heroku-buildpack-php/pull/922))
+- Added `ext-phalcon` 5.11.1. ([#922](https://github.com/heroku/heroku-buildpack-php/pull/922))
+
+### Changed
+
+- Updated `nginx` to 1.30.0. ([#922](https://github.com/heroku/heroku-buildpack-php/pull/922))
+- Updated `composer` 2.2 to 2.2.27. ([#922](https://github.com/heroku/heroku-buildpack-php/pull/922))
+- Updated `composer` 2.9 to 2.9.7. ([#922](https://github.com/heroku/heroku-buildpack-php/pull/922))
+- Updated `blackfire` to 2026.4.1. ([#922](https://github.com/heroku/heroku-buildpack-php/pull/922))
+- Updated `librdkafka` to 2.14.0. ([#922](https://github.com/heroku/heroku-buildpack-php/pull/922))
 
 ## [v285] - 2026-03-17
 
-### ADD
+### Added
 
-- PHP/8.4.19
-- PHP/8.5.4
-- ext-blackfire/1.92.60
-- ext-ev/1.2.3
-- ext-mongodb/1.21.5
-- ext-grpc/1.78.0
-- ext-newrelic/12.5.0.30
-- ext-mongodb/2.2.1
+- Added PHP 8.4.19. ([#910](https://github.com/heroku/heroku-buildpack-php/pull/910))
+- Added PHP 8.5.4. ([#910](https://github.com/heroku/heroku-buildpack-php/pull/910))
+- Added `ext-blackfire` 1.92.60. ([#910](https://github.com/heroku/heroku-buildpack-php/pull/910))
+- Added `ext-ev` 1.2.3. ([#910](https://github.com/heroku/heroku-buildpack-php/pull/910))
+- Added `ext-mongodb` 1.21.5. ([#910](https://github.com/heroku/heroku-buildpack-php/pull/910))
+- Added `ext-grpc` 1.78.0. ([#910](https://github.com/heroku/heroku-buildpack-php/pull/910))
+- Added `ext-newrelic` 12.5.0.30. ([#910](https://github.com/heroku/heroku-buildpack-php/pull/910))
+- Added `ext-mongodb` 2.2.1. ([#910](https://github.com/heroku/heroku-buildpack-php/pull/910))
+- Added support for non-`heroku-sys-…` type packages in platform repositories. ([#909](https://github.com/heroku/heroku-buildpack-php/pull/909))
+- Added a minimal bootstrapping PHP package (not installable) to the platform repository (for use by the PHP CNB). ([#909](https://github.com/heroku/heroku-buildpack-php/pull/909))
 
-### CHG
+### Changed
 
-- Support non-`heroku-sys-…` type packages in platform repositories
-- Make Composer Installer Plugin a package in platform repository (for use by the PHP CNB)
-- Make web server boot scripts (`heroku-php-apache2` and `heroku-php-nginx`) and configs a package in platform repository (for use by the PHP CNB)
-- Include minimal bootstrapping PHP package (not installable) in platform repository (for use by the PHP CNB)
-- Composer/2.9.5
-- nginx/1.28.2
-- librdkafka/2.13.2
-- blackfire/2026.3.0
+- Made the Composer Installer Plugin a package in the platform repository (for use by the PHP CNB). ([#909](https://github.com/heroku/heroku-buildpack-php/pull/909))
+- Made the web server boot scripts (`heroku-php-apache2` and `heroku-php-nginx`) and configs a package in the platform repository (for use by the PHP CNB). ([#909](https://github.com/heroku/heroku-buildpack-php/pull/909))
+- Updated `composer` 2.9 to 2.9.5. ([#910](https://github.com/heroku/heroku-buildpack-php/pull/910))
+- Updated `nginx` to 1.28.2. ([#910](https://github.com/heroku/heroku-buildpack-php/pull/910))
+- Updated `librdkafka` to 2.13.2. ([#910](https://github.com/heroku/heroku-buildpack-php/pull/910))
+- Updated `blackfire` to 2026.3.0. ([#910](https://github.com/heroku/heroku-buildpack-php/pull/910))
 
 ## [v284] - 2026-03-17
 
