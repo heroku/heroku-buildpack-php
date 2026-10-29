@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+
+## [v300] - 2026-10-29
+
 ### Added
 
 - Added `ext-grpc` 1.85.0. ([#1018](https://github.com/heroku/heroku-buildpack-php/pull/1018))
@@ -3389,7 +3392,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v299...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v300...main
+[v300]: https://github.com/heroku/heroku-buildpack-php/compare/v299...v300
 [v299]: https://github.com/heroku/heroku-buildpack-php/compare/v298...v299
 [v298]: https://github.com/heroku/heroku-buildpack-php/compare/v297...v298
 [v297]: https://github.com/heroku/heroku-buildpack-php/compare/v296...v297
