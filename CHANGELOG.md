@@ -6,9 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Added `ext-grpc` 1.85.0. ([#1018](https://github.com/heroku/heroku-buildpack-php/pull/1018))
+- Added `ext-newrelic` 12.12.0.41. ([#1018](https://github.com/heroku/heroku-buildpack-php/pull/1018))
+- Added `ext-blackfire` 2026.10.4. ([#1018](https://github.com/heroku/heroku-buildpack-php/pull/1018))
+- Added `composer` 2.11.0. ([#1018](https://github.com/heroku/heroku-buildpack-php/pull/1018))
+
 ### Changed
 
 - Composer's `preferred-install` config is now respected, since `composer install` is no longer run with `--prefer-dist`, so packages configured as `source` or `auto` are now installed from source (the Composer default remains `dist`). ([#1017](https://github.com/heroku/heroku-buildpack-php/pull/1017))
+- Updated `composer` 2.2 to 2.2.31. ([#1018](https://github.com/heroku/heroku-buildpack-php/pull/1018))
+- Updated `blackfire` to 2026.10.2. ([#1018](https://github.com/heroku/heroku-buildpack-php/pull/1018))
 
 ## [v299] - 2026-10-22
 
