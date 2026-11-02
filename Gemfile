@@ -10,4 +10,6 @@ group :test, :development do
   gem "parallel_tests", ">= 4.0.0"
   gem "rake"
   gem "ansi"
+  # Hatchet's `threaded` dependency requires `logger` without declaring it.
+  gem "logger"
 end
