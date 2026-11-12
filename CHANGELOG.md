@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+
+## [v301] - 2026-11-12
+
 ### Added
 
 - Added `ext-blackfire` 2026.11.1. ([#1025](https://github.com/heroku/heroku-buildpack-php/pull/1025))
@@ -3404,7 +3407,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v300...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v301...main
+[v301]: https://github.com/heroku/heroku-buildpack-php/compare/v300...v301
 [v300]: https://github.com/heroku/heroku-buildpack-php/compare/v299...v300
 [v299]: https://github.com/heroku/heroku-buildpack-php/compare/v298...v299
 [v298]: https://github.com/heroku/heroku-buildpack-php/compare/v297...v298
