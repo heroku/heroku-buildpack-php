@@ -6,6 +6,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Added `ext-blackfire` 2026.11.1. ([#1025](https://github.com/heroku/heroku-buildpack-php/pull/1025))
+- Added `ext-event` 3.2.0. ([#1025](https://github.com/heroku/heroku-buildpack-php/pull/1025))
+- Added `ext-mongodb` 2.5.7. ([#1025](https://github.com/heroku/heroku-buildpack-php/pull/1025))
+
+### Changed
+
+- Updated `apache` to 2.4.71. ([#1025](https://github.com/heroku/heroku-buildpack-php/pull/1025))
+- Updated `blackfire` to 2026.11.0. ([#1025](https://github.com/heroku/heroku-buildpack-php/pull/1025))
+- Updated `composer` 2.11 to 2.11.2. ([#1025](https://github.com/heroku/heroku-buildpack-php/pull/1025))
+- Updated `composer` 2.2 to 2.2.32. ([#1025](https://github.com/heroku/heroku-buildpack-php/pull/1025))
 
 ## [v300] - 2026-10-29
 
