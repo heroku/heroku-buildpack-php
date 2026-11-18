@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+
+- Updated `nginx` to 1.30.7. ([#1028](https://github.com/heroku/heroku-buildpack-php/pull/1028))
 
 ## [v301] - 2026-11-12
 
