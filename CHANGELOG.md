@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+
+## [v302] - 2026-11-18
+
 ### Changed
 
 - Updated `nginx` to 1.30.7. ([#1028](https://github.com/heroku/heroku-buildpack-php/pull/1028))
@@ -3410,7 +3413,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v301...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v302...main
+[v302]: https://github.com/heroku/heroku-buildpack-php/compare/v301...v302
 [v301]: https://github.com/heroku/heroku-buildpack-php/compare/v300...v301
 [v300]: https://github.com/heroku/heroku-buildpack-php/compare/v299...v300
 [v299]: https://github.com/heroku/heroku-buildpack-php/compare/v298...v299
