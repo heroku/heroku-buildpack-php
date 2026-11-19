@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Added `ext-ev` 1.3.1. ([#1031](https://github.com/heroku/heroku-buildpack-php/pull/1031))
 
 ## [v302] - 2026-11-18
 
