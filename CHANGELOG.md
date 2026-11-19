@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+
+- Added PHP 8.2.36. ([#1031](https://github.com/heroku/heroku-buildpack-php/pull/1031))
+- Added PHP 8.3.37. ([#1031](https://github.com/heroku/heroku-buildpack-php/pull/1031))
+- Added PHP 8.4.28. ([#1031](https://github.com/heroku/heroku-buildpack-php/pull/1031))
+- Added PHP 8.5.13. ([#1031](https://github.com/heroku/heroku-buildpack-php/pull/1031))
+- Added `ext-blackfire` 2026.11.2. ([#1031](https://github.com/heroku/heroku-buildpack-php/pull/1031))
+- Added `ext-newrelic` 12.13.0.43. ([#1031](https://github.com/heroku/heroku-buildpack-php/pull/1031))
+- Added `ext-ev` 1.3.1. ([#1031](https://github.com/heroku/heroku-buildpack-php/pull/1031))
 
 ## [v302] - 2026-11-18
 
