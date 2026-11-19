@@ -6,6 +6,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+
+## [v303] - 2026-11-19
+
 ### Added
 
 - Added PHP 8.2.36. ([#1031](https://github.com/heroku/heroku-buildpack-php/pull/1031))
@@ -3422,7 +3425,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 - Auto-set and follow (but not enable, for now) the FPM slowlog [David Zuelke]
 
-[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v302...main
+[unreleased]: https://github.com/heroku/heroku-buildpack-php/compare/v303...main
+[v303]: https://github.com/heroku/heroku-buildpack-php/compare/v302...v303
 [v302]: https://github.com/heroku/heroku-buildpack-php/compare/v301...v302
 [v301]: https://github.com/heroku/heroku-buildpack-php/compare/v300...v301
 [v300]: https://github.com/heroku/heroku-buildpack-php/compare/v299...v300
