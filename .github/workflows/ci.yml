@@ -52,7 +52,7 @@ jobs:
           bundler-cache: true
           ruby-version: "${{ env.setup_ruby_ruby_version }}"
       - name: Execute tests
-        run: bundle exec rspec test/spec/cgroup_spec.rb
+        run: bundle exec rspec test/spec/cgroup_spec.rb test/spec/platform_pie_spec.rb
   container-test:
     runs-on: ubuntu-24.04
     steps:
@@ -129,7 +129,7 @@ jobs:
       - name: Execute tests
         run: |
           shopt -s extglob
-          bundle exec parallel_rspec --group-by runtime --first-is-1 --unknown-runtime 1 --allowed-missing 100 --runtime-log "$PARALLEL_TEST_RUNTIME_LOG" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/!(cgroup)_spec.rb
+          bundle exec parallel_rspec --group-by runtime --first-is-1 --unknown-runtime 1 --allowed-missing 100 --runtime-log "$PARALLEL_TEST_RUNTIME_LOG" --verbose-command --combine-stderr --prefix-output-with-test-env-number test/spec/!(cgroup|platform_pie)_spec.rb
       - name: Clean up and (locally) store updated runtime log
         run: grep -E '^test/spec/[a-z0-9_/\.-]+\.rb:[0-9]+\.[0-9]+$' "${PARALLEL_TEST_RUNTIME_LOG}.last" | sort > "$PARALLEL_TEST_RUNTIME_LOG"
       - name: Upload runtime log as artifact (for analysis across runs)

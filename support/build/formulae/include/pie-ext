@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+# fail hard
+set -o pipefail
+# fail harder
+set -eu
+
+source "$(dirname "$BASH_SOURCE")/../../util/include/manifest.sh"
+
+OUT_PREFIX=$1
+
+export PATH=${OUT_PREFIX}/bin:${PATH}
+
+: "${PIE_PACKAGE:?Set PIE_PACKAGE to the vendor/package name of the extension}"
+
+dep_package=${0#"${WORKSPACE_DIR}/"}
+series=$(php-config --version | cut -d. -f1,2)
+dep_build=${dep_package#"${dep_name}-"}
+dep_build=${dep_build%"_php-${series}"}
+dep_version=${dep_build%%"+"*}
+dep_manifest=${dep_package}.composer.json
+extension_dir=$(php-config --extension-dir)
+
+pie_version=1.5.5
+pie_sha256=2ca0dff6868f1b53c095625674deef38ac698588e0a25e4321cd834a5b7553bc
+pie_work_dir=$(mktemp -d)
+trap 'rm -rf "$pie_work_dir";' EXIT
+
+curl --fail --silent --show-error --location \
+	"https://github.com/php/pie/releases/download/${pie_version}/pie.phar" \
+	--output "$pie_work_dir/pie.phar"
+echo "$pie_sha256  $pie_work_dir/pie.phar" | sha256sum --check --strict -
+
+tmpdest=$pie_work_dir/staging
+mkdir -p "${tmpdest}${extension_dir}"
+
+echo "-----> Building ${dep_name} (${dep_version}, for PHP ${series}) using PIE..."
+
+INSTALL_ROOT=$tmpdest PIE_WORKING_DIRECTORY=$pie_work_dir/state \
+	php "$pie_work_dir/pie.phar" install \
+		--no-interaction \
+		--skip-enable-extension \
+		--no-system-dependencies-check \
+		--with-php-config="${OUT_PREFIX}/bin/php-config" \
+		--with-phpize-path="${OUT_PREFIX}/bin/phpize" \
+		--make-parallel-jobs="$(($(nproc)+1))" \
+		"${PIE_PACKAGE}:${dep_version}" \
+		"${PIE_EXTRA[@]}"
+
+# Retain only the extension's install result, without PHP or PIE's build state.
+# Installation finishes before removing PHP, as linking can require its headers.
+rm -rf "$OUT_PREFIX"
+mv "${tmpdest}${OUT_PREFIX}" "$OUT_PREFIX"
+
+strip --strip-unneeded "$extension_dir/${dep_name#ext-}.so"
+
+MANIFEST_REQUIRE="${MANIFEST_REQUIRE:-"{\"heroku-sys/php\":\"${series}.*\"}"}"
+MANIFEST_CONFLICT="${MANIFEST_CONFLICT:-"{}"}"
+MANIFEST_REPLACE="${MANIFEST_REPLACE:-"{}"}"
+MANIFEST_PROVIDE="${MANIFEST_PROVIDE:-"{}"}"
+MANIFEST_EXTRA="${MANIFEST_EXTRA:-"{}"}"
+
+python "$(dirname "$BASH_SOURCE")/../../util/include/manifest.py" "heroku-sys-php-extension" "heroku-sys/${dep_name}" "$dep_build" "${dep_package}.tar.gz" "$MANIFEST_REQUIRE" "$MANIFEST_CONFLICT" "$MANIFEST_REPLACE" "$MANIFEST_PROVIDE" "$MANIFEST_EXTRA" > "$dep_manifest"
+
+print_or_export_manifest_cmd "$(generate_manifest_cmd "$dep_manifest")"
